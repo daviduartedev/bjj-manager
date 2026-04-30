@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================
+ * BJJ Manager - Design Tokens
+ * Paleta inspirada em academia de jiu-jitsu:
+ *   #050505 preto principal
+ *   #FFFFFF branco / base
+ *   #F5F3F0 off-white
+ *   #BF1E27 vermelho destaque
+ *   #1D8B32 verde detalhe
+ *   #1E5AA8 azul detalhe
+ *   #F4C542 amarelo detalhe
+ *   #3A3A3A cinza texto
+ *   #E5E2DC cinza borda
+ *
+ * As variaveis sao expostas em HSL (sem hsl()) para o Tailwind.
+ * ===================================================== */
+
+@layer base {
+  :root {
+    /* surfaces */
+    --background: 36 21% 95%;        /* off-white #F5F3F0 */
+    --foreground: 0 0% 23%;          /* cinza texto #3A3A3A */
+
+    --card: 0 0% 100%;               /* branco puro */
+    --card-foreground: 0 0% 23%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 23%;
+
+    /* primary = vermelho academia */
+    --primary: 357 73% 43%;          /* #BF1E27 */
+    --primary-foreground: 0 0% 100%;
+
+    /* secondary = preto da identidade */
+    --secondary: 0 0% 2%;            /* #050505 */
+    --secondary-foreground: 0 0% 100%;
+
+    /* muted */
+    --muted: 36 18% 92%;
+    --muted-foreground: 0 0% 35%;
+
+    /* accent (sutil) */
+    --accent: 36 18% 90%;
+    --accent-foreground: 0 0% 12%;
+
+    /* destructive (mesma cor do primary, mas pode ser ajustada) */
+    --destructive: 357 73% 43%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* borders / inputs / focus ring */
+    --border: 38 14% 87%;            /* #E5E2DC */
+    --input: 38 14% 87%;
+    --ring: 357 73% 43%;
+
+    --radius: 0.5rem;
+
+    /* status semanticos (financeiro / graduacao) */
+    --status-paid: 134 65% 33%;      /* #1D8B32 verde */
+    --status-pending: 43 88% 61%;    /* #F4C542 amarelo */
+    --status-overdue: 357 73% 43%;   /* #BF1E27 vermelho */
+    --status-info: 213 70% 39%;      /* #1E5AA8 azul */
+
+    --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+    --font-display: "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 357 73% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 96%;
+
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 0 0% 14%;
+    --accent-foreground: 0 0% 96%;
+
+    --destructive: 357 73% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
+    --ring: 357 73% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer components {
+  /* Badges semanticos prontos para o ciclo de billing */
+  .badge-paid {
+    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
+    background-color: hsl(var(--status-paid) / 0.12);
+    color: hsl(var(--status-paid));
+  }
+  .badge-pending {
+    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
+    background-color: hsl(var(--status-pending) / 0.18);
+    color: hsl(43 80% 30%);
+  }
+  .badge-overdue {
+    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
+    background-color: hsl(var(--status-overdue) / 0.12);
+    color: hsl(var(--status-overdue));
+  }
+  .badge-info {
+    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
+    background-color: hsl(var(--status-info) / 0.12);
+    color: hsl(var(--status-info));
+  }
+}

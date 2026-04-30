@@ -1,0 +1,13 @@
+-- =====================================================
+-- BJJ Manager - Schema SQL
+-- =====================================================
+-- TODO Cycle 03 (Supabase Schema):
+--   - accounts
+--   - profiles
+--   - students
+--   - belts
+--   - student_graduations
+--   - plans
+--   - student_plans
+--   - payments
+-- =====================================================

@@ -1,0 +1,7 @@
+-- =====================================================
+-- BJJ Manager - Row Level Security policies
+-- =====================================================
+-- TODO Cycle 04 (RLS and Security):
+--   Cada professor (account_id) so enxerga e modifica
+--   seus proprios alunos, graduacoes, planos e pagamentos.
+-- =====================================================
