@@ -96,7 +96,7 @@ cycles/Q{trimestre}{ano}/{MMDD}-<slug>/request.md
 Exemplo:
 
 ```
-cycles/Q22026/0430-students-crud/request.md
+cycles/Q22026/08-0430-students-crud/request.md
 ```
 
 Toda implementação acontece na **mesma branch** (`develop` ou `main`,
@@ -109,19 +109,25 @@ dos ciclos do Q2 2026.
 
 ## MVP
 
-1. Autenticação do professor.
-2. Criação de conta/academia.
-3. Dashboard limpo.
-4. Cadastro, lista, perfil e edição de alunos.
-5. Faixa, grau e histórico de graduação (adulto e kids).
-6. Cálculos: idade, tempo de treino, tempo na faixa, tempo no grau.
-7. Planos Kids/Adulto, preço personalizado, dia de vencimento.
-8. Status financeiro: Pago / Pendente / Atrasado.
-9. Alertas simples no dashboard.
+Resumo executivo; detalhes, regras numeradas e personas estão na **fonte da verdade**:
+
+- **Produto:** [`spec/product/spec.md`](spec/product/spec.md) (espelho: [`docs/product/spec.md`](docs/product/spec.md))
+- **Entidades:** [`spec/product/entities.md`](spec/product/entities.md)
+- **Graduação:** [`spec/product/graduation-rules.md`](spec/product/graduation-rules.md)
+- **Cobrança:** [`spec/product/billing-rules.md`](spec/product/billing-rules.md)
+
+Em linha:
+
+1. Autenticação do professor e conta/academia.
+2. Dashboard com alertas simples.
+3. CRUD e perfil de alunos (adulto e kids).
+4. Faixa, grau e histórico de graduação (bloqueio com justificativa em pulo de faixa).
+5. Cálculos de idade e tempos (faixa/grau/treino).
+6. Planos Kids/Adulto, preço personalizado por aluno, dia de vencimento.
+7. Mensalidade por mês de referência com status **manual** pelo professor: **Pago**, **Não pago**, **Pendente**, **Outro**; ação em lote **marcar todos como pagos** (sem gateway no MVP).
 
 ## Fora do MVP (Roadmap)
 
 Presença, turmas, QR code, WhatsApp, documentos, certificados,
-exportação CSV/Excel, login de aluno, app do aluno. Documentado em
-`cycles/Q22026/0430-future-roadmap/request.md`.
-"# bjj-manager" 
+exportação CSV/Excel, login de aluno, app do aluno, gateways de pagamento.
+Roadmap amplo em `cycles/Q22026/21-0430-future-roadmap/request.md`.

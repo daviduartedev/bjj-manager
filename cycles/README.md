@@ -13,8 +13,8 @@ cycles/Q{trimestre}{ano}/{MMDD}-<slug>/request.md
 Exemplo:
 
 ```
-cycles/Q22026/0430-project-bootstrap/request.md
-cycles/Q22026/0430-students-crud/request.md
+cycles/Q22026/01-0430-project-bootstrap/request.md
+cycles/Q22026/08-0430-students-crud/request.md
 ```
 
 - `Q{trimestre}{ano}` agrupa os ciclos por trimestre fiscal.
@@ -60,27 +60,27 @@ Lista crua, na ordem em que recomendamos executar:
 
 | Ordem | Ciclo |
 |------:|-------|
-| 1     | `Q22026/0430-project-bootstrap` |
-| 2     | `Q22026/0430-product-specification` |
-| 3     | `Q22026/0430-design-system` |
-| 4     | `Q22026/0430-supabase-schema` |
-| 5     | `Q22026/0430-rls-and-security` |
-| 6     | `Q22026/0430-authentication` |
-| 7     | `Q22026/0430-app-shell` |
-| 8     | `Q22026/0430-students-crud` |
-| 9     | `Q22026/0430-student-profile` |
-| 10    | `Q22026/0430-graduation-engine` |
-| 11    | `Q22026/0430-date-duration-utilities` |
-| 12    | `Q22026/0430-plans-billing-model` |
-| 13    | `Q22026/0430-payments-billing-status` |
-| 14    | `Q22026/0430-billing-ui` |
-| 15    | `Q22026/0430-dashboard` |
-| 16    | `Q22026/0430-settings` |
-| 17    | `Q22026/0430-empty-loading-errors` |
-| 18    | `Q22026/0430-responsiveness-mobile-polish` |
-| 19    | `Q22026/0430-qa-hardening` |
-| 20    | `Q22026/0430-deployment` |
-| 21    | `Q22026/0430-future-roadmap` |
+| 1     | `Q22026/01-0430-project-bootstrap` |
+| 2     | `Q22026/02-0430-product-specification` |
+| 3     | `Q22026/03-0430-design-system` |
+| 4     | `Q22026/04-0430-supabase-schema` |
+| 5     | `Q22026/05-0430-rls-and-security` |
+| 6     | `Q22026/06-0430-authentication` |
+| 7     | `Q22026/07-0430-app-shell` |
+| 8     | `Q22026/08-0430-students-crud` |
+| 9     | `Q22026/09-0430-date-duration-utilities` |
+| 10    | `Q22026/10-0430-student-profile` |
+| 11    | `Q22026/11-0430-graduation-engine` |
+| 12    | `Q22026/12-0430-plans-billing-model` |
+| 13    | `Q22026/13-0430-payments-billing-status` |
+| 14    | `Q22026/14-0430-billing-ui` |
+| 15    | `Q22026/15-0430-dashboard` |
+| 16    | `Q22026/16-0430-settings` |
+| 17    | `Q22026/17-0430-empty-loading-errors` |
+| 18    | `Q22026/18-0430-responsiveness-mobile-polish` |
+| 19    | `Q22026/19-0430-qa-hardening` |
+| 20    | `Q22026/20-0430-deployment` |
+| 21    | `Q22026/21-0430-future-roadmap` |
 
 ## Como rodar um ciclo
 
