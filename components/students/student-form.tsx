@@ -1,0 +1,444 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import { createStudent, updateStudent } from "@/actions/students";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
+import { ROUTES } from "@/lib/routes";
+import { mapStudentServerError } from "@/lib/students/action-errors";
+import { beltLabelPt } from "@/lib/students/belt-labels";
+import { degreeOptionsForBelt } from "@/lib/students/degree";
+import { maskCpfInput, maskPhoneBrInput } from "@/lib/students/input-masks";
+import {
+  buildStudentFullFormSchema,
+  type StudentFullFormValues,
+} from "@/lib/validations/students";
+
+type Props = {
+  belts: BeltCatalogRow[];
+  plans: PlanCatalogRow[];
+  mode: "create" | "edit";
+  studentId?: string;
+  defaultValues: StudentFullFormValues;
+};
+
+export function StudentForm({
+  belts,
+  plans,
+  mode,
+  studentId,
+  defaultValues,
+}: Props) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const schema = useMemo(
+    () => buildStudentFullFormSchema(belts, plans),
+    [belts, plans],
+  );
+
+  const form = useForm<StudentFullFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues,
+    mode: "onSubmit",
+  });
+
+  const kind = form.watch("kind");
+  const beltId = form.watch("current_belt_id");
+
+  const beltsForKind = useMemo(
+    () => belts.filter((b) => b.kind === kind),
+    [belts, kind],
+  );
+
+  const plansForKind = useMemo(
+    () =>
+      plans.filter((p) =>
+        kind === "adult"
+          ? p.kind === "adult"
+          : p.kind === "kids_1" || p.kind === "kids_2",
+      ),
+    [plans, kind],
+  );
+
+  const selectedBelt = belts.find((b) => b.id === beltId);
+  const degreeChoices = selectedBelt
+    ? degreeOptionsForBelt(selectedBelt.slug, selectedBelt.kind)
+    : [0, 1, 2, 3, 4];
+
+  function syncKind(kindNext: "adult" | "kids") {
+    const b = belts.find((x) => x.kind === kindNext);
+    const p = plans.find((x) =>
+      kindNext === "adult"
+        ? x.kind === "adult"
+        : x.kind === "kids_1" || x.kind === "kids_2",
+    );
+    if (b) {
+      form.setValue("current_belt_id", b.id);
+      const opts = degreeOptionsForBelt(b.slug, b.kind);
+      form.setValue("current_degree", opts[0] ?? 0);
+    }
+    if (p) form.setValue("plan_id", p.id);
+  }
+
+  async function onSubmit(values: StudentFullFormValues) {
+    setLoading(true);
+    try {
+      const result =
+        mode === "create"
+          ? await createStudent(values)
+          : await updateStudent(studentId!, values);
+
+      if (!result.ok) {
+        if (result.fieldErrors) {
+          for (const [key, msgs] of Object.entries(result.fieldErrors)) {
+            form.setError(key as keyof StudentFullFormValues, {
+              message: msgs[0],
+            });
+          }
+        }
+        toast.error(result.error);
+        return;
+      }
+      toast.success(
+        mode === "create" ? "Aluno registado com sucesso." : "Dados guardados.",
+      );
+      if (mode === "create") {
+        router.push(ROUTES.alunos);
+        router.refresh();
+      } else {
+        router.refresh();
+      }
+    } catch (e) {
+      toast.error(mapStudentServerError(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="mx-auto flex max-w-xl flex-col gap-6"
+      >
+        <FormField
+          control={form.control}
+          name="full_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome completo</FormLabel>
+              <FormControl>
+                <Input {...field} disabled={loading} autoComplete="name" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="birth_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data de nascimento</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="academy_start_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data de entrada na academia</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="kind"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo</FormLabel>
+              <Select
+                disabled={loading}
+                value={field.value}
+                onValueChange={(v) => {
+                  field.onChange(v as "adult" | "kids");
+                  syncKind(v as "adult" | "kids");
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger className="min-h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="adult">Adulto</SelectItem>
+                  <SelectItem value="kids">Kids</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="current_belt_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Faixa</FormLabel>
+                <Select
+                  disabled={loading}
+                  value={field.value}
+                  onValueChange={(v) => {
+                    field.onChange(v);
+                    const b = belts.find((x) => x.id === v);
+                    if (b) {
+                      const opts = degreeOptionsForBelt(b.slug, b.kind);
+                      form.setValue("current_degree", opts[0] ?? 0);
+                    }
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger className="min-h-11">
+                      <SelectValue placeholder="Escolha" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {beltsForKind.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {beltLabelPt(b.slug, b.kind)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="current_degree"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Grau</FormLabel>
+                <Select
+                  disabled={loading}
+                  value={String(field.value)}
+                  onValueChange={(v) => field.onChange(Number(v))}
+                >
+                  <FormControl>
+                    <SelectTrigger className="min-h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {degreeChoices.map((d) => (
+                      <SelectItem key={d} value={String(d)}>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="plan_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Plano</FormLabel>
+              {plansForKind.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {plans.length === 0
+                    ? "Não foram encontrados planos para esta academia. Recarregue a página; se continuar vazio, confira o vínculo conta/perfil em docs/security/rls.md."
+                    : "Não há planos ativos para este tipo de aluno (Kids 1 / Kids 2 ou Adulto). Ative os planos nas configurações da conta."}
+                </p>
+              ) : (
+                <Select
+                  disabled={loading}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <FormControl>
+                    <SelectTrigger className="min-h-11">
+                      <SelectValue placeholder="Escolha" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {plansForKind.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="due_day"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Dia de vencimento (1–28)</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min={1}
+                  max={28}
+                  disabled={loading}
+                  {...field}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="document"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>CPF (opcional)</FormLabel>
+              <FormControl>
+                <Input
+                  disabled={loading}
+                  inputMode="numeric"
+                  placeholder="000.000.000-00"
+                  value={field.value ?? ""}
+                  onChange={(e) =>
+                    field.onChange(maskCpfInput(e.target.value))
+                  }
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Telefone (opcional)</FormLabel>
+              <FormControl>
+                <Input
+                  disabled={loading}
+                  inputMode="tel"
+                  placeholder="(00) 00000-0000"
+                  value={field.value ?? ""}
+                  onChange={(e) =>
+                    field.onChange(maskPhoneBrInput(e.target.value))
+                  }
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>E-mail (opcional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  disabled={loading}
+                  autoComplete="email"
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Observações (opcional)</FormLabel>
+              <FormControl>
+                <Textarea
+                  disabled={loading}
+                  className="min-h-[88px]"
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11"
+            disabled={loading}
+            onClick={() => router.push(ROUTES.alunos)}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" className="min-h-11" disabled={loading}>
+            {loading ? "A guardar…" : mode === "create" ? "Registar aluno" : "Guardar"}
+          </Button>
+        </div>
+
+      </form>
+    </Form>
+  );
+}
