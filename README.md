@@ -67,7 +67,7 @@ Tokens em `app/globals.css` e `tailwind.config.ts`.
 /components
   /ui                shadcn primitives (button, card, input, ...)
   /layout            page-header, section, empty-state
-  /students          /graduations  /billing  /dashboard  /settings
+  /alunos            /graduations  /billing  /painel  /configuracoes
 /lib
   /supabase          client/server/middleware
   /validations       schemas Zod
