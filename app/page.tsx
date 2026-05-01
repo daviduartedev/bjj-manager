@@ -18,9 +18,6 @@ export default function HomePage() {
             <Button asChild variant="ghost" className="text-white hover:bg-white/10 hover:text-white">
               <Link href="/login">Entrar</Link>
             </Button>
-            <Button asChild>
-              <Link href="/register">Criar conta</Link>
-            </Button>
           </nav>
         </div>
       </header>
@@ -31,20 +28,17 @@ export default function HomePage() {
           <Badge variant="outline" className="mb-4">
             MVP em construcao
           </Badge>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+          <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
             Gerencie sua academia de{" "}
             <span className="text-bjj-red">jiu-jitsu</span> sem planilha.
           </h1>
-          <p className="mt-4 text-base text-muted-foreground sm:text-lg">
+          <p className="type-lead mt-4 sm:text-crm-lg sm:leading-relaxed">
             Alunos, graduacoes e mensalidades em um so lugar. Feito por
             professor, para professor.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg">
-              <Link href="/register">Comecar gratis</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/login">Ja tenho conta</Link>
+            <Button asChild size="lg" className="w-full min-h-12 sm:w-auto sm:min-h-11">
+              <Link href="/login">Entrar na plataforma</Link>
             </Button>
           </div>
         </div>

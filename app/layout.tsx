@@ -1,9 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { IBM_Plex_Sans } from "next/font/google";
+
+import { Toaster } from "@/components/ui/sonner";
+
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
+/** Tipografia única estilo CRM / painel operacional (IBM Plex Sans — legível em dados densos, bom suporte a pt-BR). */
+const ibmPlexSans = IBM_Plex_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--font-sans",
 });
@@ -30,8 +35,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={inter.variable} suppressHydrationWarning>
-      <body className="min-h-screen bg-background antialiased">{children}</body>
+    <html lang="pt-BR" className={ibmPlexSans.variable} suppressHydrationWarning>
+      <body className="min-h-screen bg-background antialiased">
+        {children}
+        <Toaster richColors position="bottom-right" />
+      </body>
     </html>
   );
 }
