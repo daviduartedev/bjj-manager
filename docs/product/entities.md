@@ -28,6 +28,8 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 
 **ENT-2.2.** **Sessão de autenticação** é infraestrutura (Supabase), não entidade de negócio nomeada no modelo relacional do MVP.
 
+**ENT-2.3.** Enquanto não existir **autocadastro** na aplicação (**SPEC-3.7**), o vínculo inicial entre utilizador em **Auth**, **`accounts`** e **`profiles`** é feito por **provisionamento manual** (dashboard Supabase + SQL), conforme [`docs/security/rls.md`](../security/rls.md) e **AUTH-7.1**.
+
 ---
 
 ## E3. Faixa (catálogo)
@@ -51,7 +53,7 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 | Nome | Sim | |
 | Faixa atual | Sim | FK para faixa |
 | Grau atual | Sim | Limites por tipo/faixa — ver **GR-** |
-| Status do aluno | Sim | Ex.: ativo/inativo (enum no schema) |
+| Status do aluno | Sim | Enum no schema: **ativo**, **inativo**, **trial**, **pausado** (trial pode designar período curto, ex. um dia, definido operacionalmente na UI — sem cron obrigatório no MVP salvo ciclo dedicado). Na UI do ciclo de alunos (**STU-3**), **trial** não é exposto; **ativo**, **inativo** e **pausado** sim. |
 | Data de nascimento | Recomendado | Idade e transição kids/adulto |
 | Data de início na academia | Recomendado | Tempo de treino |
 | Documento, telefone, e-mail, observações | Não | LGPD / minimização |
@@ -75,7 +77,9 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 
 ## E6. Plano
 
-**ENT-6.1.** Plano comercial da conta: tipo **Kids** ou **Adulto**, valor padrão em centavos, ativo/inativo.
+**ENT-6.1.** Plano comercial da conta: tipo **Kids 1**, **Kids 2** ou **Adulto**, valor padrão em centavos, ativo/inativo. A função principal no MVP é **organizar cobrança e segmentação** por **idade/turma**; o professor **associa manualmente** cada aluno a um desses planos (**BR-1.1**).
+
+**ENT-6.2.** Valores por defeito na provisão automática da conta e no seed de desenvolvimento: ver **BR-1.4** e **BLM-2**.
 
 ---
 
@@ -90,7 +94,9 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 | Preço personalizado | Não | Centavos; se nulo, usa preço do plano |
 | Dia de vencimento | Sim | **1–28** (recomendado produto); meses curtos ajustam ao último dia válido |
 
-**ENT-7.2.** No MVP, assume-se **um vínculo ativo relevante** por aluno para fins de cobrança recorrente mensal; troca de plano pode ser modelada como novo vínculo ou atualização — decisão de implementação no ciclo de billing.
+**ENT-7.2.** No MVP, há no máximo **um vínculo aberto** por aluno (`ended_at` nulo no vínculo aluno–plano); troca de plano fecha o vínculo anterior (`ended_at`) e abre outro (`started_at`). A regra é **reforçada no banco** (índice único parcial) no ciclo schema.
+
+**ENT-7.3.** Qualquer operação de nova vigência via **`setStudentPlan`** (incluindo **mesmo** `plan_id` que o vínculo aberto) **insere** nova linha em `student_plans` e define `ended_at` na linha anterior com a **mesma data civil** que `started_at` da nova linha, em referência **America/São_Paulo** (**BLM-5**). Não se usa atualização in-place da linha aberta para esse efeito.
 
 ---
 
@@ -102,12 +108,12 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 
 | Campo | Obrigatório | Notas |
 |-------|-------------|--------|
-| Status manual | Sim | **Pago**, **Não pago**, **Pendente**, **Outro** — ver **BR-** |
+| Status manual | Sim | **Pago**, **Não pago**, **Pendente**, **Bolsista**, **Outro** — ver **BR-** |
 | Valor efetivo cobrado | Não | Útil para histórico; default do vínculo |
 | Data/hora do pagamento | Não | Informação opcional quando **Pago** |
 | Observação | Não | Especialmente para **Outro** |
 
-**ENT-8.3.** Registro pode mapear para tabela `payments` no Supabase; ausência de linha pode significar **Pendente** ou “não revisado” — alinhar semântica no ciclo de dados (**BR-**).
+**ENT-8.3.** Registro pode mapear para tabela `payments` no Supabase; ausência de linha é tratada como **Pendente** na experiência (**BR-4.4**), com transição automática para **Não pago** conforme **BR-4.5**.
 
 ---
 
