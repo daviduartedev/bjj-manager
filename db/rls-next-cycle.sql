@@ -1,0 +1,7 @@
+-- =====================================================
+-- RLS — substituído por db/policies.sql (ciclo Q22026/05)
+-- =====================================================
+-- As políticas canónicas e a função public.current_account_id()
+-- estão versionadas em policies.sql e aplicadas por pnpm db:apply.
+-- Ver spec/features/rls-security/readme.md e docs/security/rls.md.
+-- =====================================================
