@@ -175,7 +175,7 @@ export function MensalidadesClient({
   const monthCaption = formatReferenceMonthCaption(referenceMonth);
 
   return (
-    <div className="w-full max-w-[min(100%,112rem)] space-y-5" data-tour="page-mensalidades">
+    <div className="w-full max-w-[min(100%,112rem)] space-y-5">
       <DashboardPageHero
         badge="Financeiro"
         title="Mensalidades"
@@ -191,7 +191,7 @@ export function MensalidadesClient({
         subtitle="Filtros e lista densa"
         contentClassName="p-3 sm:p-4"
       >
-        <div className="rounded-xl border border-border/60 bg-muted/15 p-4">
+        <div className="rounded-xl border border-border/60 bg-muted/15 p-4" data-tour="page-mensalidades">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-5">
             <div className="flex min-w-0 flex-col gap-1.5">
               <Label

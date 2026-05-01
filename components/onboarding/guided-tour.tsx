@@ -31,7 +31,7 @@ function firstVisibleDataTour(tour: string): HTMLElement {
   return document.body;
 }
 
-/** Desktop: barra lateral; telemóvel: navegação inferior. */
+/** Desktop: barra lateral; celular: navegação inferior. */
 function firstVisibleShellNav(): HTMLElement {
   const sidebar = firstVisibleDataTour("shell-sidebar");
   if (sidebar !== document.body) return sidebar;
@@ -41,6 +41,9 @@ function firstVisibleShellNav(): HTMLElement {
 }
 
 const tourDelay = 480;
+
+/** Header fixo (h-14) + folga para o tooltip não ser cortado no topo da viewport. */
+const TOUR_SCROLL_OFFSET = 100;
 
 type GuidedTourProps = {
   run: boolean;
@@ -68,7 +71,7 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: "body",
         title: "Bem-vindo",
         content:
-          "Este tour mostra o menu, abre cada área principal (Painel, Alunos, Mensalidades, Configurações) e explica o que fazer. Usa Seguinte para avançar. Podes saltar a qualquer momento. Tudo fica guardado só neste navegador, sem alterar dados da academia.",
+          "Vamos passar pelo menu e pelas quatro áreas principais: Painel, Alunos, Mensalidades e Configurações. Use Próximo para avançar; dá para pular o tour quando quiser. Só este navegador guarda que você já concluiu — não mexe na sua conta nem nos dados da academia.",
         placement: "center",
         skipBeacon: true,
       },
@@ -76,13 +79,14 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: () => firstVisibleShellNav(),
         title: "Menu principal",
         content:
-          "Aqui estão as áreas de trabalho. No telemóvel, o mesmo menu aparece em baixo. Cada sítio tem um papel: resumo, pessoas, dinheiro do mês e definições da escola.",
-        placement: "right",
+          "É por aqui que você chega em cada parte do sistema. No celular, o mesmo atalho aparece na barra de baixo. Cada item tem uma função: visão geral do dia, cadastro de alunos, mensalidades e preferências da academia.",
+        placement: "auto",
       },
       {
         target: () => firstVisibleDataTour("tour-painel"),
         title: "Painel",
-        content: "Isto leva ao resumo do dia: números rápidos, aniversariantes, atrasos e atalhos. É o sítio certo para abrir a rotina.",
+        content:
+          "Abre o resumo do dia: totais rápidos, aniversariantes, atrasos e atalhos. Comece por aqui na rotina diária.",
         placement: "right",
         before: async () => {
           await navigateTo(ROUTES.painel);
@@ -90,10 +94,10 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
       },
       {
         target: () => firstVisibleDataTour("page-painel"),
-        title: "Dentro do Painel",
+        title: "Tela do Painel",
         content:
-          "Aqui vês o olá, os indicadores e o que precisa de atenção. Deste ecrã consegues saltar para alunos ou mensalidades com um clique nos cartões, quando existirem.",
-        placement: "bottom",
+          "Aqui ficam o cumprimento, os números principais e o que pede atenção. Nos cartões, quando aparecer, um clique leva direto para Alunos ou Mensalidades.",
+        placement: "auto",
         before: async () => {
           await navigateTo(ROUTES.painel);
         },
@@ -101,7 +105,8 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
       {
         target: () => firstVisibleDataTour("tour-alunos"),
         title: "Alunos",
-        content: "A lista e a ficha de cada aluno: dados, faixa, grau, graduações e o resumo do mês na mesma vista.",
+        content:
+          "Cadastro completo: dados, faixa, grau, histórico de graduação e visão do mês na mesma ficha.",
         placement: "right",
         before: async () => {
           await navigateTo(ROUTES.alunos);
@@ -111,8 +116,8 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: () => firstVisibleDataTour("page-alunos"),
         title: "Lista de alunos",
         content:
-          "Procura, filtra e abre a ficha. Novo aluno costuma estar num botão visível nesta área. Quando alguém sobe de faixa, regista a graduação na ficha para o histórico ficar certo.",
-        placement: "bottom",
+          "Busque, filtre e abra a ficha pela linha. O botão de novo aluno fica nesta área. Quando subir de faixa, registre a graduação na ficha para manter o histórico certo.",
+        placement: "auto",
         before: async () => {
           await navigateTo(ROUTES.alunos);
         },
@@ -120,7 +125,8 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
       {
         target: () => firstVisibleDataTour("tour-mensalidades"),
         title: "Mensalidades",
-        content: "Aqui acompanhas o mês, quem pagou, quem não pagou e registas o pagamento quando o dinheiro entra de verdade.",
+        content:
+          "Acompanhe o mês de referência, quem está em dia e quem não está. Registre o pagamento quando o valor for confirmado.",
         placement: "right",
         before: async () => {
           await navigateTo(ROUTES.mensalidades);
@@ -130,8 +136,8 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: () => firstVisibleDataTour("page-mensalidades"),
         title: "Mensalidades do mês",
         content:
-          "Confere o mês no topo, usa filtros se existirem e abre a linha do aluno para detalhe. Regista pagamento na hora em que confirmas fora do sistema.",
-        placement: "bottom",
+          "Confira o mês no topo, use os filtros e abra o aluno para ver detalhes. Registre o pagamento no momento em que fechar o valor com a família.",
+        placement: "auto",
         before: async () => {
           await navigateTo(ROUTES.mensalidades);
         },
@@ -139,7 +145,8 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
       {
         target: () => firstVisibleDataTour("tour-configuracoes"),
         title: "Configurações",
-        content: "Nome da academia e planos base (crianças e adultos). Isto ajuda quando ligas cada aluno a um plano e evita erros de valor.",
+        content:
+          "Nome da academia e valores dos planos (kids e adulto). Isso padroniza o vínculo de cada aluno com o plano certo e reduz erro de mensalidade.",
         placement: "right",
         before: async () => {
           await navigateTo(ROUTES.configuracoes);
@@ -147,20 +154,20 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
       },
       {
         target: () => firstVisibleDataTour("page-configuracoes"),
-        title: "Definições da escola",
+        title: "Preferências da academia",
         content:
-          "Ajusta aqui o que é comum a todos. O teu nome e contacto de utilizador ficam em Perfil, no menu da cara ao lado do botão Wizard.",
-        placement: "bottom",
+          "Ajuste aquilo que vale para toda a escola. Nome de exibição, e-mail e dados pessoais ficam em Perfil — no ícone de usuário ao lado do botão Wizard.",
+        placement: "auto",
         before: async () => {
           await navigateTo(ROUTES.configuracoes);
         },
       },
       {
         target: () => firstVisibleDataTour("shell-wizard-trigger"),
-        title: "Voltar ao tour",
+        title: "Abrir o tour de novo",
         content:
-          "Este botão Wizard volta a abrir este guia quando quiseres. No menu da cara abres Perfil ou Terminar sessão.",
-        placement: "bottom",
+          "Sempre que precisar rever o passo a passo, clique em Wizard. No mesmo canto, o ícone de usuário abre Perfil e Sair.",
+        placement: "auto",
       },
     ],
     [navigateTo],
@@ -191,9 +198,15 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
       continuous
       scrollToFirstStep
       onEvent={handleEvent}
+      floatingOptions={{
+        flipOptions: { padding: 20 },
+        shiftOptions: { padding: 20 },
+      }}
       options={{
-        scrollOffset: 80,
+        scrollOffset: TOUR_SCROLL_OFFSET,
+        scrollDuration: 400,
         showProgress: true,
+        spotlightPadding: 10,
         buttons: ["back", "skip", "close", "primary"],
         zIndex: 10050,
         primaryColor: "hsl(var(--primary))",
@@ -205,8 +218,9 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         back: "Voltar",
         close: "Fechar",
         last: "Concluir",
-        next: "Seguinte",
-        skip: "Saltar tour",
+        next: "Próximo",
+        nextWithProgress: "Próximo ({current} de {total})",
+        skip: "Pular tour",
       }}
     />
   );

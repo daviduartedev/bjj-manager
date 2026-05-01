@@ -152,57 +152,59 @@ export function PainelDashboard(props: Props) {
   } = props;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6" data-tour="page-painel">
-      <DashboardPageHero
-        badge="Visão geral"
-        title={`Olá, ${displayName}`}
-        description={`${accountName}, resumo do dia e atalhos.`}
-        aside={
-          <div className="flex max-w-xs items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted/50 text-muted-foreground">
-              <Sparkles className="size-5" aria-hidden />
-            </span>
-            <div>
-              <p className="text-crm-xs font-medium text-muted-foreground">Hoje</p>
-              <p className="text-crm-sm font-semibold text-foreground">Indicadores rápidos</p>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <div className="space-y-6" data-tour="page-painel">
+        <DashboardPageHero
+          badge="Visão geral"
+          title={`Olá, ${displayName}`}
+          description={`${accountName}, resumo do dia e atalhos.`}
+          aside={
+            <div className="flex max-w-xs items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted/50 text-muted-foreground">
+                <Sparkles className="size-5" aria-hidden />
+              </span>
+              <div>
+                <p className="text-crm-xs font-medium text-muted-foreground">Hoje</p>
+                <p className="text-crm-sm font-semibold text-foreground">Indicadores rápidos</p>
+              </div>
             </div>
-          </div>
-        }
-      />
+          }
+        />
 
-      <section aria-labelledby="kpi-heading">
-        <h2 id="kpi-heading" className="sr-only">
-          Indicadores principais
-        </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <KpiLinkCard
-            href={routeAlunosActivos()}
-            label="Alunos ativos"
-            value={activeStudentCount}
-            icon={Users}
-          />
-          <KpiLinkCard
-            href={routeMensalidadesComFiltro("atrasado")}
-            label="Mensalidades atrasadas"
-            value={overdueCount}
-            icon={Wallet}
-            variant="rose"
-          />
-          <KpiLinkCard
-            href={routeAlunosActivos()}
-            label="Aniversariantes do mês"
-            value={birthdayMonthCount}
-            icon={Cake}
-            variant="amber"
-          />
-          <KpiLinkCard
-            href={routeAlunosActivos()}
-            label="Alertas de graduação"
-            value={graduationAlertCount}
-            icon={TrendingUp}
-          />
-        </div>
-      </section>
+        <section aria-labelledby="kpi-heading">
+          <h2 id="kpi-heading" className="sr-only">
+            Indicadores principais
+          </h2>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <KpiLinkCard
+              href={routeAlunosActivos()}
+              label="Alunos ativos"
+              value={activeStudentCount}
+              icon={Users}
+            />
+            <KpiLinkCard
+              href={routeMensalidadesComFiltro("atrasado")}
+              label="Mensalidades atrasadas"
+              value={overdueCount}
+              icon={Wallet}
+              variant="rose"
+            />
+            <KpiLinkCard
+              href={routeAlunosActivos()}
+              label="Aniversariantes do mês"
+              value={birthdayMonthCount}
+              icon={Cake}
+              variant="amber"
+            />
+            <KpiLinkCard
+              href={routeAlunosActivos()}
+              label="Alertas de graduação"
+              value={graduationAlertCount}
+              icon={TrendingUp}
+            />
+          </div>
+        </section>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <DashboardPanel

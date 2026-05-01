@@ -129,7 +129,7 @@ export function StudentsList({
     "text-crm-xs font-semibold uppercase tracking-wider text-muted-foreground";
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm" data-tour="page-alunos">
       <div className="border-b border-border bg-muted/30">
         <div className="flex items-center gap-2 px-4 py-3.5 sm:px-5">
           <span className="flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground">
