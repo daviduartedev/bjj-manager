@@ -1,7 +1,7 @@
 {
   "name": "Casca",
   "short_name": "Casca",
-  "description": "Gestão de academia de jiu-jitsu — alunos, graduações e mensalidades.",
+  "description": "Gestão de academia de jiu-jitsu: alunos, graduações e mensalidades.",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

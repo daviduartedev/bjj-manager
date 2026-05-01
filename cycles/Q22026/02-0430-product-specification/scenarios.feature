@@ -1,6 +1,6 @@
 # language: pt
 Funcionalidade: Especificação de produto consolidada
-  Como stakeholder do BJJ Manager
+  Como stakeholder do Casca - Gestão de Academias de BJJ
   Quero documentação canônica de produto e domínio
   Para que ciclos seguintes implementem sem ambiguidade de escopo
 

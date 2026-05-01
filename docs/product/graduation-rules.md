@@ -1,4 +1,4 @@
-# Regras de graduação — BJJ Manager
+# Regras de graduação — Casca - Gestão de Academias de BJJ
 
 Referência de ordem de faixas: **IBJJF** — *General System of Graduation* (faixas por idade; graus em faixas coloridas adulto). O aplicativo é uma ferramenta da academia; federações podem impor regras adicionais.
 

@@ -18,7 +18,7 @@ Funcionalidade: Planos e vínculo de mensalidade por aluno
     Dado que estou autenticado na minha academia
     E que escolho um dos meus planos (<plano>)
     Quando defino um novo preço padrão válido para esse plano
-    Então o sistema guarda esse valor como referência para alunos sem preço personalizado
+    Então o sistema salva esse valor como referência para alunos sem preço personalizado
     E o valor continua representado de forma inteira na base (centavos)
 
     Exemplos:

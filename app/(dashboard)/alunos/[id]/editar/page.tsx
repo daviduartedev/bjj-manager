@@ -22,7 +22,7 @@ export async function generateMetadata({
   const { id } = await params;
   const student = await getStudentByIdForEdit(id);
   return {
-    title: student ? `Editar · ${student.full_name}` : "Editar aluno",
+    title: student ? `Editar, ${student.full_name}` : "Editar aluno",
   };
 }
 
@@ -51,7 +51,7 @@ export default async function EditarAlunoPage({ params }: PageProps) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="mx-auto max-w-6xl space-y-6">
       <DashboardPageHero
         badge="Edição"
         intro={<DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>}
@@ -63,7 +63,7 @@ export default async function EditarAlunoPage({ params }: PageProps) {
             className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/8 px-4 py-3 text-crm-sm text-foreground"
             role="status"
           >
-            Este aluno não tem plano ativo associado. Escolha um plano compatível e guarde.
+            Este aluno não tem plano ativo associado. Escolha um plano compatível e salve.
           </p>
         ) : null}
       </DashboardPageHero>

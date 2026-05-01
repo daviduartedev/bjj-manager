@@ -1,11 +1,11 @@
 -- =====================================================
--- BJJ Manager - Seed SQL (Supabase / Postgres)
+-- Casca - Gestão de Academias de BJJ - Seed SQL (Supabase / Postgres)
 -- =====================================================
 -- Run after schema.sql. Idempotent where ON CONFLICT applies.
 -- Dev account UUID fixed for repeatable local/dev seeds (BR-1.4).
 -- =====================================================
 
--- ---------- Dev academy + default plans (Kids 1 / Kids 2 / Adulto) ----------
+-- ---------- Dev academy + default plans (Kid 1 / Juvenil / Adulto) ----------
 INSERT INTO
   public.accounts (id, name)
 VALUES
@@ -21,14 +21,14 @@ VALUES
   (
     '00000000-0000-4000-8000-000000000001'::uuid,
     'kids_1',
-    'Kids 1',
+    'Kid 1',
     10000,
     true
   ),
   (
     '00000000-0000-4000-8000-000000000001'::uuid,
     'kids_2',
-    'Kids 2',
+    'Juvenil',
     12000,
     true
   ),

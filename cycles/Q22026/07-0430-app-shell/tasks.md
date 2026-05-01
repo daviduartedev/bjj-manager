@@ -24,7 +24,7 @@ Checklist executável; citar **SHELL-** / **AUTH-** / **DS-** nos commits quando
 ## Shell de UI
 
 - [x] Implementar `app/(dashboard)/layout.tsx` com: sidebar **≥ lg**; **< lg**: header com botão que abre **drawer** + **bottom navigation** obrigatória com os mesmos destinos principais (Painel, Alunos, Mensalidades, Configurações).
-- [x] Cabeçalho: marca **BJJ Manager** + nome da academia quando `getCurrentAccount()` resolver; fallback discreto quando não houver nome (sem quebrar **AUTH-6.1**).
+- [x] Cabeçalho: marca **Casca - Gestão de Academias de BJJ** + nome da academia quando `getCurrentAccount()` resolver; fallback discreto quando não houver nome (sem quebrar **AUTH-6.1**).
 - [x] Menu do utilizador: **Perfil** → `/perfil`, **Sair** (reutilizar padrão já existente do projeto).
 - [x] Componente **NavLink** (ou equivalente) com estado ativo por **`pathname`** (incluindo subrotas, ex. `/alunos/novo`).
 - [x] Estilo: ícones claros no chrome escuro; item ativo em **vermelho**; no **tema claro**, sidebar/header/hamburger **suavizados** via tokens (**SHELL-7.1**, **SHELL-7.2**, **DS-1.x**).

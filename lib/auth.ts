@@ -14,6 +14,7 @@ export type ProfileRow = {
   user_id: string;
   account_id: string;
   display_name: string;
+  phone: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -53,6 +54,7 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
       user_id,
       account_id,
       display_name,
+      phone,
       created_at,
       updated_at,
       accounts (
@@ -82,6 +84,7 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
     user_id: profileRow.user_id,
     account_id: profileRow.account_id,
     display_name: profileRow.display_name,
+    phone: profileRow.phone ?? null,
     created_at: profileRow.created_at,
     updated_at: profileRow.updated_at,
   };

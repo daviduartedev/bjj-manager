@@ -11,9 +11,13 @@ export function StudentStatusBadge({ status }: { status: string }) {
   const label = LABELS[status] ?? status;
   const variant =
     status === "active"
-      ? "default"
-      : status === "paused"
-        ? "secondary"
-        : "outline";
+      ? "paid"
+      : status === "inactive"
+        ? "muted"
+        : status === "paused"
+          ? "pending"
+          : status === "trial"
+            ? "info"
+            : "outline";
   return <Badge variant={variant}>{label}</Badge>;
 }

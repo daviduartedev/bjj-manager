@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -29,6 +29,7 @@ import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog
 import { ROUTES } from "@/lib/routes";
 import { mapStudentServerError } from "@/lib/students/action-errors";
 import { beltLabelPt } from "@/lib/students/belt-labels";
+import { isWhiteBeltSlug } from "@/lib/students/belt-kind";
 import { degreeOptionsForBelt } from "@/lib/students/degree";
 import { maskCpfInput, maskPhoneBrInput } from "@/lib/students/input-masks";
 import {
@@ -84,6 +85,16 @@ export function StudentForm({
   );
 
   const selectedBelt = belts.find((b) => b.id === beltId);
+  const isWhiteBelt = selectedBelt
+    ? isWhiteBeltSlug(selectedBelt.slug)
+    : false;
+
+  useEffect(() => {
+    if (isWhiteBelt) {
+      form.setValue("current_degree", 0);
+    }
+  }, [isWhiteBelt, form]);
+
   const degreeChoices = selectedBelt
     ? degreeOptionsForBelt(selectedBelt.slug, selectedBelt.kind)
     : [0, 1, 2, 3, 4];
@@ -97,8 +108,12 @@ export function StudentForm({
     );
     if (b) {
       form.setValue("current_belt_id", b.id);
-      const opts = degreeOptionsForBelt(b.slug, b.kind);
-      form.setValue("current_degree", opts[0] ?? 0);
+      if (isWhiteBeltSlug(b.slug)) {
+        form.setValue("current_degree", 0);
+      } else {
+        const opts = degreeOptionsForBelt(b.slug, b.kind);
+        form.setValue("current_degree", opts[0] ?? 0);
+      }
     }
     if (p) form.setValue("plan_id", p.id);
   }
@@ -123,7 +138,7 @@ export function StudentForm({
         return;
       }
       toast.success(
-        mode === "create" ? "Aluno registado com sucesso." : "Dados guardados.",
+        mode === "create" ? "Aluno registado com sucesso." : "Dados salvos.",
       );
       if (mode === "create") {
         router.push(ROUTES.alunos);
@@ -177,10 +192,50 @@ export function StudentForm({
             name="academy_start_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Data de entrada na academia</FormLabel>
+                <FormLabel>
+                  {isWhiteBelt
+                    ? "Ano de entrada na academia"
+                    : "Data de entrada na academia"}
+                </FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} disabled={loading} />
+                  {isWhiteBelt ? (
+                    <Input
+                      type="number"
+                      min={1990}
+                      max={2100}
+                      step={1}
+                      disabled={loading}
+                      placeholder="Ex.: 2025"
+                      value={
+                        field.value && field.value.length >= 4
+                          ? field.value.slice(0, 4)
+                          : ""
+                      }
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/\D/g, "").slice(0, 4);
+                        if (raw.length === 4) {
+                          const y = parseInt(raw, 10);
+                          if (y >= 1990 && y <= 2100) {
+                            field.onChange(`${raw}-01-01`);
+                          }
+                        } else if (raw.length === 0) {
+                          field.onChange("");
+                        }
+                      }}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
+                  ) : (
+                    <Input type="date" {...field} disabled={loading} />
+                  )}
                 </FormControl>
+                {isWhiteBelt ? (
+                  <p className="text-xs text-muted-foreground">
+                    Faixa branca: indique só o ano; defina graus após graduações no
+                    histórico.
+                  </p>
+                ) : null}
                 <FormMessage />
               </FormItem>
             )}
@@ -216,7 +271,11 @@ export function StudentForm({
           )}
         />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div
+          className={`grid gap-4 ${
+            isWhiteBelt ? "grid-cols-1" : "sm:grid-cols-2"
+          }`}
+        >
           <FormField
             control={form.control}
             name="current_belt_id"
@@ -229,7 +288,10 @@ export function StudentForm({
                   onValueChange={(v) => {
                     field.onChange(v);
                     const b = belts.find((x) => x.id === v);
-                    if (b) {
+                    if (!b) return;
+                    if (isWhiteBeltSlug(b.slug)) {
+                      form.setValue("current_degree", 0);
+                    } else {
                       const opts = degreeOptionsForBelt(b.slug, b.kind);
                       form.setValue("current_degree", opts[0] ?? 0);
                     }
@@ -252,34 +314,36 @@ export function StudentForm({
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="current_degree"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Grau</FormLabel>
-                <Select
-                  disabled={loading}
-                  value={String(field.value)}
-                  onValueChange={(v) => field.onChange(Number(v))}
-                >
-                  <FormControl>
-                    <SelectTrigger className="min-h-11">
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {degreeChoices.map((d) => (
-                      <SelectItem key={d} value={String(d)}>
-                        {d}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {!isWhiteBelt ? (
+            <FormField
+              control={form.control}
+              name="current_degree"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Grau</FormLabel>
+                  <Select
+                    disabled={loading}
+                    value={String(field.value)}
+                    onValueChange={(v) => field.onChange(Number(v))}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="min-h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {degreeChoices.map((d) => (
+                        <SelectItem key={d} value={String(d)}>
+                          {d}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : null}
         </div>
 
         <FormField
@@ -434,7 +498,7 @@ export function StudentForm({
             Cancelar
           </Button>
           <Button type="submit" className="min-h-11" disabled={loading}>
-            {loading ? "A guardar…" : mode === "create" ? "Registar aluno" : "Guardar"}
+            {loading ? "Salvando…" : mode === "create" ? "Registar aluno" : "Salvar"}
           </Button>
         </div>
 

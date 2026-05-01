@@ -1,7 +1,7 @@
 # Product Specification
 
 ## Context
-O BJJ Manager precisa de uma fonte da verdade textual antes de
+O Casca - Gestão de Academias de BJJ precisa de uma fonte da verdade textual antes de
 implementar qualquer feature. Sem uma spec consolidada, os ciclos
 seguintes ficam ambíguos e mudam de escopo no meio do caminho. Este
 ciclo é só documentação: visão, escopo, regras, entidades e jornadas.

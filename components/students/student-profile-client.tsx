@@ -33,11 +33,12 @@ import {
   formatRelativeBR,
   toCalendarDateStringInAppTZ,
 } from "@/lib/dates";
+import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
-import { ROUTES, routeAlunoEditar } from "@/lib/routes";
+import { ROUTES, routeAlunoEditar, routeMensalidadesAluno } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import { beltLabelPt } from "@/lib/students/belt-labels";
+import { beltWithDegreeLine } from "@/lib/students/belt-labels";
 import { maskCpfInput, maskPhoneBrInput } from "@/lib/students/input-masks";
 import {
   formatMoneyBrFromCents,
@@ -59,7 +60,7 @@ function ProfileSurfaceCard({
   return (
     <Card
       className={cn(
-        "border-border/90 shadow-md ring-1 ring-black/[0.04] dark:ring-white/[0.06]",
+        "border-border bg-card shadow-sm",
         className,
       )}
       {...props}
@@ -90,8 +91,10 @@ export function StudentProfileClient({ profile }: Props) {
   const beltKind = profile.currentBelt?.kind;
   const beltTitle =
     beltSlug && beltKind
-      ? `${beltLabelPt(beltSlug, beltKind)} · grau ${profile.current_degree}`
-      : `Grau ${profile.current_degree}`;
+      ? beltWithDegreeLine(beltSlug, beltKind, profile.current_degree)
+      : profile.current_degree > 0
+        ? `Grau ${profile.current_degree}`
+        : "—";
 
   const showKidsAdultBanner =
     profile.kind === "kids" &&
@@ -102,12 +105,12 @@ export function StudentProfileClient({ profile }: Props) {
     profile.ageYears === null ? "—" : `${profile.ageYears} anos`;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="mx-auto max-w-6xl space-y-6">
       <DashboardPageHero
         badge="Perfil do aluno"
         intro={<DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>}
         title={profile.full_name}
-        description={`${beltTitle} · ${kindLabel(profile.kind)} · ${ageDisplay}`}
+        description={`${beltTitle}, ${kindLabel(profile.kind)}, ${ageDisplay}`}
       />
 
       <ProfileSurfaceCard>
@@ -138,6 +141,12 @@ export function StudentProfileClient({ profile }: Props) {
                 type="button"
                 variant="outline"
                 className="min-h-11"
+                disabled={!profile.billing}
+                title={
+                  profile.billing
+                    ? undefined
+                    : "Associe um plano ao aluno para registar pagamentos."
+                }
                 onClick={() => setPaymentOpen(true)}
               >
                 Registrar pagamento
@@ -232,7 +241,7 @@ export function StudentProfileClient({ profile }: Props) {
                   {profile.timeAtBeltPhrase ?? "—"}
                   {profile.timeAtDegreePhrase &&
                   profile.timeAtDegreePhrase !== profile.timeAtBeltPhrase ? (
-                    <> · grau: {profile.timeAtDegreePhrase}</>
+                    <>, grau: {profile.timeAtDegreePhrase}</>
                   ) : null}
                 </p>
                 {profile.academy_start_date ? (
@@ -270,8 +279,14 @@ export function StudentProfileClient({ profile }: Props) {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-medium text-foreground">
                           {g.belt
-                            ? `${beltLabelPt(g.belt.slug, g.belt.kind)} · grau ${g.resulting_degree}`
-                            : `Grau ${g.resulting_degree}`}
+                            ? beltWithDegreeLine(
+                                g.belt.slug,
+                                g.belt.kind,
+                                g.resulting_degree,
+                              )
+                            : g.resulting_degree > 0
+                              ? `Grau ${g.resulting_degree}`
+                              : "—"}
                         </span>
                         <Badge variant="outline" className="font-normal">
                           {formatDateBR(gradDay) ?? "—"}
@@ -298,6 +313,19 @@ export function StudentProfileClient({ profile }: Props) {
         </TabsContent>
 
         <TabsContent value="financeiro" className="space-y-4">
+          <div className="rounded-lg border border-primary/15 bg-primary/[0.04] px-4 py-3 text-sm text-foreground shadow-sm">
+            <Link
+              href={`${routeMensalidadesAluno(profile.id)}?mes=${encodeURIComponent(profile.currentMonthFirstDay)}`}
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Ver mensalidades do mês
+            </Link>
+            <span className="text-muted-foreground">
+              {" "}
+              Detalhe financeiro e histórico do mesmo período.
+            </span>
+          </div>
+
           <Section title="Plano e vínculo">
             {profile.billing ? (
               <ProfileSurfaceCard>
@@ -348,7 +376,7 @@ export function StudentProfileClient({ profile }: Props) {
                   {profile.currentMonthStatusLabel}
                 </span>
                 {profile.currentMonthOverdue ? (
-                  <Badge variant="destructive">Atrasado</Badge>
+                  <Badge variant="overdue">Atrasado</Badge>
                 ) : null}
               </CardContent>
             </ProfileSurfaceCard>
@@ -414,26 +442,13 @@ export function StudentProfileClient({ profile }: Props) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={paymentOpen} onOpenChange={setPaymentOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Registrar pagamento</DialogTitle>
-            <DialogDescription>
-              O fluxo de mensalidades e estados por mês será integrado numa próxima
-              entrega. Este botão ainda não grava pagamentos.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              className="min-h-11"
-              onClick={() => setPaymentOpen(false)}
-            >
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RecordPaymentDialog
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        studentId={profile.id}
+        defaultReferenceMonth={profile.currentMonthFirstDay}
+        amountCents={profile.billing?.effective_price_cents ?? null}
+      />
     </div>
   );
 }

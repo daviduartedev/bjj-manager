@@ -24,6 +24,9 @@ const badgeVariants = cva(
           "border-transparent bg-[hsl(var(--status-overdue)/0.12)] text-[hsl(var(--status-overdue-foreground))]",
         info:
           "border-transparent bg-[hsl(var(--status-info)/0.12)] text-[hsl(var(--status-info-foreground))]",
+        /** Estado operacional do aluno (inativo / sem lugar na lista activa) */
+        muted:
+          "border-transparent bg-muted text-muted-foreground",
       },
     },
     defaultVariants: {

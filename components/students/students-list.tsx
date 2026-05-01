@@ -12,7 +12,6 @@ import { StudentAgeLabel } from "@/components/students/student-age";
 import { StudentStatusBadge } from "@/components/students/student-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +40,7 @@ import type { ListStudentRow } from "@/lib/data/students-list";
 import { ROUTES, routeAlunoEditar, routeAlunoPerfil } from "@/lib/routes";
 import type { AlunosUrlState } from "@/lib/students/alunos-url";
 import { stringifyAlunosSearchParams } from "@/lib/students/alunos-url";
-import { beltLabelPt } from "@/lib/students/belt-labels";
+import { beltWithDegreeLine } from "@/lib/students/belt-labels";
 
 type Props = {
   rows: ListStudentRow[];
@@ -98,7 +97,7 @@ export function StudentsList({
 
   function beltLine(row: ListStudentRow): string {
     if (!row.belt) return "—";
-    return `${beltLabelPt(row.belt.slug, row.belt.kind)} · grau ${row.current_degree}`;
+    return beltWithDegreeLine(row.belt.slug, row.belt.kind, row.current_degree);
   }
 
   async function handleDeactivate(student: ListStudentRow) {
@@ -130,10 +129,10 @@ export function StudentsList({
     "text-crm-xs font-semibold uppercase tracking-wider text-muted-foreground";
 
   return (
-    <div className="space-y-6">
-      <Card className="overflow-hidden border-border/90 shadow-md ring-1 ring-[hsl(var(--status-info))/0.14]">
-        <div className="flex items-center gap-2 border-b border-border/70 bg-gradient-to-r from-muted/90 via-muted/50 to-[hsl(var(--status-info)/0.06)] px-4 py-3.5 sm:px-5">
-          <span className="flex size-9 items-center justify-center rounded-lg bg-background/90 text-[hsl(var(--status-info))] shadow-sm ring-1 ring-border/60">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="border-b border-border bg-muted/30">
+        <div className="flex items-center gap-2 px-4 py-3.5 sm:px-5">
+          <span className="flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground">
             <ListFilter className="size-4" aria-hidden />
           </span>
           <div>
@@ -141,7 +140,7 @@ export function StudentsList({
             <p className="text-crm-xs text-muted-foreground">Refine a lista por nome, tipo e situação.</p>
           </div>
         </div>
-        <CardContent className="space-y-5 p-4 sm:p-5">
+        <div className="space-y-5 border-t border-border/60 px-4 pb-5 pt-4 sm:px-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end">
             <div className="min-w-[200px] flex-1 space-y-2">
               <label className="type-field-label" htmlFor="student-search">
@@ -231,43 +230,42 @@ export function StudentsList({
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {emptyNoFilters ? (
-        <div className="relative overflow-hidden rounded-2xl border border-dashed border-primary/30 bg-gradient-to-br from-card via-card to-primary/[0.05] px-6 py-14 text-center shadow-sm ring-1 ring-primary/[0.08]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.09),transparent_55%)]" aria-hidden />
-          <div className="relative mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl bg-primary/12 text-primary shadow-inner ring-1 ring-primary/25">
-            <Users className="size-8" aria-hidden />
+        <div className="border-t border-border px-6 py-14 text-center">
+          <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-lg border border-dashed border-border bg-muted/40 text-muted-foreground">
+            <Users className="size-7" aria-hidden />
           </div>
-          <p className="type-card-heading relative">Ainda não há alunos</p>
-          <p className="type-lead relative mx-auto mt-2 max-w-md">
+          <p className="type-card-heading">Ainda não há alunos</p>
+          <p className="type-lead mx-auto mt-2 max-w-md">
             Cadastre o primeiro aluno para começar a usar o sistema.
           </p>
-          <Button className="relative mt-8 min-h-11 shadow-md shadow-primary/15" asChild>
+          <Button className="mt-8 min-h-11" asChild>
             <Link href={ROUTES.alunosNovo}>Cadastrar primeiro aluno</Link>
           </Button>
         </div>
       ) : rows.length === 0 ? (
-        <div className="rounded-2xl border border-[hsl(var(--status-info)/0.35)] bg-gradient-to-br from-card via-card to-[hsl(var(--status-info)/0.07)] px-6 py-12 text-center shadow-md ring-1 ring-[hsl(var(--status-info))/0.12]">
-          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-[hsl(var(--status-info)/0.15)] text-[hsl(var(--status-info))] ring-1 ring-[hsl(var(--status-info))/0.25]">
-            <FilterX className="size-7" aria-hidden />
+        <div className="border-t border-border px-6 py-12 text-center">
+          <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground">
+            <FilterX className="size-6" aria-hidden />
           </div>
           <p className="type-card-heading">Nenhum resultado</p>
           <p className="type-lead mx-auto mt-2 max-w-sm">
             Nenhum aluno corresponde aos filtros atuais. Ajuste a pesquisa ou limpe os filtros.
           </p>
           <div className="mt-6">
-            <Button variant="outline" className="min-h-11 border-[hsl(var(--status-info)/0.4)] bg-background/80" asChild>
+            <Button variant="outline" className="min-h-11" asChild>
               <Link href={ROUTES.alunos}>Limpar filtros</Link>
             </Button>
           </div>
         </div>
       ) : (
         <>
-          <div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card px-4 py-3 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-t border-border bg-muted/25 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20">
+              <span className="flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground">
                 <Users className="size-4" aria-hidden />
               </span>
               <div>
@@ -276,7 +274,7 @@ export function StudentsList({
                   {pageCount > 1 ? (
                     <span className="font-normal text-muted-foreground">
                       {" "}
-                      · Página {urlState.page} de {pageCount}
+                      , página {urlState.page} de {pageCount}
                     </span>
                   ) : null}
                 </p>
@@ -293,9 +291,9 @@ export function StudentsList({
             ) : null}
           </div>
 
-          <div className="hidden overflow-hidden rounded-xl border border-border/90 bg-card shadow-md ring-1 ring-black/[0.04] dark:ring-white/[0.06] lg:block">
+          <div className="hidden border-t border-border lg:block">
             <Table>
-              <TableHeader className="bg-gradient-to-b from-muted/95 to-muted/55 [&_tr]:border-border/70">
+              <TableHeader className="border-b border-border bg-muted/40 [&_tr]:border-border">
                 <TableRow className="border-0 hover:bg-transparent">
                   <TableHead className={thClass}>Nome</TableHead>
                   <TableHead className={thClass}>Faixa / grau</TableHead>
@@ -312,7 +310,16 @@ export function StudentsList({
                     onClick={() => router.push(routeAlunoPerfil(row.id))}
                   >
                     <TableCell className="font-semibold text-foreground">{row.full_name}</TableCell>
-                    <TableCell className="text-muted-foreground">{beltLine(row)}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      <div className="flex flex-col gap-0.5">
+                        <span>{beltLine(row)}</span>
+                        {row.graduationDurationLine ? (
+                          <span className="text-crm-xs text-muted-foreground/90">
+                            {row.graduationDurationLine}
+                          </span>
+                        ) : null}
+                      </div>
+                    </TableCell>
                     <TableCell className="tabular-nums-crm text-muted-foreground">
                       <StudentAgeLabel birthDate={row.birth_date} />
                     </TableCell>
@@ -338,17 +345,13 @@ export function StudentsList({
             </Table>
           </div>
 
-          <div className="flex flex-col gap-3 lg:hidden">
+          <div className="flex flex-col gap-0 border-t border-border lg:hidden">
             {rows.map((row) => (
               <div
                 key={row.id}
-                className="relative overflow-hidden rounded-xl border border-border/80 bg-card shadow-md ring-1 ring-primary/[0.05] transition-shadow hover:shadow-lg"
+                className="border-b border-border bg-card px-4 py-4 last:border-b-0"
               >
-                <div
-                  className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-primary via-primary/80 to-[hsl(var(--status-info))]"
-                  aria-hidden
-                />
-                <div className="p-4 pl-5">
+                <div className="p-0">
                   <button
                     type="button"
                     className="w-full rounded-lg text-left outline-none ring-offset-background transition-colors hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring"
@@ -358,6 +361,11 @@ export function StudentsList({
                       <div className="min-w-0 space-y-1">
                         <p className="truncate font-semibold text-foreground">{row.full_name}</p>
                         <p className="text-crm-sm text-muted-foreground">{beltLine(row)}</p>
+                        {row.graduationDurationLine ? (
+                          <p className="text-crm-xs text-muted-foreground/90">
+                            {row.graduationDurationLine}
+                          </p>
+                        ) : null}
                         <p className="text-crm-sm text-muted-foreground tabular-nums-crm">
                           <StudentAgeLabel birthDate={row.birth_date} />
                         </p>
@@ -381,11 +389,11 @@ export function StudentsList({
           </div>
 
           {pageCount > 1 ? (
-            <div className="flex flex-wrap items-center justify-center gap-2 rounded-xl border border-border/80 bg-muted/30 px-4 py-3 shadow-inner">
+            <div className="flex flex-wrap items-center justify-center gap-2 border-t border-border bg-muted/30 px-4 py-3">
               <Button
                 variant="outline"
                 size="sm"
-                className="min-h-11 min-w-[44px] border-border/90 bg-card shadow-sm"
+                className="min-h-11 min-w-[44px] bg-background"
                 disabled={urlState.page <= 1}
                 onClick={() =>
                   pushUrl({ ...urlState, page: Math.max(1, urlState.page - 1) })
@@ -396,7 +404,7 @@ export function StudentsList({
               <Button
                 variant="outline"
                 size="sm"
-                className="min-h-11 min-w-[44px] border-border/90 bg-card shadow-sm"
+                className="min-h-11 min-w-[44px] bg-background"
                 disabled={urlState.page >= pageCount}
                 onClick={() =>
                   pushUrl({

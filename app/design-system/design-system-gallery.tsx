@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { StudentStatusBadge } from "@/components/students/student-status-badge";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Section } from "@/components/layout/section";
@@ -194,11 +195,24 @@ export function DesignSystemGallery() {
             <Badge variant="pending">Pendente</Badge>
             <Badge variant="overdue">Em atraso</Badge>
             <Badge variant="info">Informativo</Badge>
+            <Badge variant="muted">Neutro</Badge>
             <Separator orientation="vertical" className="hidden h-8 sm:block" />
             <span className="badge-paid">Pago (classe)</span>
             <span className="badge-pending">Pendente (classe)</span>
             <span className="badge-overdue">Atraso (classe)</span>
             <span className="badge-info">Info (classe)</span>
+          </div>
+        </Section>
+
+        <Section
+          title="Estado do aluno"
+          description="Verde = Ativo; cinza = Inativo; âmbar = Pausado; azul = Em avaliação."
+        >
+          <div className="flex flex-wrap gap-3">
+            <StudentStatusBadge status="active" />
+            <StudentStatusBadge status="inactive" />
+            <StudentStatusBadge status="paused" />
+            <StudentStatusBadge status="trial" />
           </div>
         </Section>
 
@@ -223,8 +237,16 @@ export function DesignSystemGallery() {
           </div>
           <div className="mt-6 flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-3">
-              <Checkbox id="ds-check" />
-              <Label htmlFor="ds-check">Checkbox (alvo ≥ 44px)</Label>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <Checkbox id="ds-check" />
+                  <Label htmlFor="ds-check">Checkbox padrão (formulários)</Label>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Checkbox id="ds-check-sm" size="sm" />
+                  <Label htmlFor="ds-check-sm">Compacto (tabelas)</Label>
+                </div>
+              </div>
             </div>
           </div>
         </Section>

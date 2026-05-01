@@ -1,4 +1,4 @@
-# Entidades de domínio — BJJ Manager
+# Entidades de domínio — Casca - Gestão de Academias de BJJ
 
 Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Campos detalhados de banco podem evoluir no ciclo de schema; aqui está o **contrato de produto**.
 
@@ -25,6 +25,7 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 | Conta | Sim | Pertencimento à academia |
 | Nome de exibição | Sim | |
 | E-mail | Sim | Via auth |
+| Telefone | Não | Contato opcional do professor (**CFG-**) |
 
 **ENT-2.2.** **Sessão de autenticação** é infraestrutura (Supabase), não entidade de negócio nomeada no modelo relacional do MVP.
 
@@ -77,7 +78,7 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 
 ## E6. Plano
 
-**ENT-6.1.** Plano comercial da conta: tipo **Kids 1**, **Kids 2** ou **Adulto**, valor padrão em centavos, ativo/inativo. A função principal no MVP é **organizar cobrança e segmentação** por **idade/turma**; o professor **associa manualmente** cada aluno a um desses planos (**BR-1.1**).
+**ENT-6.1.** Plano comercial da conta: tipo técnico **`kids_1`**, **`kids_2`** ou **`adult`**, **nome editável** (`plans.name`), valor padrão em centavos, ativo/inativo. Rótulos por defeito na provisão: **Kid 1**, **Juvenil**, **Adulto**. A função principal no MVP é **organizar cobrança e segmentação** por **idade/turma**; o professor **associa manualmente** cada aluno a um desses planos (**BR-1.1**).
 
 **ENT-6.2.** Valores por defeito na provisão automática da conta e no seed de desenvolvimento: ver **BR-1.4** e **BLM-2**.
 
@@ -112,8 +113,9 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 | Valor efetivo cobrado | Não | Útil para histórico; default do vínculo |
 | Data/hora do pagamento | Não | Informação opcional quando **Pago** |
 | Observação | Não | Especialmente para **Outro** |
+| Método de pagamento (texto livre) | Não | Ex.: PIX, dinheiro; campo opcional na UI (**BUI-4**) |
 
-**ENT-8.3.** Registro pode mapear para tabela `payments` no Supabase; ausência de linha é tratada como **Pendente** na experiência (**BR-4.4**), com transição automática para **Não pago** conforme **BR-4.5**.
+**ENT-8.3.** Registro pode mapear para tabela `payments` no Supabase; ausência de linha é tratada como **Pendente** na experiência (**BR-4.4**), com transição automática para **Não pago** conforme **BR-4.5**. Estorno simples no MVP (**PBS-5**) remove a linha, voltando à semântica de ausência.
 
 ---
 

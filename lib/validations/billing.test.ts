@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  recordPaymentSchema,
   setStudentPlanSchema,
   updatePlanPriceSchema,
 } from "./billing";
@@ -59,5 +60,27 @@ describe("setStudentPlanSchema", () => {
 
   it("omitir customPriceCents mantém parsing válido", () => {
     expect(setStudentPlanSchema.safeParse(base).success).toBe(true);
+  });
+});
+
+const recordBase = {
+  studentId: "550e8400-e29b-41d4-a716-446655440000",
+  referenceMonth: "2026-05-01",
+};
+
+describe("recordPaymentSchema", () => {
+  it("assume recordingKind paid quando omitido", () => {
+    const r = recordPaymentSchema.safeParse(recordBase);
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.recordingKind).toBe("paid");
+  });
+
+  it("aceita recordingKind scholarship", () => {
+    const r = recordPaymentSchema.safeParse({
+      ...recordBase,
+      recordingKind: "scholarship",
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.recordingKind).toBe("scholarship");
   });
 });

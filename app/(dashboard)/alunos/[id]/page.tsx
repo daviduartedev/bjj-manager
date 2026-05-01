@@ -14,7 +14,7 @@ export async function generateMetadata({
   const { id } = await params;
   const profile = await getStudentProfileById(id);
   return {
-    title: profile ? `${profile.full_name} · Aluno` : "Aluno",
+    title: profile ? `${profile.full_name}, Aluno` : "Aluno",
   };
 }
 

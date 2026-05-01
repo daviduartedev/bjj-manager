@@ -33,10 +33,11 @@ Os primeiros segmentos da área operacional (autenticada) são:
 
 | Rota | Função |
 |------|--------|
-| `/painel` | Entrada principal pós-login (resumo / dashboard de produto) |
+| `/painel` | Entrada principal pós-login — **painel operacional** (**PNL-** em [`spec/features/dashboard/readme.md`](../dashboard/readme.md)): KPIs, «Atenção hoje», distribuição por faixa |
 | `/alunos` | Alunos e subrotas (ex.: **`/alunos/novo`**, **`/alunos/[id]`** (perfil — **SPR-**), **`/alunos/[id]/editar`**, **`/alunos/[id]/graduacoes`** (histórico de graduações — **GRD-**); ver **STU-1** em [`students-crud/readme.md`](../students-crud/readme.md)) |
-| `/mensalidades` | Mensalidades e subrotas |
-| `/configuracoes` | Configurações da academia / conta |
+| `/mensalidades` | Mensalidades — lista mensal de cobrança (**BUI-1**) |
+| `/mensalidades/[studentId]` | Detalhe financeiro do aluno (**BUI-1**) |
+| `/configuracoes` | Configurações da academia / conta (**CFG-** em [`spec/features/settings/readme.md`](../settings/readme.md)) |
 | `/perfil` | Perfil do utilizador |
 
 Novas áreas autenticadas devem acrescentar prefixo aqui e no middleware, salvo decisão futura de agrupamento sob um único segmento.
@@ -51,7 +52,7 @@ Novas áreas autenticadas devem acrescentar prefixo aqui e no middleware, salvo 
 
 ## SHELL-4. Cabeçalho e utilizador
 
-**SHELL-4.1.** O cabeçalho apresenta a **marca** da aplicação (**BJJ Manager** ou nome configurado equivalente) **e**, quando existir contexto válido de academia, o **`account.name`**.
+**SHELL-4.1.** O cabeçalho apresenta a **marca** da aplicação (**Casca - Gestão de Academias de BJJ** ou nome configurado equivalente) **e**, quando existir contexto válido de academia, o **`account.name`**.
 
 **SHELL-4.2.** Menu do utilizador inclui entrada **Perfil** (`/perfil`) e **Sair** (terminar sessão).
 
@@ -71,7 +72,7 @@ Novas áreas autenticadas devem acrescentar prefixo aqui e no middleware, salvo 
 
 ## SHELL-7. Identidade, tema e responsividade
 
-**SHELL-7.1.** Chrome **escuro**: sidebar/header alinhados à identidade (**preto** forte, ícones claros, ativo em **vermelho**), dentro dos **tokens** (**DS-1.2**).
+**SHELL-7.1.** Chrome **escuro**: sidebar com **fundo preto de marca** (**#050505** / `--secondary`), ícones claros, item activo em **vermelho** (**--primary**), dentro dos **tokens** (**DS-1.2**, **DS-1.12**). O **canvas** da área de conteúdo mantém tema claro com **acentos** da paleta (**BUI-8**).
 
 **SHELL-7.2.** Chrome no **tema claro**: superfícies do shell **suavizadas** (cinza muito escuro / slate), não necessariamente preto `#050505` em toda a largura, mantendo **contraste** e hierarquia com o conteúdo.
 

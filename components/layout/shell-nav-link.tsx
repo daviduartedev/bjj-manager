@@ -13,6 +13,8 @@ export type ShellNavLinkProps = {
   onNavigate?: () => void;
   className?: string;
   variant?: "sidebar" | "bottom";
+  /** Navegação sobre fundo escuro (sidebar preta — **BUI-8**). */
+  surface?: "default" | "ink";
 };
 
 export function ShellNavLink({
@@ -22,13 +24,19 @@ export function ShellNavLink({
   onNavigate,
   className,
   variant = "sidebar",
+  surface = "default",
 }: ShellNavLinkProps) {
   const pathname = usePathname();
   const active = pathname === href || pathname.startsWith(`${href}/`);
 
+  const ink = surface === "ink";
+
   const base =
     variant === "sidebar"
-      ? "group/nav flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-crm-sm font-medium transition-[color,background-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--shell-active))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--shell-chrome))]"
+      ? cn(
+          "group/nav flex min-h-10 w-full items-center gap-3 rounded-lg border-l-[3px] py-2 pl-[calc(0.75rem-3px)] pr-3 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          ink ? "text-sm leading-snug" : "text-crm-sm",
+        )
       : "flex min-h-[44px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1 text-[10px] font-medium leading-tight transition-colors duration-200 sm:text-xs";
 
   return (
@@ -39,15 +47,25 @@ export function ShellNavLink({
         base,
         variant === "sidebar" &&
           (active
-            ? "bg-[hsl(var(--shell-nav-active-bg)/0.95)] text-[hsl(var(--shell-active))] shadow-[inset_3px_0_0_hsl(var(--shell-active)),inset_0_1px_0_hsl(var(--shell-chrome-foreground)/0.06)]"
-            : "text-[hsl(var(--shell-chrome-foreground))/0.88] hover:bg-[hsl(var(--shell-nav-hover-bg)/0.85)] hover:text-[hsl(var(--shell-chrome-foreground))]"),
+            ? ink
+              ? "border-primary bg-primary/15 font-semibold text-primary"
+              : "border-primary bg-primary/10 font-semibold text-primary"
+            : ink
+              ? "border-transparent text-zinc-200/95 hover:bg-white/[0.07] hover:text-white"
+              : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"),
         variant === "bottom" &&
           (active
-            ? "text-[hsl(var(--shell-active))]"
-            : "text-[hsl(var(--shell-chrome-foreground))/0.78] hover:text-[hsl(var(--shell-chrome-foreground))]"),
+            ? ink
+              ? "font-semibold text-primary"
+              : "font-semibold text-primary"
+            : ink
+              ? "text-zinc-300 hover:text-zinc-50"
+              : "text-muted-foreground hover:text-foreground"),
         variant === "bottom" &&
           active &&
-          "bg-[hsl(var(--shell-nav-active-bg)/0.9)] shadow-[inset_0_-2px_0_hsl(var(--shell-active))]",
+          (ink
+            ? "bg-primary/15 shadow-[inset_0_-2px_0_0_hsl(var(--primary))]"
+            : "bg-primary/10 shadow-[inset_0_-2px_0_0_hsl(var(--primary))]"),
         className,
       )}
       aria-current={active ? "page" : undefined}
@@ -55,9 +73,14 @@ export function ShellNavLink({
       <Icon
         className={cn(
           "size-5 shrink-0 transition-colors duration-200",
-          variant === "sidebar" && !active && "text-[hsl(var(--status-info)/0.85)] group-hover/nav:text-[hsl(var(--shell-chrome-foreground))/0.95]",
-          variant === "sidebar" && active && "text-[hsl(var(--shell-active))]",
-          variant === "bottom" && active && "drop-shadow-[0_0_10px_hsl(var(--shell-active)/0.45)]",
+          variant === "sidebar" &&
+            (active
+              ? "text-primary"
+              : ink
+                ? "text-zinc-400 group-hover/nav:text-zinc-100"
+                : "text-muted-foreground group-hover/nav:text-foreground"),
+          variant === "bottom" && active && "text-primary",
+          variant === "bottom" && !active && (ink ? "text-zinc-400" : "text-muted-foreground"),
         )}
         aria-hidden
       />

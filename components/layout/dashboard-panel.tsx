@@ -13,7 +13,7 @@ export type DashboardPanelProps = {
 };
 
 /**
- * Painel de conteúdo com cabeçalho alinhado ao cartão de filtros de /alunos.
+ * Área de trabalho principal por página — uma superfície, hierarquia simples (padrão SaaS).
  */
 export function DashboardPanel({
   title,
@@ -26,14 +26,14 @@ export function DashboardPanel({
   return (
     <Card
       className={cn(
-        "overflow-hidden border-border/90 shadow-md ring-1 ring-[hsl(var(--status-info))/0.14]",
+        "overflow-hidden border-border bg-card shadow-sm",
         className,
       )}
     >
-      <div className="flex items-center gap-2 border-b border-border/70 bg-gradient-to-r from-muted/90 via-muted/50 to-[hsl(var(--status-info)/0.06)] px-4 py-3.5 sm:px-5">
+      <div className="flex items-center gap-3 border-b border-border bg-muted/40 px-5 py-4">
         {Icon ? (
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-background/90 text-[hsl(var(--status-info))] shadow-sm ring-1 ring-border/60">
-            <Icon className="size-4" aria-hidden />
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-background text-foreground">
+            <Icon className="size-4 text-muted-foreground" aria-hidden />
           </span>
         ) : null}
         <div className="min-w-0">
@@ -41,7 +41,7 @@ export function DashboardPanel({
           {subtitle ? <p className="text-crm-xs text-muted-foreground">{subtitle}</p> : null}
         </div>
       </div>
-      <CardContent className={cn("p-4 sm:p-6", contentClassName)}>{children}</CardContent>
+      <CardContent className={cn("p-5 sm:p-6", contentClassName)}>{children}</CardContent>
     </Card>
   );
 }

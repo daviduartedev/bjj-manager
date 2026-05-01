@@ -19,10 +19,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match em todos os caminhos exceto:
-     * - _next/static, _next/image, favicon
-     * - arquivos com extensao (svg, png, jpg, etc)
+     * Não executar middleware em pedidos de assets do Next (doc oficial + `/_next/*` em dev,
+     * ex. webpack-hmr), nem em `api/*`, favicon e extensões estáticas. Evita interferir em
+     * `/_next/static/*` quando o pedido deve ir direto ao filesystem interno do Next.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!api|_next/|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

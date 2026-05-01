@@ -52,10 +52,10 @@ Funcionalidade: Lista de alunos
     Dado que estou na lista de alunos
     Quando escolho edição rápida num aluno
     Então posso alterar estado operacional como situação, plano, vencimento, faixa e grau atuais
-    E sou informado de que a alteração foi guardada com sucesso
+    E sou informado de que a alteração foi salva com sucesso
 
-  Cenário: Erro ao guardar não expõe detalhes internos
-    Dado que estou a guardar dados de um aluno
+  Cenário: Erro ao salvar não expõe detalhes internos
+    Dado que estou a salvar dados de um aluno
     Quando o sistema não consegue completar o pedido por falha de rede ou permissão
     Então vejo uma mensagem genérica adequada ao tipo de problema
     E posso tentar de novo sem ver informação técnica interna
@@ -89,7 +89,7 @@ Funcionalidade: Cadastro e ficha do aluno
     Quando preencho documento, telefone ou e-mail com formato inválido
     Então vejo indicação clara junto ao campo
     Quando corrijo para um formato válido
-    Então consigo guardar com sucesso
+    Então consigo salvar com sucesso
 
   Cenário: Retirar aluno da operação ativa sem apagar o histórico futuro
     Dado que um aluno está registado

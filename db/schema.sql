@@ -1,5 +1,5 @@
 -- =====================================================
--- BJJ Manager - Schema SQL (Supabase / Postgres)
+-- Casca - Gestão de Academias de BJJ - Schema SQL (Supabase / Postgres)
 -- =====================================================
 -- Multi-tenant domain model. No RLS in this cycle.
 -- Re-run safe: enums via DO blocks; CREATE IF NOT EXISTS for tables/indexes.
@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
   display_name text NOT NULL,
+  phone text NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT profiles_user_id_key UNIQUE (user_id)
@@ -148,6 +149,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
   amount_cents bigint NULL,
   status public.payment_status NOT NULL DEFAULT 'pending',
   paid_at timestamptz NULL,
+  payment_method text NULL,
   notes text NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -156,6 +158,10 @@ CREATE TABLE IF NOT EXISTS public.payments (
     EXTRACT(DAY FROM reference_month) = 1
   )
 );
+
+-- Idempotente: bases já criadas antes desta coluna
+ALTER TABLE public.payments
+ADD COLUMN IF NOT EXISTS payment_method text NULL;
 
 -- ---------- Indexes ----------
 CREATE INDEX IF NOT EXISTS idx_students_account_id ON public.students (account_id);

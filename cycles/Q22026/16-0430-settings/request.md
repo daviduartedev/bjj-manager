@@ -6,7 +6,7 @@ O professor precisa de um lugar para configurar a conta e os planos.
 valores dos planos Kids/Adulto.
 
 ## Intent
-- Rota `app/(dashboard)/settings/page.tsx`.
+- Rota canónica **`/configuracoes`** → `app/(dashboard)/configuracoes/page.tsx` (**SHELL-2**).
 - Seções (tabs ou cards):
   - **Academia**: nome da academia (editar `account.name`).
   - **Perfil**: nome do professor, telefone, foto (avatar) — em

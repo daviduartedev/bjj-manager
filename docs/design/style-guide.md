@@ -1,4 +1,4 @@
-# Guia de estilo — BJJ Manager
+# Guia de estilo — Casca - Gestão de Academias de BJJ
 
 Referência para implementação de UI. Regras numeradas canônicas: **DS-** em [`spec/features/design-system/readme.md`](../../spec/features/design-system/readme.md).
 

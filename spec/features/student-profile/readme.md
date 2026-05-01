@@ -105,13 +105,13 @@ Contrato canónico para a **vista de detalhe só leitura** do aluno (**SPEC-2.2*
 
 ---
 
-## SPR-9. Acções (toolbar ou equivalente)
+## SPR-9. Ações (toolbar ou equivalente)
 
 **SPR-9.1.** **Editar** navega para **`/alunos/[id]/editar`**.
 
 **SPR-9.2.** **Promover** abre o **modal cliente** de promoção conforme **GRD-5** (substitui o placeholder do ciclo **10**): escrita na base via Server Action **promoteStudent**; disponível também na página de histórico completo (**GRD-1.1**).
 
-**SPR-9.3.** **Registrar pagamento** abre **modal cliente** placeholder: texto de produto a indicar que o fluxo completo virá no ciclo de **payments/billing**; **sem** escrita na base; apenas **Fechar** (ou equivalente).
+**SPR-9.3.** **Registrar pagamento** abre o **mesmo modal / fluxo** que na lista de mensalidades (**BUI-7**): **`recordPayment`** com valor igual ao preço efetivo, opcionalmente método e notas; toast com resultado (**BLM-3**).
 
 ---
 
@@ -127,4 +127,4 @@ Contrato canónico para a **vista de detalhe só leitura** do aluno (**SPEC-2.2*
 
 ## Manutenção
 
-Alterações em **`/alunos/[id]`**, regras de resumo ou de integração lista/perfil devem actualizar **este readme**, **`spec/features/graduation-engine/readme.md`** quando afectarem **GRD-** / **SPR-7** / **SPR-9**, **`spec/features/students-crud/readme.md`** quando afectarem **STU-7**, **`spec/features/app-shell/readme.md`** se os paths mudarem, e os cenários em `cycles/.../10-0430-student-profile/scenarios.feature`.
+Alterações em **`/alunos/[id]`**, regras de resumo ou de integração lista/perfil devem actualizar **este readme**, **`spec/features/billing-ui/readme.md`** quando afectarem **SPR-8** / **SPR-9** / fluxo de pagamento, **`spec/features/graduation-engine/readme.md`** quando afectarem **GRD-** / **SPR-7** / **SPR-9**, **`spec/features/students-crud/readme.md`** quando afectarem **STU-7**, **`spec/features/app-shell/readme.md`** se os paths mudarem, e os cenários em `cycles/.../10-0430-student-profile/scenarios.feature`.

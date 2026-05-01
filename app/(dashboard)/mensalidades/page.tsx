@@ -1,32 +1,36 @@
 import type { Metadata } from "next";
-import { Wallet } from "lucide-react";
 
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
-import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { MensalidadesClient } from "@/components/billing/mensalidades-client";
+import {
+  parseMensalidadesFiltroQuery,
+  parseMensalidadesKindQuery,
+} from "@/lib/billing/mensalidades-filtro-url";
+import { loadMensalidadesRows } from "@/lib/data/mensalidades-page";
 
 export const metadata: Metadata = {
   title: "Mensalidades",
 };
 
-export default function MensalidadesPage() {
-  return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Financeiro"
-        title="Mensalidades"
-        description="Acompanhamento financeiro manual será implementado nos ciclos de cobrança (SPEC-2.6)."
-      />
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
-      <DashboardPanel
-        icon={Wallet}
-        title="Área financeira"
-        subtitle="Registo de pagamentos e estado por mês"
-      >
-        <p className="type-lead">
-          Em breve poderá consultar e atualizar o estado das mensalidades por aluno e por mês de referência, com
-          estados Pago, Pendente, Não pago e outros definidos nas regras de produto.
-        </p>
-      </DashboardPanel>
-    </div>
+export default async function MensalidadesPage({ searchParams }: PageProps) {
+  const sp = await searchParams;
+  const mesRaw = sp.mes;
+  const mes = typeof mesRaw === "string" ? mesRaw : null;
+  const initialFilter = parseMensalidadesFiltroQuery(sp.filtro);
+  const initialKindFilter = parseMensalidadesKindQuery(sp.tipo);
+
+  const data = await loadMensalidadesRows(mes);
+
+  return (
+    <MensalidadesClient
+      initialRows={data.rows}
+      referenceMonth={data.referenceMonth}
+      initialFilter={initialFilter}
+      initialKindFilter={initialKindFilter}
+      monthFinance={data.monthFinance}
+    />
   );
 }

@@ -1,5 +1,5 @@
 -- =====================================================
--- BJJ Manager — Row Level Security (Supabase / Postgres)
+-- Casca - Gestão de Academias de BJJ — Row Level Security (Supabase / Postgres)
 -- =====================================================
 -- Run after schema.sql + seed.sql (see pnpm db:apply).
 -- Idempotent: DROP POLICY IF EXISTS before CREATE.

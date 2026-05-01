@@ -31,13 +31,13 @@ type DashboardShellProps = {
 function ShellChromeSkeleton() {
   return (
     <div
-      className="pointer-events-none animate-pulse border-b border-[hsl(var(--shell-chrome-border))] bg-[hsl(var(--shell-chrome))]"
+      className="pointer-events-none animate-pulse border-b border-border bg-background"
       aria-hidden
     >
       <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
-        <Skeleton className="size-11 shrink-0 rounded-md bg-white/10 lg:hidden" />
-        <Skeleton className="h-5 flex-1 max-w-[200px] rounded bg-white/15" />
-        <Skeleton className="size-11 shrink-0 rounded-md bg-white/10" />
+        <Skeleton className="size-11 shrink-0 rounded-md bg-muted lg:hidden" />
+        <Skeleton className="h-5 flex-1 max-w-[200px] rounded bg-muted" />
+        <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
       </div>
     </div>
   );
@@ -47,7 +47,7 @@ function SidebarSkeletonNav() {
   return (
     <>
       {MAIN_NAV_ITEMS.map((item) => (
-        <Skeleton key={item.href} className="h-11 w-full rounded-md bg-white/10" aria-hidden />
+        <Skeleton key={item.href} className="h-11 w-full rounded-md bg-muted" aria-hidden />
       ))}
     </>
   );
@@ -56,13 +56,13 @@ function SidebarSkeletonNav() {
 function BottomNavSkeleton() {
   return (
     <div
-      className="flex h-16 items-stretch justify-around gap-1 border-t border-[hsl(var(--shell-chrome-border))] bg-[hsl(var(--shell-chrome))] px-2 pt-1 lg:hidden"
+      className="flex h-16 items-stretch justify-around gap-1 border-t border-border bg-background px-2 pt-1 lg:hidden"
       aria-hidden
     >
       {MAIN_NAV_ITEMS.map((item) => (
         <div key={item.href} className="flex flex-1 flex-col items-center justify-center gap-1 py-1">
-          <Skeleton className="size-5 rounded bg-white/15" />
-          <Skeleton className="h-2.5 w-12 rounded bg-white/10" />
+          <Skeleton className="size-5 rounded bg-muted" />
+          <Skeleton className="h-2.5 w-12 rounded bg-muted/80" />
         </div>
       ))}
     </div>
@@ -80,10 +80,18 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
 
   const closeDrawer = () => setDrawerOpen(false);
 
+  const brandMarkSidebar = (
+    <LogoMark
+      height={22}
+      className="size-9 shrink-0 rounded-lg border border-white/15 bg-white/[0.06] p-1 shadow-sm"
+      imgClassName="max-h-[22px] max-w-[4.5rem]"
+    />
+  );
+
   const brandMark = (
     <LogoMark
       height={22}
-      className="size-9 shrink-0 rounded-lg p-1 ring-white/15"
+      className="size-9 shrink-0 rounded-lg border border-border/80 bg-card p-1 shadow-sm"
       imgClassName="max-h-[22px] max-w-[4.5rem]"
     />
   );
@@ -91,7 +99,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
   const brandBlock = (
     <Link
       href={ROUTES.painel}
-      className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-md text-[hsl(var(--shell-chrome-foreground))] ring-offset-[hsl(var(--shell-chrome))] transition-colors hover:text-[hsl(var(--shell-chrome-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--shell-active))] focus-visible:ring-offset-2 lg:flex-none"
+      className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-md text-foreground ring-offset-background transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 lg:flex-none"
     >
       {brandMark}
       <span className="flex min-w-0 flex-col leading-tight">
@@ -108,20 +116,20 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
   const sidebarBrand = (
     <Link
       href={ROUTES.painel}
-      className="group mb-6 flex flex-col gap-2 rounded-xl border border-[hsl(var(--shell-chrome-border))] bg-[hsl(var(--shell-nav-hover-bg)/0.35)] p-3 shadow-sm ring-1 ring-[hsl(var(--shell-chrome-foreground)/0.06)] transition-colors hover:border-[hsl(var(--shell-active)/0.35)] hover:bg-[hsl(var(--shell-nav-hover-bg)/0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--shell-active))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--shell-chrome))]"
+      className="group mb-8 flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 shadow-sm ring-1 ring-white/[0.06] transition-colors hover:border-white/18 hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(0_0%_2%)]"
     >
       <div className="flex items-center gap-3">
-        {brandMark}
-        <span className="font-display text-sm font-semibold tracking-tight text-[hsl(var(--shell-chrome-foreground))]">
+        {brandMarkSidebar}
+        <span className="font-display text-sm font-semibold tracking-tight text-zinc-100">
           {APP_NAME}
         </span>
       </div>
       {academyName ? (
-        <p className="line-clamp-2 pl-[3.25rem] text-xs leading-snug text-[hsl(var(--shell-chrome-foreground))/0.82]">
+        <p className="line-clamp-2 pl-[3.25rem] text-xs leading-snug text-zinc-400">
           {academyName}
         </p>
       ) : (
-        <p className="pl-[3.25rem] text-xs text-[hsl(var(--shell-chrome-foreground))/0.55]">Área operacional</p>
+        <p className="pl-[3.25rem] text-xs text-zinc-500">Área operacional</p>
       )}
     </Link>
   );
@@ -133,7 +141,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
           type="button"
           variant="ghost"
           size="icon"
-          className="shrink-0 text-[hsl(var(--shell-chrome-foreground))] hover:bg-white/10 focus-visible:ring-[hsl(var(--shell-active))] focus-visible:ring-offset-[hsl(var(--shell-chrome))]"
+          className="shrink-0 text-foreground hover:bg-muted focus-visible:ring-primary focus-visible:ring-offset-background"
           aria-label="Menu do utilizador"
         >
           <UserRound className="size-5" />
@@ -165,13 +173,9 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
     <div className="min-h-screen bg-background">
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 hidden w-[15.5rem] flex-col border-r border-[hsl(var(--shell-chrome-border))] bg-gradient-to-b from-[hsl(var(--shell-chrome-top))] via-[hsl(var(--shell-chrome))] to-[hsl(var(--shell-chrome-bottom))] text-[hsl(var(--shell-chrome-foreground))] shadow-[4px_0_24px_-8px_hsl(0_0%_0%/0.35)] lg:flex",
+          "fixed inset-y-0 left-0 z-40 hidden w-[15.5rem] flex-col border-r border-zinc-800/90 bg-[hsl(0_0%_2%)] text-zinc-100 shadow-[2px_0_24px_-12px_hsl(0_0%_0%/0.45)] lg:flex",
         )}
       >
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b from-[hsl(var(--shell-edge-glow)/0.55)] via-[hsl(var(--shell-active)/0.28)] to-[hsl(var(--status-info)/0.2)]"
-          aria-hidden
-        />
         <div className="relative flex flex-1 flex-col p-3 pt-7">
           {!mounted ? (
             <div className="flex flex-col gap-1" aria-hidden>
@@ -180,12 +184,18 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
           ) : (
             <>
               {sidebarBrand}
-              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--shell-chrome-foreground))/0.38]">
+              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400">
                 Menu
               </p>
               <nav className="flex flex-col gap-1" aria-label="Principal">
                 {MAIN_NAV_ITEMS.map((item) => (
-                  <ShellNavLink key={item.href} href={item.href} label={item.label} icon={item.icon} />
+                  <ShellNavLink
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    icon={item.icon}
+                    surface="ink"
+                  />
                 ))}
               </nav>
             </>
@@ -194,11 +204,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
       </aside>
 
       <div className="flex min-h-screen flex-col lg:pl-[15.5rem]">
-        <header
-          className={cn(
-            "sticky top-0 z-30 shrink-0 border-b border-[hsl(var(--shell-chrome-border))] bg-gradient-to-r from-[hsl(var(--shell-chrome-top))] via-[hsl(var(--shell-chrome))] to-[hsl(var(--shell-chrome-bottom))] text-[hsl(var(--shell-chrome-foreground))] shadow-[0_1px_0_hsl(var(--shell-chrome-border))]",
-          )}
-        >
+        <header className="dashboard-top-bar sticky top-0 z-30 shrink-0 text-foreground shadow-[0_1px_2px_-1px_hsl(0_0%_0%/0.06)]">
           {!mounted ? (
             <ShellChromeSkeleton />
           ) : (
@@ -209,7 +215,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="shrink-0 text-[hsl(var(--shell-chrome-foreground))] hover:bg-white/10 lg:hidden"
+                    className="shrink-0 text-foreground hover:bg-muted lg:hidden"
                     aria-label="Abrir menu de navegação"
                   >
                     <Menu className="size-5" />
@@ -217,12 +223,10 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                 </SheetTrigger>
                 <SheetContent
                   side="left"
-                  className="w-[min(100%,20rem)] border-[hsl(var(--shell-chrome-border))] bg-gradient-to-b from-[hsl(var(--shell-chrome-top))] via-[hsl(var(--shell-chrome))] to-[hsl(var(--shell-chrome-bottom))] p-0 text-[hsl(var(--shell-chrome-foreground))]"
+                  className="w-[min(100%,20rem)] border-zinc-800 bg-[hsl(0_0%_2%)] p-0 text-zinc-100"
                 >
-                  <SheetHeader className="border-b border-[hsl(var(--shell-chrome-border))] bg-[hsl(var(--shell-nav-hover-bg)/0.25)] px-6 py-4 text-left">
-                    <SheetTitle className="font-display text-[hsl(var(--shell-chrome-foreground))]">
-                      Navegação
-                    </SheetTitle>
+                  <SheetHeader className="border-b border-white/10 bg-white/[0.03] px-6 py-4 text-left">
+                    <SheetTitle className="font-display text-zinc-100">Navegação</SheetTitle>
                   </SheetHeader>
                   <div className="p-4">{sidebarBrand}</div>
                   <nav className="flex flex-col gap-1 px-4 pb-6" aria-label="Principal">
@@ -232,6 +236,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                         href={item.href}
                         label={item.label}
                         icon={item.icon}
+                        surface="ink"
                         onNavigate={closeDrawer}
                       />
                     ))}
@@ -246,14 +251,16 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
           )}
         </header>
 
-        <main className="dashboard-main-surface container flex-1 py-6 pb-24 lg:pb-8">{children}</main>
+        <main className="dashboard-main-surface container flex-1 py-5 pb-24 lg:py-6 lg:pb-8">
+          {children}
+        </main>
 
         <div className="fixed bottom-0 left-0 right-0 z-30 lg:hidden">
           {!mounted ? (
             <BottomNavSkeleton />
           ) : (
             <nav
-              className="flex h-16 items-stretch justify-around gap-0 border-t border-[hsl(var(--shell-chrome-border))] bg-gradient-to-t from-[hsl(var(--shell-chrome-bottom))] via-[hsl(var(--shell-chrome))] to-[hsl(var(--shell-chrome-top))] px-1 pb-[env(safe-area-inset-bottom)] pt-1 text-[hsl(var(--shell-chrome-foreground))] shadow-[0_-4px_24px_-10px_hsl(0_0%_0%/0.28)] lg:hidden"
+              className="flex h-16 items-stretch justify-around gap-0 border-t border-zinc-800 bg-[hsl(0_0%_3%)] px-1 pb-[env(safe-area-inset-bottom)] pt-1 text-zinc-100 shadow-[0_-8px_32px_-16px_hsl(0_0%_0%/0.55)] backdrop-blur-md supports-[backdrop-filter]:bg-[hsl(0_0%_3%/0.92)] lg:hidden"
               aria-label="Navegação inferior"
             >
               {MAIN_NAV_ITEMS.map((item) => (
@@ -263,6 +270,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                   label={item.label}
                   icon={item.icon}
                   variant="bottom"
+                  surface="ink"
                 />
               ))}
             </nav>

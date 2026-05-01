@@ -1,7 +1,7 @@
 # Deployment
 
 ## Context
-Subir o BJJ Manager para a Vercel apontando ao Supabase de produção,
+Subir o Casca - Gestão de Academias de BJJ para a Vercel apontando ao Supabase de produção,
 com variáveis de ambiente configuradas e checklist final percorrido.
 
 ## Intent

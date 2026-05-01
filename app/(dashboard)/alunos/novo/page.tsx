@@ -18,12 +18,12 @@ export default async function NovoAlunoPage() {
   const defaults = defaultCreateStudentValues(belts, plans);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="mx-auto max-w-6xl space-y-6">
       <DashboardPageHero
         badge="Cadastro"
         intro={<DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>}
         title="Novo aluno"
-        description="Preencha os dados obrigatórios. Campos opcionais ajudam no contacto e na gestão."
+        description="Campos obrigatórios marcados; os demais facilitam busca e contato."
       />
 
       <DashboardPanel

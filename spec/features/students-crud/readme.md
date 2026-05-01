@@ -11,6 +11,7 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 - Entidades: [`spec/product/entities.md`](../../product/entities.md) (**ENT-4**, **ENT-7**).
 - Datas e durações (idade na lista, formatos pt-BR): [`spec/features/date-duration-utilities/readme.md`](../date-duration-utilities/readme.md) (**DATE-**, **SPEC-2.4**).
 - Perfil só leitura: [`spec/features/student-profile/readme.md`](../student-profile/readme.md) (**SPR-**).
+- Painel: [`spec/features/dashboard/readme.md`](../dashboard/readme.md) (**PNL-4** — mesmas durações na lista que no alerta de graduação).
 - Planos e vínculo aluno–plano (Server Actions partilhadas): [`spec/features/plans-billing-model/readme.md`](../plans-billing-model/readme.md) (**BLM-**).
 
 ## Implementação (referência)
@@ -74,7 +75,7 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 **STU-7.3.** Controlo de **ordenação** com três modos: **nome (A–Z)**, **data de entrada** (`academy_start_date`), **última alteração** (`students.updated_at`). Registos com `academy_start_date` nulo ordenam **depois** dos com data, mantendo ordem estável por nome ou `updated_at` como desempate.
 
-**STU-7.4.** Cada linha ou card mostra: **nome**, **faixa e grau** atuais, **idade** (ou equivalente claro quando não houver data de nascimento — **"—"**; cálculo via **DATE-4**), **status**. Em viewports estreitas, apresentação em **cartões** empilhados.
+**STU-7.4.** Cada linha ou card mostra: **nome**, **faixa e grau** atuais, **idade** (ou equivalente claro quando não houver data de nascimento — **"—"**; cálculo via **DATE-4**), **status**. **Em complemento**, deve ser **evidente** (segunda linha ou texto auxiliar) o **tempo na faixa actual** e o **tempo no grau actual**, em pt-BR breve (ex. «Na faixa: 8 meses · No grau: 3 meses»), usando **DATE-** em **America/São_Paulo**: referência preferencial à **última** entrada em **`student_graduations`** que reflecte a faixa actual (para «na faixa») e o par (faixa, grau) actual (para «no grau»); se não houver histórico suficiente, usar **`academy_start_date`** como referência para ambos e sinalizar na UX como **aproximado** quando aplicável. Em viewports estreitas, apresentação em **cartões** empilhados.
 
 **STU-7.5.** Lista vazia (sem resultados para filtros atuais): mensagem adequada; se a conta **não tem alunos**, **empty state** com CTA **“Cadastrar primeiro aluno”** → **`/alunos/novo`**.
 
@@ -94,4 +95,4 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 ## Manutenção
 
-Alterações em rotas sob **`/alunos`**, regras de plano/tipo, ou políticas em `students` / `student_plans` devem actualizar **este readme**, **`spec/features/plans-billing-model/readme.md`**, **`spec/features/app-shell/readme.md`** e **`spec/features/student-profile/readme.md`** se afectarem navegação perfil/lista, e os cenários em `cycles/.../08-0430-students-crud/scenarios.feature` e `cycles/.../10-0430-student-profile/scenarios.feature` quando aplicável.
+Alterações em rotas sob **`/alunos`**, regras de plano/tipo, ou políticas em `students` / `student_plans` devem actualizar **este readme**, **`spec/features/dashboard/readme.md`** se afectarem métricas partilhadas com o painel (**PNL-4**), **`spec/features/plans-billing-model/readme.md`**, **`spec/features/app-shell/readme.md`** e **`spec/features/student-profile/readme.md`** se afectarem navegação perfil/lista, e os cenários em `cycles/.../08-0430-students-crud/scenarios.feature` e `cycles/.../10-0430-student-profile/scenarios.feature` quando aplicável.

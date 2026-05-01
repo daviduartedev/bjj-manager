@@ -11,7 +11,7 @@ Com autenticação ativa, o professor precisa de um **chrome persistente** (side
 | 1 | URLs | Primeiro segmento em **pt-BR**: `/painel`, `/alunos`, `/mensalidades`, `/configuracoes`, `/perfil`. |
 | 2 | Mobile | **Bottom navigation obrigatória** em `< lg`, além da top bar + drawer. |
 | 3 | Perfil | Entrada **Perfil** no menu do utilizador → **`/perfil`**. |
-| 4 | Cabeçalho | Manter **marca** “BJJ Manager” **e** exibir o **nome da academia** (`account.name`) quando o contexto multi-tenant estiver válido. |
+| 4 | Cabeçalho | Manter **marca** “Casca - Gestão de Academias de BJJ” **e** exibir o **nome da academia** (`account.name`) quando o contexto multi-tenant estiver válido. |
 | 5 | Estado inválido (**AUTH-6.1**) | **Não** redirecionar para `/login` (há sessão Auth válida). Manter **shell navegável**, mensagem **genérica** na área de conteúdo com orientação + contacto operacional, **sem** dados de negócio; **Sair** sempre acessível no cabeçalho. |
 | 6 | Proteção | **Middleware** como **fonte única** de bloqueio para anónimos (lista de prefixos **SHELL-2**); o layout **não** duplica redirect para “não autenticado”. O layout obtém dados para o chrome via servidor quando aplicável. |
 | 7 | Skeleton | **Sim**: skeleton cobre o **shell completo** (header + navegação + área principal) até hidratação do cliente onde necessário. |

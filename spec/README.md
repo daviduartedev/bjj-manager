@@ -1,4 +1,4 @@
-# Hub de especificação (BJJ Manager)
+# Hub de especificação (Casca - Gestão de Academias de BJJ)
 
 Documentação canônica de produto e domínio. Implementação e ciclos devem referenciar **regras numeradas** nos documentos abaixo.
 
@@ -24,6 +24,10 @@ Documentação canônica de produto e domínio. Implementação e ciclos devem r
 - [`spec/features/graduation-engine/readme.md`](features/graduation-engine/readme.md) — promoções, validação de ordem, histórico imutável (**GRD-**, Q2 2026).
 - [`spec/features/date-duration-utilities/readme.md`](features/date-duration-utilities/readme.md) — idade, durações e formatos de data em pt-BR com fuso São Paulo (**DATE-**, Q2 2026).
 - [`spec/features/plans-billing-model/readme.md`](features/plans-billing-model/readme.md) — provisão de planos, vínculo aluno–plano, preço efetivo e Server Actions de billing (**BLM-**, Q2 2026).
+- [`spec/features/payments-billing-status/readme.md`](features/payments-billing-status/readme.md) — registo de pagamento, estorno simples, indicador derivado do mês e leitura em lote (**PBS-**, Q2 2026).
+- [`spec/features/billing-ui/readme.md`](features/billing-ui/readme.md) — UI de mensalidades (`/mensalidades`), detalhe financeiro, lote e chrome premium (**BUI-**, Q2 2026).
+- [`spec/features/dashboard/readme.md`](features/dashboard/readme.md) — painel operacional (`/painel`), KPIs e atenção do dia (**PNL-**, Q2 2026).
+- [`spec/features/settings/readme.md`](features/settings/readme.md) — configurações da academia e perfil do professor (**CFG-**, Q2 2026).
 
 ## Convenção de IDs de regra
 
@@ -40,6 +44,10 @@ Documentação canônica de produto e domínio. Implementação e ciclos devem r
 - **GRD-** — motor de graduação na app (`spec/features/graduation-engine/readme.md`).
 - **DATE-** — utilitários de data/duração (`spec/features/date-duration-utilities/readme.md`).
 - **BLM-** — modelo de planos e vínculo aluno–plano na app (`spec/features/plans-billing-model/readme.md`).
+- **PBS-** — pagamentos e indicador de cobrança do mês (`spec/features/payments-billing-status/readme.md`).
+- **BUI-** — telas de mensalidades e fluxo de registo em lote (`spec/features/billing-ui/readme.md`).
+- **PNL-** — painel operacional (`spec/features/dashboard/readme.md`).
+- **CFG-** — configurações (`/configuracoes`) e perfil (`/perfil`) (`spec/features/settings/readme.md`).
 
 ## Manutenção e rastreabilidade
 

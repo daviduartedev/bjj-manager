@@ -69,17 +69,19 @@
 
     /* --font-sans é injectado por next/font no <html> (IBM Plex Sans). */
 
-    /* App shell — tema claro suavizado (SHELL-7.2) */
-    --shell-chrome: 222 47% 11%;
-    --shell-chrome-top: 222 42% 14%;
-    --shell-chrome-bottom: 222 52% 7%;
-    --shell-chrome-foreground: 210 40% 98%;
-    --shell-chrome-border: 217 33% 17%;
+    /*
+     * App shell — SaaS claro unificado (sidebar = topo = canvas; sem bloco escuro ao lado do conteúdo).
+     * Acento só em estado activo / CTAs (primary).
+     */
+    --shell-chrome: 36 21% 95%;
+    --shell-chrome-top: 36 21% 95%;
+    --shell-chrome-bottom: 36 21% 95%;
+    --shell-chrome-foreground: 0 0% 23%;
+    --shell-chrome-border: 38 14% 87%;
     --shell-active: 357 73% 43%;
-    --shell-nav-hover-bg: 217 28% 20%;
-    --shell-nav-active-bg: 357 55% 22%;
+    --shell-nav-hover-bg: 36 18% 92%;
+    --shell-nav-active-bg: 357 73% 96%;
     --shell-edge-glow: 357 73% 43%;
-    /* Área de conteúdo — lavagem muito sutil (DS-1.11) */
     --content-wash-mid: 36 21% 96%;
     --content-wash-accent: 357 73% 43%;
   }
@@ -151,15 +153,19 @@
     font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   }
 
-  /* Fundo da área autenticada: profundidade suave + acento primário residual */
+  /* Área autenticada: lavagem suave + contraste com sidebar escura (**DS-1.12**) */
   .dashboard-main-surface {
     background: linear-gradient(
-      168deg,
+      180deg,
       hsl(var(--background)) 0%,
-      hsl(var(--content-wash-mid)) 45%,
-      hsl(var(--background)) 70%,
-      hsl(var(--content-wash-accent) / 0.055) 100%
+      hsl(var(--content-wash-mid) / 0.65) 42%,
+      hsl(var(--background)) 100%
     );
+  }
+
+  /** Vidro do topo em browsers que suportam — sensação premium sem segunda cor sólida */
+  .dashboard-top-bar {
+    @apply border-b border-border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/75;
   }
   h1,
   h2,

@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { STUDENTS_PAGE_SIZE } from "@/lib/constants/students";
+import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
 import type { PlanKind } from "@/lib/students/plan-kind";
+import { studentGraduationDurationLine } from "@/lib/students/duration-display";
+import type { GraduationRecordInput } from "@/lib/students/graduation-reference";
 import type { ListSortKey } from "@/lib/validations/students";
 
 export type ListStudentRow = {
@@ -20,6 +23,8 @@ export type ListStudentRow = {
     plan_name: string;
     plan_kind: PlanKind;
   } | null;
+  /** **STU-7.4** — texto derivado de graduações + academia. */
+  graduationDurationLine: string | null;
 };
 
 export type ListStudentsParams = {
@@ -57,7 +62,8 @@ export async function listStudentsQuery(
       current_degree,
       updated_at,
       belts!students_current_belt_id_fkey ( slug, kind ),
-      student_plans ( plan_id, due_day, ended_at, plans ( name, kind ) )
+      student_plans ( plan_id, due_day, ended_at, plans ( name, kind ) ),
+      student_graduations ( resulting_belt_id, resulting_degree, graduated_at )
     `,
     { count: "exact" },
   );
@@ -95,6 +101,8 @@ export async function listStudentsQuery(
   const { data, error, count } = await q;
   if (error) throw error;
 
+  const todayYmd = toCalendarDateStringInAppTZ(new Date());
+
   const rows: ListStudentRow[] = (data ?? []).map((raw: Record<string, unknown>) => {
     const beltsRel = raw.belts as { slug: string; kind: "adult" | "kids" } | null;
     const spArr = raw.student_plans as
@@ -106,6 +114,15 @@ export async function listStudentsQuery(
         }[]
       | null;
     const open = spArr?.find((s) => s.ended_at == null);
+    const gradsRaw = raw.student_graduations as GraduationRecordInput[] | null;
+    const grads = Array.isArray(gradsRaw) ? gradsRaw : [];
+    const graduationDurationLine = studentGraduationDurationLine(
+      grads,
+      raw.current_belt_id as string,
+      raw.current_degree as number,
+      (raw.academy_start_date as string | null) ?? null,
+      todayYmd,
+    );
     return {
       id: raw.id as string,
       full_name: raw.full_name as string,
@@ -125,6 +142,7 @@ export async function listStudentsQuery(
             plan_kind: open.plans.kind,
           }
         : null,
+      graduationDurationLine,
     };
   });
 

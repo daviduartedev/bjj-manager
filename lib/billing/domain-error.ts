@@ -3,6 +3,9 @@ export const BILLING_ERROR_CODES = [
   "PLAN_INACTIVE",
   "PLAN_KIND_MISMATCH",
   "STUDENT_NOT_AVAILABLE",
+  "NO_OPEN_PLAN",
+  "PAYMENT_AMOUNT_MISMATCH",
+  "PAYMENT_NOT_AVAILABLE",
 ] as const;
 
 export type BillingErrorCode = (typeof BILLING_ERROR_CODES)[number];

@@ -35,11 +35,11 @@ export default async function AlunosPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="mx-auto max-w-6xl space-y-6">
       <DashboardPageHero
         badge="Gestão operacional"
         title="Alunos"
-        description="Cadastre, filtre e atualize alunos da sua academia. Clique numa linha para abrir o perfil ou use a edição rápida."
+        description="Cadastro e filtros. Abra uma linha para o perfil ou use a edição rápida."
         aside={
           <>
             <DashboardStatTile label="Total na conta" value={list.total} icon={Users} />

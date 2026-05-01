@@ -1,4 +1,4 @@
-# Casca
+# Casca — Gestão de Academias de BJJ
 
 SaaS web responsivo para professores de jiu-jitsu gerenciarem alunos,
 graduações e mensalidades.
@@ -36,7 +36,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME="Casca"
+NEXT_PUBLIC_APP_NAME="Casca - Gestão de Academias de BJJ"
 ```
 
 ## Identidade visual

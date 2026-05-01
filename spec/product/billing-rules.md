@@ -1,4 +1,4 @@
-# Regras de planos e cobrança — BJJ Manager
+# Regras de planos e cobrança — Casca - Gestão de Academias de BJJ
 
 **Sem gateway de pagamento no MVP.** Valores em **centavos** e **BRL**; exibição **pt-BR**.
 
@@ -6,13 +6,13 @@
 
 ## BR-1. Planos
 
-**BR-1.1.** Cada conta mantém planos do tipo **Kids 1**, **Kids 2** ou **Adulto** (**ENT-6.1**). O professor associa manualmente cada aluno a uma dessas categorias para refletir **faixa etária / turma** da operação da academia (não há automação por idade no MVP).
+**BR-1.1.** Cada conta mantém planos dos tipos **`kids_1`**, **`kids_2`** e **`adult`** (**ENT-6.1**). Na linguagem de produto usam-se por defeito os rótulos **Kid 1**, **Juvenil** e **Adulto** ( **`kids_2`** = Juvenil). O professor associa manualmente cada aluno a uma dessas categorias para refletir **faixa etária / turma** da operação da academia (não há automação por idade no MVP).
 
 **BR-1.2.** Cada plano tem **valor padrão** configurável pelo professor (**price** em centavos).
 
 **BR-1.3.** Planos inativos não devem ser ofertados para **novos** vínculos; vínculos existentes podem seguir regra do ciclo de dados.
 
-**BR-1.4.** No **seed** de desenvolvimento, criam-se os **três** planos por conta de exemplo com nomes alinhados a **BR-1.1** e valores por defeito **10000** centavos (Kids 1) e **12000** centavos (Kids 2 e Adulto) — referência para integração futura; o professor pode alterar **price_cents** depois. Em **produção**, na primeira carga do layout da área autenticada **(dashboard)**, a aplicação garante **idempotentemente** os mesmos três tipos de plano para a conta com esses valores iniciais (**BLM-2**), sem depender de UI de Configurações neste passo.
+**BR-1.4.** No **seed** de desenvolvimento, criam-se os **três** planos por conta de exemplo com nomes alinhados a **BR-1.1** e valores por defeito **10000** centavos (Kid 1) e **12000** centavos (Juvenil e Adulto) — referência para integração futura; o professor pode alterar **`price_cents`** e o **nome de exibição** (`plans.name`) nas Configurações. Em **produção**, na primeira carga do layout da área autenticada **(dashboard)**, a aplicação garante **idempotentemente** os mesmos três tipos de plano para a conta com esses valores iniciais (**BLM-2**).
 
 ---
 
@@ -55,6 +55,8 @@
 **BR-4.4.** **Semântica de ausência de registro:** se não existir linha em `payments` para o par (**aluno**, **mês de referência**), a UI e relatórios devem tratar como **Pendente** até haver registro explícito. A persistência da linha pode ser sob demanda (primeira interação) ou antecipada por rotina — decisão do ciclo de implementação da área financeira, desde que a semântica acima permaneça.
 
 **BR-4.5.** **Transição automática Pendente → Não pago:** após o **dia de vencimento** do aluno (**BR-2.3**) no **mês de referência** em questão, se o status ainda for **Pendente** (incluindo o caso “sem linha” tratada como Pendente na UI), o sistema **deve** persistir **Não pago** quando a rotina automática (job agendado ou equivalente) executar — salvo se o professor já tiver definido **Pago** ou **Bolsista** (ou **Outro**, se a implementação optar por excluir **Outro** dessa automação; o padrão é **não** alterar **Pago**, **Bolsista** nem **Outro**). **Pago** e **Bolsista** só entram por **ação manual** do professor.
+
+**BR-4.6.** **Derivação sem job:** até a rotina **BR-4.5** estar em produção, a aplicação pode calcular **sob demanda** o indicador **atrasado** (e **pendente** no mesmo mês até e inclusive o dia de vencimento civil) conforme **PBS-** em [`spec/features/payments-billing-status/readme.md`](../features/payments-billing-status/readme.md), sem exigir linha **`unpaid`** persistida. Quando o job existir, ambos os modelos coexistem: linha **`unpaid`** e derivados continuam coerentes com **PBS-3**.
 
 ---
 

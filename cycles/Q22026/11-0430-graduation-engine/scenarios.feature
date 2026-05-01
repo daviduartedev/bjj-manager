@@ -19,7 +19,7 @@ Funcionalidade: Registar graduações e histórico do aluno
     Quando tento concluir sem preencher o motivo do pulo
     Então não consigo finalizar o registo de forma útil
     E quando preencho uma justificativa clara e confirmo
-    Então o histórico guarda o evento como pulo com esse motivo visível para consulta futura
+    Então o histórico salva o evento como pulo com esse motivo visível para consulta futura
 
   Cenário: Saltar mais de um grau na mesma faixa não é permitido
     Dado que mantenho o aluno na mesma faixa

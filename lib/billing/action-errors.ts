@@ -1,10 +1,9 @@
+import { mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";
+
 import { BillingDomainError } from "./domain-error";
 
 const NOT_AVAILABLE =
   "Registo não encontrado ou não disponível para a sua academia.";
-const GENERIC_SAVE =
-  "Não foi possível guardar a alteração. Verifique os dados e tente novamente.";
-
 /**
  * Mensagens para **`actions/billing.ts`** (**BLM-3**): específicas o suficiente para toast,
  * sem expor detalhes internos nem confirmar existência noutras contas.
@@ -20,10 +19,19 @@ export function mapBillingActionError(error: unknown): string {
         return "Este plano não é compatível com o tipo de aluno (adulto vs kids).";
       case "STUDENT_NOT_AVAILABLE":
         return NOT_AVAILABLE;
+      case "NO_OPEN_PLAN":
+        return "Este aluno não tem plano ativo. Associe um plano antes de registar o pagamento.";
+      case "PAYMENT_AMOUNT_MISMATCH":
+        return "O valor não corresponde ao preço efetivo vigente para este aluno.";
+      case "PAYMENT_NOT_AVAILABLE":
+        return NOT_AVAILABLE;
       default:
         return NOT_AVAILABLE;
     }
   }
+
+  const mappedDb = mapDatabaseErrorToUserMessage(error);
+  if (mappedDb) return mappedDb;
 
   if (error && typeof error === "object") {
     const o = error as { code?: string; message?: string; name?: string };
@@ -47,5 +55,5 @@ export function mapBillingActionError(error: unknown): string {
     }
   }
 
-  return GENERIC_SAVE;
+  return "Não foi possível salvar a alteração. Verifique os dados ou atualize a página e tente novamente.";
 }

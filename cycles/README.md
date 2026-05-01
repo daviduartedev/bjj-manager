@@ -1,6 +1,6 @@
-# BJJ Manager — Workflow Spec-Driven (Cycles)
+# Casca - Gestão de Academias de BJJ — Workflow Spec-Driven (Cycles)
 
-Cada feature do BJJ Manager nasce como **um ciclo**. Um ciclo é uma pasta
+Cada feature do Casca - Gestão de Academias de BJJ nasce como **um ciclo**. Um ciclo é uma pasta
 contendo um `request.md` cru — descrição da feature, sem plano, sem tarefas.
 Plano e implementação vêm depois, em arquivos separados.
 

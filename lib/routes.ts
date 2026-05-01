@@ -17,6 +17,21 @@ export function routeAlunoPerfil(studentId: string): string {
   return `${ROUTES.alunos}/${studentId}`;
 }
 
+/** Detalhe financeiro na lista de mensalidades (**BUI-1**). */
+export function routeMensalidadesAluno(studentId: string): string {
+  return `${ROUTES.mensalidades}/${studentId}`;
+}
+
+/** Lista de mensalidades com filtro inicial (**BUI-2.6**, **PNL-**). */
+export function routeMensalidadesComFiltro(filtro: "atrasado" | "pendente"): string {
+  return `${ROUTES.mensalidades}?filtro=${filtro}`;
+}
+
+/** Lista de alunos só ativos (atalhos do painel). */
+export function routeAlunosActivos(): string {
+  return `${ROUTES.alunos}?status=active`;
+}
+
 /** Ficha completa do aluno (`/alunos/[id]/editar`). */
 export function routeAlunoEditar(studentId: string): string {
   return `${ROUTES.alunos}/${studentId}/editar`;

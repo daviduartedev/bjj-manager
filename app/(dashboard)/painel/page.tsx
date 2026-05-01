@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import { LayoutDashboard, Sparkles } from "lucide-react";
 
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
+import { PainelDashboard } from "@/components/painel/painel-dashboard";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
+import { LayoutDashboard } from "lucide-react";
+
+import { loadPainelPageData } from "@/lib/data/painel-page";
 import { getCurrentAccount } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -12,54 +15,47 @@ export const metadata: Metadata = {
 export default async function PainelPage() {
   const ctx = await getCurrentAccount();
 
-  return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Painel operacional"
-        title="Painel"
-        description="Visão resumida da academia e alertas simples chegam em ciclos futuros (SPEC-2.7)."
-        aside={
-          <div className="flex max-w-xs items-center gap-3 rounded-xl border border-border/80 bg-gradient-to-br from-muted/50 to-muted/30 px-4 py-3 shadow-inner ring-1 ring-black/[0.03] dark:ring-white/[0.05]">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-primary ring-1 ring-primary/20">
-              <Sparkles className="size-5" aria-hidden />
-            </span>
-            <div>
-              <p className="text-crm-xs font-medium text-muted-foreground">Roadmap</p>
-              <p className="text-crm-sm font-semibold text-foreground">Resumo e alertas em evolução</p>
-            </div>
-          </div>
-        }
-      />
-
-      {ctx ? (
+  if (!ctx) {
+    return (
+      <div className="mx-auto max-w-6xl space-y-6">
+        <DashboardPageHero
+          badge="Conta"
+          title="Painel"
+          description="Associe a conta à academia para ver o resumo operacional."
+        />
         <DashboardPanel
           icon={LayoutDashboard}
-          title="Sua academia"
-          subtitle="Dados da sessão e da conta"
-        >
-          <p className="type-lead">
-            Olá, <span className="font-medium text-foreground">{ctx.profile.display_name}</span>.
-          </p>
-          <p className="mt-4 text-crm-sm">
-            <span className="text-muted-foreground">Academia:</span>{" "}
-            <span className="font-medium text-foreground">{ctx.account.name}</span>
-          </p>
-        </DashboardPanel>
-      ) : (
-        <DashboardPanel
-          icon={LayoutDashboard}
-          title="Configuração pendente"
+          title="Provisionamento pendente"
           subtitle="Vínculo com a base de dados"
           contentClassName="border-t border-amber-500/25 bg-amber-500/[0.04]"
         >
-          <p className="font-medium text-foreground">Conta ainda não configurada</p>
+          <p className="font-medium text-foreground">Conta não configurada</p>
           <p className="type-lead mt-2">
-            O utilizador existe no sistema de autenticação, mas falta o vínculo com academia e perfil na base de
-            dados. Peça ao administrador para concluir o passo descrito na documentação de segurança (SQL em{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-crm-xs">docs/security/rls.md</code>).
+            O utilizador existe na autenticação, mas falta vínculo com academia e perfil. Peça ao administrador o
+            passo em{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-crm-xs">docs/security/rls.md</code>.
           </p>
         </DashboardPanel>
-      )}
-    </div>
+      </div>
+    );
+  }
+
+  const data = await loadPainelPageData();
+
+  return (
+    <PainelDashboard
+      displayName={ctx.profile.display_name}
+      accountName={ctx.account.name}
+      activeStudentCount={data.activeStudentCount}
+      overdueCount={data.overdueCount}
+      birthdayMonthCount={data.birthdayMonthCount}
+      graduationAlertCount={data.graduationAlertCount}
+      birthdayToday={data.birthdayToday}
+      dueToday={data.dueToday}
+      overdue14={data.overdue14}
+      graduationAlerts={data.graduationAlerts}
+      distributionAdult={data.distributionAdult}
+      distributionKids={data.distributionKids}
+    />
   );
 }

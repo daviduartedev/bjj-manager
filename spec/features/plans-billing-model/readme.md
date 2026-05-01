@@ -9,22 +9,22 @@ Contrato canónico para **SPEC** / **BR-** / **ENT-6**, **ENT-7** na camada **ap
 - Schema: [`spec/features/supabase-schema/readme.md`](../supabase-schema/readme.md) (`plans`, `student_plans`, `plan_kind`).
 - Alunos: [`spec/features/students-crud/readme.md`](../students-crud/readme.md) (**STU-4**, **STU-5**, **STU-8**, **STU-2.3**).
 - RLS: [`spec/features/rls-security/readme.md`](../rls-security/readme.md) (**SEC-3.3**).
-- Pagamentos (seguinte): ciclo `13-0430-payments-billing-status`.
+- Pagamentos e indicador do mês: [`spec/features/payments-billing-status/readme.md`](../payments-billing-status/readme.md) (**PBS-**).
 
 ## Implementação (referência)
 
 | Área | Artefatos típicos |
 |------|-------------------|
 | Provisão | `lib/billing/ensure-default-plans.ts`; chamada no layout `app/(dashboard)/layout.tsx` |
-| Actions | `actions/billing.ts`: `updatePlanPrice`, `setStudentPlan` |
+| Actions | `actions/billing.ts`: `updatePlanPrice`, `updatePlan` (nome/ativo/preço), `setStudentPlan` |
 | Domínio | `lib/billing/get-effective-price.ts`, `lib/billing/student-plan.ts`, `lib/billing/action-errors.ts` |
 | Validação | `lib/validations/billing.ts` (Zod; espelha checks em `student_plans_due_day_ck`) |
 
 ## BLM-1. Planos por conta
 
-**BLM-1.1.** Cada conta possui exactamente **uma** linha por `plan_kind`: **Kids 1**, **Kids 2**, **Adulto** (`kids_1`, `kids_2`, `adult`), conforme **BR-1.1** e constraint `plans_account_kind_unique`.
+**BLM-1.1.** Cada conta possui exactamente **uma** linha por `plan_kind`: **Kid 1**, **Juvenil**, **Adulto** (`kids_1`, `kids_2`, `adult`), conforme **BR-1.1** e constraint `plans_account_kind_unique`.
 
-**BLM-1.2.** Nomes por defeito na provisão: **"Kids 1"**, **"Kids 2"**, **"Adulto"** (rótulos pt-BR).
+**BLM-1.2.** Nomes por defeito na provisão: **"Kid 1"**, **"Juvenil"**, **"Adulto"** (rótulos pt-BR). O professor pode editar **`plans.name`** na UI de Configurações (**CFG-**) sem alterar o **`plan_kind`**.
 
 ## BLM-2. Provisão e preços por defeito
 
@@ -44,9 +44,9 @@ Contrato canónico para **SPEC** / **BR-** / **ENT-6**, **ENT-7** na camada **ap
 
 ## BLM-4. Preço padrão do plano
 
-**BLM-4.1.** `updatePlanPrice({ planId, priceCents })` altera só **`price_cents`** (inteiro ≥ 0). O `planId` é resolvido com cliente servidor e **RLS** (só planos da conta da sessão).
+**BLM-4.1.** `updatePlanPrice({ planId, priceCents })` altera só **`price_cents`** (inteiro ≥ 0). `updatePlan({ planId, ... })` pode alterar **`name`**, **`active`** e/ou **`price_cents`** com validação Zod parcial. O `planId` é resolvido com cliente servidor e **RLS** (só planos da conta da sessão).
 
-**BLM-4.2.** Alterar **`active`** do plano fica para ciclo de Configurações; até lá, **BR-1.3** é aplicado em **`setStudentPlan`**: recusar vínculo novo se o plano estiver **inativo**.
+**BLM-4.2.** **BR-1.3** é aplicado em **`setStudentPlan`**: recusar vínculo novo se o plano estiver **inativo**. Desativar um plano nas Configurações não remove vínculos existentes.
 
 ## BLM-5. Vínculo e histórico
 

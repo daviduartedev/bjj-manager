@@ -79,7 +79,7 @@ export function LoginForm() {
                       type="email"
                       autoComplete="email"
                       disabled={loading}
-                      className="w-full"
+                      className="min-h-11 w-full touch-manipulation"
                       {...field}
                     />
                   </FormControl>
@@ -98,7 +98,7 @@ export function LoginForm() {
                       type="password"
                       autoComplete="current-password"
                       disabled={loading}
-                      className="w-full"
+                      className="min-h-11 w-full touch-manipulation"
                       {...field}
                     />
                   </FormControl>

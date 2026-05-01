@@ -1,7 +1,7 @@
 # Project Bootstrap
 
 ## Context
-Estamos iniciando o BJJ Manager — um SaaS para professores de jiu-jitsu
+Estamos iniciando o Casca - Gestão de Academias de BJJ — um SaaS para professores de jiu-jitsu
 gerenciarem alunos, graduações e mensalidades. Antes de qualquer feature
 de negócio, precisamos do esqueleto técnico do projeto: app Next.js
 moderno, dependências, tema, helpers Supabase, estrutura de pastas e a

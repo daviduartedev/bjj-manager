@@ -3,16 +3,31 @@
 import { revalidatePath } from "next/cache";
 
 import { mapBillingActionError } from "@/lib/billing/action-errors";
+import { BillingDomainError } from "@/lib/billing/domain-error";
+import { getEffectivePrice } from "@/lib/billing/get-effective-price";
+import { normalizeReferenceMonth } from "@/lib/billing/reference-month";
 import { applyStudentPlanChange } from "@/lib/billing/student-plan";
 import { ROUTES } from "@/lib/routes";
 import {
+  recordPaymentSchema,
+  recordPaymentsBulkSchema,
   setStudentPlanSchema,
   updatePlanPriceSchema,
+  updatePlanSchema,
+  voidPaymentSchema,
 } from "@/lib/validations/billing";
 import { createClient } from "@/lib/supabase/server";
 
 export type BillingActionResult =
   | { ok: true }
+  | { ok: false; error: string };
+
+export type RecordPaymentsBulkResult =
+  | {
+      ok: true;
+      recorded: number;
+      failures: { studentId: string; error: string }[];
+    }
   | { ok: false; error: string };
 
 export async function updatePlanPrice(
@@ -57,6 +72,60 @@ export async function updatePlanPrice(
     if (upErr) throw upErr;
 
     revalidatePath(ROUTES.alunos);
+    revalidatePath(ROUTES.configuracoes);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
+
+export async function updatePlan(input: unknown): Promise<BillingActionResult> {
+  try {
+    const parsed = updatePlanSchema.safeParse(input);
+    if (!parsed.success) {
+      const first = parsed.error.flatten().fieldErrors;
+      const msg =
+        Object.values(first).flat()[0] ??
+        "Verifique os dados do plano e tente novamente.";
+      return { ok: false, error: msg };
+    }
+
+    const { planId, name, priceCents, active } = parsed.data;
+    const supabase = await createClient();
+
+    const { data: row, error: selErr } = await supabase
+      .from("plans")
+      .select("id")
+      .eq("id", planId)
+      .maybeSingle();
+
+    if (selErr) throw selErr;
+    if (!row) {
+      return {
+        ok: false,
+        error:
+          "Plano não encontrado ou já não está disponível nesta academia.",
+      };
+    }
+
+    const patch: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (name !== undefined) patch.name = name;
+    if (priceCents !== undefined) patch.price_cents = priceCents;
+    if (active !== undefined) patch.active = active;
+
+    const { error: upErr } = await supabase
+      .from("plans")
+      .update(patch)
+      .eq("id", planId);
+
+    if (upErr) throw upErr;
+
+    revalidatePath(ROUTES.alunos);
+    revalidatePath(ROUTES.mensalidades);
+    revalidatePath(ROUTES.configuracoes);
+    revalidatePath(ROUTES.painel);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: mapBillingActionError(e) };
@@ -88,6 +157,298 @@ export async function setStudentPlan(input: unknown): Promise<BillingActionResul
     revalidatePath(ROUTES.alunos);
     revalidatePath(`${ROUTES.alunos}/${studentId}/editar`);
     revalidatePath(`${ROUTES.alunos}/${studentId}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
+
+function parsePaidAt(input: string | undefined): string | null {
+  if (input === undefined || input === "") return null;
+  const d = new Date(input);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
+function revalidateGlobalBilling() {
+  revalidatePath(ROUTES.painel);
+  revalidatePath(ROUTES.mensalidades);
+  revalidatePath(ROUTES.alunos);
+}
+
+function revalidateStudentBilling(studentId: string) {
+  revalidatePath(`${ROUTES.alunos}/${studentId}`);
+  revalidatePath(`${ROUTES.mensalidades}/${studentId}`);
+}
+
+type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
+
+async function fetchEffectivePriceCents(
+  supabase: SupabaseServer,
+  studentId: string,
+): Promise<{ ok: true; effectiveCents: number } | { ok: false; error: string }> {
+  const { data: spRow, error: spErr } = await supabase
+    .from("student_plans")
+    .select(
+      `
+      custom_price_cents,
+      plans!inner ( price_cents )
+    `,
+    )
+    .eq("student_id", studentId)
+    .is("ended_at", null)
+    .maybeSingle();
+
+  if (spErr) throw spErr;
+  if (!spRow) {
+    return {
+      ok: false,
+      error: mapBillingActionError(new BillingDomainError("NO_OPEN_PLAN")),
+    };
+  }
+
+  const rawPlans = spRow.plans as
+    | { price_cents: number }
+    | { price_cents: number }[]
+    | null;
+  const planEmbed = Array.isArray(rawPlans) ? rawPlans[0] : rawPlans;
+  if (!planEmbed) {
+    return {
+      ok: false,
+      error: mapBillingActionError(new BillingDomainError("PLAN_NOT_AVAILABLE")),
+    };
+  }
+  const effectiveCents = getEffectivePrice({
+    customPriceCents: spRow.custom_price_cents,
+    planPriceCents: planEmbed.price_cents,
+  });
+
+  return { ok: true, effectiveCents };
+}
+
+async function upsertRecordedPaymentRow(
+  supabase: SupabaseServer,
+  args: {
+    studentId: string;
+    refMonth: string;
+    status: "paid" | "scholarship";
+    amountCents: number;
+    paidAtIso: string | null;
+    notes: string | null;
+    paymentMethod: string | null;
+  },
+): Promise<void> {
+  const {
+    studentId,
+    refMonth,
+    status,
+    amountCents,
+    paidAtIso,
+    notes,
+    paymentMethod,
+  } = args;
+  const timestamp = paidAtIso ?? new Date().toISOString();
+
+  const { error: upErr } = await supabase.from("payments").upsert(
+    {
+      student_id: studentId,
+      reference_month: refMonth,
+      amount_cents: amountCents,
+      status,
+      paid_at: timestamp,
+      notes: notes ?? null,
+      payment_method: paymentMethod,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "student_id,reference_month" },
+  );
+
+  if (upErr) throw upErr;
+}
+
+export async function recordPayment(input: unknown): Promise<BillingActionResult> {
+  try {
+    const parsed = recordPaymentSchema.safeParse(input);
+    if (!parsed.success) {
+      const first = parsed.error.flatten().fieldErrors;
+      const msg =
+        Object.values(first).flat()[0] ??
+        "Verifique o mês de referência e o valor e tente novamente.";
+      return { ok: false, error: msg };
+    }
+
+    const {
+      studentId,
+      referenceMonth,
+      recordingKind,
+      paidAt,
+      notes,
+      paymentMethod,
+    } = parsed.data;
+    const refMonth = normalizeReferenceMonth(referenceMonth);
+    if (!refMonth) {
+      return {
+        ok: false,
+        error: "Mês de referência inválido. Use uma data válida.",
+      };
+    }
+
+    const paidAtIso = parsePaidAt(paidAt);
+    if (paidAt !== undefined && paidAt !== "" && paidAtIso === null) {
+      return {
+        ok: false,
+        error: "Data ou hora do pagamento inválida.",
+      };
+    }
+
+    const supabase = await createClient();
+
+    const price = await fetchEffectivePriceCents(supabase, studentId);
+    if (!price.ok) {
+      return { ok: false, error: price.error };
+    }
+
+    if (recordingKind === "scholarship") {
+      await upsertRecordedPaymentRow(supabase, {
+        studentId,
+        refMonth,
+        status: "scholarship",
+        amountCents: 0,
+        paidAtIso,
+        notes: notes ?? null,
+        paymentMethod: paymentMethod ?? null,
+      });
+    } else {
+      await upsertRecordedPaymentRow(supabase, {
+        studentId,
+        refMonth,
+        status: "paid",
+        amountCents: price.effectiveCents,
+        paidAtIso,
+        notes: notes ?? null,
+        paymentMethod: paymentMethod ?? null,
+      });
+    }
+
+    revalidateGlobalBilling();
+    revalidateStudentBilling(studentId);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
+
+export async function recordPaymentsBulk(
+  input: unknown,
+): Promise<RecordPaymentsBulkResult> {
+  try {
+    const parsed = recordPaymentsBulkSchema.safeParse(input);
+    if (!parsed.success) {
+      const first = parsed.error.flatten().fieldErrors;
+      const msg =
+        Object.values(first).flat()[0] ??
+        "Verifique os alunos e o mês de referência.";
+      return { ok: false, error: msg };
+    }
+
+    const { studentIds, referenceMonth, paidAt, notes, paymentMethod } =
+      parsed.data;
+    const refMonth = normalizeReferenceMonth(referenceMonth);
+    if (!refMonth) {
+      return {
+        ok: false,
+        error: "Mês de referência inválido. Use uma data válida.",
+      };
+    }
+
+    const paidAtIso = parsePaidAt(paidAt);
+    if (paidAt !== undefined && paidAt !== "" && paidAtIso === null) {
+      return {
+        ok: false,
+        error: "Data ou hora do pagamento inválida.",
+      };
+    }
+
+    const supabase = await createClient();
+    const failures: { studentId: string; error: string }[] = [];
+    let recorded = 0;
+    const okIds: string[] = [];
+
+    for (const studentId of studentIds) {
+      const price = await fetchEffectivePriceCents(supabase, studentId);
+      if (!price.ok) {
+        failures.push({ studentId, error: price.error });
+        continue;
+      }
+      try {
+        await upsertRecordedPaymentRow(supabase, {
+          studentId,
+          refMonth,
+          status: "paid",
+          amountCents: price.effectiveCents,
+          paidAtIso,
+          notes: notes ?? null,
+          paymentMethod: paymentMethod ?? null,
+        });
+        recorded += 1;
+        okIds.push(studentId);
+      } catch (e) {
+        failures.push({
+          studentId,
+          error: mapBillingActionError(e),
+        });
+      }
+    }
+
+    if (recorded > 0) {
+      revalidateGlobalBilling();
+      for (const id of okIds) {
+        revalidateStudentBilling(id);
+      }
+    }
+
+    return { ok: true, recorded, failures };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
+
+export async function voidPayment(input: unknown): Promise<BillingActionResult> {
+  try {
+    const parsed = voidPaymentSchema.safeParse(input);
+    if (!parsed.success) {
+      const first = parsed.error.flatten().fieldErrors;
+      const msg =
+        Object.values(first).flat()[0] ??
+        "Identificador de pagamento inválido.";
+      return { ok: false, error: msg };
+    }
+
+    const { paymentId } = parsed.data;
+    const supabase = await createClient();
+
+    const { data: row, error: selErr } = await supabase
+      .from("payments")
+      .select("id, student_id")
+      .eq("id", paymentId)
+      .maybeSingle();
+
+    if (selErr) throw selErr;
+    if (!row) {
+      throw new BillingDomainError("PAYMENT_NOT_AVAILABLE");
+    }
+
+    const studentId = row.student_id as string;
+
+    const { error: delErr } = await supabase
+      .from("payments")
+      .delete()
+      .eq("id", paymentId);
+
+    if (delErr) throw delErr;
+
+    revalidateGlobalBilling();
+    revalidateStudentBilling(studentId);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: mapBillingActionError(e) };

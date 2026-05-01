@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { APP_NAME } from "@/lib/branding";
 import { cn } from "@/lib/utils";
 
 type LogoMarkProps = {
@@ -28,7 +29,7 @@ export function LogoMark({
     >
       <Image
         src="/Logo.png"
-        alt="Casca"
+        alt={APP_NAME}
         width={200}
         height={height}
         priority={priority}

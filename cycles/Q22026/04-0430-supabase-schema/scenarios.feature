@@ -22,7 +22,7 @@ Funcionalidade: Schema de dados e cobrança no Supabase
   Cenário: Histórico de graduação com pulo justificado
     Dado um aluno com histórico de graduações
     Quando o professor registra uma promoção que constitui pulo de ordem de faixa
-    Então o registro guarda que houve pulo e uma justificativa obrigatória em texto
+    Então o registro salva que houve pulo e uma justificativa obrigatória em texto
     Quando o professor registra uma promoção sem pulo de ordem de faixa
     Então o registro não exige motivo de pulo
 

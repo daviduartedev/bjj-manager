@@ -127,7 +127,7 @@ export function QuickEditDialog({
         toast.error(result.error);
         return;
       }
-      toast.success("Alterações guardadas.");
+      toast.success("Alterações salvas.");
       onOpenChange(false);
     } catch (e) {
       toast.error(mapStudentServerError(e));
@@ -166,7 +166,7 @@ export function QuickEditDialog({
                       <>
                         <input type="hidden" {...field} />
                         <p className="text-sm text-muted-foreground">
-                          Em avaliação — altere na ficha completa se necessário.
+                          Em avaliação; edite na ficha completa se precisar.
                         </p>
                       </>
                     ) : (
@@ -311,7 +311,7 @@ export function QuickEditDialog({
 
               <DialogFooter className="flex-col gap-2 sm:flex-col">
                 <Button type="submit" className="min-h-11 w-full" disabled={loading}>
-                  {loading ? "A guardar…" : "Guardar"}
+                  {loading ? "Salvando…" : "Salvar"}
                 </Button>
                 <Button variant="outline" className="min-h-11 w-full" asChild>
                   <Link href={routeAlunoEditar(student.id)} onClick={() => onOpenChange(false)}>

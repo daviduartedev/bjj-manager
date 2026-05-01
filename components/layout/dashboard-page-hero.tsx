@@ -18,7 +18,7 @@ export type DashboardPageHeroProps = {
 };
 
 /**
- * Cabeçalho operacional padronizado (gradiente, blobs, hierarquia tipo /alunos).
+ * Cabeçalho de página na área autenticada — plano de fundo contínuo com o canvas (evita “card” sobre a vista).
  */
 export function DashboardPageHero({
   badge,
@@ -32,45 +32,30 @@ export function DashboardPageHero({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-border/90 bg-card shadow-sm ring-1 ring-primary/[0.07]",
+        "border-b border-border/80 pb-8",
         className,
       )}
     >
-      <div
-        className="h-1.5 bg-gradient-to-r from-primary via-[hsl(var(--status-info))] to-[hsl(var(--status-paid))]"
-        aria-hidden
-      />
-      <div className="relative p-6 sm:p-8">
-        <div
-          className="pointer-events-none absolute -right-16 -top-24 size-56 rounded-full bg-primary/[0.06] blur-3xl"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -bottom-20 -left-10 size-48 rounded-full bg-[hsl(var(--status-info)/0.08)] blur-3xl"
-          aria-hidden
-        />
-
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-xl space-y-3">
-            {intro ? <div>{intro}</div> : null}
-            {badge ? (
-              <Badge
-                variant="outline"
-                className="border-primary/30 bg-primary/[0.07] font-medium text-primary shadow-none"
-              >
-                {badge}
-              </Badge>
-            ) : null}
-            <h1 className="type-page-title">{title}</h1>
-            {description ? <p className="type-lead max-w-lg">{description}</p> : null}
-            {children}
-          </div>
-          {aside ? (
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch lg:flex-col xl:flex-row xl:items-center">
-              {aside}
-            </div>
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
+        <div className="min-w-0 max-w-2xl space-y-3">
+          {intro ? <div className="pb-1">{intro}</div> : null}
+          {badge ? (
+            <Badge
+              variant="outline"
+              className="w-fit border-border bg-background/90 font-medium text-muted-foreground shadow-sm"
+            >
+              {badge}
+            </Badge>
           ) : null}
+          <h1 className="type-page-title">{title}</h1>
+          {description ? <p className="type-lead max-w-xl">{description}</p> : null}
+          {children}
         </div>
+        {aside ? (
+          <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-stretch lg:flex-col xl:flex-row xl:items-start">
+            {aside}
+          </div>
+        ) : null}
       </div>
     </section>
   );

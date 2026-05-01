@@ -28,7 +28,7 @@ Checklist executável; citar **STU-**, **ENT-**, **SHELL-**, **SEC-** nos commit
 
 ## Formulários
 
-- [x] Cadastro e ficha completa: React Hook Form + Zod; erros **inline**; **toast** de sucesso ao guardar.
+- [x] Cadastro e ficha completa: React Hook Form + Zod; erros **inline**; **toast** de sucesso ao salvar.
 - [x] Máscaras de input para **CPF**, **telefone**, **e-mail** (formato brasileiro razoável).
 - [x] Selects de faixa filtrados por `kind` coerente com tipo de aluno; select de plano filtrado por **STU-4.3**.
 - [x] **Empty state** com CTA “Cadastrar primeiro aluno” → `/alunos/novo`.

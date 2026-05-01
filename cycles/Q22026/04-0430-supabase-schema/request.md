@@ -1,7 +1,7 @@
 # Supabase Schema
 
 ## Context
-O backend do BJJ Manager é o Supabase. Para qualquer feature de domínio
+O backend do Casca - Gestão de Academias de BJJ é o Supabase. Para qualquer feature de domínio
 funcionar, o schema precisa estar criado e populado com as faixas
 oficiais (adulto e kids). O modelo nasce multi-tenant (`account_id` em
 todas as tabelas relevantes) mesmo que o MVP atenda um professor por

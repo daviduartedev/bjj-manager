@@ -1,8 +1,8 @@
-# Especificação de produto — BJJ Manager
+# Especificação de produto — Casca - Gestão de Academias de BJJ
 
 ## 1. Visão
 
-**SPEC-1.1.** O BJJ Manager é um SaaS web para **professores** de jiu-jitsu gerenciarem **alunos**, **graduações** e **mensalidades** da própria academia, com foco em clareza operacional e baixa fricção no dia a dia.
+**SPEC-1.1.** O Casca - Gestão de Academias de BJJ é um SaaS web para **professores** de jiu-jitsu gerenciarem **alunos**, **graduações** e **mensalidades** da própria academia, com foco em clareza operacional e baixa fricção no dia a dia.
 
 **SPEC-1.2.** O sistema prioriza **uma conta por academia** (multi-tenant no modelo de dados) para permitir evolução futura sem refatoração pesada.
 
@@ -24,7 +24,7 @@
 
 **SPEC-2.6.** Acompanhamento financeiro por **mês de referência**, com status **Pago**, **Não pago**, **Pendente**, **Bolsista** e **Outro**; **Pago** e **Bolsista** são sempre manuais; **Pendente** pode virar **Não pago** automaticamente após o vencimento (**BR-4.5**); sem gateway de pagamento no MVP.
 
-**SPEC-2.7.** Dashboard com visão resumida e **alertas simples** (ex.: pendências de revisão mensal ou dados incompletos — detalhamento nos ciclos de UI).
+**SPEC-2.7.** **Painel** (`/painel`) com visão resumida da academia: KPIs (alunos activos, mensalidades atrasadas, aniversariantes do mês, alertas de tempo em faixa/grau), secção **Atenção hoje** (aniversários do dia, vencimentos do dia, atrasos prolongados), distribuição compacta por faixa (adulto/kids) e atalhos para cadastro e mensalidades — **sem** gráficos pesados; detalhe contratual em **PNL-** em [`spec/features/dashboard/readme.md`](../../spec/features/dashboard/readme.md).
 
 ---
 

@@ -9,7 +9,7 @@ export function isValidDegreeForBelt(
 ): boolean {
   if (!Number.isInteger(degree) || degree < 0 || degree > 6) return false;
   if (beltKind === "adult" && beltSlug === "black") {
-    return degree >= 1 && degree <= 6;
+    return degree >= 0 && degree <= 6;
   }
   if (beltKind === "adult" || beltKind === "kids") {
     return degree >= 0 && degree <= 4;
@@ -22,7 +22,7 @@ export function degreeOptionsForBelt(
   beltKind: BeltKind,
 ): number[] {
   if (beltKind === "adult" && beltSlug === "black") {
-    return [1, 2, 3, 4, 5, 6];
+    return [0, 1, 2, 3, 4, 5, 6];
   }
   return [0, 1, 2, 3, 4];
 }

@@ -1,4 +1,4 @@
-# Row Level Security (RLS) — BJJ Manager
+# Row Level Security (RLS) — Casca - Gestão de Academias de BJJ
 
 Documento operacional: o que está ligado no Postgres, como arrancar o primeiro professor em **produção**, e como validar isolamento. O contrato normativo está em [`spec/features/rls-security/readme.md`](../../spec/features/rls-security/readme.md).
 

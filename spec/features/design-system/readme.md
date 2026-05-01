@@ -21,7 +21,7 @@ Padronizar tipografia, componentes de interface (shadcn/ui), padrões de layout 
 
 ## Consumidores
 
-- Ciclos **auth**, **app shell** (**SHELL-**), **students**, **student-profile**, **graduation-engine**, **dashboard**, **billing** — importam componentes de `@/components/ui` e `@/components/layout` conforme este feature.
+- Ciclos **auth**, **app shell** (**SHELL-**), **students**, **student-profile**, **graduation-engine**, **dashboard**, **billing-ui** (**BUI-**) — importam componentes de `@/components/ui` e `@/components/layout` conforme este feature.
 
 ## Regras (DS-)
 
@@ -46,6 +46,8 @@ Padronizar tipografia, componentes de interface (shadcn/ui), padrões de layout 
 **DS-1.10.** Componentes shadcn adicionados neste escopo devem corresponder à lista acordada no request do ciclo; não expandir o kit sem necessidade de um ciclo MVP.
 
 **DS-1.11.** **Realce cromático da área operacional:** além da sobriedade marcial, o tema pode incluir **gradientes subtis** na área de conteúdo ou cabeçalhos de secção, **acentos de `--primary` / `--status-*`** em cartões e estados hover focados, e **navegação activa** mais legível no shell — sempre derivado de **tokens** (**SPEC-10.4**). Evitar hex soltas em componentes; validar **contraste** nos dois temas. Ciclo de referência: **11-0430-graduation-engine**.
+
+**DS-1.12.** **Chrome premium (dashboard):** a **sidebar** usa fundo **preto de identidade** (`--secondary` / **#050505**); o **conteúdo** pode usar **lavagem** (`--content-wash-*`) e **status** (`--status-*`, `--primary`) para cartões, cabeçalhos de página e hover — ver **BUI-8** em [`spec/features/billing-ui/readme.md`](../billing-ui/readme.md). Manter legibilidade e contraste **WCAG AA** onde aplicável.
 
 ## Decisões registradas (refino)
 

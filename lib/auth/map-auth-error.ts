@@ -22,6 +22,14 @@ export function mapAuthErrorToMessage(error: AuthError): string {
   if (m.includes("invalid login credentials")) return "E-mail ou senha incorretos.";
   if (m.includes("email not confirmed")) return "Confirme o e-mail antes de entrar.";
   if (m.includes("too many requests")) return "Muitas tentativas. Tente novamente em instantes.";
+  if (
+    m.includes("fetch") ||
+    m.includes("network") ||
+    m.includes("failed to fetch") ||
+    m.includes("networkerror")
+  ) {
+    return "Sem ligação à internet ou ao servidor. Verifique a rede e tente de novo.";
+  }
 
   return "Não foi possível entrar. Verifique os dados e tente de novo.";
 }
