@@ -7,7 +7,7 @@ histórico de graduações, situação financeira do mês, observações. Esta
 é a tela mais visitada do app.
 
 ## Intent
-- Rota `app/(dashboard)/students/[id]/page.tsx`.
+- Rota canónica **`app/(dashboard)/alunos/[id]/page.tsx`** (ver **SPR-1**, **STU-1.1**).
 - Resumo no topo:
   - nome, foto/avatar (placeholder), faixa+grau (badge),
   - tipo (Adulto/Kids), status, idade.

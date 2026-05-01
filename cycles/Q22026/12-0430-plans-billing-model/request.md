@@ -1,15 +1,15 @@
 # Plans and Billing Model
 
 ## Context
-A academia precisa de planos. No MVP existem dois: **Kids** e
-**Adulto**. O professor configura o valor de cada plano da sua conta;
+A academia precisa de planos. No MVP existem **três** tipos por conta:
+**Kids 1**, **Kids 2** e **Adulto**. O professor configura o valor de cada plano da sua conta;
 cada aluno pode ter um preço personalizado e seu próprio dia de
 vencimento. Este ciclo entrega o modelo (planos, vínculos) sem ainda
 mexer em pagamentos.
 
 ## Intent
-- No primeiro acesso da conta (post-signup), criar automaticamente
-  dois planos default da conta: "Kids" e "Adulto".
+- No primeiro acesso à área autenticada **(dashboard)**, criar automaticamente
+  os três planos default da conta (**Kids 1**, **Kids 2**, **Adulto**).
 - Telas de admin de planos viverão dentro do ciclo Settings — aqui
   só entregamos o **modelo de dados** e Server Actions:
   - `actions/billing.ts → updatePlanPrice`,
@@ -38,3 +38,9 @@ mexer em pagamentos.
 
 ## Attachments
 - (nenhum)
+
+---
+
+## Refino (2026-05-01)
+
+Decisões consolidadas em [`plan.md`](./plan.md): três planos (**Kids 1**, **Kids 2**, **Adulto**); preços por defeito **10000 / 12000 / 12000** centavos; provisão idempotente no layout **`(dashboard)`**; histórico **sempre** com nova linha em `student_plans` (**ENT-7.3**); datas de transição em **America/São_Paulo**; erros das actions em **`actions/billing.ts`** com mensagens **específicas** (**BLM-3**); `updatePlanPrice` só altera **`price_cents`**. Cenários: [`scenarios.feature`](./scenarios.feature).

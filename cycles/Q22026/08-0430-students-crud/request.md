@@ -7,10 +7,10 @@ precisa adicionar alunos em poucos cliques e encontrar rapidamente um
 aluno na lista.
 
 ## Intent
-- Rotas:
-  - `app/(dashboard)/students/page.tsx` — lista.
-  - `app/(dashboard)/students/new/page.tsx` — formulário de cadastro.
-  - `app/(dashboard)/students/[id]/edit/page.tsx` — edição.
+- Rotas canónicas (**SHELL-2**, **STU-1**):
+  - `app/(dashboard)/alunos/page.tsx` — lista.
+  - `app/(dashboard)/alunos/novo/page.tsx` — formulário de cadastro.
+  - `app/(dashboard)/alunos/[id]/editar/page.tsx` — ficha completa.
 - Server Actions em `actions/students.ts`:
   `createStudent`, `updateStudent`, `setStudentStatus`,
   `deleteStudent`.
@@ -18,8 +18,10 @@ aluno na lista.
 - Lista com:
   - busca por nome (debounced),
   - filtro por tipo (Adulto / Kids / Todos),
-  - filtro por status (Ativo / Inativo / Todos),
-  - paginação ou scroll com `limit` configurável.
+  - filtro por status (Ativo / Inativo / Pausado / Todos; **sem trial** na UI — **STU-3**),
+  - ordenação (nome A–Z, data de entrada, última alteração),
+  - paginação com tamanho de página por constante (**STU-7**),
+  - edição rápida (dialog/sheet) para campos operacionais (**STU-8**).
 - Card/linha de aluno com nome, faixa+grau, idade, status.
 - Formulário com campos:
   - obrigatórios: nome, data de nascimento, data de entrada, tipo,
@@ -34,10 +36,14 @@ aluno na lista.
   aluno".
 - Não criar tela de "ver detalhes" aqui — isso é o ciclo de Profile.
 - Server Actions usam o `supabase server client`; nunca passar
-  `account_id` do cliente — tirar do `auth.account_id()`.
+  `account_id` do cliente — RLS com `public.current_account_id()` (**STU-2**).
+- `deleteStudent` **desativa** o aluno (`inactive`), sem DELETE físico (**STU-3.3**, **STU-9**).
+- Plano só pode combinar com tipo de aluno conforme **STU-4**; CPF/telefone/e-mail com máscaras (**STU-6**).
 - Mobile: lista vira card vertical; formulário em colunas únicas.
 
 ## References
+- `cycles/Q22026/08-0430-students-crud/plan.md` — delta após refino.
+- `spec/features/students-crud/readme.md` — **STU-** (fonte canónica pós-refino).
 - `cycles/Q22026/04-0430-supabase-schema/request.md`
 - `cycles/Q22026/05-0430-rls-and-security/request.md`
 - `cycles/Q22026/07-0430-app-shell/request.md`

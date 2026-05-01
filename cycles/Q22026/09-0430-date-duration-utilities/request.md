@@ -24,9 +24,10 @@ pt-BR para ser consumida por Profile, Dashboard e Graduation.
   para facilitar testes).
 - Sem alocação de timezone errado (não converter `birth_date` que é
   `date` SQL para `Date` UTC e perder o dia).
-- Strings em pt-BR consistentes:
-  - "menos de 1 mês" para durações curtas;
-  - "1 mês", "2 meses", "1 ano", "1 ano e 2 meses".
+- Strings em pt-BR consistentes; durações descrevem unidades até **dia**
+  (incl. **semanas** quando &lt; 1 mês completo), **sem horas**;
+  acima de um mês: **anos**, **meses** e **dias** remanescentes via
+  calendário — ver **`plan.md`** / **DATE-3**.
 - Sem dependência de `dayjs` ou `moment`.
 
 ## References

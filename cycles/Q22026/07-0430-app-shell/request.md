@@ -34,5 +34,9 @@ seguintes (students, billing, dashboard, settings).
 - `cycles/Q22026/03-0430-design-system/request.md`
 - Briefing — seção "Estrutura esperada".
 
+## Refino (produto)
+
+Decisões registadas em `plan.md` deste ciclo: URLs pt-BR (**`/painel`**, **`/alunos`**, etc.), bottom-nav obrigatória em mobile, **`/perfil`** no menu do utilizador, marca + nome da academia no cabeçalho, tratamento **AUTH-6.1** sem redirect para login, proteção só no middleware, skeleton de shell completo, chrome suavizado no tema claro.
+
 ## Attachments
 - (nenhum)
