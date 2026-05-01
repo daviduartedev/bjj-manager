@@ -12,11 +12,11 @@ histórico de graduações, situação financeira do mês, observações. Esta
   - nome, foto/avatar (placeholder), faixa+grau (badge),
   - tipo (Adulto/Kids), status, idade.
 - Tabs ou seções:
-  - **Dados pessoais** — DOB, entrada, contatos, observações.
-  - **Graduação** — faixa atual, grau, tempo na faixa, tempo no grau,
+  - **Dados pessoais** , DOB, entrada, contatos, observações.
+  - **Graduação** , faixa atual, grau, tempo na faixa, tempo no grau,
     histórico (cards/linhas com data, faixa, grau, justificativa se
     houve pulo).
-  - **Financeiro** — plano atual, valor (com `custom_price_cents` se
+  - **Financeiro** , plano atual, valor (com `custom_price_cents` se
     houver), dia de vencimento, status do mês corrente
     (Pago/Pendente/Atrasado), últimos pagamentos.
   - **Observações** (se preferir separar do Dados pessoais).
@@ -25,7 +25,7 @@ histórico de graduações, situação financeira do mês, observações. Esta
   específicos.
 
 ## Taste / Constraints
-- Tela densa, mas com hierarquia clara — usar `Section` + `Card`.
+- Tela densa, mas com hierarquia clara , usar `Section` + `Card`.
 - Sem gráfico nesta tela.
 - Mobile: tabs horizontais com scroll; cards empilhados.
 - Server Component buscando dados; partes interativas

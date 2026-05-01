@@ -25,7 +25,7 @@ async function main() {
   if (!connectionString || !String(connectionString).trim()) {
     console.error(
       "Não há connection string do Postgres. Em .env.local, descomenta e preenche uma destas variáveis:\n" +
-        "  DATABASE_URL (recomendado) — Supabase → Project Settings → Database → Connection string (URI, modo direct ou session)\n" +
+        "  DATABASE_URL (recomendado) , Supabase → Project Settings → Database → Connection string (URI, modo direct ou session)\n" +
         "  Alternativas: SUPABASE_DB_URL, POSTGRES_URL, SUPABASE_DATABASE_URL\n" +
         "Nota: é a password da **base de dados**, não a anon key nem a service_role key."
     );
@@ -69,7 +69,7 @@ async function main() {
       "select count(*)::int as n from public.accounts"
     );
 
-    console.log("OK — schema + seed + policies (RLS) aplicados.");
+    console.log("OK , schema + seed + policies (RLS) aplicados.");
     console.log(`  accounts: ${accounts.rows[0].n}`);
     console.log(`  belts: ${belts.rows[0].n}`);
     console.log(`  plans: ${plans.rows[0].n}`);

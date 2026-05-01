@@ -30,7 +30,7 @@ Contrato canónico para **isolamento multi-tenant** no banco: cada professor aut
 
 **SEC-2.2.** Papel **`authenticated`**: políticas abaixo; **não** há política de `INSERT` em `accounts` nem em `profiles` (bootstrap da primeira conta + perfil via SQL com role **postgres** / manutenção documentada em [`docs/security/rls.md`](../../../docs/security/rls.md)).
 
-**SEC-2.3.** Chave **`service_role`** contorna RLS no Supabase; uso **apenas** server-side (webhooks, jobs). **Proibido** expor no cliente — ver **SPEC-11.2**.
+**SEC-2.3.** Chave **`service_role`** contorna RLS no Supabase; uso **apenas** server-side (webhooks, jobs). **Proibido** expor no cliente , ver **SPEC-11.2**.
 
 ## SEC-3. Políticas por tabela
 

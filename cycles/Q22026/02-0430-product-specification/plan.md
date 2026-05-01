@@ -1,4 +1,4 @@
-# Plano — Ciclo 02: Product specification (delta)
+# Plano , Ciclo 02: Product specification (delta)
 
 ## Estado atual
 
@@ -10,10 +10,10 @@
 
 1. Criar hub `spec/README.md` e feature `spec/features/product-specification/readme.md` apontando para os artefatos e convenção **SPEC-/ENT-/GR-/BR-**.
 2. Autorar quatro documentos canônicos em `spec/product/`:
-   - `spec.md` — visão, MVP, fora do MVP, personas, jornadas, métricas, LGPD em alto nível, referência IBJJF.
-   - `entities.md` — entidades e relações alinhadas conceitualmente ao ciclo Supabase (04).
-   - `graduation-rules.md` — ordens adulto/kids, graus, pulos, fora do MVP explícito.
-   - `billing-rules.md` — planos, vínculo, vencimento, mês de referência, status manual, lote, exclusões.
+   - `spec.md` , visão, MVP, fora do MVP, personas, jornadas, métricas, LGPD em alto nível, referência IBJJF.
+   - `entities.md` , entidades e relações alinhadas conceitualmente ao ciclo Supabase (04).
+   - `graduation-rules.md` , ordens adulto/kids, graus, pulos, fora do MVP explícito.
+   - `billing-rules.md` , planos, vínculo, vencimento, mês de referência, status manual, lote, exclusões.
 3. Espelhar os mesmos quatro arquivos em `docs/product/` (manter sincronizados).
 4. Atualizar `README.md` raiz: MVP resumido + links para `spec/product/` (fonte da verdade).
 5. Registrar cenários Gherkin de negócio em `scenarios.feature` e checklist em `tasks.md`.

@@ -13,7 +13,7 @@ export type ShellNavLinkProps = {
   onNavigate?: () => void;
   className?: string;
   variant?: "sidebar" | "bottom";
-  /** Navegação sobre fundo escuro (sidebar preta — **BUI-8**). */
+  /** Navegação sobre fundo escuro (sidebar preta, **BUI-8**). */
   surface?: "default" | "ink";
   /** Marcador para o tour guiado (mesmo valor em desktop e mobile). */
   dataTour?: string;

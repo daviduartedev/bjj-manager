@@ -36,7 +36,7 @@ export function beltWithDegreeLine(
   degree: number,
 ): string {
   if (!slug || !kind) {
-    return degree > 0 ? `Grau ${degree}` : "—";
+    return degree > 0 ? `Grau ${degree}` : ",";
   }
   const label = beltLabelPt(slug, kind);
   if (!Number.isFinite(degree) || degree <= 0) return label;

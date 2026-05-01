@@ -9,25 +9,25 @@ pt-BR para ser consumida por Profile, Dashboard e Graduation.
 
 ## Intent
 - Helpers em `lib/dates/`:
-  - `calculateAge(birthDate, today?)` — anos completos.
-  - `timeSinceJoined(joinedAt, today?)` — string "1 ano e 3 meses".
+  - `calculateAge(birthDate, today?)` , anos completos.
+  - `timeSinceJoined(joinedAt, today?)` , string "1 ano e 3 meses".
   - `timeAtCurrentBelt(currentBeltStartedAt, today?)`.
   - `timeAtCurrentDegree(currentDegreeStartedAt, today?)`.
-  - `formatDateBR(date)` — "12 abr 2024".
-  - `formatRelativeBR(date)` — "há 6 meses".
+  - `formatDateBR(date)` , "12 abr 2024".
+  - `formatRelativeBR(date)` , "há 6 meses".
 - Tudo construído sobre `date-fns` com `pt-BR` locale.
 - Função única `humanizeDuration({ from, to? })` reusável internamente.
 - Considerar fuso `America/Sao_Paulo` no formatador (default do app).
 
 ## Taste / Constraints
-- 100% puras (sem `Date.now()` interno — receber `today` injetável
+- 100% puras (sem `Date.now()` interno , receber `today` injetável
   para facilitar testes).
 - Sem alocação de timezone errado (não converter `birth_date` que é
   `date` SQL para `Date` UTC e perder o dia).
 - Strings em pt-BR consistentes; durações descrevem unidades até **dia**
   (incl. **semanas** quando &lt; 1 mês completo), **sem horas**;
   acima de um mês: **anos**, **meses** e **dias** remanescentes via
-  calendário — ver **`plan.md`** / **DATE-3**.
+  calendário , ver **`plan.md`** / **DATE-3**.
 - Sem dependência de `dayjs` ou `moment`.
 
 ## References

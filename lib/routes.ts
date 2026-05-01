@@ -12,7 +12,7 @@ export const ROUTES = {
   perfil: "/perfil",
 } as const;
 
-/** Perfil só leitura (`/alunos/[id]` — **SPR-1**). */
+/** Perfil só leitura (`/alunos/[id]`, **SPR-1**). */
 export function routeAlunoPerfil(studentId: string): string {
   return `${ROUTES.alunos}/${studentId}`;
 }

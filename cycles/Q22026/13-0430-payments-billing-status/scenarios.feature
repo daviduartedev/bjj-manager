@@ -1,5 +1,5 @@
 # language: pt
-# Cenários de negócio — pagamentos e indicador do mês (ciclo 13)
+# Cenários de negócio , pagamentos e indicador do mês (ciclo 13)
 # Foco: o que o professor/aluno percebe via produto; detalhes de API em spec/features/payments-billing-status/readme.md
 
 Funcionalidade: Registrar pagamento da mensalidade do mês

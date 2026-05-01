@@ -1,4 +1,4 @@
-# Tarefas — Graduation engine (11-0430)
+# Tarefas , Graduation engine (11-0430)
 
 Checklist executável; citar **GRD-**, **GR-**, **SPR-**, **SHELL-**, **DS-**, **DATE-**, **SEC-** nos commits quando aplicável.
 
@@ -17,13 +17,13 @@ Checklist executável; citar **GRD-**, **GR-**, **SPR-**, **SHELL-**, **DS-**, *
 ## Rotas e navegação
 
 - [ ] Acrescentar `routeAlunoGraduacoes(id)` (ou equivalente) em `lib/routes.ts`.
-- [ ] Implementar `app/(dashboard)/alunos/[id]/graduacoes/page.tsx` (RSC; `notFound()` se aluno inacessível — **SPR-2.2**).
+- [ ] Implementar `app/(dashboard)/alunos/[id]/graduacoes/page.tsx` (RSC; `notFound()` se aluno inacessível , **SPR-2.2**).
 - [ ] Cabeçalho com volta ao perfil ou à lista conforme padrão **STU-1.2** / **GRD-**.
 
 ## Domínio e acções
 
 - [ ] Criar `lib/graduation/` com `getBeltOrder(kind)`, `isOrderRespected(...)`, `nextBelt(...)` e funções auxiliares para limites de grau (preta 1–6; demais 0–4 conforme faixa).
-- [ ] Criar `actions/graduations.ts` com `promoteStudent({ studentId, beltId, degree, isSkip, skipReason?, graduatedAt })` — transaccional; **nunca** aceitar `account_id` do cliente (**SEC-3.3**).
+- [ ] Criar `actions/graduations.ts` com `promoteStudent({ studentId, beltId, degree, isSkip, skipReason?, graduatedAt })` , transaccional; **nunca** aceitar `account_id` do cliente (**SEC-3.3**).
 - [ ] Validar: sem datas futuras (timezone **America/Sao_Paulo**); sem demotion; sem no-op; +1 grau só na mesma faixa; pulo de faixa → `was_skip` + `skip_reason` não vazio; ordem respeitada → `was_skip` falso e `skip_reason` nulo (**GR-6.3**).
 
 ## UI

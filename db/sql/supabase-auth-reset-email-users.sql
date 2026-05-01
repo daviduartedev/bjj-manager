@@ -1,5 +1,5 @@
 -- =====================================================
--- Supabase Auth — apagar utilizadores por email e criar novos (login email/senha)
+-- Supabase Auth , apagar utilizadores por email e criar novos (login email/senha)
 -- =====================================================
 -- Executar no **SQL Editor** do projeto Supabase, com role **postgres**.
 -- Ajusta os emails e as senhas **no próprio editor** antes de correr (não commits).
@@ -215,5 +215,5 @@ WHERE
 
 -- ---------- 5) Depois disto ----------
 -- Os UUIDs em auth.users mudaram: volta a criar `public.accounts` + `public.profiles`
--- (e dados de domínio) conforme docs/security/rls.md — ou corre `pnpm db:validate-rls`
+-- (e dados de domínio) conforme docs/security/rls.md , ou corre `pnpm db:validate-rls`
 -- com VALIDATION_TEST_PASSWORD para perfis/alunos de teste RLS.

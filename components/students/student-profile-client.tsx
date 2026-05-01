@@ -94,7 +94,7 @@ export function StudentProfileClient({ profile }: Props) {
       ? beltWithDegreeLine(beltSlug, beltKind, profile.current_degree)
       : profile.current_degree > 0
         ? `Grau ${profile.current_degree}`
-        : "—";
+        : ",";
 
   const showKidsAdultBanner =
     profile.kind === "kids" &&
@@ -102,7 +102,7 @@ export function StudentProfileClient({ profile }: Props) {
     profile.ageYears >= 16;
 
   const ageDisplay =
-    profile.ageYears === null ? "—" : `${profile.ageYears} anos`;
+    profile.ageYears === null ? "," : `${profile.ageYears} anos`;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -190,27 +190,27 @@ export function StudentProfileClient({ profile }: Props) {
               <CardContent className="grid gap-6 p-6 sm:grid-cols-2">
                 <Field
                   label="Data de nascimento"
-                  value={formatDateBR(profile.birth_date) ?? "—"}
+                  value={formatDateBR(profile.birth_date) ?? ","}
                 />
                 <Field
                   label="Entrada na academia"
-                  value={formatDateBR(profile.academy_start_date) ?? "—"}
+                  value={formatDateBR(profile.academy_start_date) ?? ","}
                 />
                 <Field
                   label="Documento"
                   value={
                     profile.document
                       ? maskCpfInput(profile.document)
-                      : "—"
+                      : ","
                   }
                 />
                 <Field
                   label="Telefone"
                   value={
-                    profile.phone ? maskPhoneBrInput(profile.phone) : "—"
+                    profile.phone ? maskPhoneBrInput(profile.phone) : ","
                   }
                 />
-                <Field label="E-mail" value={profile.email ?? "—"} />
+                <Field label="E-mail" value={profile.email ?? ","} />
               </CardContent>
             </ProfileSurfaceCard>
           </Section>
@@ -218,7 +218,7 @@ export function StudentProfileClient({ profile }: Props) {
             <ProfileSurfaceCard>
               <CardContent className="p-6">
                 <p className="whitespace-pre-wrap text-sm text-foreground">
-                  {profile.notes?.trim() ? profile.notes : "—"}
+                  {profile.notes?.trim() ? profile.notes : ","}
                 </p>
               </CardContent>
             </ProfileSurfaceCard>
@@ -238,7 +238,7 @@ export function StudentProfileClient({ profile }: Props) {
                   <span className="font-medium text-foreground">
                     Tempo na faixa e no grau actuais:{" "}
                   </span>
-                  {profile.timeAtBeltPhrase ?? "—"}
+                  {profile.timeAtBeltPhrase ?? ","}
                   {profile.timeAtDegreePhrase &&
                   profile.timeAtDegreePhrase !== profile.timeAtBeltPhrase ? (
                     <>, grau: {profile.timeAtDegreePhrase}</>
@@ -249,7 +249,7 @@ export function StudentProfileClient({ profile }: Props) {
                     <span className="font-medium text-foreground">
                       Tempo na academia:{" "}
                     </span>
-                    {profile.timeSinceJoinedPhrase ?? "—"}
+                    {profile.timeSinceJoinedPhrase ?? ","}
                   </p>
                 ) : null}
                 {profile.durationBasisNote ? (
@@ -286,10 +286,10 @@ export function StudentProfileClient({ profile }: Props) {
                               )
                             : g.resulting_degree > 0
                               ? `Grau ${g.resulting_degree}`
-                              : "—"}
+                              : ","}
                         </span>
                         <Badge variant="outline" className="font-normal">
-                          {formatDateBR(gradDay) ?? "—"}
+                          {formatDateBR(gradDay) ?? ","}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">

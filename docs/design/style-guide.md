@@ -1,15 +1,15 @@
-# Guia de estilo — Casca - Gestão de Academias de BJJ
+# Guia de estilo , Casca - Gestão de Academias de BJJ
 
 Referência para implementação de UI. Regras numeradas canônicas: **DS-** em [`spec/features/design-system/readme.md`](../../spec/features/design-system/readme.md).
 
 ## Identidade e paleta
 
-- **Preto (`bjj.black` / `--secondary`)** — identidade, superfícies fortes, contraste com texto claro.
-- **Vermelho (`bjj.red` / `--primary`)** — ação primária e destaque; uso disciplinado para não poluir a tela.
-- **Off-white (`bjj.off` / `--background`)** — fundo principal no tema claro; sensação de papel/canvas de academia.
-- **Verde / azul / amarelo** — **detalhes e status** (pagamento, alertas informativos, pendências), não como decoração de grandes áreas.
+- **Preto (`bjj.black` / `--secondary`)** , identidade, superfícies fortes, contraste com texto claro.
+- **Vermelho (`bjj.red` / `--primary`)** , ação primária e destaque; uso disciplinado para não poluir a tela.
+- **Off-white (`bjj.off` / `--background`)** , fundo principal no tema claro; sensação de papel/canvas de academia.
+- **Verde / azul / amarelo** , **detalhes e status** (pagamento, alertas informativos, pendências), não como decoração de grandes áreas.
 
-Princípio: interface **sóbria e marcial**, com **acentos cromáticos** mais expressivos na área autenticada quando derivados de **tokens** — ver **DS-1.11** e **SPEC-10.4** (gradientes subtis, hierarquia de cartões, navegação activa legível); evitar **hex soltas** e composições sem contraste.
+Princípio: interface **sóbria e marcial**, com **acentos cromáticos** mais expressivos na área autenticada quando derivados de **tokens** , ver **DS-1.11** e **SPEC-10.4** (gradientes subtis, hierarquia de cartões, navegação activa legível); evitar **hex soltas** e composições sem contraste.
 
 ## Tokens
 

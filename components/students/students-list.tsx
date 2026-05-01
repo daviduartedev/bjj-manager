@@ -96,7 +96,7 @@ export function StudentsList({
       : Math.ceil(total / STUDENTS_PAGE_SIZE);
 
   function beltLine(row: ListStudentRow): string {
-    if (!row.belt) return "—";
+    if (!row.belt) return "–";
     return beltWithDegreeLine(row.belt.slug, row.belt.kind, row.current_degree);
   }
 
@@ -273,8 +273,7 @@ export function StudentsList({
                   {total === 1 ? "1 aluno" : `${total} alunos`}
                   {pageCount > 1 ? (
                     <span className="font-normal text-muted-foreground">
-                      {" "}
-                      , página {urlState.page} de {pageCount}
+                      {`, página ${urlState.page} de ${pageCount}`}
                     </span>
                   ) : null}
                 </p>

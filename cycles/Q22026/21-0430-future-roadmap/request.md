@@ -3,7 +3,7 @@
 ## Context
 Existe um conjunto de features pedidas que **não entram no MVP** mas
 queremos manter visíveis para evitar perda de contexto e priorizar
-melhor depois. Este ciclo é apenas documentação — nada é implementado.
+melhor depois. Este ciclo é apenas documentação , nada é implementado.
 
 ## Intent
 - Documento `docs/roadmap/future.md` com cada item:
@@ -31,7 +31,7 @@ melhor depois. Este ciclo é apenas documentação — nada é implementado.
 - Linguagem objetiva; nada de vendas.
 
 ## References
-- Briefing — seção "Fora do MVP".
+- Briefing , seção "Fora do MVP".
 
 ## Attachments
 - (nenhum)

@@ -4,7 +4,7 @@ import {
 } from "@/lib/dates";
 import type { PaymentStatusSlug } from "@/lib/students/payment-ui";
 
-/** Tipos e helpers puros partilhados — seguros para import em `"use client"`. */
+/** Tipos e helpers puros partilhados, seguros para import em `"use client"`. */
 
 export type ProfileGraduationRow = {
   id: string;
@@ -59,8 +59,8 @@ export type StudentProfilePayload = {
 };
 
 export function profileFormatPaidAt(iso: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return ",";
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return formatDateBR(toCalendarDateStringInAppTZ(d)) ?? "—";
+  if (Number.isNaN(d.getTime())) return ",";
+  return formatDateBR(toCalendarDateStringInAppTZ(d)) ?? ",";
 }

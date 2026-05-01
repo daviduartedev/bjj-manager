@@ -54,7 +54,7 @@ Valores canónicos (slug inglês, UI pt-BR à parte): **`paid`**, **`pending`**,
 
 **PBS-3.3.** Para linha **`pending`** ou **`unpaid`** (ainda não **paid** / **scholarship** / **other**): aplicar a mesma comparação **`today`** vs **`due`** que **PBS-3.2**.
 
-**PBS-3.4.** Aluno **sem vínculo aberto** em `student_plans`: não há **`due_day`** — indicador **`pending`**; **não** derivar **`overdue`** só pelo calendário (**PBS-4**).
+**PBS-3.4.** Aluno **sem vínculo aberto** em `student_plans`: não há **`due_day`** , indicador **`pending`**; **não** derivar **`overdue`** só pelo calendário (**PBS-4**).
 
 ---
 
@@ -64,7 +64,7 @@ Valores canónicos (slug inglês, UI pt-BR à parte): **`paid`**, **`pending`**,
 
 **PBS-4.2.** **`amountCents`** é **obrigatório** e deve ser **igual** ao **`getEffectivePrice`** do vínculo aberto (**BLM-6**, **BR-2.2**). Desalinhamento → erro (sem tolerância de arredondamento além do inteiro em centavos).
 
-**PBS-4.3.** Persistência: **upsert** na chave natural (**student_id**, **reference_month**) com **`status = paid`**, **`amount_cents`**, **`paid_at`** (opcional na entrada; default instante corrente tratado no servidor), **`notes`** opcional, **`payment_method`** opcional (texto livre; coluna nullable em `payments` — **BUI-4.2**).
+**PBS-4.3.** Persistência: **upsert** na chave natural (**student_id**, **reference_month**) com **`status = paid`**, **`amount_cents`**, **`paid_at`** (opcional na entrada; default instante corrente tratado no servidor), **`notes`** opcional, **`payment_method`** opcional (texto livre; coluna nullable em `payments` , **BUI-4.2**).
 
 **PBS-4.4.** Idempotência: se já existe linha **paid** para o par com o **mesmo** **`amount_cents`**, a operação pode concluir como sucesso (**opcional**: atualizar **`paid_at`**/**`notes`** se a action aceitar overwrite explícito documentado). Se **`amount_cents`** difere do registado → erro.
 

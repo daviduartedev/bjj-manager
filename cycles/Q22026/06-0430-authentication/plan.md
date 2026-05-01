@@ -1,4 +1,4 @@
-# Plano (delta) — ciclo 06-0430-authentication
+# Plano (delta) , ciclo 06-0430-authentication
 
 Refino alinhado às respostas do produto (login-only no MVP, sem registro na app, sem recuperação de senha neste ciclo, um utilizador provisionado manualmente, pós-login em `/dashboard`).
 
@@ -10,7 +10,7 @@ Refino alinhado às respostas do produto (login-only no MVP, sem registro na app
 | Recuperação de senha | **Fora deste ciclo** (e do MVP imediato); credenciais geridas pelo operador (Supabase / comunicação direta). |
 | Pós-login | Redirecionar para **`/dashboard`** (URL canónica da área operacional). |
 | Bootstrap conta/perfil | **Manual**: Supabase Auth + SQL conforme [`docs/security/rls.md`](../../../docs/security/rls.md). Mantém coerência com **SEC-2.2** (sem `INSERT` em `accounts`/`profiles` para o papel `authenticated`). |
-| Evolução futura (autocadastro) | Quando existir, o encaixe recomendado é **trigger `SECURITY DEFINER` em `auth.users`** (ou função invocada pelo trigger) para criar `accounts` + `profiles` numa única transação no Postgres — evita expor `service_role` no app e alinha com RLS. **Não** faz parte deste ciclo. |
+| Evolução futura (autocadastro) | Quando existir, o encaixe recomendado é **trigger `SECURITY DEFINER` em `auth.users`** (ou função invocada pelo trigger) para criar `accounts` + `profiles` numa única transação no Postgres , evita expor `service_role` no app e alinha com RLS. **Não** faz parte deste ciclo. |
 | Confirmação de e-mail | Sem requisito de produto extra; segue a configuração do projeto Supabase (já tolerada no login atual). |
 | Sessão | Comportamento **default** do Supabase + `@supabase/ssr` (sem “lembrar-me” custom). |
 | `/login` com sessão ativa | Redirecionar para **`/dashboard`**. |
@@ -32,7 +32,7 @@ Refino alinhado às respostas do produto (login-only no MVP, sem registro na app
 ## Implementação (para `tasks.md`)
 
 - Middleware: sessão anónima que acede a `/dashboard` → `/login`; utilizador autenticado em `/login` → `/dashboard`.
-- Remover referências de UI a “criar conta” / `/register` na landing e no formulário de login; `/register` não é rota de produto no MVP (redirect 307 para `/login` ou 404 — escolha única documentada em **AUTH-** / tarefas).
-- `lib/auth.ts`: `getCurrentUser()`, `getCurrentAccount()` (e tratamento de utilizador sem `profiles` — estado inválido para domínio, mensagem clara).
+- Remover referências de UI a “criar conta” / `/register` na landing e no formulário de login; `/register` não é rota de produto no MVP (redirect 307 para `/login` ou 404 , escolha única documentada em **AUTH-** / tarefas).
+- `lib/auth.ts`: `getCurrentUser()`, `getCurrentAccount()` (e tratamento de utilizador sem `profiles` , estado inválido para domínio, mensagem clara).
 - Centralizar schema Zod de login em `lib/validations/auth.ts`.
 - Server Actions ou caminho server-first alinhado ao pacote SSR (detalhe na execução), sem expor chaves privilegiadas ao cliente.

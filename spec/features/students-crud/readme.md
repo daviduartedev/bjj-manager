@@ -1,4 +1,4 @@
-# Feature: Alunos — cadastro, lista e edição
+# Feature: Alunos , cadastro, lista e edição
 
 Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): CRUD essencial, lista operacional e **edição rápida**, alinhado a **ENT-4**, **ENT-7**, **GR-**, **SHELL-2** e **SEC-3.3**.
 
@@ -11,7 +11,7 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 - Entidades: [`spec/product/entities.md`](../../product/entities.md) (**ENT-4**, **ENT-7**).
 - Datas e durações (idade na lista, formatos pt-BR): [`spec/features/date-duration-utilities/readme.md`](../date-duration-utilities/readme.md) (**DATE-**, **SPEC-2.4**).
 - Perfil só leitura: [`spec/features/student-profile/readme.md`](../student-profile/readme.md) (**SPR-**).
-- Painel: [`spec/features/dashboard/readme.md`](../dashboard/readme.md) (**PNL-4** — mesmas durações na lista que no alerta de graduação).
+- Painel: [`spec/features/dashboard/readme.md`](../dashboard/readme.md) (**PNL-4** , mesmas durações na lista que no alerta de graduação).
 - Planos e vínculo aluno–plano (Server Actions partilhadas): [`spec/features/plans-billing-model/readme.md`](../plans-billing-model/readme.md) (**BLM-**).
 
 ## Implementação (referência)
@@ -25,7 +25,7 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 ## STU-1. Rotas e navegação
 
-**STU-1.1.** URLs públicas (primeiro segmento da área autenticada): **`/alunos`** (lista), **`/alunos/novo`** (cadastro), **`/alunos/[id]`** (perfil só leitura — **SPR-**), **`/alunos/[id]/editar`** (ficha completa).
+**STU-1.1.** URLs públicas (primeiro segmento da área autenticada): **`/alunos`** (lista), **`/alunos/novo`** (cadastro), **`/alunos/[id]`** (perfil só leitura , **SPR-**), **`/alunos/[id]/editar`** (ficha completa).
 
 **STU-1.2.** **Sem** componente de breadcrumb obrigatório no MVP: em **`/alunos/novo`**, **`/alunos/[id]`** e **`/alunos/[id]/editar`**, o professor deve ver **título** da página e **ligação clara** para voltar à lista (ex. texto “Alunos” ou “← Alunos”).
 
@@ -33,7 +33,7 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 ## STU-2. Segurança e tenant
 
-**STU-2.1.** Server Actions e loaders usam o **cliente Supabase no servidor** com a sessão do utilizador; **`account_id` não é aceite do cliente** — o isolamento é garantido por **RLS** e por **`public.current_account_id()`** nas políticas (**SEC-3.3**).
+**STU-2.1.** Server Actions e loaders usam o **cliente Supabase no servidor** com a sessão do utilizador; **`account_id` não é aceite do cliente** , o isolamento é garantido por **RLS** e por **`public.current_account_id()`** nas políticas (**SEC-3.3**).
 
 **STU-2.2.** Mensagens de erro por falha de **rede**, **permissão/RLS** ou **servidor** são **genéricas** em linguagem de produto; erros de **validação de campo** permanecem **inline** no formulário.
 
@@ -45,7 +45,7 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 **STU-3.2.** **Trial** (`trial`) **não** é exposto neste ciclo (nem filtro nem select); o valor pode existir no enum por compatibilidade com dados/evo futura.
 
-**STU-3.3.** Ação de **“remover” / desligar da operação ativa** na UI corresponde a **`inactive`** — **sem** `DELETE` físico de `students` neste ciclo.
+**STU-3.3.** Ação de **“remover” / desligar da operação ativa** na UI corresponde a **`inactive`** , **sem** `DELETE` físico de `students` neste ciclo.
 
 ## STU-4. Planos e tipo de aluno
 
@@ -75,15 +75,15 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 **STU-7.3.** Controlo de **ordenação** com três modos: **nome (A–Z)**, **data de entrada** (`academy_start_date`), **última alteração** (`students.updated_at`). Registos com `academy_start_date` nulo ordenam **depois** dos com data, mantendo ordem estável por nome ou `updated_at` como desempate.
 
-**STU-7.4.** Cada linha ou card mostra: **nome**, **faixa e grau** atuais, **idade** (ou equivalente claro quando não houver data de nascimento — **"—"**; cálculo via **DATE-4**), **status**. **Em complemento**, deve ser **evidente** (segunda linha ou texto auxiliar) o **tempo na faixa actual** e o **tempo no grau actual**, em pt-BR breve (ex. «Na faixa: 8 meses · No grau: 3 meses»), usando **DATE-** em **America/São_Paulo**: referência preferencial à **última** entrada em **`student_graduations`** que reflecte a faixa actual (para «na faixa») e o par (faixa, grau) actual (para «no grau»); se não houver histórico suficiente, usar **`academy_start_date`** como referência para ambos e sinalizar na UX como **aproximado** quando aplicável. Em viewports estreitas, apresentação em **cartões** empilhados.
+**STU-7.4.** Cada linha ou card mostra: **nome**, **faixa e grau** atuais, **idade** (ou equivalente claro quando não houver data de nascimento, ex. **"–"**; cálculo via **DATE-4**), **status**. **Em complemento**, deve ser **evidente** (segunda linha ou texto auxiliar) o **tempo na faixa actual** e o **tempo no grau actual**, em pt-BR breve (ex. «Na faixa: 8 meses · No grau: 3 meses»), usando **DATE-** em **America/São_Paulo**: referência preferencial à **última** entrada em **`student_graduations`** que reflecte a faixa actual (para «na faixa») e o par (faixa, grau) actual (para «no grau»); se não houver histórico suficiente, usar **`academy_start_date`** como referência para ambos e sinalizar na UX como **aproximado** quando aplicável. Em viewports estreitas, apresentação em **cartões** empilhados.
 
 **STU-7.5.** Lista vazia (sem resultados para filtros atuais): mensagem adequada; se a conta **não tem alunos**, **empty state** com CTA **“Cadastrar primeiro aluno”** → **`/alunos/novo`**.
 
-**STU-7.6.** **Clique principal** na linha ou cartão **abre o perfil** do aluno (**`/alunos/[id]`** — **SPR-10.1**). Uma **acção secundária** explícita na mesma linha/card **abre a edição rápida** (**STU-8**) **sem** navegar para o perfil (**SPR-10.2**). O acesso à **ficha completa** mantém-se conforme **STU-8.2** / links dedicados (**SPR-10.3**).
+**STU-7.6.** **Clique principal** na linha ou cartão **abre o perfil** do aluno (**`/alunos/[id]`** , **SPR-10.1**). Uma **acção secundária** explícita na mesma linha/card **abre a edição rápida** (**STU-8**) **sem** navegar para o perfil (**SPR-10.2**). O acesso à **ficha completa** mantém-se conforme **STU-8.2** / links dedicados (**SPR-10.3**).
 
 ## STU-8. Edição rápida
 
-**STU-8.1.** A partir da lista, o professor abre **edição rápida** ( **Dialog** ou **Sheet** — Radix/shadcn alinhado ao DS) para alterar sem ir à ficha completa: **status** (ativo / inativo / pausado), **plano** (compatível), **dia de vencimento** do vínculo aberto, **faixa atual**, **grau atual**. Alterações que passem pelo núcleo de **`setStudentPlan`** geram **nova linha** de histórico em `student_plans` (**ENT-7.3**, **BLM-5**), inclusive quando o plano escolhido é o mesmo.
+**STU-8.1.** A partir da lista, o professor abre **edição rápida** ( **Dialog** ou **Sheet** , Radix/shadcn alinhado ao DS) para alterar sem ir à ficha completa: **status** (ativo / inativo / pausado), **plano** (compatível), **dia de vencimento** do vínculo aberto, **faixa atual**, **grau atual**. Alterações que passem pelo núcleo de **`setStudentPlan`** geram **nova linha** de histórico em `student_plans` (**ENT-7.3**, **BLM-5**), inclusive quando o plano escolhido é o mesmo.
 
 **STU-8.2.** **Nome**, **datas** (nascimento, entrada), **documento**, **contactos** e **observações** são tratados na **ficha completa** (`/alunos/[id]/editar`).
 

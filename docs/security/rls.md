@@ -1,4 +1,4 @@
-# Row Level Security (RLS) — Casca - Gestão de Academias de BJJ
+# Row Level Security (RLS) , Casca - Gestão de Academias de BJJ
 
 Documento operacional: o que está ligado no Postgres, como arrancar o primeiro professor em **produção**, e como validar isolamento. O contrato normativo está em [`spec/features/rls-security/readme.md`](../../spec/features/rls-security/readme.md).
 
@@ -14,7 +14,7 @@ Documento operacional: o que está ligado no Postgres, como arrancar o primeiro 
 Ordem recomendada (alinhada a `pnpm db:apply`):
 
 1. [`db/schema.sql`](../../db/schema.sql)
-2. [`db/seed.sql`](../../db/seed.sql) — em **produção**, avaliar se o seed de demo deve correr ou ser adaptado (conta fixa de dev pode não ser desejável).
+2. [`db/seed.sql`](../../db/seed.sql) , em **produção**, avaliar se o seed de demo deve correr ou ser adaptado (conta fixa de dev pode não ser desejável).
 3. [`db/policies.sql`](../../db/policies.sql)
 
 `public.current_account_id()` está definida em `policies.sql`: **não** duplicar definições noutros ficheiros.
@@ -23,11 +23,11 @@ Ordem recomendada (alinhada a `pnpm db:apply`):
 
 Utilizador de referência: **`maikon@aslam.com.br`**.
 
-- **Alternativa só SQL** (apagar por email + criar com bcrypt): modelo em [`db/sql/supabase-auth-reset-email-users.sql`](../../db/sql/supabase-auth-reset-email-users.sql) — edita senhas **no editor** antes de correr; depois recria `accounts`/`profiles` porque os UUIDs de Auth mudam.
+- **Alternativa só SQL** (apagar por email + criar com bcrypt): modelo em [`db/sql/supabase-auth-reset-email-users.sql`](../../db/sql/supabase-auth-reset-email-users.sql) , edita senhas **no editor** antes de correr; depois recria `accounts`/`profiles` porque os UUIDs de Auth mudam.
 
 1. **Authentication → Users → Add user** no dashboard Supabase: criar o utilizador com **password forte** (pode ser temporária); **alterar a password** após o primeiro login.
 2. Obter o **`id`** (UUID) desse utilizador em `auth.users` (UI ou `select id, email from auth.users where email = 'maikon@aslam.com.br'` com role privilegiada).
-3. No **SQL Editor**, com permissões de administração da base, criar a academia e o perfil. O editor **não** aceita placeholders tipo `:user_id` — usa por exemplo:
+3. No **SQL Editor**, com permissões de administração da base, criar a academia e o perfil. O editor **não** aceita placeholders tipo `:user_id` , usa por exemplo:
 
 ```sql
 -- Ajusta email, nome da academia e display_name. O utilizador tem de existir em auth.users.
@@ -42,7 +42,7 @@ BEGIN
   LIMIT 1;
 
   IF v_user_id IS NULL THEN
-    RAISE EXCEPTION 'Utilizador não encontrado em auth.users — cria em Auth primeiro.';
+    RAISE EXCEPTION 'Utilizador não encontrado em auth.users , cria em Auth primeiro.';
   END IF;
 
   INSERT INTO public.accounts (name)
@@ -62,7 +62,7 @@ Com a aplicação em execução, o professor abre **`/login`**, entra com o e-ma
 
 1. Criar outro utilizador em Auth (email distinto).
 2. Repetir `insert` em `accounts` + `profiles` para uma **segunda** conta.
-3. Inserir um aluno de teste em cada conta (via Table Editor como cada utilizador, ou SQL assumindo identidade — ver documentação Supabase para “test as user”).
+3. Inserir um aluno de teste em cada conta (via Table Editor como cada utilizador, ou SQL assumindo identidade , ver documentação Supabase para “test as user”).
 4. Confirmar: sessão **A** não lista alunos/planos/pagamentos da conta **B**.
 
 ## Lista de políticas (resumo em prosa)
@@ -85,7 +85,7 @@ A **service_role key** contorna RLS. Usar só em **servidor** (Edge Functions, s
 
 ## Verificação automatizada
 
-Na raiz do repositório, com `.env.local` preenchido (`DATABASE_URL`, chaves Supabase e **`VALIDATION_TEST_PASSWORD`** para login JWT): **`pnpm db:validate-rls`** — confirma `anon` sem linhas em `students`/`belts`, isolamento para `maikon@aslam.com.br` vs `rls-validation-b@aslam.com.br`, e rejeição de `INSERT` com `account_id` alheio.
+Na raiz do repositório, com `.env.local` preenchido (`DATABASE_URL`, chaves Supabase e **`VALIDATION_TEST_PASSWORD`** para login JWT): **`pnpm db:validate-rls`** , confirma `anon` sem linhas em `students`/`belts`, isolamento para `maikon@aslam.com.br` vs `rls-validation-b@aslam.com.br`, e rejeição de `INSERT` com `account_id` alheio.
 
 ## Referências
 

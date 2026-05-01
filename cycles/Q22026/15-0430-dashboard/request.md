@@ -12,7 +12,7 @@ poluição visual. Esta é a tela que dá a sensação de controle.
   - Alunos ativos (total).
   - Mensalidades atrasadas (contagem + atalho para Billing filtrado).
   - Aniversariantes do mês.
-  - Alertas de graduação (ex.: alunos com tempo elevado no grau —
+  - Alertas de graduação (ex.: alunos com tempo elevado no grau ,
     heurística simples, configurável depois).
 - Seção **Atenção hoje**:
   - aniversariantes do dia,

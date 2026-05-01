@@ -3,7 +3,7 @@
  * Requer em .env.local: DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL,
  * NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY.
  *
- * Obrigatório se os utilizadores ainda não existirem: VALIDATION_TEST_PASSWORD — senha forte
+ * Obrigatório se os utilizadores ainda não existirem: VALIDATION_TEST_PASSWORD , senha forte
  * partilhada (apenas para estes emails de teste; não commitar).
  *
  * Usage: pnpm db:validate-rls
@@ -64,7 +64,7 @@ async function main() {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  console.log("— Auth: garantir utilizadores A e B —");
+  console.log(", Auth: garantir utilizadores A e B ,");
   const uA = await ensureAuthUser(admin, EMAIL_A, testPassword);
   const uB = await ensureAuthUser(admin, EMAIL_B, testPassword);
   if (uA.created || uB.created) {
@@ -80,7 +80,7 @@ async function main() {
       });
       if (up.error) throw up.error;
     }
-    console.log("— Senhas de teste alinhadas (VALIDATION_TEST_PASSWORD) —");
+    console.log(", Senhas de teste alinhadas (VALIDATION_TEST_PASSWORD) ,");
   }
 
   const pg = new Client({
@@ -99,7 +99,7 @@ async function main() {
     if (!beltRes.rows.length) throw new Error("Sem faixas em public.belts.");
     const beltId = beltRes.rows[0].id;
 
-    console.log("— Postgres: garantir contas + perfis + alunos de teste —");
+    console.log(", Postgres: garantir contas + perfis + alunos de teste ,");
 
     async function ensureProfileAndStudent(userId, email, suffix) {
       const existing = await pg.query(
@@ -152,7 +152,7 @@ async function main() {
       console.warn("Testes anon continuam.\n");
     }
 
-    console.log("— Cliente anon: esperado 0 linhas —");
+    console.log(", Cliente anon: esperado 0 linhas ,");
     const anonClient = createClient(supabaseUrl, anonKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
@@ -174,7 +174,7 @@ async function main() {
     }
 
     if (passwordForSignIn) {
-      console.log("— Utilizador A: só alunos da própria conta —");
+      console.log(", Utilizador A: só alunos da própria conta ,");
       const userClient = createClient(supabaseUrl, anonKey, {
         auth: { persistSession: false, autoRefreshToken: false },
       });
@@ -197,7 +197,7 @@ async function main() {
       const sawMarker = rowsA.length > 0;
       if (!sawMarker) console.warn("  Aviso: A não devolveu linhas (perfil/conta?)");
 
-      console.log("— INSERT aluno com account_id alheio (esperado erro) —");
+      console.log(", INSERT aluno com account_id alheio (esperado erro) ,");
       const evil = await userClient.from("students").insert({
         account_id: tenantB.accountId,
         kind: "adult",
@@ -218,7 +218,7 @@ async function main() {
       await userClient.auth.signOut();
     }
 
-    console.log("\nOK — validação RLS concluída.");
+    console.log("\nOK , validação RLS concluída.");
   } finally {
     await pg.end();
   }

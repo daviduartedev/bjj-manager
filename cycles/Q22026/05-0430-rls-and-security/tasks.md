@@ -1,4 +1,4 @@
-# Tasks — Ciclo 05: RLS e segurança
+# Tasks , Ciclo 05: RLS e segurança
 
 Checklist executável. **Ao concluir a implementação, atualizar features em `spec/features/`** e manter `spec/product/` + `docs/product/` alinhados quando o contrato de produto mudar.
 
@@ -25,4 +25,4 @@ Checklist executável. **Ao concluir a implementação, atualizar features em `s
 - [x] Confirmar **`anon`** zero linhas em tabelas com `account_id` e em `belts`.
 - [x] Tentativa de `INSERT` com `account_id` alheio (como `authenticated`) **falha** no Postgres.
 
-**Automatização:** `pnpm db:validate-rls` — requer `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`; **`VALIDATION_TEST_PASSWORD`** para criar utilizadores em falta e para testes JWT (script alinha a senha dos dois emails via Admin API quando definida).
+**Automatização:** `pnpm db:validate-rls` , requer `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`; **`VALIDATION_TEST_PASSWORD`** para criar utilizadores em falta e para testes JWT (script alinha a senha dos dois emails via Admin API quando definida).

@@ -1,4 +1,4 @@
-# Plano — Plans & Billing Model (delta)
+# Plano , Plans & Billing Model (delta)
 
 ## Contexto
 
@@ -8,12 +8,12 @@ Ciclo **modelo + Server Actions** para planos por conta e vínculo aluno↔plano
 
 | # | Tema | Decisão |
 |---|------|---------|
-| 1 | Tipos de plano | **Três** por conta: **Kids 1**, **Kids 2**, **Adulto** (`kids_1`, `kids_2`, `adult`) — alinhado a **BR-1.1**, schema `plans_account_kind_unique` e **STU-4**. |
+| 1 | Tipos de plano | **Três** por conta: **Kids 1**, **Kids 2**, **Adulto** (`kids_1`, `kids_2`, `adult`) , alinhado a **BR-1.1**, schema `plans_account_kind_unique` e **STU-4**. |
 | 2 | `updatePlanPrice` | Só **`price_cents`** (inteiro ≥ 0). Estado **ativo/inativo** do plano fica para UI de Configurações futura; **BR-1.3** é aplicado em **`setStudentPlan`** (recusar plano **inativo** para novo vínculo). |
 | 3 | Provisão automática | **`ensureDefaultPlansForCurrentAccount`** idempotente (INSERT dos três `kind` com **`ON CONFLICT DO NOTHING`**), invocada no **layout servidor** de `app/(dashboard)/layout.tsx`, para que qualquer página do painel assuma planos existentes. Remover duplicação com seed “lazy” em `getPlansCatalog` (**este catálogo só lista** `active = true`; não cria linhas). |
-| 4 | Preços por defeito | **Kids 1** = **10000** centavos (R$ 100); **Kids 2** e **Adulto** = **12000** centavos (R$ 120) — apenas para integração/validação futura; professor pode alterar via `updatePlanPrice`. |
+| 4 | Preços por defeito | **Kids 1** = **10000** centavos (R$ 100); **Kids 2** e **Adulto** = **12000** centavos (R$ 120) , apenas para integração/validação futura; professor pode alterar via `updatePlanPrice`. |
 | 5 | `ended_at` / `started_at` | Na troca de vínculo: **`started_at`** do novo registo = **data civil corrente** em **America/São_Paulo**; **`ended_at`** da linha anterior = **a mesma data** (transição instantânea nesse dia). |
-| 6 | Mesmo plano | **Sempre** encerrar vínculo aberto e **inserir nova linha**, mesmo que `plan_id` seja igual — mantém histórico (**ENT-7.3**). |
+| 6 | Mesmo plano | **Sempre** encerrar vínculo aberto e **inserir nova linha**, mesmo que `plan_id` seja igual , mantém histórico (**ENT-7.3**). |
 | 7 | `custom_price_cents` | Omissão no payload **mantém** o valor atual do vínculo aberto; **`null` explícito** **remove** personalização (volta ao preço do plano na lógica efetiva). |
 | 8 | UX de erro | Actions em **`actions/billing.ts`** seguem **BLM-3**: mensagens **específicas** em pt-BR (toast), **sem** texto exclusivamente genérico; **sem** vazar stack, schemas internos ou permitir enumeração entre contas. |
 | 9 | API pública | Manter **`actions/billing.ts`**: `updatePlanPrice`, `setStudentPlan`; **`lib/billing/`**: `getEffectivePrice` + helper interno partilhado com **`actions/students.ts`** (evitar dependência circular actions→actions). |
@@ -44,8 +44,8 @@ Ciclo **modelo + Server Actions** para planos por conta e vínculo aluno↔plano
 
 ## Riscos / notas
 
-- **Mesmo plano + só `due_day`**: com regra de nova linha sempre, uma mudança só de dia de vencimento também gera histórico — aceite pelo refino.
-- Chamadas repetidas ao layout executam `ensureDefaultPlans` — deve ser **barato** (no-op após primeira vez).
+- **Mesmo plano + só `due_day`**: com regra de nova linha sempre, uma mudança só de dia de vencimento também gera histórico , aceite pelo refino.
+- Chamadas repetidas ao layout executam `ensureDefaultPlans` , deve ser **barato** (no-op após primeira vez).
 
 ## Referências
 

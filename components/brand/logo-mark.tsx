@@ -12,7 +12,7 @@ type LogoMarkProps = {
 };
 
 /**
- * Logo Casca sobre fundo preto da identidade — usar em header escuro / hero.
+ * Logo Casca sobre fundo preto da identidade, usar em header escuro / hero.
  */
 export function LogoMark({
   className,

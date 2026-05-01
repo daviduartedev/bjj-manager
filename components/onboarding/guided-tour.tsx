@@ -71,7 +71,7 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: "body",
         title: "Bem-vindo",
         content:
-          "Vamos passar pelo menu e pelas quatro áreas principais: Painel, Alunos, Mensalidades e Configurações. Use Próximo para avançar; dá para pular o tour quando quiser. Só este navegador guarda que você já concluiu — não mexe na sua conta nem nos dados da academia.",
+          "Vamos passar pelo menu e pelas quatro áreas principais: Painel, Alunos, Mensalidades e Configurações. Use Próximo para avançar; dá para pular o tour quando quiser. Só este navegador guarda que você já concluiu, não mexe na sua conta nem nos dados da academia.",
         placement: "center",
         skipBeacon: true,
       },
@@ -156,7 +156,7 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: () => firstVisibleDataTour("page-configuracoes"),
         title: "Preferências da academia",
         content:
-          "Ajuste aquilo que vale para toda a escola. Nome de exibição, e-mail e dados pessoais ficam em Perfil — no ícone de usuário ao lado do botão Wizard.",
+          "Ajuste aquilo que vale para toda a escola. Nome de exibição, e-mail e dados pessoais ficam em Perfil, no ícone de usuário ao lado do botão Wizard.",
         placement: "auto",
         before: async () => {
           await navigateTo(ROUTES.configuracoes);

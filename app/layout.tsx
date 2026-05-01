@@ -6,7 +6,7 @@ import { APP_NAME } from "@/lib/branding";
 
 import "./globals.css";
 
-/** Tipografia única estilo CRM / painel operacional (IBM Plex Sans — legível em dados densos, bom suporte a pt-BR). */
+/** Tipografia única estilo CRM / painel operacional (IBM Plex Sans, legível em dados densos, bom suporte a pt-BR). */
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],

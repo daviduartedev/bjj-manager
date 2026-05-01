@@ -1,6 +1,6 @@
-# Regras de graduação — Casca - Gestão de Academias de BJJ
+# Regras de graduação , Casca - Gestão de Academias de BJJ
 
-Referência de ordem de faixas: **IBJJF** — *General System of Graduation* (faixas por idade; graus em faixas coloridas adulto). O aplicativo é uma ferramenta da academia; federações podem impor regras adicionais.
+Referência de ordem de faixas: **IBJJF** , *General System of Graduation* (faixas por idade; graus em faixas coloridas adulto). O aplicativo é uma ferramenta da academia; federações podem impor regras adicionais.
 
 ---
 
@@ -78,4 +78,4 @@ Referência de ordem de faixas: **IBJJF** — *General System of Graduation* (fa
 
 **GR-6.2.** Histórico deve armazenar **was_skip** e **skip_reason** quando **GR-4.3** aplicável.
 
-**GR-6.3.** No banco, recomenda-se **CHECK** em `student_graduations`: se **não** houve pulo (`was_skip` falso), `skip_reason` deve ser nulo; se houve pulo (`was_skip` verdadeiro), `skip_reason` deve ser texto não vazio após `trim` — alinhado a **GR-4.4**.
+**GR-6.3.** No banco, recomenda-se **CHECK** em `student_graduations`: se **não** houve pulo (`was_skip` falso), `skip_reason` deve ser nulo; se houve pulo (`was_skip` verdadeiro), `skip_reason` deve ser texto não vazio após `trim` , alinhado a **GR-4.4**.

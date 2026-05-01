@@ -1,4 +1,4 @@
-# Plano — Design system (delta)
+# Plano , Design system (delta)
 
 ## Contexto
 

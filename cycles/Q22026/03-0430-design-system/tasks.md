@@ -1,4 +1,4 @@
-# Tarefas — Design system
+# Tarefas , Design system
 
 ## Spec e documentação (obrigatório)
 
@@ -20,7 +20,7 @@
 ## `components/ui/`
 
 - [x] Adicionar ou alinhar: `dialog`, `dropdown-menu`, `select`, `tabs`, `separator`, `skeleton`, `textarea`, `checkbox`, `form`, `table`, `avatar`, `tooltip` (+ dependências internas habituais do shadcn: `popover`, etc.).
-- [x] Integrar **Sonner** (substituir ou conviver com `@radix-ui/react-toast` apenas se necessário — preferir uma única API documentada no guia).
+- [x] Integrar **Sonner** (substituir ou conviver com `@radix-ui/react-toast` apenas se necessário , preferir uma única API documentada no guia).
 
 ## `components/layout/`
 

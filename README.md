@@ -1,4 +1,4 @@
-# Casca — Gestão de Academias de BJJ
+# Casca , Gestão de Academias de BJJ
 
 SaaS web responsivo para professores de jiu-jitsu gerenciarem alunos,
 graduações e mensalidades.
@@ -11,10 +11,10 @@ graduações e mensalidades.
 
 - **Next.js 15** (App Router) + **TypeScript**
 - **Tailwind CSS** + **shadcn/ui** (componentes locais em `components/ui`)
-- **Supabase** (`@supabase/ssr`) — Auth, Postgres, RLS
-- **Zod** + **React Hook Form** — validação e formulários
-- **date-fns** — datas em pt-BR
-- **lucide-react** — ícones
+- **Supabase** (`@supabase/ssr`) , Auth, Postgres, RLS
+- **Zod** + **React Hook Form** , validação e formulários
+- **date-fns** , datas em pt-BR
+- **lucide-react** , ícones
 
 ## Comandos
 
@@ -83,7 +83,7 @@ middleware.ts        revalida sessão Supabase
 ## Workflow spec-driven (`/cycles`)
 
 A construção do produto é dividida em ciclos pequenos, executáveis e
-ordenados. Cada ciclo é uma pasta com um `request.md` cru —
+ordenados. Cada ciclo é uma pasta com um `request.md` cru ,
 descrição da feature, sem plano, sem tarefas.
 
 Convenção:

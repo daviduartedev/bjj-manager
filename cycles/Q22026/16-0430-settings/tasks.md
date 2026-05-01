@@ -1,4 +1,4 @@
-# Tarefas — Configurações e perfil (16-0430-settings)
+# Tarefas , Configurações e perfil (16-0430-settings)
 
 ## Spec / documentação
 

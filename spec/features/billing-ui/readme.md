@@ -11,7 +11,7 @@ Contrato canónico para as **telas de fecho mensal** usadas pelo professor na á
 - Perfil do aluno: [`spec/features/student-profile/readme.md`](../student-profile/readme.md) (**SPR-8**, **SPR-9**).
 - Tokens e chrome: [`spec/features/design-system/readme.md`](../design-system/readme.md) (**DS-1.11**, **DS-1.12**).
 - Schema: [`spec/features/supabase-schema/readme.md`](../supabase-schema/readme.md) (`payments.payment_method`).
-- Painel: [`spec/features/dashboard/readme.md`](../dashboard/readme.md) (**PNL-** — atalhos com **BUI-2.6**).
+- Painel: [`spec/features/dashboard/readme.md`](../dashboard/readme.md) (**PNL-** , atalhos com **BUI-2.6**).
 
 ## Implementação (referência)
 
@@ -19,8 +19,8 @@ Contrato canónico para as **telas de fecho mensal** usadas pelo professor na á
 |------|---------------------|
 | Lista | `app/(dashboard)/mensalidades/page.tsx` |
 | Detalhe | `app/(dashboard)/mensalidades/[studentId]/page.tsx` |
-| Ações | `actions/billing.ts` — `recordPayment`, `voidPayment`, marcação em lote |
-| Rotas | `lib/routes.ts` — `mensalidades` (sem segmento `/billing` na URL) |
+| Ações | `actions/billing.ts` , `recordPayment`, `voidPayment`, marcação em lote |
+| Rotas | `lib/routes.ts` , `mensalidades` (sem segmento `/billing` na URL) |
 
 ---
 
@@ -46,7 +46,7 @@ Contrato canónico para as **telas de fecho mensal** usadas pelo professor na á
 
 **BUI-2.5.** **Desktop:** tabela densa legível; **mobile:** mesmos dados em **cartões** empilhados; **sem gráficos** neste âmbito.
 
-**BUI-2.6.** Parâmetro opcional de query **`filtro`** na URL da lista **`/mensalidades`**: valores admitidos (pt-BR, case-insensitive) **`todos`**, **`pago`**, **`pendente`**, **`atrasado`**, **`bolsista`**, **`outro`** — mapeados aos indicadores internos (**`paid`**, **`pending`**, **`overdue`**, **`scholarship`**, **`other`**) e ao modo «todos». Parâmetro ausente, desconhecido ou vazio equivale a **`todos`**. A página deve **inicializar** o selector de filtro em coerência com o servidor (props derivadas de `searchParams`), para que atalhos do **painel** (**PNL-3.3**, **PNL-7.2**) abram a lista já filtrada.
+**BUI-2.6.** Parâmetro opcional de query **`filtro`** na URL da lista **`/mensalidades`**: valores admitidos (pt-BR, case-insensitive) **`todos`**, **`pago`**, **`pendente`**, **`atrasado`**, **`bolsista`**, **`outro`** , mapeados aos indicadores internos (**`paid`**, **`pending`**, **`overdue`**, **`scholarship`**, **`other`**) e ao modo «todos». Parâmetro ausente, desconhecido ou vazio equivale a **`todos`**. A página deve **inicializar** o selector de filtro em coerência com o servidor (props derivadas de `searchParams`), para que atalhos do **painel** (**PNL-3.3**, **PNL-7.2**) abram a lista já filtrada.
 
 ---
 
@@ -60,7 +60,7 @@ Contrato canónico para as **telas de fecho mensal** usadas pelo professor na á
 
 ## BUI-4. Registar pagamento (diálogo)
 
-**BUI-4.1.** Campos: **mês de referência** (default coerente com a página); **valor** igual ao **preço efectivo** — sem edição para outro montante (**PBS-4.2**); **data do pagamento** (default hoje); **método** opcional (texto livre); **observações** opcionais.
+**BUI-4.1.** Campos: **mês de referência** (default coerente com a página); **valor** igual ao **preço efectivo** , sem edição para outro montante (**PBS-4.2**); **data do pagamento** (default hoje); **método** opcional (texto livre); **observações** opcionais.
 
 **BUI-4.2.** **Persistência** do método: coluna **`payments.payment_method`** (texto nullable), não obrigatória para negócio.
 

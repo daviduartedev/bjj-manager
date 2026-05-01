@@ -15,9 +15,9 @@ justificativa. Este ciclo entrega toda a lógica e UI de promoção.
   - `promoteStudent({ studentId, beltId, degree, isSkip,
     skipReason?, graduatedAt })`.
 - Helper em `lib/graduation/` com:
-  - `getBeltOrder(kind)` — ordem oficial por kind.
+  - `getBeltOrder(kind)` , ordem oficial por kind.
   - `isOrderRespected(currentBeltId, currentDegree, newBeltId,
-    newDegree, kind)` — booleano.
+    newDegree, kind)` , booleano.
   - `nextBelt(currentBeltId, kind)`.
 - Regra de promoção:
   1. Se respeita a ordem (próxima faixa ou +1 grau na mesma faixa) →
@@ -35,7 +35,7 @@ justificativa. Este ciclo entrega toda a lógica e UI de promoção.
 - Mostrar visualmente a cor da faixa (chip/badge com `belts.color_hex`).
 - Mensagem de alerta clara e amigável quando há pulo: "Você está
   pulando da [X] para a [Y]. Justifique:".
-- Histórico nunca apaga registros — só adiciona.
+- Histórico nunca apaga registros , só adiciona.
 - Considerar grau 0..4 (faixa inicial geralmente vem com 0 graus).
 - Server Action transacional: ou tudo, ou nada.
 - Nunca permitir alterar `account_id`.

@@ -1,5 +1,5 @@
 -- =====================================================
--- BR-4.5 — Pendente → Não pago após vencimento (futuro)
+-- BR-4.5 , Pendente → Não pago após vencimento (futuro)
 -- =====================================================
 -- Não executar em produção até o ciclo dedicado validar fuso (BR-2.4),
 -- cálculo do “último dia válido” do vencimento e interação com linhas

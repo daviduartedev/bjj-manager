@@ -26,11 +26,11 @@ Atrasado para o mês corrente.
 ## Taste / Constraints
 - `reference_month` sempre normalizado para o **dia 1** do mês.
 - Tratar fuso `America/Sao_Paulo` ao calcular "hoje passou do
-  due_day" — comparar como datas locais, não UTC.
+  due_day" , comparar como datas locais, não UTC.
 - Idempotência: registrar pagamento duplicado para o mesmo
   `(student_id, reference_month)` deve ser bloqueado por unique
   constraint OU upsert; decidir e documentar.
-- Nada de UI completa neste ciclo — só ações e helpers. UI vem no
+- Nada de UI completa neste ciclo , só ações e helpers. UI vem no
   próximo.
 - Sem cron jobs no MVP; status é **derivado** sob demanda.
 

@@ -1,6 +1,6 @@
 import type { MonthBillingIndicator } from "@/lib/billing/month-billing-indicator";
 
-/** Valor interno do selector na lista — inclui `all`. */
+/** Valor interno do selector na lista, inclui `all`. */
 export type MensalidadesClientFilterKey = "all" | MonthBillingIndicator;
 
 const QUERY_TO_FILTER: Record<string, MensalidadesClientFilterKey> = {
@@ -21,7 +21,7 @@ const FILTER_TO_QUERY: Record<MensalidadesClientFilterKey, string | null> = {
   other: "outro",
 };
 
-/** Filtro por faixa etária (aluno) na lista `/mensalidades` — query `tipo`. */
+/** Filtro por faixa etária (aluno) na lista `/mensalidades`, query `tipo`. */
 export type MensalidadesKindFilterKey = "all" | "adult" | "kids";
 
 const QUERY_TO_KIND: Record<string, MensalidadesKindFilterKey> = {
@@ -33,7 +33,7 @@ const QUERY_TO_KIND: Record<string, MensalidadesKindFilterKey> = {
 };
 
 /**
- * **BUI-2.6** — parse do query param `filtro` (pt-BR).
+ * **BUI-2.6**, parse do query param `filtro` (pt-BR).
  */
 export function parseMensalidadesFiltroQuery(
   raw: string | string[] | undefined,

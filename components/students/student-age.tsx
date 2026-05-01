@@ -8,7 +8,7 @@ export function formatStudentAge(
   today: string,
 ): string {
   const age = calculateAge(birthDate, today);
-  if (age === null) return "—";
+  if (age === null) return "–";
   return `${age} anos`;
 }
 

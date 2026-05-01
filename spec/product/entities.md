@@ -1,4 +1,4 @@
-# Entidades de domínio — Casca - Gestão de Academias de BJJ
+# Entidades de domínio , Casca - Gestão de Academias de BJJ
 
 Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Campos detalhados de banco podem evoluir no ciclo de schema; aqui está o **contrato de produto**.
 
@@ -53,8 +53,8 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 | Tipo | Sim | Adulto ou kids |
 | Nome | Sim | |
 | Faixa atual | Sim | FK para faixa |
-| Grau atual | Sim | Limites por tipo/faixa — ver **GR-** |
-| Status do aluno | Sim | Enum no schema: **ativo**, **inativo**, **trial**, **pausado** (trial pode designar período curto, ex. um dia, definido operacionalmente na UI — sem cron obrigatório no MVP salvo ciclo dedicado). Na UI do ciclo de alunos (**STU-3**), **trial** não é exposto; **ativo**, **inativo** e **pausado** sim. |
+| Grau atual | Sim | Limites por tipo/faixa , ver **GR-** |
+| Status do aluno | Sim | Enum no schema: **ativo**, **inativo**, **trial**, **pausado** (trial pode designar período curto, ex. um dia, definido operacionalmente na UI , sem cron obrigatório no MVP salvo ciclo dedicado). Na UI do ciclo de alunos (**STU-3**), **trial** não é exposto; **ativo**, **inativo** e **pausado** sim. |
 | Data de nascimento | Recomendado | Idade e transição kids/adulto |
 | Data de início na academia | Recomendado | Tempo de treino |
 | Documento, telefone, e-mail, observações | Não | LGPD / minimização |
@@ -72,7 +72,7 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 | Grau resultante | Sim | |
 | Data da graduação | Sim | |
 | Foi pulo de ordem | Sim | Boolean |
-| Motivo do pulo | Condicional | Obrigatório se pulo — ver **GR-** |
+| Motivo do pulo | Condicional | Obrigatório se pulo , ver **GR-** |
 
 ---
 
@@ -109,7 +109,7 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 
 | Campo | Obrigatório | Notas |
 |-------|-------------|--------|
-| Status manual | Sim | **Pago**, **Não pago**, **Pendente**, **Bolsista**, **Outro** — ver **BR-** |
+| Status manual | Sim | **Pago**, **Não pago**, **Pendente**, **Bolsista**, **Outro** , ver **BR-** |
 | Valor efetivo cobrado | Não | Útil para histórico; default do vínculo |
 | Data/hora do pagamento | Não | Informação opcional quando **Pago** |
 | Observação | Não | Especialmente para **Outro** |
@@ -122,13 +122,13 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 ## E9. Relações (resumo)
 
 ```
-Account 1 —— N Profile (MVP: tipicamente 1 professor por conta)
-Account 1 —— N Student
-Account 1 —— N Plan
-Belt (global) —— N Student (current_belt)
-Student 1 —— N StudentGraduation
-Student N —— 1 Plan (via vínculo aluno–plano)
-Student 1 —— N Payment (por reference_month)
+Account 1 : N Profile (MVP: tipicamente 1 professor por conta)
+Account 1 : N Student
+Account 1 : N Plan
+Belt (global) : N Student (current_belt)
+Student 1 : N StudentGraduation
+Student N : 1 Plan (via vínculo aluno–plano)
+Student 1 : N Payment (por reference_month)
 ```
 
 ---

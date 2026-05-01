@@ -39,7 +39,7 @@ export function dueCalendarDateInMonth(
 }
 
 /**
- * BR-4.3 / SPR-8.3 — complemento de UI (não persistido como estado próprio).
+ * BR-4.3 / SPR-8.3, complemento de UI (não persistido como estado próprio).
  */
 export function isBillingOverdueUi(params: {
   referenceMonthFirstDay: string;

@@ -1,4 +1,4 @@
-# Tarefas — Billing UI (14-0430-billing-ui)
+# Tarefas , Billing UI (14-0430-billing-ui)
 
 ## Spec e contratos
 
@@ -18,10 +18,10 @@
 ## Domínio e actions
 
 - [x] Estender **`recordPayment`** / schemas Zod para aceitar **`paymentMethod`** opcional e persistir na coluna.
-- [x] Implementar **`recordPaymentsBulk`**: entrada com lista de `studentId`, `referenceMonth`, `paidAt` opcional partilhado; por aluno mesma regra que registo único; devolver resumo (sucesso / falhas por aluno em mensagem agregada ou toast múltiplo — definir na implementação conforme **BLM-3**).
+- [x] Implementar **`recordPaymentsBulk`**: entrada com lista de `studentId`, `referenceMonth`, `paidAt` opcional partilhado; por aluno mesma regra que registo único; devolver resumo (sucesso / falhas por aluno em mensagem agregada ou toast múltiplo , definir na implementação conforme **BLM-3**).
 - [x] Garantir **`revalidatePath`** para `ROUTES.mensalidades`, lista de alunos, perfil do aluno e painel após registo e estorno.
 
-## UI — Mensalidades
+## UI , Mensalidades
 
 - [x] Substituir placeholder de **`/mensalidades`**: selector de mês (default mês actual), filtros (Todos / Pago / Pendente / Atrasado / Bolsista / Outro), busca por nome.
 - [x] Tabela desktop + cards mobile; badges semânticos existentes (**badge-paid**, etc.).
@@ -29,12 +29,12 @@
 - [x] Botão **Registrar pagamento** por linha → diálogo (mês, valor só lectura ou pré-preenchido fixo ao efetivo, data, método opcional, notas).
 - [x] Toasts ao concluir registo; actualização optimista opcional.
 
-## UI — Detalhe `/mensalidades/[studentId]`
+## UI , Detalhe `/mensalidades/[studentId]`
 
 - [x] Resumo: plano actual, valor, vencimento, estado do mês seleccionado (selector alinhado à lista ou herança de query).
 - [x] Histórico cronológico reverso; **Estornar** por linha quando aplicável (**voidPayment** + confirmação).
 
-## UI — Perfil do aluno
+## UI , Perfil do aluno
 
 - [x] Remover placeholder **Registrar pagamento**; usar componente/diálogo partilhado com mensalidades.
 - [x] Copiar de produto actualizada (**SPR-**).

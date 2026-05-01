@@ -1,6 +1,6 @@
 /**
  * Mensagens para erros PostgREST / Postgres frequentes, sem expor nomes internos (**BLM-3**, **STU-2.2**).
- * Devolve `null` se não for um caso conhecido — os chamadores aplicam fallback genérico.
+ * Devolve `null` se não for um caso conhecido, os chamadores aplicam fallback genérico.
  */
 export function mapDatabaseErrorToUserMessage(error: unknown): string | null {
   if (!error || typeof error !== "object") return null;

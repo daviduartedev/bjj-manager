@@ -1,4 +1,4 @@
-# QA / endurecimento — achados 0430 (2026-05-01)
+# QA / endurecimento , achados 0430 (2026-05-01)
 
 Documentação do attest manual automatizado (execução pontual) e da **importação da planilha Aslam** para a conta do utilizador `maikon@aslam.com.br` em produção.
 
@@ -12,11 +12,11 @@ Documentação do attest manual automatizado (execução pontual) e da **importa
 ### Comportamento do script
 
 - Fluxo recomendado: `pnpm convert:planilha` → `pnpm import:sheet` (`scripts/import-aslam-sheet.mjs`).
-- Variáveis: `DATABASE_URL` (obrigatório), opcionalmente `OWNER_EMAIL` (default `maikon@aslam.com.br`), `IMPORT_YEAR` (default **2026**), `IMPORT_CURRENT_MONTH` (default **5** — maio), `DRY_RUN=1` só valida contagens sem escrever.
+- Variáveis: `DATABASE_URL` (obrigatório), opcionalmente `OWNER_EMAIL` (default `maikon@aslam.com.br`), `IMPORT_YEAR` (default **2026**), `IMPORT_CURRENT_MONTH` (default **5** , maio), `DRY_RUN=1` só valida contagens sem escrever.
 - **Destrutivo**: apaga todos os **alunos** da conta alvo e reinsere linhas + vínculos `student_plans` + linhas `payments` dos meses importados.
 - **Planos**: garante os três tipos (`kids_1`, `kids_2`, `adult`) como em **BR-1.4** / seed.
 - **Faixa branca (kids)**: o seed usa o mesmo `slug` `white` para adulto e kids com `ON CONFLICT (slug) DO NOTHING`; em bases onde só existe `white` adulto, o script cria alias **`white_kids`** (`ensureKidsWhiteAlias`) e resolve BRANCA kids com fallback `white` → `white_kids`.
-- **Adultos “LARANJA”** na planilha: não há faixa adulta laranja no catálogo; na TSV foi mapeado para **`blue`** (faixa azul) para **Isabella** e **Isabella Duarte** — rever na operação se preferirem outra convenção.
+- **Adultos “LARANJA”** na planilha: não há faixa adulta laranja no catálogo; na TSV foi mapeado para **`blue`** (faixa azul) para **Isabella** e **Isabella Duarte** , rever na operação se preferirem outra convenção.
 - **Mensalidades**: ano **2026** (`IMPORT_YEAR`). Kids e adultos: **Jan–Dez** (12 colunas da folha).
 - **Estados da folha** → `payment_status`:
   - **BOLSISTA** → `scholarship` em todos os meses importados.

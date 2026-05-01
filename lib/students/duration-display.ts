@@ -7,7 +7,7 @@ import {
 } from "./graduation-reference";
 
 /**
- * Linha auxiliar **STU-7.4** — mesma lógica de referência que **PNL-4.3** / **PNL-4.4**.
+ * Linha auxiliar **STU-7.4**, mesma lógica de referência que **PNL-4.3** / **PNL-4.4**.
  */
 export function studentGraduationDurationLine(
   grads: GraduationRecordInput[],

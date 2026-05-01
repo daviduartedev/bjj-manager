@@ -151,7 +151,7 @@ export function RecordPaymentDialog({
               Valor do plano (referência)
             </p>
             <p className="type-lead tabular-nums-crm text-lg font-semibold text-foreground">
-              {amountCents != null ? formatMoneyBrFromCents(amountCents) : "—"}
+              {amountCents != null ? formatMoneyBrFromCents(amountCents) : ","}
             </p>
             {amountCents == null ? (
               <p className="text-sm text-destructive">

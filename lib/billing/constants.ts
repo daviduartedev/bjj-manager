@@ -1,4 +1,4 @@
-/** Centavos — **BLM-2** / **BR-1.4**. */
+/** Centavos de referência (**BLM-2** / **BR-1.4**). */
 export const DEFAULT_PLAN_PRICE_CENTS = {
   kids_1: 10_000,
   kids_2: 12_000,

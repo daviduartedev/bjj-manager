@@ -14,9 +14,9 @@ Contrato canónico para **`/configuracoes`** (academia + planos) e **`/perfil`**
 
 | Área | Artefactos típicos |
 |------|---------------------|
-| Conta | `actions/settings.ts` — `updateAccount` |
-| Perfil | `actions/settings.ts` — `updateProfile`; coluna opcional `profiles.phone` |
-| Planos | `actions/billing.ts` — `updatePlanPrice`, **`updatePlan`** (nome, preço, ativo) |
+| Conta | `actions/settings.ts` , `updateAccount` |
+| Perfil | `actions/settings.ts` , `updateProfile`; coluna opcional `profiles.phone` |
+| Planos | `actions/billing.ts` , `updatePlanPrice`, **`updatePlan`** (nome, preço, ativo) |
 | Validação | `lib/validations/settings.ts`, `lib/validations/billing.ts` |
 | UI | `app/(dashboard)/configuracoes/page.tsx`; `app/(dashboard)/perfil/page.tsx` |
 
@@ -24,7 +24,7 @@ Contrato canónico para **`/configuracoes`** (academia + planos) e **`/perfil`**
 
 **CFG-1.1.** URL canónica **`/configuracoes`** segmento **`configuracoes`** em **`app/(dashboard)/`**.
 
-**CFG-1.2.** **`/perfil`** permanece o destino para **dados pessoais** do professor (nome de exibição, telefone opcional, identidade visual por **iniciais** — sem upload de imagem no MVP).
+**CFG-1.2.** **`/perfil`** permanece o destino para **dados pessoais** do professor (nome de exibição, telefone opcional, identidade visual por **iniciais** , sem upload de imagem no MVP).
 
 ## CFG-2. Academia (conta)
 
@@ -34,7 +34,7 @@ Contrato canónico para **`/configuracoes`** (academia + planos) e **`/perfil`**
 
 ## CFG-3. Planos
 
-**CFG-3.1.** Lista dos **três** planos da conta (**Kid 1** / **Juvenil** / **Adulto** por defeito — **`kids_1`**, **`kids_2`**, **`adult`**); todos os campos exibidos são obtidos de **`plans`** via RLS.
+**CFG-3.1.** Lista dos **três** planos da conta (**Kid 1** / **Juvenil** / **Adulto** por defeito , **`kids_1`**, **`kids_2`**, **`adult`**); todos os campos exibidos são obtidos de **`plans`** via RLS.
 
 **CFG-3.2.** O professor pode editar **`name`**, **`price_cents`** e **`active`** (**BLM-4**, **`updatePlan`**).
 

@@ -80,7 +80,7 @@ const config: Config = {
           "system-ui",
           "sans-serif",
         ],
-        /* Mesma família que sans: hierarquia só por peso/tamanho — padrão CRM */
+        /* Mesma família que sans: hierarquia só por peso/tamanho , padrão CRM */
         display: [
           "var(--font-sans)",
           '"IBM Plex Sans"',

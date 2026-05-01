@@ -113,12 +113,12 @@ export function MensalidadesDetailClient({
               <p className="tabular-nums-crm font-medium">
                 {payload.amountCentsExpected != null
                   ? formatMoneyBrFromCents(payload.amountCentsExpected)
-                  : "—"}
+                  : ","}
               </p>
             </div>
             <div>
               <p className="type-meta-label">Dia de vencimento</p>
-              <p className="tabular-nums-crm font-medium">{payload.dueDay ?? "—"}</p>
+              <p className="tabular-nums-crm font-medium">{payload.dueDay ?? ","}</p>
             </div>
             <div>
               <p className="type-meta-label">Estado (mês)</p>
@@ -168,7 +168,7 @@ export function MensalidadesDetailClient({
                       {formatMoneyBrFromCents(p.amount_cents)}
                     </TableCell>
                     <TableCell className="max-w-[8rem] truncate text-muted-foreground">
-                      {p.payment_method ?? "—"}
+                      {p.payment_method ?? ","}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {profileFormatPaidAt(p.paid_at)}

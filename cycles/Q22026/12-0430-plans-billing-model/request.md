@@ -10,7 +10,7 @@ mexer em pagamentos.
 ## Intent
 - No primeiro acesso à área autenticada **(dashboard)**, criar automaticamente
   os três planos default da conta (**Kids 1**, **Kids 2**, **Adulto**).
-- Telas de admin de planos viverão dentro do ciclo Settings — aqui
+- Telas de admin de planos viverão dentro do ciclo Settings , aqui
   só entregamos o **modelo de dados** e Server Actions:
   - `actions/billing.ts → updatePlanPrice`,
   - `actions/billing.ts → setStudentPlan({ studentId, planId,

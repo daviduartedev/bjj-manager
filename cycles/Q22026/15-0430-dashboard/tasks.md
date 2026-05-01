@@ -1,4 +1,4 @@
-# Tarefas — Painel operacional (15-0430-dashboard)
+# Tarefas , Painel operacional (15-0430-dashboard)
 
 ## Spec e contratos (obrigatório)
 
@@ -6,8 +6,8 @@
 - [x] Actualizar **`spec/README.md`** (entrada do painel na matriz).
 - [x] Actualizar **`spec/product/spec.md`** e **`docs/product/spec.md`** (**SPEC-2.7** → referência **PNL-**).
 - [x] Actualizar **`spec/features/app-shell/readme.md`** (painel + **PNL-**).
-- [x] Actualizar **`spec/features/students-crud/readme.md`** (**STU-7.4** — durações na lista).
-- [x] Actualizar **`spec/features/billing-ui/readme.md`** (**BUI-2.6** — query `filtro`).
+- [x] Actualizar **`spec/features/students-crud/readme.md`** (**STU-7.4** , durações na lista).
+- [x] Actualizar **`spec/features/billing-ui/readme.md`** (**BUI-2.6** , query `filtro`).
 - [x] Actualizar **`spec/features/payments-billing-status/readme.md`** (referência cruzada **PBS-6.2** ↔ painel).
 
 ## Domínio e dados
@@ -16,7 +16,7 @@
 - [x] Reutilizar **`PBS-6`** / loaders existentes de mensalidades onde possível; evitar duplicar regra **PBS-3**.
 - [x] Adicionar testes unitários aos novos helpers (casos limite: sem DOB, sem graduações, mês sem alunos).
 
-## UI — `/painel`
+## UI , `/painel`
 
 - [x] Substituir placeholder: hero + grelha KPI (2×2 mobile); secção **Atenção hoje** (listas completas); distribuição por faixa; acções rápidas.
 - [x] `loading.tsx` com **skeletons** no segmento `painel`.
@@ -24,11 +24,11 @@
 - [x] Manter painel **configuração pendente** quando não há `ctx` válido.
 - [x] Cards/KPIs clicáveis conforme **PNL-** (incl. `/mensalidades?filtro=atrasado` e `filtro=pendente`).
 
-## UI — `/mensalidades`
+## UI , `/mensalidades`
 
 - [x] Suportar **`filtro`** na query (**BUI-2.6**): inicializar o selector cliente alinhado ao URL (incl. `atrasado` → `overdue`, etc.).
 
-## UI — `/alunos` (lista)
+## UI , `/alunos` (lista)
 
 - [x] Mostrar **tempo na faixa** e **tempo no grau** por linha/card (**STU-7.4**), usando mesma lógica de referência temporal que o painel onde aplicável.
 

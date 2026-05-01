@@ -1,7 +1,7 @@
-# Casca - Gestão de Academias de BJJ — Workflow Spec-Driven (Cycles)
+# Casca - Gestão de Academias de BJJ , Workflow Spec-Driven (Cycles)
 
 Cada feature do Casca - Gestão de Academias de BJJ nasce como **um ciclo**. Um ciclo é uma pasta
-contendo um `request.md` cru — descrição da feature, sem plano, sem tarefas.
+contendo um `request.md` cru , descrição da feature, sem plano, sem tarefas.
 Plano e implementação vêm depois, em arquivos separados.
 
 ## Convenção de pastas
@@ -28,17 +28,17 @@ cycles/Q22026/08-0430-students-crud/request.md
 Apenas a descrição crua da feature. **Não** escrevemos plano nem tarefas
 aqui. O arquivo tem essas seções:
 
-- **Context** — por que a feature existe e para quem.
-- **Intent** — o que precisa ser entregue (lista concreta de capacidades).
-- **Taste / Constraints** — restrições técnicas, de UX ou produto
+- **Context** , por que a feature existe e para quem.
+- **Intent** , o que precisa ser entregue (lista concreta de capacidades).
+- **Taste / Constraints** , restrições técnicas, de UX ou produto
   (ex.: sem iframe, seguir padrão de auth do módulo, etc.).
-- **References** — ponteiros para docs do módulo (`spec/architecture.md`,
+- **References** , ponteiros para docs do módulo (`spec/architecture.md`,
   `spec/features/<feature>/`, etc.).
-- **Attachments** — prints, designs, qualquer material visual relevante.
+- **Attachments** , prints, designs, qualquer material visual relevante.
 
 Quando for hora de executar, criamos no mesmo diretório do ciclo arquivos
 adicionais (ex.: `plan.md`, `notes.md`, `review.md`). O `request.md` em si
-permanece imutável — é o briefing original.
+permanece imutável , é o briefing original.
 
 ## Branch única
 
@@ -50,7 +50,7 @@ mesma branch.
 
 Os ciclos não dependem rigidamente um do outro para **existir**. Você pode
 escrever todos antes de implementar qualquer um. Mas **a execução tem
-ordem natural** — em geral 1 → 2 → 3, com algumas paralelizações
+ordem natural** , em geral 1 → 2 → 3, com algumas paralelizações
 possíveis (ex.: `design-system` pode rodar enquanto o `supabase-schema`
 está em andamento).
 

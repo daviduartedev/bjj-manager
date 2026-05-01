@@ -25,14 +25,14 @@ seguintes (students, billing, dashboard, settings).
   marcado em **vermelho**.
 - Mobile-first; drawer abre em < 250ms.
 - Touch targets ≥ 44px.
-- Sem bibliotecas extras de navegação — só Radix + Tailwind.
+- Sem bibliotecas extras de navegação , só Radix + Tailwind.
 - Estado do drawer no client; nada de server roundtrip para abrir
   menu.
 
 ## References
 - `cycles/Q22026/06-0430-authentication/request.md`
 - `cycles/Q22026/03-0430-design-system/request.md`
-- Briefing — seção "Estrutura esperada".
+- Briefing , seção "Estrutura esperada".
 
 ## Refino (produto)
 

@@ -32,7 +32,7 @@ próximas features.
 ## References
 - `app/globals.css` (tokens já aplicados).
 - `tailwind.config.ts` (paleta `bjj.*`).
-- Briefing — seção "Identidade visual" e "Diretrizes visuais".
+- Briefing , seção "Identidade visual" e "Diretrizes visuais".
 
 ## Attachments
 - (nenhum)

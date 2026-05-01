@@ -19,7 +19,7 @@ function isValidYMD(y: number, m0: number, day: number): boolean {
 
 /**
  * Converte `YYYY-MM-DD` (Postgres `date`) ou `Date` para meia-noite civil em São Paulo.
- * Não usa `parseISO` em strings só-data — evita deslocamento UTC (DATE-2.1).
+ * Não usa `parseISO` em strings só-data, evita deslocamento UTC (DATE-2.1).
  */
 export function parseCalendarDate(
   input: CalendarDateInput | null | undefined,

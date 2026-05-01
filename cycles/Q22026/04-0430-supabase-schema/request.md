@@ -5,13 +5,13 @@ O backend do Casca - Gestão de Academias de BJJ é o Supabase. Para qualquer fe
 funcionar, o schema precisa estar criado e populado com as faixas
 oficiais (adulto e kids). O modelo nasce multi-tenant (`account_id` em
 todas as tabelas relevantes) mesmo que o MVP atenda um professor por
-conta — isso evita refactor quando virarmos SaaS vendável.
+conta , isso evita refactor quando virarmos SaaS vendável.
 
 ## Intent
 - Tabelas:
   - `accounts` (conta da academia)
   - `profiles` (1:1 com `auth.users`, ligado a `account_id`)
-  - `belts` (catálogo global: kind adult/kids, name/slug estável no seed, **ordinal** alinhado a **GR-1** / **GR-2**; rótulos PT na UI — ver **ENT-3.3**)
+  - `belts` (catálogo global: kind adult/kids, name/slug estável no seed, **ordinal** alinhado a **GR-1** / **GR-2**; rótulos PT na UI , ver **ENT-3.3**)
   - `students` (aluno; `kind` adult/kids, `current_belt_id`,
     `current_degree`, status, dados pessoais opcionais)
   - `student_graduations` (histórico; `was_skip`, `skip_reason`)
@@ -29,10 +29,10 @@ conta — isso evita refactor quando virarmos SaaS vendável.
 - SQL idempotente (`if not exists` quando faz sentido).
 - FKs com `on delete cascade` apenas onde for seguro
   (graduações/pagamentos seguem o aluno).
-- `reference_month` é uma `date` apontando ao dia 1 do mês —
+- `reference_month` é uma `date` apontando ao dia 1 do mês ,
   representação simples e suficiente.
 - Todos os valores monetários em **centavos** (`bigint`/`integer`).
-- Sem RLS aqui — RLS é o ciclo seguinte.
+- Sem RLS aqui , RLS é o ciclo seguinte.
 - Migration aplicada via SQL editor do Supabase de dev.
 
 ## References

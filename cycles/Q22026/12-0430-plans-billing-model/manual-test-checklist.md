@@ -1,4 +1,4 @@
-# Checklist de teste manual — Plans & Billing Model (12-0430)
+# Checklist de teste manual , Plans & Billing Model (12-0430)
 
 Use após `pnpm dev` com `.env.local` e base aplicada (`pnpm db:apply`).
 
@@ -6,7 +6,7 @@ Use após `pnpm dev` com `.env.local` e base aplicada (`pnpm db:apply`).
 
 - `pnpm lint`
 - `pnpm type-check`
-- `pnpm test` — inclui `lib/billing/get-effective-price.test.ts`, `lib/validations/billing.test.ts` (fuso SP já coberto em `lib/dates/dates.test.ts` para **`toCalendarDateStringInAppTZ`**)
+- `pnpm test` , inclui `lib/billing/get-effective-price.test.ts`, `lib/validations/billing.test.ts` (fuso SP já coberto em `lib/dates/dates.test.ts` para **`toCalendarDateStringInAppTZ`**)
 
 ## Provisão de planos
 

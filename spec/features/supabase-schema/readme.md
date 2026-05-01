@@ -5,12 +5,12 @@ Rastreio do **modelo relacional** canônico em Postgres (Supabase), alinhado a *
 ## Escopo deste ciclo
 
 - DDL idempotente em [`db/schema.sql`](../../../db/schema.sql): enums, tabelas, FKs, índices, constraints de negócio acordadas.
-- Seed em [`db/seed.sql`](../../../db/seed.sql): catálogo global de faixas (**GR-1** / **GR-2**), conta e planos **Kids 1 | Kids 2 | Adulto** para ambiente de desenvolvimento com **price_cents** alinhados a **BR-1.4** / **BLM-2**; em runtime, a app também provê os três planos por conta ao entrar no **(dashboard)** — ver [`spec/features/plans-billing-model/readme.md`](../plans-billing-model/readme.md).
+- Seed em [`db/seed.sql`](../../../db/seed.sql): catálogo global de faixas (**GR-1** / **GR-2**), conta e planos **Kids 1 | Kids 2 | Adulto** para ambiente de desenvolvimento com **price_cents** alinhados a **BR-1.4** / **BLM-2**; em runtime, a app também provê os três planos por conta ao entrar no **(dashboard)** , ver [`spec/features/plans-billing-model/readme.md`](../plans-billing-model/readme.md).
 - **RLS** canónico em [`db/policies.sql`](../../../db/policies.sql), documentado em [`spec/features/rls-security/readme.md`](../rls-security/readme.md) e [`docs/security/rls.md`](../../../docs/security/rls.md); fluxo de sessão na app em [`spec/features/authentication/readme.md`](../authentication/readme.md).
 
 ## Aplicar em dev (Supabase)
 
-1. Defina `DATABASE_URL` (URI Postgres do projeto) em `.env.local` — ver [`.env.example`](../../../.env.example).
+1. Defina `DATABASE_URL` (URI Postgres do projeto) em `.env.local` , ver [`.env.example`](../../../.env.example).
 2. Rode **`pnpm db:apply`** na raiz do repositório (executa `db/schema.sql`, `db/seed.sql` e `db/policies.sql` e imprime contagens de sanity check).
 
 Alternativa: colar o conteúdo dos mesmos ficheiros no **SQL Editor** do dashboard Supabase, na ordem schema → seed.

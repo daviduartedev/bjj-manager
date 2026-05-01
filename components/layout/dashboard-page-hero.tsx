@@ -18,7 +18,7 @@ export type DashboardPageHeroProps = {
 };
 
 /**
- * Cabeçalho de página na área autenticada — plano de fundo contínuo com o canvas (evita “card” sobre a vista).
+ * Cabeçalho de página na área autenticada, plano de fundo contínuo com o canvas (evita “card” sobre a vista).
  */
 export function DashboardPageHero({
   badge,

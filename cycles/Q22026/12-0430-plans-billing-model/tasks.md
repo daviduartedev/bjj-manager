@@ -1,4 +1,4 @@
-# Tarefas — Plans & Billing Model (12-0430)
+# Tarefas , Plans & Billing Model (12-0430)
 
 Checklist executável; citar **BLM-**, **BR-**, **ENT-**, **SEC-**, **STU-** nos commits quando aplicável.
 
@@ -25,7 +25,7 @@ Checklist executável; citar **BLM-**, **BR-**, **ENT-**, **SEC-**, **STU-** nos
 ## Validação e biblioteca
 
 - [x] Criar `lib/validations/billing.ts` (Zod): `due_day` 1..28, `price_cents` ≥ 0, `plan_id` / `student_id` UUID, `custom_priceCents` opcional/nullable.
-- [x] Implementar `lib/billing/get-effective-price.ts` — `getEffectivePrice` (**BLM-9**).
+- [x] Implementar `lib/billing/get-effective-price.ts` , `getEffectivePrice` (**BLM-9**).
 - [x] Implementar `lib/billing/student-plan.ts`: fechar vínculo aberto + inserir novo com **mesma data** SP (**BLM-5**); validar plano **ativo** e **plan_kind** vs **student_kind**; **sempre** nova linha, inclusive mesmo `plan_id`.
 - [x] Implementar `actions/billing.ts`: `updatePlanPrice`, `setStudentPlan`, retorno `{ ok: true } \| { ok: false; error: string }`; mensagens **BLM-3** + `lib/billing/action-errors.ts` (sem genérico vazio, sem vazamento).
 

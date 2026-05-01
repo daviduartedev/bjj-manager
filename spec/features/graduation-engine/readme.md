@@ -16,9 +16,9 @@ Contrato canónico para **registar graduações**, **validar ordem oficial** (**
 | Área | Artefactos típicos |
 |------|-------------------|
 | Histórico completo | `app/(dashboard)/alunos/[id]/graduacoes/page.tsx` |
-| Rotas | `lib/routes.ts` — helper para `/alunos/[id]/graduacoes` |
-| Server Action | `actions/graduations.ts` — `promoteStudent` |
-| Domínio | `lib/graduation/*` — ordem, sucessor, `isOrderRespected`, limites de grau |
+| Rotas | `lib/routes.ts` , helper para `/alunos/[id]/graduacoes` |
+| Server Action | `actions/graduations.ts` , `promoteStudent` |
+| Domínio | `lib/graduation/*` , ordem, sucessor, `isOrderRespected`, limites de grau |
 | UI | Modal cliente **Promover**; timeline/cards no histórico; badges com `belts.color_hex` |
 
 ---
@@ -35,7 +35,7 @@ Contrato canónico para **registar graduações**, **validar ordem oficial** (**
 
 **GRD-2.1.** Dados carregam **no servidor** com cliente Supabase e sessão; **`account_id` não é aceite do cliente** (**STU-2.1**, **SEC-3.3**).
 
-**GRD-2.2.** Aluno inexistente ou fora do tenant: **`notFound()`** — mesma política que **SPR-2.2**.
+**GRD-2.2.** Aluno inexistente ou fora do tenant: **`notFound()`** , mesma política que **SPR-2.2**.
 
 ---
 
@@ -71,7 +71,7 @@ Contrato canónico para **registar graduações**, **validar ordem oficial** (**
 
 **GRD-5.2.** Campos mínimos: faixa resultante, grau resultante, data da graduação; quando **pulo de faixa**, campo de **justificativa** obrigatório antes de submeter.
 
-**GRD-5.3.** **Alerta de cópia** para pulo de faixa, no espírito: “Você está pulando da [X] para a [Y]. Justifique:” — usando os **rótulos** de faixa adequados ao utilizador.
+**GRD-5.3.** **Alerta de cópia** para pulo de faixa, no espírito: “Você está pulando da [X] para a [Y]. Justifique:” , usando os **rótulos** de faixa adequados ao utilizador.
 
 **GRD-5.4.** Quando **`student_kind`** é kids e a **idade** (**DATE-4**) é **≥ 16**, mostrar **aviso** no modal alinhado a **GR-3.1** (faixa adulta inicial é decisão do professor).
 

@@ -1,5 +1,5 @@
 -- =====================================================
--- Casca - Gestão de Academias de BJJ — Row Level Security (Supabase / Postgres)
+-- Casca - Gestão de Academias de BJJ , Row Level Security (Supabase / Postgres)
 -- =====================================================
 -- Run after schema.sql + seed.sql (see pnpm db:apply).
 -- Idempotent: DROP POLICY IF EXISTS before CREATE.
@@ -41,7 +41,7 @@ ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE public.belts ENABLE ROW LEVEL SECURITY;
 
--- ---------- accounts (no INSERT for authenticated — bootstrap via postgres) ----------
+-- ---------- accounts (no INSERT for authenticated , bootstrap via postgres) ----------
 DROP POLICY IF EXISTS accounts_select_own ON public.accounts;
 
 DROP POLICY IF EXISTS accounts_update_own ON public.accounts;

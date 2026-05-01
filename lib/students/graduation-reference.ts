@@ -36,12 +36,12 @@ export function sortGraduationsDesc(
 export type ReferenceStartResult = {
   /** YYYY-MM-DD ou null se não há nem academia. */
   startYmd: string | null;
-  /** Sem graduação correspondente — usou-se `academy_start_date`. */
+  /** Sem graduação correspondente, usou-se `academy_start_date`. */
   approximate: boolean;
 };
 
 /**
- * **PNL-4.4** — início da permanência na **faixa** actual.
+ * **PNL-4.4**, início da permanência na **faixa** actual.
  */
 export function resolveBeltStart(
   grads: GraduationRecordInput[],
@@ -62,7 +62,7 @@ export function resolveBeltStart(
 }
 
 /**
- * **PNL-4.3** — início do **grau** actual (par faixa+grau).
+ * **PNL-4.3**, início do **grau** actual (par faixa+grau).
  */
 export function resolveDegreeStart(
   grads: GraduationRecordInput[],
@@ -94,7 +94,7 @@ export function calendarDaysBetween(fromYmd: string, toYmd: string): number | nu
   return differenceInCalendarDays(to, from, inSP);
 }
 
-/** **PNL-4.2** — alerta se tempo no grau ≥120 dias OU na faixa ≥365 dias (até `todayYmd`). */
+/** **PNL-4.2**, alerta se tempo no grau ≥120 dias OU na faixa ≥365 dias (até `todayYmd`). */
 export function meetsGraduationAttentionThreshold(
   beltStartYmd: string | null,
   degreeStartYmd: string | null,

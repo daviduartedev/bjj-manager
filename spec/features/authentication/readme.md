@@ -59,7 +59,7 @@ Contrato canónico para **sessão do professor** na app Next.js com **Supabase A
 
 **AUTH-7.1.** Criação de utilizador em **Auth** e das linhas **`accounts` + `profiles`** é **manual** no MVP, conforme [`docs/security/rls.md`](../../../docs/security/rls.md), coerente com **SEC-2.2** (sem política de `INSERT` para essas tabelas no papel `authenticated`).
 
-**AUTH-7.2.** **Recomendação** para futuro **autocadastro**: implementar criação atómica via **trigger** (ou função **`SECURITY DEFINER`** no Postgres) associada a `auth.users`, em vez de depender de `service_role` no browser — reduz superfície e mantém transação única no banco.
+**AUTH-7.2.** **Recomendação** para futuro **autocadastro**: implementar criação atómica via **trigger** (ou função **`SECURITY DEFINER`** no Postgres) associada a `auth.users`, em vez de depender de `service_role` no browser , reduz superfície e mantém transação única no banco.
 
 ## Manutenção
 

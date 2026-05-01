@@ -1,4 +1,4 @@
-# Plano — Billing UI + chrome premium (delta)
+# Plano , Billing UI + chrome premium (delta)
 
 ## Estado actual (spec)
 
@@ -14,10 +14,10 @@
 | Rotas | **`/mensalidades`** (lista) e **`/mensalidades/[studentId]`** (detalhe financeiro). Actualizar navegação, `ROUTES`, middleware e documentação; **não** introduzir `/billing` na URL. |
 | Papel do professor | O fluxo principal é o **relatório/fecho mensal**: lista por mês com todos os alunos, filtros e marcação em lote. O detalhe por aluno serve **apoio** (histórico, correcções). |
 | Valor no registo | Mantém-se **PBS-4.2**: valor = **preço efetivo** do vínculo aberto; UI pode pré-preencher e validar sem permitir outro montante neste ciclo. |
-| Método (PIX, dinheiro, …) | Persistir em coluna opcional **`payment_method`** (`text` nullable) em `payments`, exposta no diálogo e em **`recordPayment`** — mais limpo que prefixar `notes`. |
+| Método (PIX, dinheiro, …) | Persistir em coluna opcional **`payment_method`** (`text` nullable) em `payments`, exposta no diálogo e em **`recordPayment`** , mais limpo que prefixar `notes`. |
 | Filtros da lista | **Todos**, **Pago**, **Pendente**, **Atrasado**, **Bolsista**, **Outro**. **Atrasado** = indicador derivado **`overdue`** apenas (exclui Pago, Bolsista e Outro da etiqueta «atrasado»). |
-| Marcação em lote | **Sim**: selecção por checkbox na lista filtrada, **«Seleccionar todos os visíveis»**, desmarcar excepções à mão, acção **«Marcar seleccionados como pagos»** com modal de confirmação (quantidade, soma em BRL, data do pagamento partilhada). Alunos sem plano activo são ignorados ou listados com aviso — ver **BUI-**. |
-| Estorno | Disponível no **histórico** da vista por aluno (**voidPayment**), com confirmação — não é obrigatório na lista geral. |
+| Marcação em lote | **Sim**: selecção por checkbox na lista filtrada, **«Seleccionar todos os visíveis»**, desmarcar excepções à mão, acção **«Marcar seleccionados como pagos»** com modal de confirmação (quantidade, soma em BRL, data do pagamento partilhada). Alunos sem plano activo são ignorados ou listados com aviso , ver **BUI-**. |
+| Estorno | Disponível no **histórico** da vista por aluno (**voidPayment**), com confirmação , não é obrigatório na lista geral. |
 | Meses passados | Para indicadores derivados quando o **mês seleccionado** é anterior ao mês civil actual em São Paulo, usar **data de corte** = **último momento civil desse mês de referência** em lugar de «hoje», para o estado Pendente/Atrasado reflectir o **fecho daquele mês** (ver **BUI-3** no readme da feature). |
 | Perfil do aluno | Substituir placeholder por **mesmo diálogo / mesmas actions**; texto **SPR-** actualizado. Ligação opcional «Abrir na lista mensal» para alinhar com o fluxo principal. |
 | Testes | Checklist manual + lint/typecheck; E2E opcional como stretch. |
@@ -32,14 +32,14 @@
 ## Documentação a actualizar (obrigatório)
 
 - `spec/features/billing-ui/readme.md` (**BUI-**, novo).
-- `spec/features/payments-billing-status/readme.md` — método opcional alinhado à coluna.
-- `spec/features/app-shell/readme.md` — subrotas `/mensalidades`, chrome escuro na sidebar.
-- `spec/features/design-system/readme.md` — **DS-1.12**.
-- `spec/features/student-profile/readme.md` — **SPR-8** / **SPR-9**.
-- `spec/features/supabase-schema/readme.md` — coluna `payment_method`.
-- `spec/product/entities.md` — **ENT-8** (método opcional).
+- `spec/features/payments-billing-status/readme.md` , método opcional alinhado à coluna.
+- `spec/features/app-shell/readme.md` , subrotas `/mensalidades`, chrome escuro na sidebar.
+- `spec/features/design-system/readme.md` , **DS-1.12**.
+- `spec/features/student-profile/readme.md` , **SPR-8** / **SPR-9**.
+- `spec/features/supabase-schema/readme.md` , coluna `payment_method`.
+- `spec/product/entities.md` , **ENT-8** (método opcional).
 - Espelhos em `docs/product/` onde aplicável.
-- `spec/README.md` — entrada da nova feature.
+- `spec/README.md` , entrada da nova feature.
 
 ## Implementação (referência técnica)
 

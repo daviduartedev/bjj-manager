@@ -53,7 +53,7 @@ Funcionalidade: Perfil do professor
     Então vejo uma representação baseada em iniciais em vez de upload de foto
     E não sou obrigado a enviar imagem para concluir o perfil
 
-Funcionalidade: Painel operacional — linguagem e distribuição por faixa
+Funcionalidade: Painel operacional , linguagem e distribuição por faixa
   Como professor autenticado
   Quero ver o painel em português do Brasil coerente e barras de faixa com cores intuitivas
   Para ler rápido e associar visualmente cada faixa

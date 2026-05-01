@@ -9,7 +9,7 @@ valores dos planos Kids/Adulto.
 - Rota canónica **`/configuracoes`** → `app/(dashboard)/configuracoes/page.tsx` (**SHELL-2**).
 - Seções (tabs ou cards):
   - **Academia**: nome da academia (editar `account.name`).
-  - **Perfil**: nome do professor, telefone, foto (avatar) — em
+  - **Perfil**: nome do professor, telefone, foto (avatar) , em
     `profiles`.
   - **Planos**: lista dos dois planos da conta (Kids/Adulto) com:
     nome, valor (`price_cents`), `active` toggle.
@@ -18,9 +18,9 @@ valores dos planos Kids/Adulto.
 - Validações Zod em `lib/validations/settings.ts`.
 
 ## Taste / Constraints
-- Mudança de senha **fica fora deste ciclo** — vai por
+- Mudança de senha **fica fora deste ciclo** , vai por
   recovery/auth flow padrão Supabase.
-- Sem upload real de avatar no MVP — placeholder com iniciais é
+- Sem upload real de avatar no MVP , placeholder com iniciais é
   suficiente; upload pode entrar depois.
 - Toasts em sucesso/erro.
 - Mobile-first com formulários em coluna única.

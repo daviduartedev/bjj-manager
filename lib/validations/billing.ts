@@ -52,8 +52,8 @@ export const recordPaymentSchema = z.object({
   studentId: z.string().uuid("Identificador de aluno inválido."),
   referenceMonth: z.string().min(1, "Indique o mês de referência."),
   /**
-   * `paid` — mensalidade ao valor do plano (definido na conta; servidor ignora qualquer valor manual).
-   * `scholarship` — isenção / bolsista (`amount_cents` = 0 no registo).
+   * **`paid`**: mensalidade ao valor do plano (definido na conta; servidor ignora qualquer valor manual).
+   * **`scholarship`**: isenção / bolsista (`amount_cents` = 0 no registo).
    */
   recordingKind: z.enum(["paid", "scholarship"]).default("paid"),
   paidAt: z.string().optional(),

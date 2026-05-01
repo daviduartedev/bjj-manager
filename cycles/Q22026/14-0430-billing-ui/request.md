@@ -9,8 +9,8 @@ no perfil do aluno, expandida aqui). É a tela que ele abre todo dia
 
 ## Intent
 - Rotas:
-  - `app/(dashboard)/billing/page.tsx` — lista geral do mês corrente.
-  - `app/(dashboard)/billing/[studentId]/page.tsx` — financeiro
+  - `app/(dashboard)/billing/page.tsx` , lista geral do mês corrente.
+  - `app/(dashboard)/billing/[studentId]/page.tsx` , financeiro
     detalhado de um aluno.
 - Lista geral:
   - linha por aluno: nome, plano, valor efetivo, dia de vencimento,

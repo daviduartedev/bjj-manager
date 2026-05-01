@@ -13,7 +13,7 @@ Contrato canónico para **SPEC-2.4** (cálculos derivados de datas): funções *
 
 | Área | Artefatos típicos |
 |------|-------------------|
-| Núcleo | `lib/dates/` — parsing de dia civil, `humanizeDuration`, idade, formatadores |
+| Núcleo | `lib/dates/` , parsing de dia civil, `humanizeDuration`, idade, formatadores |
 | TZ | `date-fns` v4 + `@date-fns/tz` (`TZDate`, opção `in: tz(...)`) |
 | Testes | Vitest, `today` sempre injetado nos casos de teste |
 
@@ -35,7 +35,7 @@ Contrato canónico para **SPEC-2.4** (cálculos derivados de datas): funções *
 
 **DATE-2.2.** Pode aceitar-se **`Date`** como entrada secundária, documentada: interpretação como **meia-noite no dia civil em `America/Sao_Paulo`** correspondente ao instante (comportamento definido na implementação, mas sempre consistente com **DATE-1.1**). Novo código da app deve preferir **`YYYY-MM-DD`** vindo do servidor.
 
-**DATE-2.3.** Entradas **nulas**, strings vazias ou não parseáveis: funções devolvem **`null`** (a UI traduz em **"—"** ou equivalente, como em **STU-7.4**).
+**DATE-2.3.** Entradas **nulas**, strings vazias ou não parseáveis: funções devolvem **`null`** (a UI traduz em **","** ou equivalente, como em **STU-7.4**).
 
 ---
 
@@ -57,7 +57,7 @@ Contrato canónico para **SPEC-2.4** (cálculos derivados de datas): funções *
 
 **DATE-4.1.** `calculateAge(birthDate, today)` devolve **anos completos** entre a data de nascimento e **`today`**, ambas tratadas como **dias civis em São Paulo**. Se `birthDate` for inválida ou ausente → **`null`**.
 
-**DATE-4.2.** Na UI, a idade é tipicamente mostrada como **`"{n} anos"`** quando `n` não é `null`; quando `null`, usa-se o placeholder acordado na feature de apresentação (**"—"** na lista — **STU-7.4**).
+**DATE-4.2.** Na UI, a idade é tipicamente mostrada como **`"{n} anos"`** quando `n` não é `null`; quando `null`, usa-se o placeholder acordado na feature de apresentação (**","** na lista , **STU-7.4**).
 
 ---
 
@@ -71,7 +71,7 @@ Contrato canónico para **SPEC-2.4** (cálculos derivados de datas): funções *
 
 ## DATE-6. `formatDateBR`
 
-**DATE-6.1.** Formato de referência: **`{dia} {mês abreviado minúsculo} {ano}`** — exemplo **"12 abr 2024"** (sem ponto obrigatório após o mês).
+**DATE-6.1.** Formato de referência: **`{dia} {mês abreviado minúsculo} {ano}`** , exemplo **"12 abr 2024"** (sem ponto obrigatório após o mês).
 
 **DATE-6.2.** Usa locale **pt-BR** do `date-fns`; se o runtime capitalizar o mês, normalizar para o padrão acordado (**DATE-6.1**).
 

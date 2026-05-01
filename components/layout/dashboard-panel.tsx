@@ -13,7 +13,7 @@ export type DashboardPanelProps = {
 };
 
 /**
- * Área de trabalho principal por página — uma superfície, hierarquia simples (padrão SaaS).
+ * Área de trabalho principal por página, uma superfície, hierarquia simples (padrão SaaS).
  */
 export function DashboardPanel({
   title,

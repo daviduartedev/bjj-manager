@@ -4,7 +4,7 @@
 Sem autenticação não há multi-tenant. RLS já está ativo no banco; agora
 ligamos o front a Supabase Auth e garantimos que cada signup gera
 `account` + `profile` para isolar a academia daquele professor. Apenas
-professores/admins acessam — alunos não têm login no MVP.
+professores/admins acessam , alunos não têm login no MVP.
 
 ## Intent
 - Páginas:

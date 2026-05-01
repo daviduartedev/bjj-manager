@@ -1,7 +1,7 @@
 export type StudentKind = "adult" | "kids";
 export type BeltKind = "adult" | "kids";
 
-/** **GR-1.3** / **GR-1.4** / **GR-2.2** — limites de grau por faixa. */
+/** **GR-1.3** / **GR-1.4** / **GR-2.2**, limites de grau por faixa. */
 export function isValidDegreeForBelt(
   beltSlug: string,
   beltKind: BeltKind,

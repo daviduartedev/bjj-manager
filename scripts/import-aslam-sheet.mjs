@@ -10,10 +10,10 @@
  * Uso: pnpm import:sheet
  *
  * Opções via ambiente:
- *   OWNER_EMAIL — email do professor (default maikon@aslam.com.br)
- *   IMPORT_YEAR — ano dos meses de referência (default 2026)
- *   IMPORT_CURRENT_MONTH — mês "corrente" para Pendente vs Não pago (1–12, default 5 = maio)
- *   DRY_RUN=1 — apenas valida TSV e resolve belts/planos, não escreve
+ *   OWNER_EMAIL , email do professor (default maikon@aslam.com.br)
+ *   IMPORT_YEAR , ano dos meses de referência (default 2026)
+ *   IMPORT_CURRENT_MONTH , mês "corrente" para Pendente vs Não pago (1–12, default 5 = maio)
+ *   DRY_RUN=1 , apenas valida TSV e resolve belts/planos, não escreve
  */
 
 import fs from "fs";
@@ -193,7 +193,7 @@ async function main() {
     console.log(`Conta: ${accountId} (${OWNER_EMAIL})`);
 
     if (DRY_RUN) {
-      console.log(`DRY_RUN: ${kidsRows.length} kids, ${adultRows.length} adults — sem escrita.`);
+      console.log(`DRY_RUN: ${kidsRows.length} kids, ${adultRows.length} adults , sem escrita.`);
       process.exit(0);
     }
 

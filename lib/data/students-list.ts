@@ -23,7 +23,7 @@ export type ListStudentRow = {
     plan_name: string;
     plan_kind: PlanKind;
   } | null;
-  /** **STU-7.4** — texto derivado de graduações + academia. */
+  /** **STU-7.4**, texto derivado de graduações + academia. */
   graduationDurationLine: string | null;
 };
 

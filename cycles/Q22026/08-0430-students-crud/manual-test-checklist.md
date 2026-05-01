@@ -1,4 +1,4 @@
-# Checklist de teste manual — Students CRUD (08-0430)
+# Checklist de teste manual , Students CRUD (08-0430)
 
 Use após `pnpm dev` com uma conta e base configuradas (`.env.local`, `pnpm db:apply`).
 

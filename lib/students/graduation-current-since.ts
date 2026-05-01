@@ -1,7 +1,7 @@
 import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
 
 /**
- * SPR-7.2 — última data civil em que o par (faixa, grau) passou a coincidir com o estado actual,
+ * SPR-7.2, última data civil em que o par (faixa, grau) passou a coincidir com o estado actual,
  * percorrendo graduações em ordem cronológica ascendente.
  */
 export type GraduationTimelineRow = {

@@ -1,4 +1,4 @@
-# Tarefas — App shell (07-0430)
+# Tarefas , App shell (07-0430)
 
 Checklist executável; citar **SHELL-** / **AUTH-** / **DS-** nos commits quando aplicável.
 

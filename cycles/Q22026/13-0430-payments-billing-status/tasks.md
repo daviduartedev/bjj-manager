@@ -1,4 +1,4 @@
-# Tarefas — ciclo 13-0430-payments-billing-status
+# Tarefas , ciclo 13-0430-payments-billing-status
 
 ## Spec canónica (obrigatório)
 
@@ -16,8 +16,8 @@
 
 ## Server Actions (`actions/billing.ts`)
 
-- [x] **`recordPayment({ studentId, referenceMonth, amountCents, paidAt?, notes? })`** — validação Zod, checagem RLS, igualdade com **`getEffectivePrice`**, upsert idempotente conforme **PBS-**.
-- [x] **`voidPayment({ paymentId })`** opcional MVP — DELETE da linha, ownership via join aluno/conta.
+- [x] **`recordPayment({ studentId, referenceMonth, amountCents, paidAt?, notes? })`** , validação Zod, checagem RLS, igualdade com **`getEffectivePrice`**, upsert idempotente conforme **PBS-**.
+- [x] **`voidPayment({ paymentId })`** opcional MVP , DELETE da linha, ownership via join aluno/conta.
 - [x] Erros **`{ ok: false; error: string }`** em pt-BR (**BLM-3**), sem vazamento (**SEC-3.3**).
 
 ## Qualidade

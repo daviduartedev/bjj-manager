@@ -23,7 +23,7 @@ export const updateProfileSchema = z.object({
 export type UpdateAccountInput = z.infer<typeof updateAccountSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
-/** Cliente (sem transform em `phone`) — mensagens iguais ao servidor. */
+/** Cliente (sem transform em `phone`), mensagens iguais ao servidor. */
 export const updateProfileFormSchema = z.object({
   displayName: z
     .string()

@@ -1,5 +1,5 @@
 # language: pt
-# Cenários de negócio — Billing UI (nível utilizador)
+# Cenários de negócio , Billing UI (nível utilizador)
 # Rotas canónicas: /mensalidades, /mensalidades/[studentId]
 
 Funcionalidade: Fecho mensal na lista de mensalidades

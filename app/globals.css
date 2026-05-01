@@ -70,7 +70,7 @@
     /* --font-sans é injectado por next/font no <html> (IBM Plex Sans). */
 
     /*
-     * App shell — SaaS claro unificado (sidebar = topo = canvas; sem bloco escuro ao lado do conteúdo).
+     * App shell , SaaS claro unificado (sidebar = topo = canvas; sem bloco escuro ao lado do conteúdo).
      * Acento só em estado activo / CTAs (primary).
      */
     --shell-chrome: 36 21% 95%;
@@ -124,7 +124,7 @@
     --status-overdue-foreground: 357 85% 78%;
     --status-info-foreground: 213 80% 82%;
 
-    /* App shell — identidade preta no escuro (SHELL-7.1) */
+    /* App shell , identidade preta no escuro (SHELL-7.1) */
     --shell-chrome: 0 0% 2%;
     --shell-chrome-top: 222 25% 8%;
     --shell-chrome-bottom: 0 0% 1%;
@@ -163,7 +163,7 @@
     );
   }
 
-  /** Vidro do topo em browsers que suportam — sensação premium sem segunda cor sólida */
+  /** Vidro do topo em browsers que suportam , sensação premium sem segunda cor sólida */
   .dashboard-top-bar {
     @apply border-b border-border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/75;
   }
@@ -178,7 +178,7 @@
 }
 
 @layer components {
-  /** Título de página (rotas autenticadas) — usar em vez de repetir classes no h1 */
+  /** Título de página (rotas autenticadas) , usar em vez de repetir classes no h1 */
   .type-page-title {
     @apply font-display text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem] sm:leading-snug md:text-[1.875rem] md:leading-tight;
   }
@@ -203,7 +203,7 @@
     @apply text-crm-sm leading-relaxed text-muted-foreground;
   }
 
-  /** Números em tabelas e valores — alinhamento estável */
+  /** Números em tabelas e valores , alinhamento estável */
   .tabular-nums-crm {
     font-variant-numeric: tabular-nums lining-nums;
   }

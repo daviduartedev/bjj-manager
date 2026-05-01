@@ -52,7 +52,7 @@ Contrato canónico para **SPEC** / **BR-** / **ENT-6**, **ENT-7** na camada **ap
 
 **BLM-5.1.** `setStudentPlan({ studentId, planId, customPriceCents?, dueDay })` valida **Zod** (`due_day` **1–28**), coerência **`student_kind`** ↔ **`plan_kind`** (**STU-4**), plano **ativo**, aluno da conta (via RLS).
 
-**BLM-5.2.** Se existe vínculo aberto (`ended_at` nulo), **sempre** se faz **`UPDATE ended_at`** nessa linha e **`INSERT`** de nova linha — **incluindo** quando `plan_id` é **igual** ao anterior (**ENT-7.3**).
+**BLM-5.2.** Se existe vínculo aberto (`ended_at` nulo), **sempre** se faz **`UPDATE ended_at`** nessa linha e **`INSERT`** de nova linha , **incluindo** quando `plan_id` é **igual** ao anterior (**ENT-7.3**).
 
 **BLM-5.3.** **`started_at`** da nova linha = **`ended_at`** da linha encerrada = **data civil corrente** em **America/São_Paulo** (string `YYYY-MM-DD` consistente com o tipo `date` do Postgres).
 
@@ -62,7 +62,7 @@ Contrato canónico para **SPEC** / **BR-** / **ENT-6**, **ENT-7** na camada **ap
 
 **BLM-6.1.** `getEffectivePrice(...)` devolve **`custom_price_cents`** do vínculo aberto se não for nulo; caso contrário **`plans.price_cents`** (**BR-2.2**). Implementação em **`lib/billing/`**; apenas dados já filtrados por **RLS**.
 
-## UI — preço personalizado
+## UI , preço personalizado
 
 Os formulários **STU-5** / **STU-8** ainda **não** expõem campo de **preço personalizado**; `custom_price_cents` pode ser definido via **`setStudentPlan`** (API interna / ciclo futuro). Quando a UI ganhar o campo, validar com **`setStudentPlanSchema`** e mostrar toast com **`error`** devolvido (**STU-2.3**).
 

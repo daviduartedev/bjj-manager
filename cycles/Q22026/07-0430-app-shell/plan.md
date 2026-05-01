@@ -1,4 +1,4 @@
-# Plano — App shell (delta)
+# Plano , App shell (delta)
 
 ## Contexto
 
@@ -30,7 +30,7 @@ Com autenticação ativa, o professor precisa de um **chrome persistente** (side
 | Navegação cliente | Drawer/bottom-nav/lista desktop; estado do drawer **só no cliente**; **NavLink** ativo por `pathname` |
 | Rotas | `app/(dashboard)/painel/page.tsx` (conteúdo atual do painel); stubs mínimos para `/alunos`, `/mensalidades`, `/configuracoes`, `/perfil` até ciclos de domínio |
 | Auth HTTP | `lib/supabase/middleware.ts`: prefixos protegidos, redirects pós-login para `/painel`, `/dashboard` → `/painel` |
-| Constantes | Um módulo partilhado (ex. `lib/routes.ts`) com paths canónicos para middleware e menus — **uma fonte de verdade** |
+| Constantes | Um módulo partilhado (ex. `lib/routes.ts`) com paths canónicos para middleware e menus , **uma fonte de verdade** |
 
 ## Alinhamento com outros ciclos
 

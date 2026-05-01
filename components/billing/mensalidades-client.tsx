@@ -405,10 +405,10 @@ export function MensalidadesClient({
                       <TableCell className="min-h-0 py-0.5 px-2 text-right tabular-nums-crm leading-tight">
                         {row.amountCentsExpected != null
                           ? formatMoneyBrFromCents(row.amountCentsExpected)
-                          : "—"}
+                          : ","}
                       </TableCell>
                       <TableCell className="min-h-0 py-0.5 px-1 text-center tabular-nums-crm leading-tight">
-                        {row.dueDay ?? "—"}
+                        {row.dueDay ?? ","}
                       </TableCell>
                       <TableCell className="min-h-0 py-0.5 px-2 align-middle leading-none">
                         <BillingIndicatorBadge indicator={row.indicator} compact />
@@ -472,13 +472,13 @@ export function MensalidadesClient({
                     <span className="tabular-nums-crm font-medium text-foreground">
                       {row.amountCentsExpected != null
                         ? formatMoneyBrFromCents(row.amountCentsExpected)
-                        : "—"}
+                        : ","}
                     </span>
                   </span>
                   <span>
                     Venc.:{" "}
                     <span className="tabular-nums-crm font-medium text-foreground">
-                      {row.dueDay ?? "—"}
+                      {row.dueDay ?? ","}
                     </span>
                   </span>
                 </div>

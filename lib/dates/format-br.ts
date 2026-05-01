@@ -27,7 +27,7 @@ const MONTH_ABBR = [
   "dez",
 ] as const;
 
-/** DATE-6.1 — ex.: "12 abr 2024". */
+/** DATE-6.1, ex.: "12 abr 2024". */
 export function formatDateBR(date: CalendarDateInput | null | undefined): string | null {
   const d = parseCalendarDate(date);
   if (!d) return null;
@@ -37,7 +37,7 @@ export function formatDateBR(date: CalendarDateInput | null | undefined): string
   return `${day} ${month} ${year}`;
 }
 
-/** DATE-7 — relativos ao passado; futuro → null; mesmo dia → "hoje". */
+/** DATE-7, relativos ao passado; futuro → null; mesmo dia → "hoje". */
 export function formatRelativeBR(
   date: CalendarDateInput | null | undefined,
   today: CalendarDateInput,

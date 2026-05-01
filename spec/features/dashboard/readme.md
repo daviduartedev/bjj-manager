@@ -7,7 +7,7 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 - Shell e URLs: [`spec/features/app-shell/readme.md`](../app-shell/readme.md) (**SHELL-2**, **SHELL-5.3** redirect `/dashboard` → `/painel`).
 - Cobrança e indicadores: [`spec/features/payments-billing-status/readme.md`](../payments-billing-status/readme.md) (**PBS-6**).
 - Lista mensalidades: [`spec/features/billing-ui/readme.md`](../billing-ui/readme.md) (**BUI-2.6** query `filtro`).
-- Lista alunos: [`spec/features/students-crud/readme.md`](../students-crud/readme.md) (**STU-7.4** — durações alinhadas a **PNL-4.3** / **PNL-4.4**).
+- Lista alunos: [`spec/features/students-crud/readme.md`](../students-crud/readme.md) (**STU-7.4** , durações alinhadas a **PNL-4.3** / **PNL-4.4**).
 - Graduação e ordem de faixas: [`spec/product/graduation-rules.md`](../../product/graduation-rules.md) (**GR-**).
 - Datas: [`spec/features/date-duration-utilities/readme.md`](../date-duration-utilities/readme.md) (**DATE-**).
 
@@ -18,7 +18,7 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 | Página | `app/(dashboard)/painel/page.tsx` (Server Component; fetch em paralelo) |
 | Loading | `app/(dashboard)/painel/loading.tsx` (skeletons) |
 | Domínio | `lib/data/painel.ts` ou módulos dedicados + helpers puros testáveis |
-| Rotas | `lib/routes.ts` — construir query strings alinhadas a **BUI-2.6** |
+| Rotas | `lib/routes.ts` , construir query strings alinhadas a **BUI-2.6** |
 
 ---
 
@@ -30,7 +30,7 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 ---
 
-## PNL-2. KPI — Alunos ativos
+## PNL-2. KPI , Alunos ativos
 
 **PNL-2.1.** Mostrar **totais** de alunos com **`student_status = active`** (**STU-3.1**).
 
@@ -38,7 +38,7 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 ---
 
-## PNL-3. KPI — Mensalidades atrasadas
+## PNL-3. KPI , Mensalidades atrasadas
 
 **PNL-3.1.** **Mês de referência** = primeiro dia do **mês civil actual** em **America/São_Paulo** (**PBS-1**).
 
@@ -48,15 +48,15 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 ---
 
-## PNL-4. KPI — Aniversariantes e alertas de graduação
+## PNL-4. KPI , Aniversariantes e alertas de graduação
 
 **PNL-4.1.** **Aniversariantes do mês**: contagem de alunos **ativos** com **data de nascimento** cujo dia/mês cai no **mês civil atual** (SP). O cartão liga a **`/alunos`** (lista), com prioridade de implementação para **filtro ou âncora** que destaque aniversariantes quando existir; até lá, lista geral aceitável desde que o cenário de ciclo exija visibilidade dos nomes na secção «Atenção hoje» (**PNL-5.1**).
 
 **PNL-4.2.** **Alertas de graduação** (heurística MVP, configurável mais tarde): incluir o aluno ativo se **`daysOnCurrentDegree`** ≥ **120** dias civis SP **ou** **`daysOnCurrentBelt`** ≥ **365** dias civis SP.
 
-**PNL-4.3.** **Cálculo — tempo no grau:** data de referência = **`graduated_at`** da **última** linha em **`student_graduations`** cujo par **(faixa resultante, grau resultante)** coincide com **`students.current_belt_id`** / **`current_degree`**; se não existir, usar **`academy_start_date`** como referência única e tratá-la como aproximação na UX quando relevante.
+**PNL-4.3.** **Cálculo , tempo no grau:** data de referência = **`graduated_at`** da **última** linha em **`student_graduations`** cujo par **(faixa resultante, grau resultante)** coincide com **`students.current_belt_id`** / **`current_degree`**; se não existir, usar **`academy_start_date`** como referência única e tratá-la como aproximação na UX quando relevante.
 
-**PNL-4.4.** **Cálculo — tempo na faixa:** data de referência = **`graduated_at`** da **última** linha em **`student_graduations`** onde a faixa resultante coincide com a faixa actual; se não existir, **`academy_start_date`**.
+**PNL-4.4.** **Cálculo , tempo na faixa:** data de referência = **`graduated_at`** da **última** linha em **`student_graduations`** onde a faixa resultante coincide com a faixa actual; se não existir, **`academy_start_date`**.
 
 **PNL-4.5.** O cartão ou lista resumo liga a **`/alunos`** (prioridade: filtro «alertas» quando existir; senão lista completa).
 
@@ -78,9 +78,9 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 **PNL-6.1.** Duas subsecções: **Adulto** e **Kids**, usando **`student_kind`** (**STU-4**).
 
-**PNL-6.2.** Em cada uma, contagens por **faixa** (rótulo + **cor da barra alinhada ao slug da faixa** na UI — paleta estável em código até existir **`belts.color_hex`** na BD), ordenadas pela **ordem oficial** (**GR-** / catálogo `belts`).
+**PNL-6.2.** Em cada uma, contagens por **faixa** (rótulo + **cor da barra alinhada ao slug da faixa** na UI , paleta estável em código até existir **`belts.color_hex`** na BD), ordenadas pela **ordem oficial** (**GR-** / catálogo `belts`).
 
-**PNL-6.3.** Apresentação **compacta** (lista densa); **barra horizontal simples** opcional por linha, proporcional ao maior valor da secção — sem gráficos complexos.
+**PNL-6.3.** Apresentação **compacta** (lista densa); **barra horizontal simples** opcional por linha, proporcional ao maior valor da secção , sem gráficos complexos.
 
 **PNL-6.4.** Clique pode navegar para **`/alunos`** com filtro futuro por faixa; MVP: **`/alunos`** ou permanecer só leitura no painel.
 
@@ -90,7 +90,7 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 **PNL-7.1.** **Cadastrar aluno** → **`/alunos/novo`**.
 
-**PNL-7.2.** **Registrar pagamento** → **`/mensalidades?filtro=pendente`** (revisa quem está pendente ou equivalente no mês visível — **BUI-2**).
+**PNL-7.2.** **Registrar pagamento** → **`/mensalidades?filtro=pendente`** (revisa quem está pendente ou equivalente no mês visível , **BUI-2**).
 
 ---
 

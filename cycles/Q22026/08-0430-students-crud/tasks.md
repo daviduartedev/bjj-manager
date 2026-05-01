@@ -1,4 +1,4 @@
-# Tarefas — Students CRUD (08-0430)
+# Tarefas , Students CRUD (08-0430)
 
 Checklist executável; citar **STU-**, **ENT-**, **SHELL-**, **SEC-** nos commits quando aplicável.
 
@@ -7,7 +7,7 @@ Checklist executável; citar **STU-**, **ENT-**, **SHELL-**, **SEC-** nos commit
 - [x] Garantir que `spec/features/students-crud/readme.md` reflete o estado acordado (**STU-**).
 - [x] Atualizar `spec/README.md` (entrada da feature students-crud e convenção **STU-**).
 - [x] Alinhar `spec/product/entities.md` e `docs/product/entities.md` (nota de UI: trial fora do ciclo 08; ver **ENT-4.1**).
-- [x] Atualizar `cycles/Q22026/08-0430-students-crud/request.md` se ainda listar paths em inglês — referir **STU-** e rotas pt-BR.
+- [x] Atualizar `cycles/Q22026/08-0430-students-crud/request.md` se ainda listar paths em inglês , referir **STU-** e rotas pt-BR.
 
 ## Rotas e constantes
 
@@ -21,10 +21,10 @@ Checklist executável; citar **STU-**, **ENT-**, **SHELL-**, **SEC-** nos commit
 
 ## Lista
 
-- [x] Busca por nome com **debounce** no cliente; filtros tipo (adulto / kids / todos), status (**ativo / inativo / pausado / todos** — sem trial).
+- [x] Busca por nome com **debounce** no cliente; filtros tipo (adulto / kids / todos), status (**ativo / inativo / pausado / todos** , sem trial).
 - [x] **Paginação** server-driven com tamanho de página da constante documentada em **STU-7.2** (`lib/constants/students.ts`).
 - [x] Controlo de **ordenação**: nome A–Z, data de entrada, última alteração (`updated_at`).
-- [x] Card/linha: nome, faixa+grau, idade (ou “—” se sem data), status; layout responsivo (**lista em cards** em mobile).
+- [x] Card/linha: nome, faixa+grau, idade (ou “,” se sem data), status; layout responsivo (**lista em cards** em mobile).
 
 ## Formulários
 
@@ -35,7 +35,7 @@ Checklist executável; citar **STU-**, **ENT-**, **SHELL-**, **SEC-** nos commit
 
 ## Edição rápida
 
-- [x] Na lista, ação que abre **Dialog ou Sheet** (“Edição rápida”) para: status, plano, dia de vencimento, faixa atual, grau atual — validação alinhada à ficha completa.
+- [x] Na lista, ação que abre **Dialog ou Sheet** (“Edição rápida”) para: status, plano, dia de vencimento, faixa atual, grau atual , validação alinhada à ficha completa.
 - [x] Ligação clara para **“Editar ficha completa”** no mesmo fluxo ou na linha.
 
 ## UX de erro e navegação

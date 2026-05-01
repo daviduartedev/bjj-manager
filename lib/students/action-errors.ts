@@ -1,5 +1,5 @@
 /**
- * Mensagens genéricas (**STU-2.2**) — sem detalhes internos.
+ * Mensagens genéricas (**STU-2.2**), sem detalhes internos.
  */
 
 import { mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";

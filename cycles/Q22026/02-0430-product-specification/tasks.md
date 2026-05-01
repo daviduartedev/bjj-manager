@@ -1,4 +1,4 @@
-# Tarefas — Ciclo 02: Product specification
+# Tarefas , Ciclo 02: Product specification
 
 ## Checklist
 
@@ -15,5 +15,5 @@
 
 ## Obrigatório em todo ciclo que mudar produto
 
-- [x] Atualizar **`spec/product/`** e **`docs/product/`** em conjunto — política documentada em [`spec/README.md`](../../../spec/README.md) (secção **Manutenção e rastreabilidade**); espelho reverificado após esta execução.
-- [x] Referenciar IDs de regra (**GR-**, **BR-**, etc.) nos PRs/commits — mesma secção em [`spec/README.md`](../../../spec/README.md) (item 2).
+- [x] Atualizar **`spec/product/`** e **`docs/product/`** em conjunto , política documentada em [`spec/README.md`](../../../spec/README.md) (secção **Manutenção e rastreabilidade**); espelho reverificado após esta execução.
+- [x] Referenciar IDs de regra (**GR-**, **BR-**, etc.) nos PRs/commits , mesma secção em [`spec/README.md`](../../../spec/README.md) (item 2).

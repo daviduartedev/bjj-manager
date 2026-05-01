@@ -1,4 +1,4 @@
-# Plano — Date and Duration Utilities (delta)
+# Plano , Date and Duration Utilities (delta)
 
 ## Contexto
 
@@ -9,11 +9,11 @@ O produto depende de **idade**, **tempo na academia** e (em ciclos seguintes) **
 | # | Tema | Decisão |
 |---|------|---------|
 | 1 | Escopo de migração | **Migrar** consumidores existentes na mesma entrega (ex.: `StudentAgeLabel` / lista de alunos). |
-| 2 | Entrada nula ou inválida | Funções de domínio devolvem **`null`** (composição e testes); componentes de UI continuam a mostrar **"—"** onde já era o padrão. Intervalo inválido (`to` antes de `from`, em termos de **data civil**) → `null`. |
+| 2 | Entrada nula ou inválida | Funções de domínio devolvem **`null`** (composição e testes); componentes de UI continuam a mostrar **","** onde já era o padrão. Intervalo inválido (`to` antes de `from`, em termos de **data civil**) → `null`. |
 | 3 | Tipo de entrada | Contrato preferencial: **`YYYY-MM-DD`** (campos `date` do Postgres). **`Date`** aceite só como escape hatch documentado: interpretado na **data civil em São Paulo** (meia-noite local desse dia); encorajar `YYYY-MM-DD` vindo do API/DB. |
 | 4 | `humanizeDuration` | **Datas civis** em **America/Sao_Paulo** (aniversários / `joined_at` / início de faixa como dia de calendário). **`to` opcional**: o **chamador** passa `today` quando quiser pureza total; não há `Date.now()` dentro dos helpers. |
 | 5 | Aniversário / “hoje” | Toda a lógica de **idade** e **diferenças de calendário** usa o mesmo contexto de fuso (**meia-noite em São Paulo** para cada dia civil). |
-| 6 | Parsing de `YYYY-MM-DD` | **`parseCalendarDateSP(value)`** (ou nome equivalente) **interno/exportado para testes**: parte a string em ano/mês/dia e constrói **`TZDate`** em `America/Sao_Paulo` — **nunca** `parseISO("YYYY-MM-DD")` sozinho (vira UTC e pode mudar o dia). |
+| 6 | Parsing de `YYYY-MM-DD` | **`parseCalendarDateSP(value)`** (ou nome equivalente) **interno/exportado para testes**: parte a string em ano/mês/dia e constrói **`TZDate`** em `America/Sao_Paulo` , **nunca** `parseISO("YYYY-MM-DD")` sozinho (vira UTC e pode mudar o dia). |
 | 7 | Granularidade de duração | Até **dias**, **sem horas**. Acima disso: **anos**, **meses** e **dias** restantes (decomposição de calendário). Abaixo de **1 mês** completo: **semanas** (blocos de 7 dias) **e dias** remanescentes, ou só dias se &lt; 7 dias; **sem** “menos de 1 mês” como único patamar. |
 | 8 | Dependências | Manter **date-fns ^4**; acrescentar **`@date-fns/tz`** para `TZDate` / opção `in: tz(...)` onde fizer falta. Sem `dayjs` / `moment`. |
 
@@ -44,7 +44,7 @@ O produto depende de **idade**, **tempo na academia** e (em ciclos seguintes) **
 ## Riscos / notas
 
 - Ordem dos argumentos em `date-fns` com tipos mistos: **fixar** `in: tz("America/Sao_Paulo")` nas diferenças de calendário para evitar surpresas.
-- **Vitest** é novo no repo — manter configuração mínima alinhada ao Next/TS.
+- **Vitest** é novo no repo , manter configuração mínima alinhada ao Next/TS.
 
 ## Referências
 

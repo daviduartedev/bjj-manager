@@ -1,4 +1,4 @@
-# Tarefas — Date and Duration Utilities (09-0430)
+# Tarefas , Date and Duration Utilities (09-0430)
 
 Checklist executável; citar **DATE-**, **SPEC-2.4** nos commits quando aplicável.
 
@@ -8,7 +8,7 @@ Checklist executável; citar **DATE-**, **SPEC-2.4** nos commits quando aplicáv
 - [x] Atualizar `spec/README.md` (entrada da feature e prefixo **DATE-** na convenção de IDs).
 - [x] Atualizar **SPEC-2.4** em `spec/product/spec.md` e espelho em `docs/product/spec.md` (referência a **DATE-**).
 - [x] Em `spec/features/students-crud/readme.md`, referenciar **DATE-** onde a idade na lista é descrita (**STU-7.4**).
-- [x] Revisar `cycles/Q22026/09-0430-date-duration-utilities/request.md` se o texto de “menos de 1 mês” divergir do refino — alinhar ou apontar para `plan.md`.
+- [x] Revisar `cycles/Q22026/09-0430-date-duration-utilities/request.md` se o texto de “menos de 1 mês” divergir do refino , alinhar ou apontar para `plan.md`.
 
 ## Dependências e testes
 
@@ -28,7 +28,7 @@ Checklist executável; citar **DATE-**, **SPEC-2.4** nos commits quando aplicáv
 
 ## Migração de consumidores
 
-- [x] Refatorar `components/students/student-age.tsx` para usar `calculateAge` + `today` injetado no componente (prop opcional para testes Storybook/dev) ou data vinda do servidor quando aplicável — **sem** `parseISO` + `new Date()` implícito para `birth_date`.
+- [x] Refatorar `components/students/student-age.tsx` para usar `calculateAge` + `today` injetado no componente (prop opcional para testes Storybook/dev) ou data vinda do servidor quando aplicável , **sem** `parseISO` + `new Date()` implícito para `birth_date`.
 
 ## Qualidade
 

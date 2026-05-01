@@ -24,12 +24,12 @@ Cópias em [`docs/product/`](../../../docs/product/) para leitura direta no repo
 
 ## Consumidores
 
-- `cycles/Q22026/04-0430-supabase-schema` — modelo de dados alinhado conceitualmente a `entities.md` e regras de graduação/cobrança.
+- `cycles/Q22026/04-0430-supabase-schema` , modelo de dados alinhado conceitualmente a `entities.md` e regras de graduação/cobrança.
 
 ## Decisões registradas (refino)
 
 - Hub duplo: conteúdo canônico em `spec/product/` + espelho em `docs/product/`.
-- MVP: persona ativa **professor**; aluno e outros cargos — roadmap.
+- MVP: persona ativa **professor**; aluno e outros cargos , roadmap.
 - Graduação: ordem de faixas alinhada à **IBJJF** (referência pública); **4 graus** por faixa (adulto pré-black e kids); pulo de ordem **bloqueado** até justificativa; exceções normativas (transferência etc.) **fora do MVP**.
 - Cobrança: **sem gateway** no MVP; professor define status **manualmente**; estados **Pago**, **Não pago**, **Pendente**, **Outro**; ação em lote **marcar todos como pagos** para um recorte/mês quando existir na UI.
 - Moeda **BRL**, locale **pt-BR**.
