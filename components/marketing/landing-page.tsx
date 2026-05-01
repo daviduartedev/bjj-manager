@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 
-import { CascaWordmarkNav } from "@/components/marketing/casca-wordmark";
+import { CascaNavLogo } from "@/components/marketing/casca-nav-logo";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -177,7 +177,7 @@ export function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={spring}
             >
-              <CascaWordmarkNav />
+              <CascaNavLogo />
             </motion.div>
             <motion.div
               initial={reduce ? false : { opacity: 0, y: -28 }}
@@ -264,9 +264,11 @@ export function LandingPage() {
                 <Image
                   src="/logo_sem_fundo_preto__1_-removebg-preview.png"
                   alt="Casca"
-                  width={640}
-                  height={220}
+                  width={1440}
+                  height={495}
+                  quality={100}
                   priority
+                  sizes="(max-width: 1024px) min(96vw, 36rem), min(42vw, 40rem)"
                   className="mx-auto h-auto w-full max-w-lg object-contain object-center"
                 />
               </div>
@@ -455,7 +457,7 @@ export function LandingPage() {
             viewport={viewport}
             transition={springSoft}
           >
-            <CascaWordmarkNav asLink={false} className="text-lg sm:text-xl" />
+            <CascaNavLogo asLink={false} imgClassName="sm:h-9" />
           </motion.div>
           <span className="max-w-md text-white/55">
             Software web para gestão de academia de jiu-jitsu. Produto em evolução com base no uso real em tatame e
