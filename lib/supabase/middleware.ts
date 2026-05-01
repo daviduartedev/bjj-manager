@@ -1,24 +1,28 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import {
+  isAuthenticatedAreaPath,
+  LEGACY_DASHBOARD_PREFIX,
+  ROUTES,
+} from "@/lib/routes";
+
+function copyCookies(from: NextResponse, to: NextResponse) {
+  from.cookies.getAll().forEach(({ name, value }) => {
+    to.cookies.set(name, value);
+  });
+}
+
 /**
- * Atualiza a sessao Supabase em cada navegacao (necessario para SSR).
+ * Atualiza a sessão Supabase em cada navegação (necessário para SSR) e aplica
+ * redirecionamentos AUTH-2 (login → /painel, proteção **SHELL-2**, legado /dashboard).
  *
- * Comportamento defensivo: se as variaveis Supabase ainda nao foram
- * configuradas (caso tipico durante o Cycle 0430-project-bootstrap,
- * antes do Cycle 0430-supabase-schema / 0430-authentication), este
- * middleware vira no-op em vez de quebrar a aplicacao. Assim que
- * voce preencher .env.local, ele passa a revalidar a sessao
- * automaticamente.
- *
- * Sera ligado ao middleware.ts da raiz para proteger rotas
- * autenticadas no Cycle 0430-app-shell.
+ * Sem variáveis Supabase (.env), comportamento no-op (bootstrap do projeto).
  */
 export async function updateSession(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Sem credenciais configuradas ainda -> nao tenta instanciar o cliente.
   if (!supabaseUrl || !supabaseAnonKey) {
     return NextResponse.next({ request });
   }
@@ -30,20 +34,51 @@ export async function updateSession(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value),
-        );
+      setAll(cookiesToSet: { name: string; value: string; options?: unknown }[]) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         supabaseResponse = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options),
+          supabaseResponse.cookies.set(
+            name,
+            value,
+            options as Parameters<typeof supabaseResponse.cookies.set>[2],
+          ),
         );
       },
     },
   });
 
-  // IMPORTANT: do not run code between createServerClient and getUser.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+
+  if (pathname === LEGACY_DASHBOARD_PREFIX || pathname.startsWith(`${LEGACY_DASHBOARD_PREFIX}/`)) {
+    const url = request.nextUrl.clone();
+    url.pathname = ROUTES.painel;
+    const redirectResponse = NextResponse.redirect(url);
+    copyCookies(supabaseResponse, redirectResponse);
+    return redirectResponse;
+  }
+
+  if (user && (pathname === "/login" || pathname === "/register")) {
+    const redirectResponse = NextResponse.redirect(new URL(ROUTES.painel, request.url));
+    copyCookies(supabaseResponse, redirectResponse);
+    return redirectResponse;
+  }
+
+  if (!user && isAuthenticatedAreaPath(pathname)) {
+    const redirectResponse = NextResponse.redirect(new URL(ROUTES.login, request.url));
+    copyCookies(supabaseResponse, redirectResponse);
+    return redirectResponse;
+  }
+
+  if (!user && pathname === "/register") {
+    const redirectResponse = NextResponse.redirect(new URL("/login", request.url));
+    copyCookies(supabaseResponse, redirectResponse);
+    return redirectResponse;
+  }
 
   return supabaseResponse;
 }
