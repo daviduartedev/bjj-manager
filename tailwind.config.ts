@@ -73,8 +73,28 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "system-ui", "sans-serif"],
+        sans: [
+          "var(--font-sans)",
+          '"IBM Plex Sans"',
+          "Segoe UI",
+          "system-ui",
+          "sans-serif",
+        ],
+        /* Mesma família que sans: hierarquia só por peso/tamanho — padrão CRM */
+        display: [
+          "var(--font-sans)",
+          '"IBM Plex Sans"',
+          "Segoe UI",
+          "system-ui",
+          "sans-serif",
+        ],
+      },
+      fontSize: {
+        /* Escala operacional (base 15px): alinhada a dashboards / CRM */
+        "crm-xs": ["0.6875rem", { lineHeight: "1rem", letterSpacing: "0.02em" }],
+        "crm-sm": ["0.8125rem", { lineHeight: "1.25rem" }],
+        "crm-base": ["0.9375rem", { lineHeight: "1.5rem" }],
+        "crm-lg": ["1.0625rem", { lineHeight: "1.5rem" }],
       },
       keyframes: {
         "accordion-down": {

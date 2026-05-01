@@ -62,9 +62,26 @@
     --status-pending: 43 88% 61%;    /* #F4C542 amarelo */
     --status-overdue: 357 73% 43%;   /* #BF1E27 vermelho */
     --status-info: 213 70% 39%;      /* #1E5AA8 azul */
+    --status-paid-foreground: 134 65% 28%;
+    --status-pending-foreground: 43 80% 28%;
+    --status-overdue-foreground: 357 73% 38%;
+    --status-info-foreground: 213 70% 32%;
 
-    --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
-    --font-display: "Inter", "Segoe UI", system-ui, sans-serif;
+    /* --font-sans é injectado por next/font no <html> (IBM Plex Sans). */
+
+    /* App shell — tema claro suavizado (SHELL-7.2) */
+    --shell-chrome: 222 47% 11%;
+    --shell-chrome-top: 222 42% 14%;
+    --shell-chrome-bottom: 222 52% 7%;
+    --shell-chrome-foreground: 210 40% 98%;
+    --shell-chrome-border: 217 33% 17%;
+    --shell-active: 357 73% 43%;
+    --shell-nav-hover-bg: 217 28% 20%;
+    --shell-nav-active-bg: 357 55% 22%;
+    --shell-edge-glow: 357 73% 43%;
+    /* Área de conteúdo — lavagem muito sutil (DS-1.11) */
+    --content-wash-mid: 36 21% 96%;
+    --content-wash-accent: 357 73% 43%;
   }
 
   .dark {
@@ -95,6 +112,28 @@
     --border: 0 0% 16%;
     --input: 0 0% 16%;
     --ring: 357 73% 50%;
+
+    --status-paid: 134 50% 48%;
+    --status-pending: 43 90% 58%;
+    --status-overdue: 357 75% 55%;
+    --status-info: 213 75% 58%;
+    --status-paid-foreground: 134 45% 78%;
+    --status-pending-foreground: 43 95% 82%;
+    --status-overdue-foreground: 357 85% 78%;
+    --status-info-foreground: 213 80% 82%;
+
+    /* App shell — identidade preta no escuro (SHELL-7.1) */
+    --shell-chrome: 0 0% 2%;
+    --shell-chrome-top: 222 25% 8%;
+    --shell-chrome-bottom: 0 0% 1%;
+    --shell-chrome-foreground: 0 0% 98%;
+    --shell-chrome-border: 0 0% 14%;
+    --shell-active: 357 73% 52%;
+    --shell-nav-hover-bg: 0 0% 12%;
+    --shell-nav-active-bg: 357 45% 12%;
+    --shell-edge-glow: 357 73% 48%;
+    --content-wash-mid: 0 0% 5%;
+    --content-wash-accent: 357 73% 50%;
   }
 }
 
@@ -108,34 +147,84 @@
     text-rendering: optimizeLegibility;
   }
   body {
-    @apply bg-background text-foreground font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background font-sans text-crm-base text-foreground antialiased;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight;
+
+  /* Fundo da área autenticada: profundidade suave + acento primário residual */
+  .dashboard-main-surface {
+    background: linear-gradient(
+      168deg,
+      hsl(var(--background)) 0%,
+      hsl(var(--content-wash-mid)) 45%,
+      hsl(var(--background)) 70%,
+      hsl(var(--content-wash-accent) / 0.055) 100%
+    );
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display font-semibold tracking-tight text-foreground;
   }
 }
 
 @layer components {
+  /** Título de página (rotas autenticadas) — usar em vez de repetir classes no h1 */
+  .type-page-title {
+    @apply font-display text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem] sm:leading-snug md:text-[1.875rem] md:leading-tight;
+  }
+
+  /** Título de secção / cartão principal */
+  .type-section-title {
+    @apply font-display text-lg font-semibold tracking-tight text-foreground;
+  }
+
+  /** Título dentro de cartão, estado vazio ou bloco compacto */
+  .type-card-heading {
+    @apply font-display text-base font-semibold tracking-tight text-foreground;
+  }
+
+  /** Rótulos de metadados, filtros e navegação secundária */
+  .type-meta-label {
+    @apply text-crm-xs font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+
+  /** Texto auxiliar padronizado (descrições sob títulos) */
+  .type-lead {
+    @apply text-crm-sm leading-relaxed text-muted-foreground;
+  }
+
+  /** Números em tabelas e valores — alinhamento estável */
+  .tabular-nums-crm {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /** Rótulo de campo / filtro (formulários e listas) */
+  .type-field-label {
+    @apply text-crm-sm font-medium text-foreground;
+  }
   /* Badges semanticos prontos para o ciclo de billing */
   .badge-paid {
     @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
     background-color: hsl(var(--status-paid) / 0.12);
-    color: hsl(var(--status-paid));
+    color: hsl(var(--status-paid-foreground));
   }
   .badge-pending {
     @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
     background-color: hsl(var(--status-pending) / 0.18);
-    color: hsl(43 80% 30%);
+    color: hsl(var(--status-pending-foreground));
   }
   .badge-overdue {
     @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
     background-color: hsl(var(--status-overdue) / 0.12);
-    color: hsl(var(--status-overdue));
+    color: hsl(var(--status-overdue-foreground));
   }
   .badge-info {
     @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
     background-color: hsl(var(--status-info) / 0.12);
-    color: hsl(var(--status-info));
+    color: hsl(var(--status-info-foreground));
   }
 }

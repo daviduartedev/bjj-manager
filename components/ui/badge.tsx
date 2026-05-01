@@ -17,13 +17,13 @@ const badgeVariants = cva(
         outline: "text-foreground",
         // Status financeiros / graduacao usados em todo o app
         paid:
-          "border-transparent bg-[hsl(var(--status-paid)/0.12)] text-[hsl(var(--status-paid))]",
+          "border-transparent bg-[hsl(var(--status-paid)/0.12)] text-[hsl(var(--status-paid-foreground))]",
         pending:
-          "border-transparent bg-[hsl(var(--status-pending)/0.18)] text-[hsl(43_80%_30%)]",
+          "border-transparent bg-[hsl(var(--status-pending)/0.18)] text-[hsl(var(--status-pending-foreground))]",
         overdue:
-          "border-transparent bg-[hsl(var(--status-overdue)/0.12)] text-[hsl(var(--status-overdue))]",
+          "border-transparent bg-[hsl(var(--status-overdue)/0.12)] text-[hsl(var(--status-overdue-foreground))]",
         info:
-          "border-transparent bg-[hsl(var(--status-info)/0.12)] text-[hsl(var(--status-info))]",
+          "border-transparent bg-[hsl(var(--status-info)/0.12)] text-[hsl(var(--status-info-foreground))]",
       },
     },
     defaultVariants: {
