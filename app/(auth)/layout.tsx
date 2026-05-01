@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { LogoMark } from "@/components/brand/logo-mark";
+import { ProductFooter } from "@/components/layout/product-footer";
 
 export default function AuthLayout({
   children,
@@ -18,6 +19,7 @@ export default function AuthLayout({
         </div>
       </header>
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">{children}</div>
+      <ProductFooter surface="dark" className="shrink-0 border-t border-white/10 py-4" />
     </div>
   );
 }

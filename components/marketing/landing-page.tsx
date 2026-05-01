@@ -20,6 +20,7 @@ import {
 import { motion, useReducedMotion } from "framer-motion";
 
 import { CascaNavLogo } from "@/components/marketing/casca-nav-logo";
+import { ProductFooter } from "@/components/layout/product-footer";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -459,10 +460,13 @@ export function LandingPage() {
           >
             <CascaNavLogo asLink={false} imgClassName="sm:h-9" />
           </motion.div>
-          <span className="max-w-md text-white/55">
-            Software web para gestão de academia de jiu-jitsu. Produto em evolução com base no uso real em tatame e
-            balcão.
-          </span>
+          <div className="flex max-w-2xl flex-col items-center gap-4 sm:items-end sm:text-right">
+            <span className="max-w-md text-white/55">
+              Software web para gestão de academia de jiu-jitsu. Produto em evolução com base no uso real em tatame e
+              balcão.
+            </span>
+            <ProductFooter surface="dark" className="w-full sm:w-auto" />
+          </div>
         </div>
       </footer>
     </main>

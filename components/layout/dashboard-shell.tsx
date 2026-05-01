@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { GuidedTour, useGuidedTourAutoStart } from "@/components/onboarding/guided-tour";
 import { MAIN_NAV_ITEMS } from "@/components/layout/dashboard-nav-config";
+import { ProductFooter } from "@/components/layout/product-footer";
 import { ShellNavLink } from "@/components/layout/shell-nav-link";
 import { APP_NAME } from "@/lib/branding";
 import { ROUTES } from "@/lib/routes";
@@ -290,8 +291,9 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
           )}
         </header>
 
-        <main className="dashboard-main-surface container flex-1 py-5 pb-24 lg:py-6 lg:pb-8">
-          {children}
+        <main className="dashboard-main-surface container flex flex-1 flex-col py-5 pb-24 lg:py-6 lg:pb-8">
+          <div className="flex-1">{children}</div>
+          <ProductFooter className="mt-10 shrink-0 border-t border-border/50 pt-6" />
         </main>
 
         <div className="fixed bottom-0 left-0 right-0 z-30 lg:hidden">
