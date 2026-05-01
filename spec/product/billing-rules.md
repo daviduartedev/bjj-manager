@@ -6,11 +6,13 @@
 
 ## BR-1. Planos
 
-**BR-1.1.** Cada conta mantém planos do tipo **Kids** ou **Adulto** (**ENT-6.1**).
+**BR-1.1.** Cada conta mantém planos do tipo **Kids 1**, **Kids 2** ou **Adulto** (**ENT-6.1**). O professor associa manualmente cada aluno a uma dessas categorias para refletir **faixa etária / turma** da operação da academia (não há automação por idade no MVP).
 
 **BR-1.2.** Cada plano tem **valor padrão** configurável pelo professor (**price** em centavos).
 
 **BR-1.3.** Planos inativos não devem ser ofertados para **novos** vínculos; vínculos existentes podem seguir regra do ciclo de dados.
+
+**BR-1.4.** No **seed** de desenvolvimento, criam-se os **três** planos por conta de exemplo com nomes alinhados a **BR-1.1** e valores por defeito **10000** centavos (Kids 1) e **12000** centavos (Kids 2 e Adulto) — referência para integração futura; o professor pode alterar **price_cents** depois. Em **produção**, na primeira carga do layout da área autenticada **(dashboard)**, a aplicação garante **idempotentemente** os mesmos três tipos de plano para a conta com esses valores iniciais (**BLM-2**), sem depender de UI de Configurações neste passo.
 
 ---
 
@@ -36,18 +38,23 @@
 
 ## BR-4. Status manual (por aluno e mês)
 
-**BR-4.1.** O professor define **manualmente** o status de cada aluno para cada mês de referência relevante.
+**BR-4.1.** O professor define **manualmente** o status de cada aluno para cada mês de referência relevante, exceto onde **BR-4.5** prevê transição automática para **Não pago**.
 
 **BR-4.2.** Estados permitidos:
 
 | Estado | Significado operacional |
 |--------|-------------------------|
 | **Pago** | Professor confirma que a mensalidade daquele mês foi quitada (conforme acordo da academia). |
-| **Não pago** | Professor marca explicitamente como não quitada. |
-| **Pendente** | Ainda não classificado ou aguardando conferência (estado padrão sugerido para meses novos até revisão). |
-| **Outro** | Situação que não se encaixa nos anteriores (isento, cortesia, acordo paralelo); recomenda-se **observação** textual (**ENT-8.2**). |
+| **Não pago** | Não quitada (marcada pelo professor **ou** resultante da regra automática em **BR-4.5**). |
+| **Pendente** | Ainda não classificado ou aguardando conferência (**BR-4.4**). |
+| **Bolsista** | Mensalidade daquele mês tratada como bolsa/isento no cadastro financeiro da academia (equivalente operacional a “sem cobrança” para aquele mês). |
+| **Outro** | Situação que não se encaixa nos anteriores; recomenda-se **observação** textual (**ENT-8.2**). |
 
-**BR-4.3.** **Atrasado** não é um quarto rótulo obrigatório no MVP: pode ser derivado na UI como combinação de **Não pago** + data atual posterior ao vencimento (**BR-2.3**), se o ciclo de UI implementar esse indicador.
+**BR-4.3.** **Atrasado** não é rótulo persistido no MVP: pode ser derivado na UI como combinação de **Não pago** + data atual posterior ao vencimento (**BR-2.3**), se o ciclo de UI implementar esse indicador.
+
+**BR-4.4.** **Semântica de ausência de registro:** se não existir linha em `payments` para o par (**aluno**, **mês de referência**), a UI e relatórios devem tratar como **Pendente** até haver registro explícito. A persistência da linha pode ser sob demanda (primeira interação) ou antecipada por rotina — decisão do ciclo de implementação da área financeira, desde que a semântica acima permaneça.
+
+**BR-4.5.** **Transição automática Pendente → Não pago:** após o **dia de vencimento** do aluno (**BR-2.3**) no **mês de referência** em questão, se o status ainda for **Pendente** (incluindo o caso “sem linha” tratada como Pendente na UI), o sistema **deve** persistir **Não pago** quando a rotina automática (job agendado ou equivalente) executar — salvo se o professor já tiver definido **Pago** ou **Bolsista** (ou **Outro**, se a implementação optar por excluir **Outro** dessa automação; o padrão é **não** alterar **Pago**, **Bolsista** nem **Outro**). **Pago** e **Bolsista** só entram por **ação manual** do professor.
 
 ---
 
@@ -70,3 +77,5 @@
 **BR-7.1.** Valores monetários persistidos como **inteiros em centavos**.
 
 **BR-7.2.** Índices e unicidade por (**student**, **reference_month**) devem evitar duplicidade de lançamento do mesmo mês (ciclo schema).
+
+**BR-7.3.** Valores de enum persistidos no banco seguem **slugs em inglês** (ex.: `scholarship` para **Bolsista**); rótulos **pt-BR** ficam na camada de apresentação.
