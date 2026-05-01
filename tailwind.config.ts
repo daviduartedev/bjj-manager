@@ -21,7 +21,7 @@ const config: Config = {
     },
     extend: {
       colors: {
-        // Paleta BJJ Manager
+        // Paleta Casca (jiu-jitsu / operação)
         bjj: {
           black: "#050505",
           white: "#FFFFFF",

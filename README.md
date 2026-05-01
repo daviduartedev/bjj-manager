@@ -1,11 +1,9 @@
-# BJJ Manager
+# Casca
 
 SaaS web responsivo para professores de jiu-jitsu gerenciarem alunos,
 graduações e mensalidades.
 
-> **Status:** projeto recém-bootstrapado (Cycle `0430-project-bootstrap`).
-> Nenhuma feature de negócio implementada ainda. A construção segue um
-> workflow **spec-driven** em `/cycles`.
+> A construção segue um workflow **spec-driven** em `/cycles`.
 
 ---
 
@@ -26,6 +24,7 @@ pnpm dev            # http://localhost:3000
 pnpm build
 pnpm lint
 pnpm type-check
+pnpm icons          # regenera favicons / PWA a partir de public/Logo.png
 ```
 
 ## Variáveis de ambiente
@@ -37,7 +36,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME="BJJ Manager"
+NEXT_PUBLIC_APP_NAME="Casca"
 ```
 
 ## Identidade visual

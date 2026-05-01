@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LogoMark } from "@/components/brand/logo-mark";
 import { MAIN_NAV_ITEMS } from "@/components/layout/dashboard-nav-config";
 import { ShellNavLink } from "@/components/layout/shell-nav-link";
+import { APP_NAME } from "@/lib/branding";
 import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -79,13 +81,11 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
   const closeDrawer = () => setDrawerOpen(false);
 
   const brandMark = (
-    <span
-      className="relative flex size-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--shell-active)/0.18)] shadow-[inset_0_1px_0_hsl(var(--shell-chrome-foreground)/0.12)] ring-1 ring-[hsl(var(--shell-active)/0.35)]"
-      aria-hidden
-    >
-      <span className="absolute inset-0 rounded-lg bg-gradient-to-br from-[hsl(var(--shell-active)/0.45)] to-transparent opacity-90" />
-      <span className="relative size-2.5 rounded-sm bg-[hsl(var(--shell-active))] shadow-[0_0_12px_hsl(var(--shell-active)/0.65)]" />
-    </span>
+    <LogoMark
+      height={22}
+      className="size-9 shrink-0 rounded-lg p-1 ring-white/15"
+      imgClassName="max-h-[22px] max-w-[4.5rem]"
+    />
   );
 
   const brandBlock = (
@@ -95,7 +95,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
     >
       {brandMark}
       <span className="flex min-w-0 flex-col leading-tight">
-        <span className="font-display text-sm font-semibold tracking-tight">BJJ Manager</span>
+        <span className="font-display text-sm font-semibold tracking-tight">{APP_NAME}</span>
         {academyName ? (
           <span className="truncate text-xs font-normal opacity-90">{academyName}</span>
         ) : (
@@ -113,7 +113,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
       <div className="flex items-center gap-3">
         {brandMark}
         <span className="font-display text-sm font-semibold tracking-tight text-[hsl(var(--shell-chrome-foreground))]">
-          BJJ Manager
+          {APP_NAME}
         </span>
       </div>
       {academyName ? (

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
+import { APP_NAME } from "@/lib/branding";
 
 import "./globals.css";
 
@@ -15,14 +16,30 @@ const ibmPlexSans = IBM_Plex_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "BJJ Manager",
-    template: "%s | BJJ Manager",
+    default: APP_NAME,
+    template: `%s | ${APP_NAME}`,
   },
   description:
-    "Plataforma para professores de jiu-jitsu gerenciarem alunos, graduacoes e mensalidades.",
-  applicationName: "BJJ Manager",
-  authors: [{ name: "BJJ Manager" }],
-  keywords: ["jiu-jitsu", "bjj", "academia", "alunos", "graduacao", "mensalidade"],
+    "Plataforma para professores de jiu-jitsu gerenciarem alunos, graduações e mensalidades da academia.",
+  applicationName: APP_NAME,
+  authors: [{ name: APP_NAME }],
+  keywords: [
+    "Casca",
+    "jiu-jitsu",
+    "bjj",
+    "academia",
+    "alunos",
+    "graduação",
+    "mensalidade",
+  ],
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
