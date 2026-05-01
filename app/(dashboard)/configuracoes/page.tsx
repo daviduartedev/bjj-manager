@@ -17,7 +17,7 @@ export default async function ConfiguracoesPage() {
 
   if (!data.ctx) {
     return (
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div className="mx-auto max-w-6xl space-y-6" data-tour="page-configuracoes">
         <DashboardPageHero
           badge="Preferências"
           title="Configurações"
@@ -33,7 +33,7 @@ export default async function ConfiguracoesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6" data-tour="page-configuracoes">
       <DashboardPageHero badge="Preferências" title="Configurações">
         <p className="type-lead max-w-xl">
           Academia e planos (Kid 1, Juvenil, Adulto). Contato e nome de exibição em{" "}

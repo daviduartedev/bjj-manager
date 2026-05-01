@@ -7,11 +7,13 @@ export type MainNavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
+  /** Alvo do tour guiado (menu desktop e inferior no telemóvel). */
+  dataTour: string;
 };
 
 export const MAIN_NAV_ITEMS: MainNavItem[] = [
-  { href: ROUTES.painel, label: "Painel", icon: LayoutDashboard },
-  { href: ROUTES.alunos, label: "Alunos", icon: Users },
-  { href: ROUTES.mensalidades, label: "Mensalidades", icon: Wallet },
-  { href: ROUTES.configuracoes, label: "Configurações", icon: Settings },
+  { href: ROUTES.painel, label: "Painel", icon: LayoutDashboard, dataTour: "tour-painel" },
+  { href: ROUTES.alunos, label: "Alunos", icon: Users, dataTour: "tour-alunos" },
+  { href: ROUTES.mensalidades, label: "Mensalidades", icon: Wallet, dataTour: "tour-mensalidades" },
+  { href: ROUTES.configuracoes, label: "Configurações", icon: Settings, dataTour: "tour-configuracoes" },
 ];

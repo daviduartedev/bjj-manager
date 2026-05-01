@@ -15,6 +15,8 @@ export type ShellNavLinkProps = {
   variant?: "sidebar" | "bottom";
   /** Navegação sobre fundo escuro (sidebar preta — **BUI-8**). */
   surface?: "default" | "ink";
+  /** Marcador para o tour guiado (mesmo valor em desktop e mobile). */
+  dataTour?: string;
 };
 
 export function ShellNavLink({
@@ -25,6 +27,7 @@ export function ShellNavLink({
   className,
   variant = "sidebar",
   surface = "default",
+  dataTour,
 }: ShellNavLinkProps) {
   const pathname = usePathname();
   const active = pathname === href || pathname.startsWith(`${href}/`);
@@ -43,6 +46,7 @@ export function ShellNavLink({
     <Link
       href={href}
       onClick={onNavigate}
+      data-tour={dataTour}
       className={cn(
         base,
         variant === "sidebar" &&

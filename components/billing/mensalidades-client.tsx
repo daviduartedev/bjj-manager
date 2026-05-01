@@ -175,7 +175,7 @@ export function MensalidadesClient({
   const monthCaption = formatReferenceMonthCaption(referenceMonth);
 
   return (
-    <div className="w-full max-w-[min(100%,112rem)] space-y-5">
+    <div className="w-full max-w-[min(100%,112rem)] space-y-5" data-tour="page-mensalidades">
       <DashboardPageHero
         badge="Financeiro"
         title="Mensalidades"

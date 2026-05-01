@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
-import { Menu, UserRound } from "lucide-react";
+import { Menu, Sparkles, UserRound } from "lucide-react";
 
 import { signOut } from "@/app/(dashboard)/actions";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LogoMark } from "@/components/brand/logo-mark";
+import { GuidedTour, useGuidedTourAutoStart } from "@/components/onboarding/guided-tour";
 import { MAIN_NAV_ITEMS } from "@/components/layout/dashboard-nav-config";
 import { ShellNavLink } from "@/components/layout/shell-nav-link";
 import { APP_NAME } from "@/lib/branding";
@@ -73,10 +74,14 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
   const [mounted, setMounted] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingSignOut, startSignOut] = useTransition();
+  const [tourRun, setTourRun] = useState(false);
+  const [tourSessionKey, setTourSessionKey] = useState(0);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useGuidedTourAutoStart(setTourRun);
 
   const closeDrawer = () => setDrawerOpen(false);
 
@@ -171,7 +176,9 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
 
   return (
     <div className="min-h-screen bg-background">
+      <GuidedTour run={tourRun} onRunChange={setTourRun} sessionKey={tourSessionKey} />
       <aside
+        data-tour="shell-sidebar"
         className={cn(
           "fixed inset-y-0 left-0 z-40 hidden w-[15.5rem] flex-col border-r border-zinc-800/90 bg-[hsl(0_0%_2%)] text-zinc-100 shadow-[2px_0_24px_-12px_hsl(0_0%_0%/0.45)] lg:flex",
         )}
@@ -195,6 +202,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                     label={item.label}
                     icon={item.icon}
                     surface="ink"
+                    dataTour={item.dataTour}
                   />
                 ))}
               </nav>
@@ -237,6 +245,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                         label={item.label}
                         icon={item.icon}
                         surface="ink"
+                        dataTour={item.dataTour}
                         onNavigate={closeDrawer}
                       />
                     ))}
@@ -246,7 +255,37 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
 
               {brandBlock}
 
-              <div className="ml-auto flex shrink-0 items-center gap-2">{userMenu}</div>
+              <div className="ml-auto flex shrink-0 items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="hidden h-9 gap-1.5 px-3 font-medium sm:inline-flex"
+                  data-tour="shell-wizard-trigger"
+                  onClick={() => {
+                    setTourSessionKey((k) => k + 1);
+                    setTourRun(true);
+                  }}
+                >
+                  <Sparkles className="size-4 shrink-0 text-primary" aria-hidden />
+                  Wizard
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="sm:hidden"
+                  aria-label="Abrir tour guiado"
+                  data-tour="shell-wizard-trigger"
+                  onClick={() => {
+                    setTourSessionKey((k) => k + 1);
+                    setTourRun(true);
+                  }}
+                >
+                  <Sparkles className="size-5 text-primary" aria-hidden />
+                </Button>
+                {userMenu}
+              </div>
             </div>
           )}
         </header>
@@ -260,6 +299,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
             <BottomNavSkeleton />
           ) : (
             <nav
+              data-tour="shell-bottom-nav"
               className="flex h-16 items-stretch justify-around gap-0 border-t border-zinc-800 bg-[hsl(0_0%_3%)] px-1 pb-[env(safe-area-inset-bottom)] pt-1 text-zinc-100 shadow-[0_-8px_32px_-16px_hsl(0_0%_0%/0.55)] backdrop-blur-md supports-[backdrop-filter]:bg-[hsl(0_0%_3%/0.92)] lg:hidden"
               aria-label="Navegação inferior"
             >
@@ -271,6 +311,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                   icon={item.icon}
                   variant="bottom"
                   surface="ink"
+                  dataTour={item.dataTour}
                 />
               ))}
             </nav>
