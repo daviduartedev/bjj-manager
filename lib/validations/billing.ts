@@ -1,12 +1,14 @@
 import { z } from "zod";
 
-export const updatePlanPriceSchema = z.object({
-  planId: z.string().uuid("Identificador de plano inválido."),
-  priceCents: z.coerce
-    .number()
-    .int("O preço deve ser um valor inteiro (centavos).")
-    .min(0, "O preço não pode ser negativo."),
-});
+export const updatePlanPriceSchema = z
+  .object({
+    planId: z.string().uuid("Identificador de plano inválido."),
+    priceCents: z.coerce
+      .number()
+      .int("O preço deve ser um valor inteiro (centavos).")
+      .min(0, "O preço não pode ser negativo."),
+  })
+  .strict();
 
 export type UpdatePlanPriceInput = z.infer<typeof updatePlanPriceSchema>;
 
@@ -21,6 +23,7 @@ export const updatePlanSchema = z
       .optional(),
     active: z.boolean().optional(),
   })
+  .strict()
   .refine(
     (d) =>
       d.name !== undefined || d.priceCents !== undefined || d.active !== undefined,
@@ -34,49 +37,57 @@ const optionalCustom = z.union([
   z.null(),
 ]);
 
-export const setStudentPlanSchema = z.object({
-  studentId: z.string().uuid("Identificador de aluno inválido."),
-  planId: z.string().uuid("Identificador de plano inválido."),
-  dueDay: z.coerce
-    .number()
-    .int()
-    .min(1, "O dia de vencimento deve estar entre 1 e 28.")
-    .max(28, "O dia de vencimento deve estar entre 1 e 28."),
-  /** `undefined` omitido no payload JSON mantém-se como ausência → preservar no servidor. */
-  customPriceCents: optionalCustom.optional(),
-});
+export const setStudentPlanSchema = z
+  .object({
+    studentId: z.string().uuid("Identificador de aluno inválido."),
+    planId: z.string().uuid("Identificador de plano inválido."),
+    dueDay: z.coerce
+      .number()
+      .int()
+      .min(1, "O dia de vencimento deve estar entre 1 e 28.")
+      .max(28, "O dia de vencimento deve estar entre 1 e 28."),
+    /** `undefined` omitido no payload JSON mantém-se como ausência → preservar no servidor. */
+    customPriceCents: optionalCustom.optional(),
+  })
+  .strict();
 
 export type SetStudentPlanInput = z.infer<typeof setStudentPlanSchema>;
 
-export const recordPaymentSchema = z.object({
-  studentId: z.string().uuid("Identificador de aluno inválido."),
-  referenceMonth: z.string().min(1, "Indique o mês de referência."),
-  /**
-   * **`paid`**: mensalidade ao valor do plano (definido na conta; servidor ignora qualquer valor manual).
-   * **`scholarship`**: isenção / bolsista (`amount_cents` = 0 no registo).
-   */
-  recordingKind: z.enum(["paid", "scholarship"]).default("paid"),
-  paidAt: z.string().optional(),
-  notes: z.string().max(4000).optional().nullable(),
-  paymentMethod: z.string().max(200).optional().nullable(),
-});
+export const recordPaymentSchema = z
+  .object({
+    studentId: z.string().uuid("Identificador de aluno inválido."),
+    referenceMonth: z.string().min(1, "Indique o mês de referência."),
+    /**
+     * **`paid`**: mensalidade ao valor do plano (definido na conta; servidor ignora qualquer valor manual).
+     * **`scholarship`**: isenção / bolsista (`amount_cents` = 0 no registo).
+     */
+    recordingKind: z.enum(["paid", "scholarship"]).default("paid"),
+    paidAt: z.string().optional(),
+    notes: z.string().max(4000).optional().nullable(),
+    paymentMethod: z.string().max(200).optional().nullable(),
+  })
+  .strict();
 
 export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;
 
-export const recordPaymentsBulkSchema = z.object({
-  studentIds: z
-    .array(z.string().uuid("Identificador de aluno inválido."))
-    .min(1, "Seleccione pelo menos um aluno."),
-  referenceMonth: z.string().min(1, "Indique o mês de referência."),
-  paidAt: z.string().optional(),
-  notes: z.string().max(4000).optional().nullable(),
-  paymentMethod: z.string().max(200).optional().nullable(),
-});
+export const recordPaymentsBulkSchema = z
+  .object({
+    studentIds: z
+      .array(z.string().uuid("Identificador de aluno inválido."))
+      .min(1, "Seleccione pelo menos um aluno."),
+    referenceMonth: z.string().min(1, "Indique o mês de referência."),
+    paidAt: z.string().optional(),
+    notes: z.string().max(4000).optional().nullable(),
+    paymentMethod: z.string().max(200).optional().nullable(),
+  })
+  .strict();
 
 export type RecordPaymentsBulkInput = z.infer<typeof recordPaymentsBulkSchema>;
 
-export const voidPaymentSchema = z.object({
-  paymentId: z.string().uuid("Identificador de pagamento inválido."),
-});
+export const voidPaymentSchema = z
+  .object({
+    paymentId: z.string().uuid("Identificador de pagamento inválido."),
+  })
+  .strict();
 
 export type VoidPaymentInput = z.infer<typeof voidPaymentSchema>;

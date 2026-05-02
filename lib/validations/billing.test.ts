@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   recordPaymentSchema,
+  recordPaymentsBulkSchema,
   setStudentPlanSchema,
   updatePlanPriceSchema,
+  updatePlanSchema,
+  voidPaymentSchema,
 } from "./billing";
 
 describe("updatePlanPriceSchema", () => {
@@ -82,5 +85,72 @@ describe("recordPaymentSchema", () => {
     });
     expect(r.success).toBe(true);
     if (r.success) expect(r.data.recordingKind).toBe("scholarship");
+  });
+
+  it("rejeita amount_cents ou account_id enviados pelo cliente (strict)", () => {
+    expect(
+      recordPaymentSchema.safeParse({
+        ...recordBase,
+        amount_cents: 1,
+      }).success,
+    ).toBe(false);
+    expect(
+      recordPaymentSchema.safeParse({
+        ...recordBase,
+        account_id: "550e8400-e29b-41d4-a716-446655440099",
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("mass assignment strict (billing)", () => {
+  it("updatePlanPriceSchema", () => {
+    expect(
+      updatePlanPriceSchema.safeParse({
+        planId: "550e8400-e29b-41d4-a716-446655440000",
+        priceCents: 100,
+        account_id: "550e8400-e29b-41d4-a716-446655440001",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("updatePlanSchema", () => {
+    expect(
+      updatePlanSchema.safeParse({
+        planId: "550e8400-e29b-41d4-a716-446655440000",
+        name: "X",
+        extra: true,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("setStudentPlanSchema", () => {
+    expect(
+      setStudentPlanSchema.safeParse({
+        studentId: "550e8400-e29b-41d4-a716-446655440001",
+        planId: "550e8400-e29b-41d4-a716-446655440002",
+        dueDay: 15,
+        student_plans: [],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("recordPaymentsBulkSchema", () => {
+    expect(
+      recordPaymentsBulkSchema.safeParse({
+        studentIds: ["550e8400-e29b-41d4-a716-446655440000"],
+        referenceMonth: "2026-05-01",
+        bypass_rls: true,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("voidPaymentSchema", () => {
+    expect(
+      voidPaymentSchema.safeParse({
+        paymentId: "550e8400-e29b-41d4-a716-446655440000",
+        force: true,
+      }).success,
+    ).toBe(false);
   });
 });
