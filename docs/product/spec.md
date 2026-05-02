@@ -20,7 +20,7 @@
 
 **SPEC-2.4.** Cálculos derivados de datas: idade, tempo de treino, tempo na faixa, tempo no grau , implementados com utilitários **puras**, **testáveis** e **pt-BR** no fuso **`America/Sao_Paulo`**, conforme regras **DATE-** em [`spec/features/date-duration-utilities/readme.md`](../../spec/features/date-duration-utilities/readme.md).
 
-**SPEC-2.5.** Planos **Kids 1**, **Kids 2** e **Adulto** por conta (segmentação por idade/turma), valores configuráveis pelo professor; **preço personalizado** e **dia de vencimento** por aluno (ver [`billing-rules.md`](billing-rules.md)).
+**SPEC-2.5.** Planos **Kids 1**, **Kids 2** e **Adulto** por conta (segmentação por idade/turma), valores configuráveis pelo professor; **preço personalizado** e **dia de vencimento** por aluno (ver [`billing-rules.md`](billing-rules.md)). **SPEC-2.5.1.** Não existe plano comercial “Juvenil”. Juvenis na operação usam **tipo de aluno** `kids` ou `adult` conforme cadastro e um dos **três** planos; em particular, aluno `kids` pode estar no plano **Adulto** quando o professor assim definir (**BR-1.1**, **STU-4.2**).
 
 **SPEC-2.6.** Acompanhamento financeiro por **mês de referência**, com status **Pago**, **Não pago**, **Pendente**, **Bolsista** e **Outro**; **Pago** e **Bolsista** são sempre manuais; **Pendente** pode virar **Não pago** automaticamente após o vencimento (**BR-4.5**); sem gateway de pagamento no MVP.
 
@@ -76,7 +76,7 @@
 
 **SPEC-6.2.** **Integridade de dados**: 100% das promoções que violam ordem de faixa exigem justificativa registrada (**GR-**).
 
-**SPEC-6.3.** **Rastreabilidade**: novas features de negócio referenciam regras **SPEC-**, **ENT-**, **GR-**, **BR-**, **DS-**, **SEC-**, **AUTH-**, **SHELL-**, **DATE-** (e **STU-** onde aplicável) nos respectivos ciclos.
+**SPEC-6.3.** **Rastreabilidade**: novas features de negócio referenciam regras **SPEC-**, **ENT-**, **GR-**, **BR-**, **DS-**, **SEC-**, **AUTH-**, **SHELL-**, **DATE-**, **SECE2E-** (e **STU-** onde aplicável) nos respectivos ciclos.
 
 **SPEC-6.4.** **Tempo de operação** (meta orientadora, não SLA): cadastro completo de um novo aluno em poucos minutos, supondo dados em mãos.
 
@@ -123,3 +123,5 @@
 **SPEC-11.1.** A partir do ciclo de **RLS e segurança** (Q2 2026), o **Postgres canónico** da aplicação é o projeto **Supabase em produção**. Scripts (`pnpm db:apply`), migrações manuais e variáveis `DATABASE_URL` / chaves do projeto devem referir **esse** ambiente (ou uma cópia pontual explicitamente documentada), evitando um segundo destino de schema sem políticas alinhadas.
 
 **SPEC-11.2.** Pedidos com **anon key** e sessões **authenticated** **não** contornam RLS; a **service_role key** só pode ser usada **server-side** (rotas controladas, jobs, webhooks), **nunca** exposta ao cliente.
+
+**SPEC-11.3.** A integração contínua deve incluir a suíte de **verificação de segurança da aplicação** (**SECE2E-** em [`spec/features/security-e2e/readme.md`](../../spec/features/security-e2e/readme.md)): testes bloqueantes para autenticação de rotas, IDOR e vazamentos sensíveis; execução de **`pnpm db:validate-rls`** quando o comando e os secrets estiverem disponíveis (**SEC-4.1**); relatório curto e checklist manual por ciclo de auditoria conforme **SECE2E-1.4**.

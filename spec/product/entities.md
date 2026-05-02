@@ -78,7 +78,7 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 
 ## E6. Plano
 
-**ENT-6.1.** Plano comercial da conta: tipo técnico **`kids_1`**, **`kids_2`** ou **`adult`**, **nome editável** (`plans.name`), valor padrão em centavos, ativo/inativo. Rótulos por defeito na provisão: **Kid 1**, **Juvenil**, **Adulto**. A função principal no MVP é **organizar cobrança e segmentação** por **idade/turma**; o professor **associa manualmente** cada aluno a um desses planos (**BR-1.1**).
+**ENT-6.1.** Plano comercial da conta: tipo técnico **`kids_1`**, **`kids_2`** ou **`adult`**, **nome editável** (`plans.name`), valor padrão em centavos, ativo/inativo. Rótulos por defeito na provisão: **Kids 1**, **Kids 2**, **Adulto**. A função principal no MVP é **organizar cobrança e segmentação** por **idade/turma**; o professor **associa manualmente** cada aluno a um desses planos (**BR-1.1**).
 
 **ENT-6.2.** Valores por defeito na provisão automática da conta e no seed de desenvolvimento: ver **BR-1.4** e **BLM-2**.
 

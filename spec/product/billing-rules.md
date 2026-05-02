@@ -6,13 +6,13 @@
 
 ## BR-1. Planos
 
-**BR-1.1.** Cada conta mantém planos dos tipos **`kids_1`**, **`kids_2`** e **`adult`** (**ENT-6.1**). Na linguagem de produto usam-se por defeito os rótulos **Kid 1**, **Juvenil** e **Adulto** ( **`kids_2`** = Juvenil). O professor associa manualmente cada aluno a uma dessas categorias para refletir **faixa etária / turma** da operação da academia (não há automação por idade no MVP).
+**BR-1.1.** Cada conta mantém exactamente **três** planos dos tipos **`kids_1`**, **`kids_2`** e **`adult`** (**ENT-6.1**). Na linguagem de produto usam-se por defeito os rótulos **Kids 1**, **Kids 2** e **Adulto** (`kids_1`, `kids_2`, `adult`). **Não** há plano comercial nem rótulo activo **“Juvenil”**. O professor associa manualmente cada aluno a um destes planos para refletir **faixa etária / turma** (não há automação por idade no MVP); alunos com **`student_kind = kids`** podem ser associados ao plano **Adulto** quando treinam na turma ou tabela de preços de adultos (**STU-4.2**). Quando o valor de mesa diverge do default do plano, usa-se **preço personalizado** (**BR-2.2**).
 
 **BR-1.2.** Cada plano tem **valor padrão** configurável pelo professor (**price** em centavos).
 
 **BR-1.3.** Planos inativos não devem ser ofertados para **novos** vínculos; vínculos existentes podem seguir regra do ciclo de dados.
 
-**BR-1.4.** No **seed** de desenvolvimento, criam-se os **três** planos por conta de exemplo com nomes alinhados a **BR-1.1** e valores por defeito **10000** centavos (Kid 1) e **12000** centavos (Juvenil e Adulto) , referência para integração futura; o professor pode alterar **`price_cents`** e o **nome de exibição** (`plans.name`) nas Configurações. Em **produção**, na primeira carga do layout da área autenticada **(dashboard)**, a aplicação garante **idempotentemente** os mesmos três tipos de plano para a conta com esses valores iniciais (**BLM-2**).
+**BR-1.4.** No **seed** de desenvolvimento, criam-se os **três** planos por conta de exemplo com nomes alinhados a **BR-1.1** e valores por defeito **10000** centavos (**Kids 1** e **Kids 2**) e **12000** centavos (**Adulto**), referência para integração futura; o professor pode alterar **`price_cents`** e o **nome de exibição** (`plans.name`) nas Configurações. Em **produção**, na primeira carga do layout da área autenticada **(dashboard)**, a aplicação garante **idempotentemente** os mesmos três tipos de plano para a conta com esses valores iniciais (**BLM-2**), sem sobrescrever personalizações já gravadas (**BLM-2.4**).
 
 ---
 

@@ -6,6 +6,7 @@ Rastreio do **modelo relacional** canônico em Postgres (Supabase), alinhado a *
 
 - DDL idempotente em [`db/schema.sql`](../../../db/schema.sql): enums, tabelas, FKs, índices, constraints de negócio acordadas.
 - Seed em [`db/seed.sql`](../../../db/seed.sql): catálogo global de faixas (**GR-1** / **GR-2**), conta e planos **Kids 1 | Kids 2 | Adulto** para ambiente de desenvolvimento com **price_cents** alinhados a **BR-1.4** / **BLM-2**; em runtime, a app também provê os três planos por conta ao entrar no **(dashboard)** , ver [`spec/features/plans-billing-model/readme.md`](../plans-billing-model/readme.md).
+- Migrações incrementais em [`db/migrations/`](../../../db/migrations/) (`.sql` ordenadas por nome); **`pnpm db:apply`** executa **schema → seed → migrations → policies** para ambientes com `DATABASE_URL`.
 - **RLS** canónico em [`db/policies.sql`](../../../db/policies.sql), documentado em [`spec/features/rls-security/readme.md`](../rls-security/readme.md) e [`docs/security/rls.md`](../../../docs/security/rls.md); fluxo de sessão na app em [`spec/features/authentication/readme.md`](../authentication/readme.md).
 
 ## Aplicar em dev (Supabase)

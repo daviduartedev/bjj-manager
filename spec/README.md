@@ -15,6 +15,7 @@ Documentação canônica de produto e domínio. Implementação e ciclos devem r
 
 - [`spec/features/product-specification/readme.md`](features/product-specification/readme.md) , ciclo de consolidação da documentação de produto (Q2 2026).
 - [`spec/features/design-system/readme.md`](features/design-system/readme.md) , tokens, componentes de UI, layout e guia visual (Q2 2026).
+- [`spec/features/marketing-landing/readme.md`](features/marketing-landing/readme.md) , landing pública e marketing (**ML-**, Q2 2026).
 - [`spec/features/supabase-schema/readme.md`](features/supabase-schema/readme.md) , enums, tabelas multi-tenant, índices e seed de faixas/planos (Q2 2026).
 - [`spec/features/rls-security/readme.md`](features/rls-security/readme.md) , RLS multi-tenant, função `public.current_account_id()`, políticas e validação (Q2 2026).
 - [`spec/features/authentication/readme.md`](features/authentication/readme.md) , login, sessão SSR, rotas protegidas e destino `/painel` (Q2 2026).
@@ -28,6 +29,7 @@ Documentação canônica de produto e domínio. Implementação e ciclos devem r
 - [`spec/features/billing-ui/readme.md`](features/billing-ui/readme.md) , UI de mensalidades (`/mensalidades`), detalhe financeiro, lote e chrome premium (**BUI-**, Q2 2026).
 - [`spec/features/dashboard/readme.md`](features/dashboard/readme.md) , painel operacional (`/painel`), KPIs e atenção do dia (**PNL-**, Q2 2026).
 - [`spec/features/settings/readme.md`](features/settings/readme.md) , configurações da academia e perfil do professor (**CFG-**, Q2 2026).
+- [`spec/features/security-e2e/readme.md`](features/security-e2e/readme.md) , verificação automatizada de segurança E2E/API e CI (**SECE2E-**, Q2 2026).
 
 ## Convenção de IDs de regra
 
@@ -36,6 +38,7 @@ Documentação canônica de produto e domínio. Implementação e ciclos devem r
 - **GR-** , graduação (`graduation-rules.md`).
 - **BR-** , cobrança (`billing-rules.md`).
 - **DS-** , design system, tokens e padrões de UI (`spec/features/design-system/readme.md`).
+- **ML-** , landing pública e marketing (`spec/features/marketing-landing/readme.md`).
 - **SEC-** , RLS e segurança no Postgres (`spec/features/rls-security/readme.md`).
 - **AUTH-** , autenticação na aplicação e navegação autenticada (`spec/features/authentication/readme.md`).
 - **SHELL-** , shell da área operacional, paths pt-BR e UX de navegação (`spec/features/app-shell/readme.md`).
@@ -48,6 +51,7 @@ Documentação canônica de produto e domínio. Implementação e ciclos devem r
 - **BUI-** , telas de mensalidades e fluxo de registo em lote (`spec/features/billing-ui/readme.md`).
 - **PNL-** , painel operacional (`spec/features/dashboard/readme.md`).
 - **CFG-** , configurações (`/configuracoes`) e perfil (`/perfil`) (`spec/features/settings/readme.md`).
+- **SECE2E-** , suíte Playwright, contratos HTTP de Route Handlers, anti-IDOR, anti-vazamento e integração CI com validação RLS quando disponível (`spec/features/security-e2e/readme.md`).
 
 ## Manutenção e rastreabilidade
 

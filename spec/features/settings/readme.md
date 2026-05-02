@@ -34,7 +34,7 @@ Contrato canónico para **`/configuracoes`** (academia + planos) e **`/perfil`**
 
 ## CFG-3. Planos
 
-**CFG-3.1.** Lista dos **três** planos da conta (**Kid 1** / **Juvenil** / **Adulto** por defeito , **`kids_1`**, **`kids_2`**, **`adult`**); todos os campos exibidos são obtidos de **`plans`** via RLS.
+**CFG-3.1.** Lista dos **três** planos da conta (**Kids 1** / **Kids 2** / **Adulto** por defeito , **`kids_1`**, **`kids_2`**, **`adult`**); todos os campos exibidos são obtidos de **`plans`** via RLS.
 
 **CFG-3.2.** O professor pode editar **`name`**, **`price_cents`** e **`active`** (**BLM-4**, **`updatePlan`**).
 

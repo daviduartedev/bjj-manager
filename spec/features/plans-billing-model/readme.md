@@ -22,17 +22,19 @@ Contrato canónico para **SPEC** / **BR-** / **ENT-6**, **ENT-7** na camada **ap
 
 ## BLM-1. Planos por conta
 
-**BLM-1.1.** Cada conta possui exactamente **uma** linha por `plan_kind`: **Kid 1**, **Juvenil**, **Adulto** (`kids_1`, `kids_2`, `adult`), conforme **BR-1.1** e constraint `plans_account_kind_unique`.
+**BLM-1.1.** Cada conta possui exactamente **uma** linha por `plan_kind`: **Kids 1**, **Kids 2**, **Adulto** (`kids_1`, `kids_2`, `adult`), conforme **BR-1.1** e constraint `plans_account_kind_unique`.
 
-**BLM-1.2.** Nomes por defeito na provisão: **"Kid 1"**, **"Juvenil"**, **"Adulto"** (rótulos pt-BR). O professor pode editar **`plans.name`** na UI de Configurações (**CFG-**) sem alterar o **`plan_kind`**.
+**BLM-1.2.** Nomes por defeito na provisão: **"Kids 1"**, **"Kids 2"**, **"Adulto"** (rótulos pt-BR). O professor pode editar **`plans.name`** na UI de Configurações (**CFG-**) sem alterar o **`plan_kind`**.
 
 ## BLM-2. Provisão e preços por defeito
 
 **BLM-2.1.** Ao carregar o layout servidor da área **`(dashboard)`**, a app executa **`ensureDefaultPlansForCurrentAccount`**: insert idempotente dos três planos com **`ON CONFLICT DO NOTHING`** (ou equivalente sem sobrescrever preços já existentes).
 
-**BLM-2.2.** Valores iniciais só para referência e integração futura (**sem cobrança automática neste ciclo**): **Kids 1** = **10000** centavos; **Kids 2** e **Adulto** = **12000** centavos cada.
+**BLM-2.2.** Valores iniciais só para referência e integração futura (**sem cobrança automática neste ciclo**): **Kids 1** e **Kids 2** = **10000** centavos cada; **Adulto** = **12000** centavos.
 
 **BLM-2.3.** O **seed** de desenvolvimento em [`db/seed.sql`](../../../db/seed.sql) usa os mesmos montantes por defeito (**BR-1.4**).
+
+**BLM-2.4.** Rotinas de normalização ou migração **não** devem sobrescrever **`plans.name`** nem **`price_cents`** que o professor já tenha alterado em relação ao pacote por defeito da conta; apenas preencher lacunas, inserir planos em falta ou actualizar linhas que ainda espelham exclusivamente o pacote antigo (detalhe no ciclo de implementação).
 
 ## BLM-3. Erros e UX servida à UI
 
