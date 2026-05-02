@@ -38,6 +38,7 @@ import { mapStudentServerError } from "@/lib/students/action-errors";
 import { beltLabelPt } from "@/lib/students/belt-labels";
 import { degreeOptionsForBelt } from "@/lib/students/degree";
 import type { StudentKind } from "@/lib/students/degree";
+import { planKindMatchesStudentKind } from "@/lib/students/plan-kind";
 import {
   buildQuickEditFormSchema,
   type QuickEditFormValues,
@@ -106,9 +107,7 @@ export function QuickEditDialog({
 
   const beltsForKind = belts.filter((b) => b.kind === kind);
   const plansForKind = plans.filter((p) =>
-    kind === "adult"
-      ? p.kind === "adult"
-      : p.kind === "kids_1" || p.kind === "kids_2",
+    planKindMatchesStudentKind(p.kind, kind),
   );
 
   async function onSubmit(values: QuickEditFormValues) {

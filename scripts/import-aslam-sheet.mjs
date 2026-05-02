@@ -117,8 +117,8 @@ function paymentStatusForMonth(p, monthN, checked) {
 
 async function ensureDefaultPlans(client, accountId) {
   const kinds = [
-    ["kids_1", "Kid 1", 10000],
-    ["kids_2", "Juvenil", 12000],
+    ["kids_1", "Kids 1", 10000],
+    ["kids_2", "Kids 2", 10000],
     ["adult", "Adulto", 12000],
   ];
   for (const [kind, name, price] of kinds) {

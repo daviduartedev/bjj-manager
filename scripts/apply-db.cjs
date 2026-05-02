@@ -43,6 +43,14 @@ async function main() {
   const seedSql = fs.readFileSync(path.join(root, "db", "seed.sql"), "utf8");
   const policiesSql = fs.readFileSync(path.join(root, "db", "policies.sql"), "utf8");
 
+  const migrationsDir = path.join(root, "db", "migrations");
+  const migrationFiles = fs.existsSync(migrationsDir)
+    ? fs
+        .readdirSync(migrationsDir)
+        .filter((f) => f.endsWith(".sql"))
+        .sort()
+    : [];
+
   const client = new Client({
     connectionString,
     ssl:
@@ -57,6 +65,11 @@ async function main() {
   try {
     await client.query(schemaSql);
     await client.query(seedSql);
+    for (const mf of migrationFiles) {
+      const sql = fs.readFileSync(path.join(migrationsDir, mf), "utf8");
+      await client.query(sql);
+      console.log(`  migration ok: ${mf}`);
+    }
     await client.query(policiesSql);
 
     const belts = await client.query(
@@ -69,7 +82,7 @@ async function main() {
       "select count(*)::int as n from public.accounts"
     );
 
-    console.log("OK , schema + seed + policies (RLS) aplicados.");
+    console.log("OK , schema + seed + migrations + policies (RLS) aplicados.");
     console.log(`  accounts: ${accounts.rows[0].n}`);
     console.log(`  belts: ${belts.rows[0].n}`);
     console.log(`  plans: ${plans.rows[0].n}`);

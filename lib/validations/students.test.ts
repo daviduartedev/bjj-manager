@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { buildStudentFullFormSchema } from "@/lib/validations/students";
+import {
+  buildQuickEditFormSchema,
+  buildStudentFullFormSchema,
+} from "@/lib/validations/students";
 
 const beltAdult = {
   id: "10000000-0000-4000-8000-000000000001",
@@ -20,6 +23,10 @@ const planKids = {
   id: "20000000-0000-4000-8000-000000000002",
   kind: "kids_1" as const,
 };
+const planKids2 = {
+  id: "20000000-0000-4000-8000-000000000003",
+  kind: "kids_2" as const,
+};
 
 const baseInput = {
   full_name: "Teste Silva",
@@ -33,10 +40,8 @@ const baseInput = {
 };
 
 describe("buildStudentFullFormSchema", () => {
-  const schema = buildStudentFullFormSchema(
-    [beltAdult, beltKids],
-    [planAdult, planKids],
-  );
+  const plansTriple = [planAdult, planKids, planKids2];
+  const schema = buildStudentFullFormSchema([beltAdult, beltKids], plansTriple);
 
   it("aceita combinação adulto + plano adulto + faixa adulta", () => {
     const r = schema.safeParse(baseInput);
@@ -51,6 +56,16 @@ describe("buildStudentFullFormSchema", () => {
     }
   });
 
+  it("aceita kids com plano Adulto (juvenil na turma de adulto)", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "kids" as const,
+      current_belt_id: beltKids.id,
+      plan_id: planAdult.id,
+    });
+    expect(r.success).toBe(true);
+  });
+
   it("rejeita CPF com dígitos inválidos (STU-6)", () => {
     const r = schema.safeParse({
       ...baseInput,
@@ -60,5 +75,74 @@ describe("buildStudentFullFormSchema", () => {
     if (!r.success) {
       expect(r.error.flatten().fieldErrors.document?.length).toBeGreaterThan(0);
     }
+  });
+
+  it("rejeita chaves extra (mass assignment / SECE2E)", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      account_id: "550e8400-e29b-41d4-a716-446655440099",
+      status: "inactive",
+    });
+    expect(r.success).toBe(false);
+  });
+});
+
+describe("buildQuickEditFormSchema strict", () => {
+  const beltAdult = {
+    id: "10000000-0000-4000-8000-000000000001",
+    slug: "white",
+    kind: "adult" as const,
+  };
+  const planAdult = {
+    id: "20000000-0000-4000-8000-000000000001",
+    kind: "adult" as const,
+  };
+  const schema = buildQuickEditFormSchema([beltAdult], [planAdult], "adult");
+  const base = {
+    status: "active" as const,
+    plan_id: planAdult.id,
+    due_day: 10,
+    current_belt_id: beltAdult.id,
+    current_degree: 0,
+  };
+
+  it("rejeita account_id ou full_name injectados", () => {
+    expect(
+      schema.safeParse({ ...base, account_id: "550e8400-e29b-41d4-a716-446655440099" })
+        .success,
+    ).toBe(false);
+    expect(schema.safeParse({ ...base, full_name: "X" }).success).toBe(false);
+  });
+});
+
+describe("buildQuickEditFormSchema kids + Adulto", () => {
+  const beltKids = {
+    id: "10000000-0000-4000-8000-000000000002",
+    slug: "white",
+    kind: "kids" as const,
+  };
+  const planAdult = {
+    id: "20000000-0000-4000-8000-000000000001",
+    kind: "adult" as const,
+  };
+  const planKids = {
+    id: "20000000-0000-4000-8000-000000000002",
+    kind: "kids_1" as const,
+  };
+  const schema = buildQuickEditFormSchema(
+    [beltKids],
+    [planAdult, planKids],
+    "kids",
+  );
+
+  it("aceita plano Adulto para aluno kids", () => {
+    const r = schema.safeParse({
+      status: "active",
+      plan_id: planAdult.id,
+      due_day: 10,
+      current_belt_id: beltKids.id,
+      current_degree: 0,
+    });
+    expect(r.success).toBe(true);
   });
 });

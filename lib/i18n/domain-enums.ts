@@ -14,8 +14,8 @@ export const paymentStatusLabels: Record<
 };
 
 export const planKindLabels: Record<"kids_1" | "kids_2" | "adult", string> = {
-  kids_1: "Kid 1",
-  kids_2: "Juvenil",
+  kids_1: "Kids 1",
+  kids_2: "Kids 2",
   adult: "Adulto",
 };
 

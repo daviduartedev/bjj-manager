@@ -33,6 +33,10 @@ import { isWhiteBeltSlug } from "@/lib/students/belt-kind";
 import { degreeOptionsForBelt } from "@/lib/students/degree";
 import { maskCpfInput, maskPhoneBrInput } from "@/lib/students/input-masks";
 import {
+  pickDefaultPlanForStudentKind,
+  planKindMatchesStudentKind,
+} from "@/lib/students/plan-kind";
+import {
   buildStudentFullFormSchema,
   type StudentFullFormValues,
 } from "@/lib/validations/students";
@@ -75,12 +79,7 @@ export function StudentForm({
   );
 
   const plansForKind = useMemo(
-    () =>
-      plans.filter((p) =>
-        kind === "adult"
-          ? p.kind === "adult"
-          : p.kind === "kids_1" || p.kind === "kids_2",
-      ),
+    () => plans.filter((p) => planKindMatchesStudentKind(p.kind, kind)),
     [plans, kind],
   );
 
@@ -101,11 +100,7 @@ export function StudentForm({
 
   function syncKind(kindNext: "adult" | "kids") {
     const b = belts.find((x) => x.kind === kindNext);
-    const p = plans.find((x) =>
-      kindNext === "adult"
-        ? x.kind === "adult"
-        : x.kind === "kids_1" || x.kind === "kids_2",
-    );
+    const p = pickDefaultPlanForStudentKind(plans, kindNext);
     if (b) {
       form.setValue("current_belt_id", b.id);
       if (isWhiteBeltSlug(b.slug)) {

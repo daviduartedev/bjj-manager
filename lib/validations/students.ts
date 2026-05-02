@@ -41,6 +41,7 @@ export function buildStudentFullFormSchema(
       email: z.preprocess(emptyToUndef, z.string().trim().optional()),
       notes: z.preprocess(emptyToUndef, z.string().trim().optional()),
     })
+    .strict()
     .superRefine((data, ctx) => {
       if (!beltIds.has(data.current_belt_id)) {
         ctx.addIssue({
@@ -141,6 +142,7 @@ export function buildQuickEditFormSchema(
       current_belt_id: z.string().uuid(),
       current_degree: z.coerce.number().int(),
     })
+    .strict()
     .superRefine((data, ctx) => {
       if (!beltIds.has(data.current_belt_id)) {
         ctx.addIssue({
