@@ -39,7 +39,7 @@ export default async function ConfiguracoesPage() {
       <div data-tour="page-configuracoes">
         <DashboardPageHero badge="Preferências" title="Configurações">
           <p className="type-lead max-w-xl">
-            Academia e planos (Kid 1, Juvenil, Adulto). Contato e nome de exibição em{" "}
+            Academia e planos (Kids 1, Kids 2, Adulto). Contato e nome de exibição em{" "}
             <Link
               href={ROUTES.perfil}
               className="font-medium text-primary underline-offset-4 hover:underline"

@@ -117,7 +117,7 @@ export function RecordPaymentDialog({
 
         <div className="space-y-2 text-sm text-muted-foreground">
           <p>
-            Referência: Adulto/Juvenil R$&nbsp;120, Kid 1 R$&nbsp;100 (ajuste em{" "}
+            Referência: Adulto R$&nbsp;120, Kids 1 e Kids 2 R$&nbsp;100 (ajuste em{" "}
             <Link
               href={ROUTES.configuracoes}
               className="font-medium text-primary underline-offset-4 hover:underline"

@@ -113,7 +113,7 @@ export function ConfiguracoesClient(props: Props) {
       <DashboardPanel icon={Layers} title="Planos" subtitle="Preços e estado dos planos da conta">
         <div className="space-y-6">
           <p className="text-crm-sm text-muted-foreground">
-            Tipos fixos (Kid 1, Juvenil, Adulto). Ajuste rótulo, valor e se o plano aceita novos vínculos.
+            Tipos fixos (Kids 1, Kids 2, Adulto). Ajuste rótulo, valor e se o plano aceita novos vínculos.
           </p>
           <ul className="space-y-8">
             {props.plans.map((plan) => (
