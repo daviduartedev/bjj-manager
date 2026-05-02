@@ -12,6 +12,9 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:exploratory": "playwright test --grep @exploratory",
     "db:apply": "node scripts/apply-db.cjs",
     "db:validate-rls": "node scripts/validate-rls.cjs",
     "db:reset-adult-degrees": "node scripts/reset-adult-degrees-zero.mjs",
@@ -51,6 +54,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22.9.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
