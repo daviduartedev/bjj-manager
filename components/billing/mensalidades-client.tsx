@@ -35,7 +35,7 @@ import type {
 import {
   buildMensalidadesListSearchParams,
   type MensalidadesClientFilterKey,
-  type MensalidadesKindFilterKey,
+  type MensalidadesPlanFilterKey,
 } from "@/lib/billing/mensalidades-filtro-url";
 import type { MonthBillingIndicator } from "@/lib/billing/month-billing-indicator";
 import { ROUTES, routeMensalidadesAluno } from "@/lib/routes";
@@ -50,8 +50,8 @@ export type MensalidadesClientProps = {
   referenceMonth: string;
   /** **BUI-2.6**, hidratação a partir de `?filtro=` */
   initialFilter?: MensalidadesClientFilterKey;
-  /** Hidratação a partir de `?tipo=` (adulto | kids | todos). */
-  initialKindFilter?: MensalidadesKindFilterKey;
+  /** Hidratação a partir de `?tipo=` (plano + legado `kids`). */
+  initialPlanFilter?: MensalidadesPlanFilterKey;
   monthFinance: MonthFinanceSummary;
 };
 
@@ -64,12 +64,15 @@ function matchesFilter(row: MensalidadesStudentRow, filter: FilterKey): boolean 
   return row.indicator === filter;
 }
 
-function matchesKindFilter(
+function matchesPlanFilter(
   row: MensalidadesStudentRow,
-  kind: MensalidadesKindFilterKey,
+  plan: MensalidadesPlanFilterKey,
 ): boolean {
-  if (kind === "all") return true;
-  return row.kind === kind;
+  if (plan === "all") return true;
+  if (plan === "kids_either") {
+    return row.planKind === "kids_1" || row.planKind === "kids_2";
+  }
+  return row.planKind === plan;
 }
 
 /** Filtros: mesma altura e tipografia em todos os controlos */
@@ -89,7 +92,7 @@ export function MensalidadesClient({
   initialRows,
   referenceMonth,
   initialFilter = "all",
-  initialKindFilter = "all",
+  initialPlanFilter = "all",
   monthFinance,
 }: MensalidadesClientProps) {
   const router = useRouter();
@@ -99,11 +102,11 @@ export function MensalidadesClient({
   useEffect(() => {
     setFilter(initialFilter);
   }, [initialFilter]);
-  const [kindFilter, setKindFilter] =
-    useState<MensalidadesKindFilterKey>(initialKindFilter);
+  const [planFilter, setPlanFilter] =
+    useState<MensalidadesPlanFilterKey>(initialPlanFilter);
   useEffect(() => {
-    setKindFilter(initialKindFilter);
-  }, [initialKindFilter]);
+    setPlanFilter(initialPlanFilter);
+  }, [initialPlanFilter]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [payStudent, setPayStudent] = useState<MensalidadesStudentRow | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
@@ -112,22 +115,22 @@ export function MensalidadesClient({
     const q = nameQuery.trim().toLowerCase();
     return rows.filter((r) => {
       if (!matchesFilter(r, filter)) return false;
-      if (!matchesKindFilter(r, kindFilter)) return false;
+      if (!matchesPlanFilter(r, planFilter)) return false;
       if (q === "") return true;
       return r.fullName.toLowerCase().includes(q);
     });
-  }, [rows, filter, kindFilter, nameQuery]);
+  }, [rows, filter, planFilter, nameQuery]);
 
   function navigateMensalidades(opts: {
     mes?: string;
     filtro?: FilterKey;
-    tipo?: MensalidadesKindFilterKey;
+    tipo?: MensalidadesPlanFilterKey;
   }) {
     router.replace(
       `${ROUTES.mensalidades}${buildMensalidadesListSearchParams({
         mes: opts.mes ?? referenceMonth,
         filtro: opts.filtro ?? filter,
-        tipo: opts.tipo ?? kindFilter,
+        tipo: opts.tipo ?? planFilter,
       })}`,
     );
   }
@@ -251,26 +254,28 @@ export function MensalidadesClient({
 
             <div className="flex min-w-0 flex-col gap-1.5">
               <Label
-                htmlFor="filtro-tipo"
+                htmlFor="filtro-plano"
                 className="text-xs font-medium text-muted-foreground"
               >
-                Tipo
+                Plano
               </Label>
               <Select
-                value={kindFilter}
+                value={planFilter}
                 onValueChange={(v) => {
-                  const next = v as MensalidadesKindFilterKey;
-                  setKindFilter(next);
+                  const next = v as MensalidadesPlanFilterKey;
+                  setPlanFilter(next);
                   navigateMensalidades({ tipo: next });
                 }}
               >
-                <SelectTrigger id="filtro-tipo" className={filterControl}>
-                  <SelectValue placeholder="Tipo" />
+                <SelectTrigger id="filtro-plano" className={filterControl}>
+                  <SelectValue placeholder="Plano" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="adult">Adulto</SelectItem>
-                  <SelectItem value="kids">Kids</SelectItem>
+                  <SelectItem value="kids_1">Kids 1</SelectItem>
+                  <SelectItem value="kids_2">Kids 2</SelectItem>
+                  <SelectItem value="kids_either">Kids 1 ou 2</SelectItem>
                 </SelectContent>
               </Select>
               <div className="min-h-[1.125rem]" aria-hidden />

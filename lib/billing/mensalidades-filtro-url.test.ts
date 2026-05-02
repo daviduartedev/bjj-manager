@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildMensalidadesListSearchParams,
   parseMensalidadesFiltroQuery,
-  parseMensalidadesKindQuery,
+  parseMensalidadesPlanQuery,
 } from "./mensalidades-filtro-url";
 
 describe("parseMensalidadesFiltroQuery", () => {
@@ -27,16 +27,20 @@ describe("parseMensalidadesFiltroQuery", () => {
   });
 });
 
-describe("parseMensalidadesKindQuery", () => {
-  it("maps pt-BR tipo tokens", () => {
-    expect(parseMensalidadesKindQuery("adulto")).toBe("adult");
-    expect(parseMensalidadesKindQuery("kids")).toBe("kids");
-    expect(parseMensalidadesKindQuery("todos")).toBe("all");
+describe("parseMensalidadesPlanQuery", () => {
+  it("maps tipo tokens (plano + legado)", () => {
+    expect(parseMensalidadesPlanQuery("adulto")).toBe("adult");
+    expect(parseMensalidadesPlanQuery("kids_1")).toBe("kids_1");
+    expect(parseMensalidadesPlanQuery("kids1")).toBe("kids_1");
+    expect(parseMensalidadesPlanQuery("kids_2")).toBe("kids_2");
+    expect(parseMensalidadesPlanQuery("kids")).toBe("kids_either");
+    expect(parseMensalidadesPlanQuery("infantil")).toBe("kids_either");
+    expect(parseMensalidadesPlanQuery("todos")).toBe("all");
   });
 
   it("defaults for missing or unknown", () => {
-    expect(parseMensalidadesKindQuery(undefined)).toBe("all");
-    expect(parseMensalidadesKindQuery("")).toBe("all");
+    expect(parseMensalidadesPlanQuery(undefined)).toBe("all");
+    expect(parseMensalidadesPlanQuery("")).toBe("all");
   });
 });
 
@@ -46,7 +50,14 @@ describe("buildMensalidadesListSearchParams", () => {
       buildMensalidadesListSearchParams({
         mes: "2026-05-01",
         filtro: "pending",
-        tipo: "kids",
+        tipo: "kids_1",
+      }),
+    ).toBe("?mes=2026-05-01&filtro=pendente&tipo=kids_1");
+    expect(
+      buildMensalidadesListSearchParams({
+        mes: "2026-05-01",
+        filtro: "pending",
+        tipo: "kids_either",
       }),
     ).toBe("?mes=2026-05-01&filtro=pendente&tipo=kids");
   });

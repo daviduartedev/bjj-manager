@@ -1,4 +1,5 @@
 import type { MonthBillingIndicator } from "@/lib/billing/month-billing-indicator";
+import type { PlanKind } from "@/lib/students/plan-kind";
 
 /** Valor interno do selector na lista, inclui `all`. */
 export type MensalidadesClientFilterKey = "all" | MonthBillingIndicator;
@@ -21,15 +22,28 @@ const FILTER_TO_QUERY: Record<MensalidadesClientFilterKey, string | null> = {
   other: "outro",
 };
 
-/** Filtro por faixa etária (aluno) na lista `/mensalidades`, query `tipo`. */
-export type MensalidadesKindFilterKey = "all" | "adult" | "kids";
+/**
+ * Filtro por plano comercial do vínculo aberto na lista `/mensalidades`, query `tipo`.
+ * `kids_either` aceita URLs legadas (`tipo=kids`, `infantil`) — Kids 1 ou Kids 2.
+ */
+export type MensalidadesPlanFilterKey = "all" | PlanKind | "kids_either";
 
-const QUERY_TO_KIND: Record<string, MensalidadesKindFilterKey> = {
+/** @deprecated Use `MensalidadesPlanFilterKey`. */
+export type MensalidadesKindFilterKey = MensalidadesPlanFilterKey;
+
+const QUERY_TO_PLAN: Record<string, MensalidadesPlanFilterKey> = {
   todos: "all",
   adulto: "adult",
   adultos: "adult",
-  kids: "kids",
-  infantil: "kids",
+  adult: "adult",
+  kids_1: "kids_1",
+  kids1: "kids_1",
+  "kids-1": "kids_1",
+  kids_2: "kids_2",
+  kids2: "kids_2",
+  "kids-2": "kids_2",
+  kids: "kids_either",
+  infantil: "kids_either",
 };
 
 /**
@@ -44,15 +58,18 @@ export function parseMensalidadesFiltroQuery(
   return QUERY_TO_FILTER[k] ?? "all";
 }
 
-/** Parse do query param `tipo` (`todos` | `adulto` | `kids`, pt-BR). */
-export function parseMensalidadesKindQuery(
+/** Parse do query param `tipo` (plano comercial + tokens legados `kids` / `infantil`). */
+export function parseMensalidadesPlanQuery(
   raw: string | string[] | undefined,
-): MensalidadesKindFilterKey {
+): MensalidadesPlanFilterKey {
   const s = Array.isArray(raw) ? raw[0] : raw;
   if (typeof s !== "string") return "all";
   const k = s.trim().toLowerCase();
-  return QUERY_TO_KIND[k] ?? "all";
+  return QUERY_TO_PLAN[k] ?? "all";
 }
+
+/** @deprecated Use `parseMensalidadesPlanQuery`. */
+export const parseMensalidadesKindQuery = parseMensalidadesPlanQuery;
 
 /**
  * Query string para `/mensalidades` com `mes`, `filtro` e `tipo` coerentes (partilhável).
@@ -60,7 +77,7 @@ export function parseMensalidadesKindQuery(
 export function buildMensalidadesListSearchParams(opts: {
   mes?: string | null;
   filtro?: MensalidadesClientFilterKey;
-  tipo?: MensalidadesKindFilterKey;
+  tipo?: MensalidadesPlanFilterKey;
 }): string {
   const p = new URLSearchParams();
   const mesRaw = opts.mes?.trim();
@@ -73,7 +90,9 @@ export function buildMensalidadesListSearchParams(opts: {
   if (fq) p.set("filtro", fq);
   const tipo = opts.tipo ?? "all";
   if (tipo === "adult") p.set("tipo", "adulto");
-  else if (tipo === "kids") p.set("tipo", "kids");
+  else if (tipo === "kids_1") p.set("tipo", "kids_1");
+  else if (tipo === "kids_2") p.set("tipo", "kids_2");
+  else if (tipo === "kids_either") p.set("tipo", "kids");
   const s = p.toString();
   return s ? `?${s}` : "";
 }

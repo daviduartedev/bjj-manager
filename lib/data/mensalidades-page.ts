@@ -19,6 +19,8 @@ export type MensalidadesStudentRow = {
   studentId: string;
   /** Faixa etária do aluno (coluna `students.kind` ou derivada do plano). */
   kind: StudentKind;
+  /** `plans.kind` do vínculo aberto; filtro «Plano» na lista. */
+  planKind: PlanKind | null;
   fullName: string;
   planLabel: string | null;
   dueDay: number | null;
@@ -91,13 +93,15 @@ export async function loadMensalidadesRows(referenceMonthInput: string | null): 
     const open = spArr?.find((s) => s.ended_at == null);
     const planEmbed = Array.isArray(open?.plans) ? open?.plans[0] : open?.plans;
     const planLabel = planEmbed?.name ?? null;
-    const rowKind = resolveStudentKind(raw.kind, planEmbed?.kind ?? null);
+    const planKind = planEmbed?.kind ?? null;
+    const rowKind = resolveStudentKind(raw.kind, planKind);
 
     const snap = snapById.get(id);
     if (!snap) {
       return {
         studentId: id,
         kind: rowKind,
+        planKind,
         fullName: raw.full_name as string,
         planLabel,
         dueDay: null,
@@ -110,6 +114,7 @@ export async function loadMensalidadesRows(referenceMonthInput: string | null): 
     return {
       studentId: id,
       kind: rowKind,
+      planKind,
       fullName: raw.full_name as string,
       planLabel,
       dueDay: snap.dueDay,
