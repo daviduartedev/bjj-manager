@@ -1,10 +1,10 @@
 /**
  * Valida RLS contra o projeto Supabase (anon, authenticated, tentativa de INSERT inválido).
- * Requer em .env.local: DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL,
- * NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY.
+ * Variáveis: DATABASE_URL; URL/anon/service via NEXT_PUBLIC_* ou E2E_SUPABASE_* (ver **SECE2E-7.3**).
+ * Carrega `.env`, `.env.local` e `.env.test` (último sobrescreve) para alinhar CI e Playwright.
  *
- * Obrigatório se os utilizadores ainda não existirem: VALIDATION_TEST_PASSWORD , senha forte
- * partilhada (apenas para estes emails de teste; não commitar).
+ * Emails de teste: E2E_USER_A_EMAIL / E2E_USER_B_EMAIL ou valores por defeito históricos.
+ * Senha partilhada para criar/sincronizar utilizadores: VALIDATION_TEST_PASSWORD ou E2E_USER_A_PASSWORD.
  *
  * Usage: pnpm db:validate-rls
  */
@@ -15,19 +15,29 @@ const { Client } = require("pg");
 const { createClient } = require("@supabase/supabase-js");
 
 const root = path.join(__dirname, "..");
-require("dotenv").config({ path: path.join(root, ".env.local"), quiet: true });
-require("dotenv").config({ path: path.join(root, ".env"), quiet: true });
+require("dotenv").config({ path: path.join(root, ".env") });
+require("dotenv").config({ path: path.join(root, ".env.local"), override: true });
+require("dotenv").config({ path: path.join(root, ".env.test"), override: true });
 
-const EMAIL_A = "maikon@aslam.com.br";
-const EMAIL_B = "rls-validation-b@aslam.com.br";
+const EMAIL_A = process.env.E2E_USER_A_EMAIL?.trim();
+const EMAIL_B = process.env.E2E_USER_B_EMAIL?.trim();
 
 function requireEnv(name) {
   const v = process.env[name];
   if (!v || !String(v).trim()) {
-    console.error(`Falta ${name} no ambiente (.env.local).`);
+    console.error(`Falta ${name} no ambiente (.env.local / .env.test / CI).`);
     process.exit(2);
   }
   return v.trim();
+}
+
+function requireEnvAny(names, label) {
+  for (const name of names) {
+    const v = process.env[name];
+    if (v && String(v).trim()) return String(v).trim();
+  }
+  console.error(`Falta ${label} (defina uma de: ${names.join(", ")}).`);
+  process.exit(2);
 }
 
 async function ensureAuthUser(admin, email, passwordForCreate) {
@@ -53,12 +63,31 @@ async function ensureAuthUser(admin, email, passwordForCreate) {
 }
 
 async function main() {
-  const databaseUrl = requireEnv("DATABASE_URL");
-  const supabaseUrl = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
-  const anonKey = requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  const serviceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+  if (!EMAIL_A || !EMAIL_B) {
+    console.error(
+      "Defina E2E_USER_A_EMAIL e E2E_USER_B_EMAIL (contas de teste dedicadas; ver docs/testing/e2e-test-accounts.md).",
+    );
+    process.exit(2);
+  }
 
-  const testPassword = process.env.VALIDATION_TEST_PASSWORD?.trim() || null;
+  const databaseUrl = requireEnv("DATABASE_URL");
+  const supabaseUrl = requireEnvAny(
+    ["NEXT_PUBLIC_SUPABASE_URL", "E2E_SUPABASE_URL"],
+    "URL Supabase (NEXT_PUBLIC_SUPABASE_URL ou E2E_SUPABASE_URL)",
+  );
+  const anonKey = requireEnvAny(
+    ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "E2E_SUPABASE_ANON_KEY"],
+    "anon key (NEXT_PUBLIC_SUPABASE_ANON_KEY ou E2E_SUPABASE_ANON_KEY)",
+  );
+  const serviceKey = requireEnvAny(
+    ["SUPABASE_SERVICE_ROLE_KEY", "E2E_SUPABASE_SERVICE_ROLE_KEY"],
+    "service_role (SUPABASE_SERVICE_ROLE_KEY ou E2E_SUPABASE_SERVICE_ROLE_KEY)",
+  );
+
+  const testPassword =
+    process.env.VALIDATION_TEST_PASSWORD?.trim() ||
+    process.env.E2E_USER_A_PASSWORD?.trim() ||
+    null;
 
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
