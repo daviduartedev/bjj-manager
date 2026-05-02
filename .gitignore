@@ -10,6 +10,12 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
+/e2e/.cache/
+
+# Playwright MCP / local outputs (se existirem)
+/playwright/.cache/
 
 # next.js
 /.next/
@@ -29,9 +35,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env files (nunca commitar segredos)
 .env
 .env*.local
+.env.test
 .env.development
 .env.production
 
