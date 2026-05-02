@@ -1,11 +1,15 @@
 import { z } from "zod";
 
+import type { PlanKind } from "@/lib/students/plan-kind";
 import type { ListSortKey } from "@/lib/validations/students";
 import { listSortSchema } from "@/lib/validations/students";
 
+/** Filtro por `plan_kind` do vínculo aberto; `all` = sem filtro de plano. */
+export type AlunosPlanFilter = "all" | PlanKind;
+
 export type AlunosUrlState = {
   q: string;
-  kind: "all" | "adult" | "kids";
+  plan: AlunosPlanFilter;
   status: "all" | "active" | "inactive" | "paused";
   sort: ListSortKey;
   page: number;
@@ -13,7 +17,7 @@ export type AlunosUrlState = {
 
 const urlSchema = z.object({
   q: z.string().optional(),
-  kind: z.enum(["all", "adult", "kids"]).catch("all"),
+  plan: z.enum(["all", "adult", "kids_1", "kids_2"]).catch("all"),
   status: z
     .enum(["all", "active", "inactive", "paused"])
     .catch("all"),
@@ -36,14 +40,14 @@ export function parseAlunosSearchParams(
 
   const parsed = urlSchema.safeParse({
     q: single("q"),
-    kind: single("kind"),
+    plan: single("plan"),
     status: single("status"),
     sort: single("sort"),
   });
   const v = parsed.success ? parsed.data : urlSchema.parse({});
   return {
     q: v.q?.trim() ?? "",
-    kind: v.kind,
+    plan: v.plan,
     status: v.status,
     sort: v.sort,
     page,
@@ -53,7 +57,7 @@ export function parseAlunosSearchParams(
 export function stringifyAlunosSearchParams(state: AlunosUrlState): string {
   const u = new URLSearchParams();
   if (state.q) u.set("q", state.q);
-  if (state.kind !== "all") u.set("kind", state.kind);
+  if (state.plan !== "all") u.set("plan", state.plan);
   if (state.status !== "all") u.set("status", state.status);
   if (state.sort !== "name") u.set("sort", state.sort);
   if (state.page > 1) u.set("page", String(state.page));

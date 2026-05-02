@@ -119,7 +119,7 @@ export function StudentsList({
 
   const hasFilters =
     urlState.q !== "" ||
-    urlState.kind !== "all" ||
+    urlState.plan !== "all" ||
     urlState.status !== "all" ||
     urlState.sort !== "name";
 
@@ -137,7 +137,9 @@ export function StudentsList({
           </span>
           <div>
             <p className="text-crm-sm font-semibold text-foreground">Filtros e pesquisa</p>
-            <p className="text-crm-xs text-muted-foreground">Refine a lista por nome, tipo e situação.</p>
+            <p className="text-crm-xs text-muted-foreground">
+              Refine a lista por nome, plano e situação.
+            </p>
           </div>
         </div>
         <div className="space-y-5 border-t border-border/60 px-4 pb-5 pt-4 sm:px-5">
@@ -162,24 +164,25 @@ export function StudentsList({
             </div>
             <div className="grid gap-3 sm:grid-cols-3 lg:flex lg:flex-wrap">
               <div className="space-y-2">
-                <span className="type-field-label">Tipo</span>
+                <span className="type-field-label">Plano</span>
                 <Select
-                  value={urlState.kind}
+                  value={urlState.plan}
                   onValueChange={(v) =>
                     pushUrl({
                       ...urlState,
-                      kind: v as AlunosUrlState["kind"],
+                      plan: v as AlunosUrlState["plan"],
                       page: 1,
                     })
                   }
                 >
-                  <SelectTrigger className="min-h-11 w-full border-border/80 bg-background/80 sm:w-[140px]">
+                  <SelectTrigger className="min-h-11 w-full border-border/80 bg-background/80 sm:w-[160px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="adult">Adulto</SelectItem>
-                    <SelectItem value="kids">Kids</SelectItem>
+                    <SelectItem value="kids_1">Kids 1</SelectItem>
+                    <SelectItem value="kids_2">Kids 2</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -51,9 +51,9 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 **STU-4.1.** **`student_kind`** `adult` só pode associar-se a planos com **`plan_kind = adult`** da mesma conta.
 
-**STU-4.2.** **`student_kind`** `kids` só pode associar-se a planos com **`plan_kind`** em `{ kids_1, kids_2 }` da mesma conta.
+**STU-4.2.** **`student_kind`** `kids` pode associar-se a planos **`kids_1`**, **`kids_2`** ou **`adult`** da mesma conta (professor coloca manualmente juvenil na turma/preço de adulto quando aplicável).
 
-**STU-4.3.** A UI **não deve permitir** selecionar combinação incoerente (filtrar opções de plano por tipo de aluno e validar no servidor).
+**STU-4.3.** A UI **não deve permitir** combinações incoerentes (ex.: adulto em plano kids); listas de plano seguem **STU-4.1**/**STU-4.2** e o servidor valida com as mesmas regras.
 
 ## STU-5. Cadastro e graduação
 
@@ -72,6 +72,8 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 **STU-7.1.** Busca por **nome** com **debounce** no cliente.
 
 **STU-7.2.** **Paginação** por páginas (não scroll infinito). O tamanho da página é definido por **constante** partilhada no código (ex. `lib/constants/students.ts`), valor por defeito escolhido pela implementação (ex. 20) e citável em revisões.
+
+**STU-7.2.1.** Filtro opcional por **plano comercial** do vínculo aberto (**`plan_kind`** em `plans`, com `student_plans.ended_at` nulo): **Todos**, **Adulto**, **Kids 1**, **Kids 2**; parâmetro de URL **`plan`** (`lib/students/alunos-url.ts`). Com um plano específico seleccionado, alunos **sem** vínculo aberto não entram no resultado.
 
 **STU-7.3.** Controlo de **ordenação** com três modos: **nome (A–Z)**, **data de entrada** (`academy_start_date`), **última alteração** (`students.updated_at`). Registos com `academy_start_date` nulo ordenam **depois** dos com data, mantendo ordem estável por nome ou `updated_at` como desempate.
 

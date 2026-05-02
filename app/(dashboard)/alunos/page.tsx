@@ -27,7 +27,7 @@ export default async function AlunosPage({ searchParams }: PageProps) {
     getStudentCatalog(),
     listStudentsQuery({
       q: urlState.q || undefined,
-      kind: urlState.kind === "all" ? undefined : urlState.kind,
+      plan: urlState.plan === "all" ? undefined : urlState.plan,
       status: urlState.status === "all" ? undefined : urlState.status,
       sort: urlState.sort,
       page: urlState.page,

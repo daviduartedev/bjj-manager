@@ -29,7 +29,8 @@ export type ListStudentRow = {
 
 export type ListStudentsParams = {
   q?: string;
-  kind?: "adult" | "kids" | "all";
+  /** `plan_kind` do vínculo aberto (`student_plans.ended_at` nulo). */
+  plan?: PlanKind;
   status?: "active" | "inactive" | "paused" | "all";
   sort?: ListSortKey;
   page?: number;
@@ -50,6 +51,27 @@ export async function listStudentsQuery(
 
   const supabase = await createClient();
 
+  const planFilter =
+    params.plan === "adult" ||
+    params.plan === "kids_1" ||
+    params.plan === "kids_2"
+      ? params.plan
+      : undefined;
+
+  const studentPlansSelect = planFilter
+    ? `student_plans!inner (
+        plan_id,
+        due_day,
+        ended_at,
+        plans!inner ( name, kind )
+      )`
+    : `student_plans (
+        plan_id,
+        due_day,
+        ended_at,
+        plans ( name, kind )
+      )`;
+
   let q = supabase.from("students").select(
     `
       id,
@@ -62,7 +84,7 @@ export async function listStudentsQuery(
       current_degree,
       updated_at,
       belts!students_current_belt_id_fkey ( slug, kind ),
-      student_plans ( plan_id, due_day, ended_at, plans ( name, kind ) ),
+      ${studentPlansSelect},
       student_graduations ( resulting_belt_id, resulting_degree, graduated_at )
     `,
     { count: "exact" },
@@ -72,8 +94,10 @@ export async function listStudentsQuery(
   if (search) {
     q = q.ilike("full_name", `%${search}%`);
   }
-  if (params.kind === "adult" || params.kind === "kids") {
-    q = q.eq("kind", params.kind);
+  if (planFilter) {
+    q = q
+      .is("student_plans.ended_at", null)
+      .eq("student_plans.plans.kind", planFilter);
   }
   if (
     params.status === "active" ||
