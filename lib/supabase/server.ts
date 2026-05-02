@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+import { mergeSessionCookieOptions } from "@/lib/security/cookie-hardening";
+
 /**
  * Cliente Supabase para uso server-side (Server Components, Route Handlers,
  * Server Actions). Le e escreve cookies da sessao automaticamente.
@@ -24,7 +26,9 @@ export async function createClient() {
               cookieStore.set(
                 name,
                 value,
-                options as Parameters<typeof cookieStore.set>[2],
+                mergeSessionCookieOptions(
+                  options as Record<string, unknown> | undefined,
+                ) as Parameters<typeof cookieStore.set>[2],
               ),
             );
           } catch {

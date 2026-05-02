@@ -2,6 +2,8 @@
 
 Contrato canónico para **sessão do professor** na app Next.js com **Supabase Auth** e **`@supabase/ssr`**. Complementa **SEC-** ([`spec/features/rls-security/readme.md`](../rls-security/readme.md)) e o bootstrap em [`docs/security/rls.md`](../../../docs/security/rls.md).
 
+Verificação automatizada dos fluxos **AUTH-** (redirects, logout, ausência de leak em HTML inicial) está em **SECE2E-** ([`spec/features/security-e2e/readme.md`](../security-e2e/readme.md)).
+
 ## Relação com outras specs
 
 - Produto (escopo MVP): **SPEC-2.1**, **SPEC-3.7**, **SPEC-5.1** em [`spec/product/spec.md`](../../product/spec.md).

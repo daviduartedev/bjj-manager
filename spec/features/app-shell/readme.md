@@ -42,6 +42,8 @@ Os primeiros segmentos da área operacional (autenticada) são:
 
 Novas áreas autenticadas devem acrescentar prefixo aqui e no middleware, salvo decisão futura de agrupamento sob um único segmento.
 
+Para inventário de testes de segurança (**SECE2E-4**), incluir também rotas públicas **`/`**, **`/login`**, **`/register`** e qualquer segmento dinâmico adicional encontrado no código (ex.: **`/mensalidades/[studentId]`**), além da lista acima.
+
 ## SHELL-3. Navegação e estado ativo
 
 **SHELL-3.1.** Itens principais da navegação (rótulos em **pt-BR**): **Painel**, **Alunos**, **Mensalidades**, **Configurações**.

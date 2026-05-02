@@ -8,6 +8,7 @@ Contrato canónico para **isolamento multi-tenant** no banco: cada professor aut
 - Sessão e rotas na app: [`spec/features/authentication/readme.md`](../authentication/readme.md) (**AUTH-**).
 - Infraestrutura e ambiente: **SPEC-11.x** em [`spec/product/spec.md`](../../product/spec.md).
 - Prosa operacional (bootstrap, testes A/B): [`docs/security/rls.md`](../../../docs/security/rls.md).
+- Suíte CI e critérios de vazamento / IDOR na app: **SECE2E-** em [`spec/features/security-e2e/readme.md`](../security-e2e/readme.md) (**SECE2E-7.3** para `pnpm db:validate-rls`).
 
 ## Implementação
 

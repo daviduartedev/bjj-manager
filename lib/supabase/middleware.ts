@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { mergeSessionCookieOptions } from "@/lib/security/cookie-hardening";
 import {
   isAuthenticatedAreaPath,
   LEGACY_DASHBOARD_PREFIX,
@@ -41,7 +42,9 @@ export async function updateSession(request: NextRequest) {
           supabaseResponse.cookies.set(
             name,
             value,
-            options as Parameters<typeof supabaseResponse.cookies.set>[2],
+            mergeSessionCookieOptions(
+              options as Record<string, unknown> | undefined,
+            ) as Parameters<typeof supabaseResponse.cookies.set>[2],
           ),
         );
       },
