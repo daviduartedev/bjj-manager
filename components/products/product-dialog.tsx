@@ -54,7 +54,7 @@ export function ProductDialog({ open, onOpenChange }: Props) {
         onOpenChange(next);
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="overflow-hidden border-t-4 border-t-primary border-primary/20 bg-gradient-to-b from-primary/[0.04] to-card pt-6 sm:max-w-md">
         <form onSubmit={onSubmit}>
           <DialogHeader>
             <DialogTitle>Novo produto</DialogTitle>

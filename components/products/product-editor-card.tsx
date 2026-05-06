@@ -10,6 +10,7 @@ import {
   updateProduct,
   updateProductVariant,
 } from "@/actions/products";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
@@ -71,14 +72,45 @@ export function ProductEditorCard({ product }: Props) {
     router.refresh();
   }
 
+  const variantCount = product.variants.length;
+  const stockTotal = product.variants.reduce(
+    (n, v) => n + Math.max(0, v.stock_quantity),
+    0,
+  );
+
   return (
     <DashboardPanel
       icon={Package}
       title={product.name}
-      subtitle={product.active ? "Ativo" : "Inativo"}
-      className={cn(!product.active && "opacity-90")}
+      subtitle={`${variantCount} tamanho${variantCount === 1 ? "" : "s"} · ${stockTotal} peça${stockTotal === 1 ? "" : "s"} em estoque`}
+      className={cn(
+        "shadow-md transition-[box-shadow,transform] duration-200 hover:shadow-lg",
+        product.active
+          ? "border-l-[5px] border-l-primary ring-1 ring-primary/[0.12]"
+          : "border-l-[5px] border-l-muted-foreground/35 opacity-[0.97]",
+      )}
     >
       <div className="space-y-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge
+            variant="outline"
+            className={cn(
+              "border font-medium",
+              product.active
+                ? "border-bjj-green/35 bg-bjj-green/10 text-bjj-green"
+                : "border-muted-foreground/40 bg-muted/60 text-muted-foreground",
+            )}
+          >
+            {product.active ? "Em uso" : "Inativo"}
+          </Badge>
+          <Badge
+            variant="outline"
+            className="border-bjj-blue/30 bg-bjj-blue/[0.08] font-normal text-bjj-blue"
+          >
+            Código {product.code}
+          </Badge>
+        </div>
+
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="grid flex-1 gap-4 sm:max-w-md">
             <div className="space-y-2">
@@ -118,15 +150,17 @@ export function ProductEditorCard({ product }: Props) {
           </Button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 rounded-2xl border border-bjj-blue/15 bg-gradient-to-br from-bjj-blue/[0.06] via-card to-primary/[0.04] p-4 ring-1 ring-bjj-blue/10 sm:p-5">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-            <p className="text-crm-sm font-semibold text-foreground">Tamanhos e estoque</p>
+            <p className="text-crm-sm font-semibold text-foreground">
+              Tamanhos e estoque
+            </p>
             <p className="text-crm-xs text-muted-foreground">
               Edição manual; não há venda nem baixa automática.
             </p>
           </div>
 
-          <ul className="divide-y divide-border rounded-xl border border-border bg-card/40">
+          <ul className="divide-y divide-border/80 overflow-hidden rounded-xl border border-bjj-blue/20 bg-card/70 shadow-inner">
             {product.variants.length === 0 ? (
               <li className="px-4 py-6 text-crm-sm text-muted-foreground">
                 Nenhum tamanho cadastrado. Adicione abaixo.
@@ -136,7 +170,7 @@ export function ProductEditorCard({ product }: Props) {
             )}
           </ul>
 
-          <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:flex-row sm:items-end">
+          <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/[0.06] to-muted/30 p-4 sm:flex-row sm:items-end">
             <div className="grid flex-1 gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor={`new-size-${product.id}`}>Novo tamanho</Label>
@@ -259,8 +293,21 @@ function VariantRow(props: { variant: ProductRow["variants"][number] }) {
   const dirty =
     sizeDraft.trim() !== variant.size_label || stockDraft !== variant.stock_quantity;
 
+  const stock = variant.stock_quantity;
+  const stockStyle =
+    stock <= 0
+      ? "border-bjj-red/30 bg-bjj-red/[0.06]"
+      : stock <= 5
+        ? "border-bjj-yellow/40 bg-bjj-yellow/[0.10]"
+        : "border-bjj-green/25 bg-bjj-green/[0.06]";
+
   return (
-    <li className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-end">
+    <li
+      className={cn(
+        "flex flex-col gap-3 px-4 py-4 transition-colors sm:flex-row sm:items-end",
+        stockStyle,
+      )}
+    >
       <div className="grid flex-1 gap-3 sm:grid-cols-2">
         <div className="space-y-2">
           <Label className="text-crm-xs" htmlFor={`var-size-${variant.id}`}>
