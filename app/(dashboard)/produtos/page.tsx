@@ -31,31 +31,60 @@ export default async function ProdutosPage() {
           className="border-l-[5px] border-l-bjj-yellow ring-1 ring-bjj-yellow/20"
           title="Não foi possível carregar produtos"
         >
-          <div className="space-y-3 text-sm text-muted-foreground">
+          <div className="space-y-4 text-sm text-muted-foreground">
             <p>
-              O servidor não conseguiu ler a tabela de produtos na base de dados.
-              No ambiente de produção, é preciso aplicar a migração que cria{" "}
+              O servidor não conseguiu consultar produtos no Supabase ligado a este deploy
+              (variáveis{" "}
               <code className="rounded bg-muted px-1 py-0.5 text-xs text-foreground">
-                products
+                NEXT_PUBLIC_SUPABASE_URL
               </code>{" "}
               e{" "}
               <code className="rounded bg-muted px-1 py-0.5 text-xs text-foreground">
-                product_variants
-              </code>{" "}
-              (ficheiro{" "}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs text-foreground">
-                db/migrations/002_products_inventory.sql
+                NEXT_PUBLIC_SUPABASE_ANON_KEY
               </code>
-              ) no mesmo projeto Supabase ligado ao deploy (variáveis{" "}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs text-foreground">
-                NEXT_PUBLIC_SUPABASE_*
+              ). Confirme que é o <strong className="text-foreground">mesmo projeto</strong> em que corre o SQL.
+            </p>
+            <ol className="list-decimal space-y-2 pl-5 text-foreground/90">
+              <li>
+                Se as tabelas ainda não existem: no Supabase →{" "}
+                <strong className="font-medium">SQL Editor</strong>, execute o ficheiro{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                  db/migrations/002_products_inventory.sql
+                </code>{" "}
+                (cria{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">products</code> e{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">product_variants</code>
+                ).
+              </li>
+              <li>
+                Com a app atual, execute também{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                  db/migrations/003_product_audience_variant_line.sql
+                </code>{" "}
+                (colunas <code className="rounded bg-muted px-1 py-0.5 text-xs">audience</code>{" "}
+                e <code className="rounded bg-muted px-1 py-0.5 text-xs">line</code>). Sem isto, o
+                pedido falha mesmo que a tabela{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">products</code> já exista.
+              </li>
+              <li>
+                Se usa RLS por conta, aplique as políticas de{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">db/policies.sql</code> para{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">products</code> /{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">product_variants</code>.
+              </li>
+            </ol>
+            <p>
+              Na Vercel, abra{" "}
+              <strong className="font-medium text-foreground">Functions → Runtime Logs</strong>{" "}
+              no deployment correspondente para ver a mensagem completa do PostgREST/Supabase (ex.:{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                relation does not exist
+              </code>{" "}
+              ou{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                column ... does not exist
               </code>
               ).
-            </p>
-            <p>
-              Confirme também nos logs da Vercel (Functions → Runtime Logs) a mensagem
-              completa deste erro; o digest mostrado na página serve apenas para cruzar
-              com o log no servidor.
             </p>
           </div>
         </DashboardPanel>
