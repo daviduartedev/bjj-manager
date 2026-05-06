@@ -41,6 +41,66 @@ VALUES
   )
 ON CONFLICT ON CONSTRAINT plans_account_kind_unique DO NOTHING;
 
+-- ---------- Produtos iniciais (conta seed dev) ----------
+INSERT INTO
+  public.products (account_id, code, name, active, sort_order)
+VALUES
+  (
+    '00000000-0000-4000-8000-000000000001'::uuid,
+    'academy-shirts',
+    'Camisetas da academia',
+    true,
+    10
+  ),
+  (
+    '00000000-0000-4000-8000-000000000001'::uuid,
+    'rash-guards-femininas',
+    'Rash Guards femininas',
+    true,
+    20
+  ),
+  (
+    '00000000-0000-4000-8000-000000000001'::uuid,
+    'rash-guards-masculinas',
+    'Rash Guards masculinas',
+    true,
+    30
+  ),
+  (
+    '00000000-0000-4000-8000-000000000001'::uuid,
+    'quimonos-kmno',
+    'Quimonos KMNO',
+    true,
+    40
+  ),
+  (
+    '00000000-0000-4000-8000-000000000001'::uuid,
+    'quimonos-zenshins',
+    'Quimonos Zenshins',
+    true,
+    50
+  )
+ON CONFLICT ON CONSTRAINT products_account_code_unique DO NOTHING;
+
+INSERT INTO
+  public.product_variants (product_id, size_label, stock_quantity, sort_order)
+SELECT
+  p.id,
+  v.size_label,
+  0,
+  v.sort_order
+FROM
+  public.products p
+  INNER JOIN (
+    VALUES
+      ('academy-shirts', 'P', 10),
+      ('academy-shirts', 'M', 20),
+      ('academy-shirts', 'G', 30),
+      ('academy-shirts', 'GG', 40)
+  ) AS v(product_code, size_label, sort_order) ON p.code = v.product_code
+  AND p.account_id = '00000000-0000-4000-8000-000000000001'::uuid
+ON CONFLICT ON CONSTRAINT product_variants_product_size_unique DO NOTHING;
+
 -- ---------- Official belts (GR-1 adult + GR-2 kids) ----------
 INSERT INTO
   public.belts (kind, slug, ordinal)

@@ -163,6 +163,34 @@ CREATE TABLE IF NOT EXISTS public.payments (
 ALTER TABLE public.payments
 ADD COLUMN IF NOT EXISTS payment_method text NULL;
 
+-- ---------- Products (controle interno por conta) ----------
+CREATE TABLE IF NOT EXISTS public.products (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+  account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
+  code text NOT NULL,
+  name text NOT NULL,
+  active boolean NOT NULL DEFAULT true,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT products_account_code_unique UNIQUE (account_id, code),
+  CONSTRAINT products_name_not_blank CHECK (length(trim(name)) > 0),
+  CONSTRAINT products_code_not_blank CHECK (length(trim(code)) > 0)
+);
+
+CREATE TABLE IF NOT EXISTS public.product_variants (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+  product_id uuid NOT NULL REFERENCES public.products (id) ON DELETE CASCADE,
+  size_label text NOT NULL,
+  stock_quantity integer NOT NULL DEFAULT 0,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT product_variants_product_size_unique UNIQUE (product_id, size_label),
+  CONSTRAINT product_variants_size_not_blank CHECK (length(trim(size_label)) > 0),
+  CONSTRAINT product_variants_stock_non_negative CHECK (stock_quantity >= 0)
+);
+
 -- ---------- Indexes ----------
 CREATE INDEX IF NOT EXISTS idx_students_account_id ON public.students (account_id);
 
@@ -173,3 +201,7 @@ CREATE INDEX IF NOT EXISTS idx_student_graduations_student_graduated_at ON publi
 CREATE UNIQUE INDEX IF NOT EXISTS student_plans_one_open_per_student ON public.student_plans (student_id)
 WHERE
   ended_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_products_account_id ON public.products (account_id);
+
+CREATE INDEX IF NOT EXISTS idx_product_variants_product_id ON public.product_variants (product_id);

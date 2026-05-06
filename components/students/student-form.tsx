@@ -33,8 +33,8 @@ import { isWhiteBeltSlug } from "@/lib/students/belt-kind";
 import { degreeOptionsForBelt } from "@/lib/students/degree";
 import { maskCpfInput, maskPhoneBrInput } from "@/lib/students/input-masks";
 import {
-  pickDefaultPlanForStudentKind,
-  planKindMatchesStudentKind,
+  pickDefaultPlanForStudentContext,
+  planKindMatchesStudentContext,
 } from "@/lib/students/plan-kind";
 import {
   buildStudentFullFormSchema,
@@ -78,12 +78,19 @@ export function StudentForm({
     [belts, kind],
   );
 
-  const plansForKind = useMemo(
-    () => plans.filter((p) => planKindMatchesStudentKind(p.kind, kind)),
-    [plans, kind],
-  );
-
   const selectedBelt = belts.find((b) => b.id === beltId);
+
+  const plansForKind = useMemo(
+    () =>
+      plans.filter((p) =>
+        planKindMatchesStudentContext({
+          planKind: p.kind,
+          studentKind: kind,
+          beltSlug: selectedBelt?.slug,
+        }),
+      ),
+    [plans, kind, selectedBelt?.slug],
+  );
   const isWhiteBelt = selectedBelt
     ? isWhiteBeltSlug(selectedBelt.slug)
     : false;
@@ -94,13 +101,29 @@ export function StudentForm({
     }
   }, [isWhiteBelt, form]);
 
+  useEffect(() => {
+    const currentPlanId = form.getValues("plan_id");
+    if (plansForKind.some((p) => p.id === currentPlanId)) return;
+    const fallback = pickDefaultPlanForStudentContext(
+      plans,
+      kind,
+      selectedBelt?.slug,
+    );
+    if (fallback) {
+      form.setValue("plan_id", fallback.id, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [form, kind, plans, plansForKind, selectedBelt?.slug]);
+
   const degreeChoices = selectedBelt
     ? degreeOptionsForBelt(selectedBelt.slug, selectedBelt.kind)
     : [0, 1, 2, 3, 4];
 
   function syncKind(kindNext: "adult" | "kids") {
     const b = belts.find((x) => x.kind === kindNext);
-    const p = pickDefaultPlanForStudentKind(plans, kindNext);
+    const p = pickDefaultPlanForStudentContext(plans, kindNext, b?.slug);
     if (b) {
       form.setValue("current_belt_id", b.id);
       if (isWhiteBeltSlug(b.slug)) {

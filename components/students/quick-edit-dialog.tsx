@@ -38,7 +38,10 @@ import { mapStudentServerError } from "@/lib/students/action-errors";
 import { beltLabelPt } from "@/lib/students/belt-labels";
 import { degreeOptionsForBelt } from "@/lib/students/degree";
 import type { StudentKind } from "@/lib/students/degree";
-import { planKindMatchesStudentKind } from "@/lib/students/plan-kind";
+import {
+  pickDefaultPlanForStudentContext,
+  planKindMatchesStudentContext,
+} from "@/lib/students/plan-kind";
 import {
   buildQuickEditFormSchema,
   type QuickEditFormValues,
@@ -107,8 +110,29 @@ export function QuickEditDialog({
 
   const beltsForKind = belts.filter((b) => b.kind === kind);
   const plansForKind = plans.filter((p) =>
-    planKindMatchesStudentKind(p.kind, kind),
+    planKindMatchesStudentContext({
+      planKind: p.kind,
+      studentKind: kind as StudentKind,
+      beltSlug: selectedBelt?.slug,
+    }),
   );
+
+  useEffect(() => {
+    if (!open || !defaults) return;
+    const currentPlanId = form.getValues("plan_id");
+    if (plansForKind.some((p) => p.id === currentPlanId)) return;
+    const fallback = pickDefaultPlanForStudentContext(
+      plans,
+      kind as StudentKind,
+      selectedBelt?.slug,
+    );
+    if (fallback) {
+      form.setValue("plan_id", fallback.id, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [defaults, form, kind, open, plans, plansForKind, selectedBelt?.slug]);
 
   async function onSubmit(values: QuickEditFormValues) {
     if (!student) return;

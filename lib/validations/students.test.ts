@@ -15,6 +15,11 @@ const beltKids = {
   slug: "white",
   kind: "kids" as const,
 };
+const beltKidsOrange = {
+  id: "10000000-0000-4000-8000-000000000004",
+  slug: "orange",
+  kind: "kids" as const,
+};
 const planAdult = {
   id: "20000000-0000-4000-8000-000000000001",
   kind: "adult" as const,
@@ -41,7 +46,10 @@ const baseInput = {
 
 describe("buildStudentFullFormSchema", () => {
   const plansTriple = [planAdult, planKids, planKids2];
-  const schema = buildStudentFullFormSchema([beltAdult, beltKids], plansTriple);
+  const schema = buildStudentFullFormSchema(
+    [beltAdult, beltKids, beltKidsOrange],
+    plansTriple,
+  );
 
   it("aceita combinação adulto + plano adulto + faixa adulta", () => {
     const r = schema.safeParse(baseInput);
@@ -56,11 +64,24 @@ describe("buildStudentFullFormSchema", () => {
     }
   });
 
-  it("aceita kids com plano Adulto (juvenil na turma de adulto)", () => {
+  it("rejeita kids fora da família laranja com plano Adulto", () => {
     const r = schema.safeParse({
       ...baseInput,
       kind: "kids" as const,
       current_belt_id: beltKids.id,
+      plan_id: planAdult.id,
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.flatten().fieldErrors.plan_id?.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("aceita kids faixa laranja com plano Adulto", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "kids" as const,
+      current_belt_id: beltKidsOrange.id,
       plan_id: planAdult.id,
     });
     expect(r.success).toBe(true);
@@ -121,6 +142,11 @@ describe("buildQuickEditFormSchema kids + Adulto", () => {
     slug: "white",
     kind: "kids" as const,
   };
+  const beltKidsOrange = {
+    id: "10000000-0000-4000-8000-000000000004",
+    slug: "orange",
+    kind: "kids" as const,
+  };
   const planAdult = {
     id: "20000000-0000-4000-8000-000000000001",
     kind: "adult" as const,
@@ -130,17 +156,28 @@ describe("buildQuickEditFormSchema kids + Adulto", () => {
     kind: "kids_1" as const,
   };
   const schema = buildQuickEditFormSchema(
-    [beltKids],
+    [beltKids, beltKidsOrange],
     [planAdult, planKids],
     "kids",
   );
 
-  it("aceita plano Adulto para aluno kids", () => {
+  it("rejeita plano Adulto para kids fora da família laranja", () => {
     const r = schema.safeParse({
       status: "active",
       plan_id: planAdult.id,
       due_day: 10,
       current_belt_id: beltKids.id,
+      current_degree: 0,
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it("aceita plano Adulto para kids faixa laranja", () => {
+    const r = schema.safeParse({
+      status: "active",
+      plan_id: planAdult.id,
+      due_day: 10,
+      current_belt_id: beltKidsOrange.id,
       current_degree: 0,
     });
     expect(r.success).toBe(true);

@@ -14,7 +14,7 @@ import {
 import { ROUTES } from "@/lib/routes";
 import { mapStudentServerError } from "@/lib/students/action-errors";
 import { onlyDigits } from "@/lib/students/input-masks";
-import { planKindMatchesStudentKind } from "@/lib/students/plan-kind";
+import { planKindMatchesStudentContext } from "@/lib/students/plan-kind";
 import type { StudentKind } from "@/lib/students/degree";
 import { isValidDegreeForBelt } from "@/lib/students/degree";
 import type { PlanKind } from "@/lib/students/plan-kind";
@@ -101,9 +101,16 @@ export async function createStudent(
     }
     if (
       !plan ||
-      !planKindMatchesStudentKind(plan.kind, v.kind as StudentKind)
+      !planKindMatchesStudentContext({
+        planKind: plan.kind,
+        studentKind: v.kind as StudentKind,
+        beltSlug: belt.slug,
+      })
     ) {
-      return { ok: false, error: "Dados de plano inválidos." };
+      return {
+        ok: false,
+        error: "Dados de plano inválidos para a faixa do aluno.",
+      };
     }
     if (!isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree)) {
       return { ok: false, error: "Grau inválido para a faixa." };
@@ -178,9 +185,16 @@ export async function updateStudent(
     }
     if (
       !plan ||
-      !planKindMatchesStudentKind(plan.kind, v.kind as StudentKind)
+      !planKindMatchesStudentContext({
+        planKind: plan.kind,
+        studentKind: v.kind as StudentKind,
+        beltSlug: belt.slug,
+      })
     ) {
-      return { ok: false, error: "Dados de plano inválidos." };
+      return {
+        ok: false,
+        error: "Dados de plano inválidos para a faixa do aluno.",
+      };
     }
     if (!isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree)) {
       return { ok: false, error: "Grau inválido para a faixa." };
@@ -253,6 +267,21 @@ export async function quickUpdateStudent(
     }
     if (!isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree)) {
       return { ok: false, error: "Grau inválido para a faixa." };
+    }
+
+    const plan = await resolvePlan(supabase, v.plan_id);
+    if (
+      !plan ||
+      !planKindMatchesStudentContext({
+        planKind: plan.kind,
+        studentKind,
+        beltSlug: belt.slug,
+      })
+    ) {
+      return {
+        ok: false,
+        error: "Dados de plano inválidos para a faixa do aluno.",
+      };
     }
 
     const { error: upErr } = await supabase

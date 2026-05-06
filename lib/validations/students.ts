@@ -3,7 +3,7 @@ import { z } from "zod";
 import { isValidCpfDigits, onlyDigits } from "@/lib/students/input-masks";
 import { isValidDegreeForBelt } from "@/lib/students/degree";
 import type { PlanKind } from "@/lib/students/plan-kind";
-import { planKindMatchesStudentKind } from "@/lib/students/plan-kind";
+import { planKindMatchesStudentContext } from "@/lib/students/plan-kind";
 import type { StudentKind } from "@/lib/students/degree";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida.");
@@ -68,10 +68,17 @@ export function buildStudentFullFormSchema(
       }
 
       const plan = planById.get(data.plan_id);
-      if (!plan || !planKindMatchesStudentKind(plan.kind, data.kind as StudentKind)) {
+      if (
+        !plan ||
+        !planKindMatchesStudentContext({
+          planKind: plan.kind,
+          studentKind: data.kind as StudentKind,
+          beltSlug: belt.slug,
+        })
+      ) {
         ctx.addIssue({
           code: "custom",
-          message: "Plano incompatível com o tipo de aluno.",
+          message: "Plano incompatível com o tipo e a faixa do aluno.",
           path: ["plan_id"],
         });
       }
@@ -129,10 +136,7 @@ export function buildQuickEditFormSchema(
   const beltIds = new Set(
     belts.filter((b) => b.kind === studentKind).map((b) => b.id),
   );
-  const allowedPlans = plans.filter((p) =>
-    planKindMatchesStudentKind(p.kind, studentKind),
-  );
-  const planIds = new Set(allowedPlans.map((p) => p.id));
+  const planById = new Map(plans.map((p) => [p.id, p] as const));
 
   return z
     .object({
@@ -160,10 +164,18 @@ export function buildQuickEditFormSchema(
           path: ["current_degree"],
         });
       }
-      if (!planIds.has(data.plan_id)) {
+      const plan = planById.get(data.plan_id);
+      if (
+        !plan ||
+        !planKindMatchesStudentContext({
+          planKind: plan.kind,
+          studentKind,
+          beltSlug: belt.slug,
+        })
+      ) {
         ctx.addIssue({
           code: "custom",
-          message: "Plano incompatível.",
+          message: "Plano incompatível com a faixa do aluno.",
           path: ["plan_id"],
         });
       }
