@@ -51,15 +51,29 @@ export async function loadProductsPageData(): Promise<ProductRow[]> {
 
   const rows = (data ?? []) as ProductRowRaw[];
 
-  return rows.map((row) => ({
-    id: row.id,
-    code: row.code,
-    name: row.name,
-    active: row.active,
-    sort_order: row.sort_order,
-    variants: [...(row.product_variants ?? [])].sort(
-      (a, b) =>
-        a.sort_order - b.sort_order || a.size_label.localeCompare(b.size_label),
-    ),
-  }));
+  const byProductId = new Map<string, ProductRowRaw>();
+  for (const row of rows) {
+    if (!byProductId.has(row.id)) {
+      byProductId.set(row.id, row);
+    }
+  }
+
+  return [...byProductId.values()].map((row) => {
+    const rawVariants = row.product_variants ?? [];
+    const variantById = new Map<string, ProductVariantRow>();
+    for (const v of rawVariants) {
+      if (!variantById.has(v.id)) variantById.set(v.id, v);
+    }
+    return {
+      id: row.id,
+      code: row.code,
+      name: row.name,
+      active: row.active,
+      sort_order: row.sort_order,
+      variants: [...variantById.values()].sort(
+        (a, b) =>
+          a.sort_order - b.sort_order || a.size_label.localeCompare(b.size_label),
+      ),
+    };
+  });
 }
