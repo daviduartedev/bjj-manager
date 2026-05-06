@@ -14,7 +14,10 @@ import {
 import { ROUTES } from "@/lib/routes";
 import { mapStudentServerError } from "@/lib/students/action-errors";
 import { onlyDigits } from "@/lib/students/input-masks";
-import { planKindMatchesStudentContext } from "@/lib/students/plan-kind";
+import {
+  beltMatchesStudentKindForBeltRow,
+  planKindMatchesStudentContext,
+} from "@/lib/students/plan-kind";
 import type { StudentKind } from "@/lib/students/degree";
 import { isValidDegreeForBelt } from "@/lib/students/degree";
 import type { PlanKind } from "@/lib/students/plan-kind";
@@ -96,7 +99,7 @@ export async function createStudent(
 
     const belt = await resolveBelt(supabase, v.current_belt_id);
     const plan = await resolvePlan(supabase, v.plan_id);
-    if (!belt || belt.kind !== v.kind) {
+    if (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind)) {
       return { ok: false, error: "Dados de faixa inválidos." };
     }
     if (
@@ -180,7 +183,7 @@ export async function updateStudent(
 
     const belt = await resolveBelt(supabase, v.current_belt_id);
     const plan = await resolvePlan(supabase, v.plan_id);
-    if (!belt || belt.kind !== v.kind) {
+    if (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind)) {
       return { ok: false, error: "Dados de faixa inválidos." };
     }
     if (
@@ -262,7 +265,7 @@ export async function quickUpdateStudent(
     const supabase = await createClient();
 
     const belt = await resolveBelt(supabase, v.current_belt_id);
-    if (!belt || belt.kind !== studentKind) {
+    if (!belt || !beltMatchesStudentKindForBeltRow(belt, studentKind)) {
       return { ok: false, error: "Dados de faixa inválidos." };
     }
     if (!isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree)) {

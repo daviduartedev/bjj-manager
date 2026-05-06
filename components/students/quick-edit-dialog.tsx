@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 import { quickUpdateStudent } from "@/actions/students";
+import { AdultOrangeBeltConfirmDialog } from "@/components/students/adult-orange-belt-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,7 +28,9 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -39,6 +42,7 @@ import { beltLabelPt } from "@/lib/students/belt-labels";
 import { degreeOptionsForBelt } from "@/lib/students/degree";
 import type { StudentKind } from "@/lib/students/degree";
 import {
+  isOrangeFamilyKidsBeltSlug,
   pickDefaultPlanForStudentContext,
   planKindMatchesStudentContext,
 } from "@/lib/students/plan-kind";
@@ -63,6 +67,10 @@ export function QuickEditDialog({
   onOpenChange,
 }: Props) {
   const [loading, setLoading] = useState(false);
+  const [adultOrangeConfirm, setAdultOrangeConfirm] = useState<{
+    beltId: string;
+    label: string;
+  } | null>(null);
 
   const kind = student?.kind ?? "adult";
   const schema = useMemo(
@@ -108,7 +116,19 @@ export function QuickEditDialog({
     ? degreeOptionsForBelt(selectedBelt.slug, selectedBelt.kind)
     : [0, 1, 2, 3, 4];
 
-  const beltsForKind = belts.filter((b) => b.kind === kind);
+  const { adultBelts, orangeJuvenileBelts, kidsBelts } = useMemo(() => {
+    const byOrdinal = (a: BeltCatalogRow, b: BeltCatalogRow) =>
+      a.ordinal - b.ordinal;
+    return {
+      adultBelts: belts.filter((b) => b.kind === "adult").sort(byOrdinal),
+      orangeJuvenileBelts: belts
+        .filter(
+          (b) => b.kind === "kids" && isOrangeFamilyKidsBeltSlug(b.slug),
+        )
+        .sort(byOrdinal),
+      kidsBelts: belts.filter((b) => b.kind === "kids").sort(byOrdinal),
+    };
+  }, [belts]);
   const plansForKind = plans.filter((p) =>
     planKindMatchesStudentContext({
       planKind: p.kind,
@@ -133,6 +153,18 @@ export function QuickEditDialog({
       });
     }
   }, [defaults, form, kind, open, plans, plansForKind, selectedBelt?.slug]);
+
+  function applyBeltChange(beltIdNext: string) {
+    form.setValue("current_belt_id", beltIdNext, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    const b = belts.find((x) => x.id === beltIdNext);
+    if (b) {
+      const opts = degreeOptionsForBelt(b.slug, b.kind);
+      form.setValue("current_degree", opts[0] ?? 0);
+    }
+  }
 
   async function onSubmit(values: QuickEditFormValues) {
     if (!student) return;
@@ -277,12 +309,23 @@ export function QuickEditDialog({
                         disabled={loading}
                         value={field.value}
                         onValueChange={(v) => {
-                          field.onChange(v);
                           const b = belts.find((x) => x.id === v);
-                          if (b) {
-                            const opts = degreeOptionsForBelt(b.slug, b.kind);
-                            form.setValue("current_degree", opts[0] ?? 0);
+                          if (!b) return;
+                          if (
+                            kind === "adult" &&
+                            b.kind === "kids" &&
+                            isOrangeFamilyKidsBeltSlug(b.slug)
+                          ) {
+                            const prev = belts.find((x) => x.id === field.value);
+                            if (!isOrangeFamilyKidsBeltSlug(prev?.slug)) {
+                              setAdultOrangeConfirm({
+                                beltId: v,
+                                label: beltLabelPt(b.slug, b.kind),
+                              });
+                              return;
+                            }
                           }
+                          applyBeltChange(v);
                         }}
                       >
                         <FormControl>
@@ -291,11 +334,39 @@ export function QuickEditDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {beltsForKind.map((b) => (
-                            <SelectItem key={b.id} value={b.id}>
-                              {beltLabelPt(b.slug, b.kind)}
-                            </SelectItem>
-                          ))}
+                          {kind === "adult" ? (
+                            <>
+                              <SelectGroup>
+                                <SelectLabel>Faixas adulto</SelectLabel>
+                                {adultBelts.map((b) => (
+                                  <SelectItem key={b.id} value={b.id}>
+                                    {beltLabelPt(b.slug, b.kind)}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                              {orangeJuvenileBelts.length > 0 ? (
+                                <SelectGroup>
+                                  <SelectLabel className="text-primary">
+                                    Laranja (juvenil) — tipo Adulto
+                                  </SelectLabel>
+                                  {orangeJuvenileBelts.map((b) => (
+                                    <SelectItem key={b.id} value={b.id}>
+                                      {beltLabelPt(b.slug, b.kind)}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              ) : null}
+                            </>
+                          ) : (
+                            <SelectGroup>
+                              <SelectLabel>Faixas kids</SelectLabel>
+                              {kidsBelts.map((b) => (
+                                <SelectItem key={b.id} value={b.id}>
+                                  {beltLabelPt(b.slug, b.kind)}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -342,6 +413,19 @@ export function QuickEditDialog({
                   </Link>
                 </Button>
               </DialogFooter>
+
+              <AdultOrangeBeltConfirmDialog
+                open={adultOrangeConfirm !== null}
+                onOpenChange={(open) => {
+                  if (!open) setAdultOrangeConfirm(null);
+                }}
+                beltLabel={adultOrangeConfirm?.label ?? ""}
+                onConfirm={() => {
+                  if (adultOrangeConfirm) {
+                    applyBeltChange(adultOrangeConfirm.beltId);
+                  }
+                }}
+              />
             </form>
           </Form>
         )}

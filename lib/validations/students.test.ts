@@ -87,6 +87,31 @@ describe("buildStudentFullFormSchema", () => {
     expect(r.success).toBe(true);
   });
 
+  it("aceita adulto tipo Adulto com faixa laranja (catálogo kids) e plano Adulto", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "adult" as const,
+      current_belt_id: beltKidsOrange.id,
+      plan_id: planAdult.id,
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("rejeita adulto com faixa kids que não é laranja", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "adult" as const,
+      current_belt_id: beltKids.id,
+      plan_id: planAdult.id,
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.flatten().fieldErrors.current_belt_id?.length).toBeGreaterThan(
+        0,
+      );
+    }
+  });
+
   it("rejeita CPF com dígitos inválidos (STU-6)", () => {
     const r = schema.safeParse({
       ...baseInput,
@@ -173,6 +198,39 @@ describe("buildQuickEditFormSchema kids + Adulto", () => {
   });
 
   it("aceita plano Adulto para kids faixa laranja", () => {
+    const r = schema.safeParse({
+      status: "active",
+      plan_id: planAdult.id,
+      due_day: 10,
+      current_belt_id: beltKidsOrange.id,
+      current_degree: 0,
+    });
+    expect(r.success).toBe(true);
+  });
+});
+
+describe("buildQuickEditFormSchema adult + faixa laranja juvenil", () => {
+  const beltAdult = {
+    id: "10000000-0000-4000-8000-000000000001",
+    slug: "blue",
+    kind: "adult" as const,
+  };
+  const beltKidsOrange = {
+    id: "10000000-0000-4000-8000-000000000004",
+    slug: "orange",
+    kind: "kids" as const,
+  };
+  const planAdult = {
+    id: "20000000-0000-4000-8000-000000000001",
+    kind: "adult" as const,
+  };
+  const schema = buildQuickEditFormSchema(
+    [beltAdult, beltKidsOrange],
+    [planAdult],
+    "adult",
+  );
+
+  it("aceita adulto com faixa laranja e plano Adulto", () => {
     const r = schema.safeParse({
       status: "active",
       plan_id: planAdult.id,

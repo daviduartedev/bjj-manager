@@ -3,7 +3,10 @@ import { z } from "zod";
 import { isValidCpfDigits, onlyDigits } from "@/lib/students/input-masks";
 import { isValidDegreeForBelt } from "@/lib/students/degree";
 import type { PlanKind } from "@/lib/students/plan-kind";
-import { planKindMatchesStudentContext } from "@/lib/students/plan-kind";
+import {
+  beltMatchesStudentKindForBeltRow,
+  planKindMatchesStudentContext,
+} from "@/lib/students/plan-kind";
 import type { StudentKind } from "@/lib/students/degree";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida.");
@@ -52,7 +55,7 @@ export function buildStudentFullFormSchema(
         return;
       }
       const belt = belts.find((b) => b.id === data.current_belt_id)!;
-      if (belt.kind !== data.kind) {
+      if (!beltMatchesStudentKindForBeltRow(belt, data.kind as StudentKind)) {
         ctx.addIssue({
           code: "custom",
           message: "A faixa não corresponde ao tipo de aluno.",
@@ -134,7 +137,9 @@ export function buildQuickEditFormSchema(
   studentKind: StudentKind,
 ) {
   const beltIds = new Set(
-    belts.filter((b) => b.kind === studentKind).map((b) => b.id),
+    belts
+      .filter((b) => beltMatchesStudentKindForBeltRow(b, studentKind))
+      .map((b) => b.id),
   );
   const planById = new Map(plans.map((p) => [p.id, p] as const));
 

@@ -1,4 +1,4 @@
-import type { StudentKind } from "@/lib/students/degree";
+import type { BeltKind, StudentKind } from "@/lib/students/degree";
 
 export type PlanKind = "kids_1" | "kids_2" | "adult";
 
@@ -13,6 +13,22 @@ export function isOrangeFamilyKidsBeltSlug(
   slug: string | null | undefined,
 ): boolean {
   return typeof slug === "string" && ORANGE_FAMILY_KIDS_BELTS.has(slug);
+}
+
+/**
+ * Faixa permitida para o tipo de aluno no catálogo.
+ * Adulto pode usar faixa kids só na família laranja (casos especiais, plano Adulto).
+ */
+export function beltMatchesStudentKindForBeltRow(
+  belt: { kind: BeltKind; slug: string },
+  studentKind: StudentKind,
+): boolean {
+  if (belt.kind === studentKind) return true;
+  return (
+    studentKind === "adult" &&
+    belt.kind === "kids" &&
+    isOrangeFamilyKidsBeltSlug(belt.slug)
+  );
 }
 
 /** Compatibilidade plano × tipo × faixa atual (STU-4 + faixa laranja). */

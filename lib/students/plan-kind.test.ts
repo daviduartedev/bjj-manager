@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  beltMatchesStudentKindForBeltRow,
   isOrangeFamilyKidsBeltSlug,
   pickDefaultPlanForStudentContext,
   pickDefaultPlanForStudentKind,
@@ -35,6 +36,41 @@ describe("pickDefaultPlanForStudentKind", () => {
 
   it("adult usa Adulto", () => {
     expect(pickDefaultPlanForStudentKind(plans, "adult")?.kind).toBe("adult");
+  });
+});
+
+describe("beltMatchesStudentKindForBeltRow", () => {
+  it("adult com faixa adulta ou laranja kids", () => {
+    expect(
+      beltMatchesStudentKindForBeltRow(
+        { kind: "adult", slug: "blue" },
+        "adult",
+      ),
+    ).toBe(true);
+    expect(
+      beltMatchesStudentKindForBeltRow(
+        { kind: "kids", slug: "orange" },
+        "adult",
+      ),
+    ).toBe(true);
+  });
+
+  it("adult não usa outras faixas kids", () => {
+    expect(
+      beltMatchesStudentKindForBeltRow(
+        { kind: "kids", slug: "blue" },
+        "adult",
+      ),
+    ).toBe(false);
+  });
+
+  it("kids com faixa kids", () => {
+    expect(
+      beltMatchesStudentKindForBeltRow(
+        { kind: "kids", slug: "yellow" },
+        "kids",
+      ),
+    ).toBe(true);
   });
 });
 

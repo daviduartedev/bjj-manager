@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { createStudent, updateStudent } from "@/actions/students";
+import { AdultOrangeBeltConfirmDialog } from "@/components/students/adult-orange-belt-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,7 +21,9 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -33,6 +36,7 @@ import { isWhiteBeltSlug } from "@/lib/students/belt-kind";
 import { degreeOptionsForBelt } from "@/lib/students/degree";
 import { maskCpfInput, maskPhoneBrInput } from "@/lib/students/input-masks";
 import {
+  isOrangeFamilyKidsBeltSlug,
   pickDefaultPlanForStudentContext,
   planKindMatchesStudentContext,
 } from "@/lib/students/plan-kind";
@@ -58,6 +62,10 @@ export function StudentForm({
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [adultOrangeConfirm, setAdultOrangeConfirm] = useState<{
+    beltId: string;
+    label: string;
+  } | null>(null);
 
   const schema = useMemo(
     () => buildStudentFullFormSchema(belts, plans),
@@ -73,10 +81,34 @@ export function StudentForm({
   const kind = form.watch("kind");
   const beltId = form.watch("current_belt_id");
 
-  const beltsForKind = useMemo(
-    () => belts.filter((b) => b.kind === kind),
-    [belts, kind],
-  );
+  const { adultBelts, orangeJuvenileBelts, kidsBelts } = useMemo(() => {
+    const byOrdinal = (a: BeltCatalogRow, b: BeltCatalogRow) =>
+      a.ordinal - b.ordinal;
+    return {
+      adultBelts: belts.filter((b) => b.kind === "adult").sort(byOrdinal),
+      orangeJuvenileBelts: belts
+        .filter(
+          (b) => b.kind === "kids" && isOrangeFamilyKidsBeltSlug(b.slug),
+        )
+        .sort(byOrdinal),
+      kidsBelts: belts.filter((b) => b.kind === "kids").sort(byOrdinal),
+    };
+  }, [belts]);
+
+  function applyBeltChange(beltIdNext: string) {
+    form.setValue("current_belt_id", beltIdNext, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    const b = belts.find((x) => x.id === beltIdNext);
+    if (!b) return;
+    if (isWhiteBeltSlug(b.slug)) {
+      form.setValue("current_degree", 0);
+    } else {
+      const opts = degreeOptionsForBelt(b.slug, b.kind);
+      form.setValue("current_degree", opts[0] ?? 0);
+    }
+  }
 
   const selectedBelt = belts.find((b) => b.id === beltId);
 
@@ -304,15 +336,23 @@ export function StudentForm({
                   disabled={loading}
                   value={field.value}
                   onValueChange={(v) => {
-                    field.onChange(v);
                     const b = belts.find((x) => x.id === v);
                     if (!b) return;
-                    if (isWhiteBeltSlug(b.slug)) {
-                      form.setValue("current_degree", 0);
-                    } else {
-                      const opts = degreeOptionsForBelt(b.slug, b.kind);
-                      form.setValue("current_degree", opts[0] ?? 0);
+                    if (
+                      kind === "adult" &&
+                      b.kind === "kids" &&
+                      isOrangeFamilyKidsBeltSlug(b.slug)
+                    ) {
+                      const prev = belts.find((x) => x.id === field.value);
+                      if (!isOrangeFamilyKidsBeltSlug(prev?.slug)) {
+                        setAdultOrangeConfirm({
+                          beltId: v,
+                          label: beltLabelPt(b.slug, b.kind),
+                        });
+                        return;
+                      }
                     }
+                    applyBeltChange(v);
                   }}
                 >
                   <FormControl>
@@ -321,11 +361,39 @@ export function StudentForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {beltsForKind.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>
-                        {beltLabelPt(b.slug, b.kind)}
-                      </SelectItem>
-                    ))}
+                    {kind === "adult" ? (
+                      <>
+                        <SelectGroup>
+                          <SelectLabel>Faixas adulto</SelectLabel>
+                          {adultBelts.map((b) => (
+                            <SelectItem key={b.id} value={b.id}>
+                              {beltLabelPt(b.slug, b.kind)}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                        {orangeJuvenileBelts.length > 0 ? (
+                          <SelectGroup>
+                            <SelectLabel className="text-primary">
+                              Laranja (juvenil) — tipo Adulto
+                            </SelectLabel>
+                            {orangeJuvenileBelts.map((b) => (
+                              <SelectItem key={b.id} value={b.id}>
+                                {beltLabelPt(b.slug, b.kind)}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ) : null}
+                      </>
+                    ) : (
+                      <SelectGroup>
+                        <SelectLabel>Faixas kids</SelectLabel>
+                        {kidsBelts.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>
+                            {beltLabelPt(b.slug, b.kind)}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -520,6 +588,18 @@ export function StudentForm({
           </Button>
         </div>
 
+        <AdultOrangeBeltConfirmDialog
+          open={adultOrangeConfirm !== null}
+          onOpenChange={(open) => {
+            if (!open) setAdultOrangeConfirm(null);
+          }}
+          beltLabel={adultOrangeConfirm?.label ?? ""}
+          onConfirm={() => {
+            if (adultOrangeConfirm) {
+              applyBeltChange(adultOrangeConfirm.beltId);
+            }
+          }}
+        />
       </form>
     </Form>
   );
