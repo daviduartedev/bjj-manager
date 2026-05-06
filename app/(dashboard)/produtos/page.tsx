@@ -57,14 +57,16 @@ export default async function ProdutosPage() {
                 ).
               </li>
               <li>
-                Com a app atual, execute também{" "}
+                Execute também{" "}
                 <code className="rounded bg-muted px-1 py-0.5 text-xs">
                   db/migrations/003_product_audience_variant_line.sql
                 </code>{" "}
                 (colunas <code className="rounded bg-muted px-1 py-0.5 text-xs">audience</code>{" "}
-                e <code className="rounded bg-muted px-1 py-0.5 text-xs">line</code>). Sem isto, o
-                pedido falha mesmo que a tabela{" "}
-                <code className="rounded bg-muted px-1 py-0.5 text-xs">products</code> já exista.
+                e <code className="rounded bg-muted px-1 py-0.5 text-xs">line</code>) para filtros
+                femininos e gravação de variantes com linha. Em builds recentes, a{" "}
+                <strong className="text-foreground">leitura</strong> da página pode funcionar só com a 002,
+                mas criar/editar tamanhos continua a exigir a 003 quando o servidor usa{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">line</code>.
               </li>
               <li>
                 Se usa RLS por conta, aplique as políticas de{" "}

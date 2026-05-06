@@ -27,18 +27,13 @@ type ProductRowRaw = {
   name: string;
   active: boolean;
   sort_order: number;
-  audience: ProductAudience | null;
+  audience?: ProductAudience | null;
   product_variants:
     | (Omit<ProductVariantRow, "line"> & { line?: VariantLine | null })[]
     | null;
 };
 
-export async function loadProductsPageData(): Promise<ProductRow[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("products")
-    .select(
-      `
+const SELECT_WITH_AUDIENCE_LINE = `
       id,
       code,
       name,
@@ -52,15 +47,58 @@ export async function loadProductsPageData(): Promise<ProductRow[]> {
         sort_order,
         line
       )
-    `,
-    )
-    .order("sort_order", { ascending: true })
-    .order("name", { ascending: true });
+    `;
 
-  if (error) throw error;
+/** Compatível só com migração 002 (sem audience / line em variants). */
+const SELECT_LEGACY_002 = `
+      id,
+      code,
+      name,
+      active,
+      sort_order,
+      product_variants (
+        id,
+        size_label,
+        stock_quantity,
+        sort_order
+      )
+    `;
 
-  const rows = (data ?? []) as ProductRowRaw[];
+/**
+ * PostgREST costuma devolver "Could not find the 'audience' column..." ou SQL com "does not exist".
+ */
+export function isLikelyMissingProducts003Columns(err: unknown): boolean {
+  const text = [
+    (err as { message?: string })?.message,
+    (err as { details?: string })?.details,
+    (err as { hint?: string })?.hint,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 
+  if (!text) return false;
+
+  const missing =
+    text.includes("does not exist") ||
+    text.includes("could not find") ||
+    text.includes("unknown column") ||
+    text.includes("schema cache");
+
+  if (!missing) return false;
+
+  const mentionsAudience = text.includes("audience");
+  const mentionsLine =
+    text.includes("'line'") ||
+    text.includes('"line"') ||
+    text.includes(" line ") ||
+    text.includes("(line)") ||
+    text.includes("column line");
+
+  return mentionsAudience || mentionsLine;
+}
+
+function normalizeRows(rows: ProductRowRaw[]): ProductRow[] {
   const byProductId = new Map<string, ProductRowRaw>();
   for (const row of rows) {
     if (!byProductId.has(row.id)) {
@@ -104,4 +142,37 @@ export async function loadProductsPageData(): Promise<ProductRow[]> {
       ),
     };
   });
+}
+
+export async function loadProductsPageData(): Promise<ProductRow[]> {
+  const supabase = await createClient();
+
+  const modern = await supabase
+    .from("products")
+    .select(SELECT_WITH_AUDIENCE_LINE)
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (!modern.error) {
+    return normalizeRows((modern.data ?? []) as ProductRowRaw[]);
+  }
+
+  if (isLikelyMissingProducts003Columns(modern.error)) {
+    console.warn(
+      "[produtos] Colunas audience/line ausentes — a usar consulta compatível com migração 002. Aplique db/migrations/003_product_audience_variant_line.sql para filtros femininos.",
+      modern.error.message,
+    );
+
+    const legacy = await supabase
+      .from("products")
+      .select(SELECT_LEGACY_002)
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true });
+
+    if (!legacy.error) {
+      return normalizeRows((legacy.data ?? []) as ProductRowRaw[]);
+    }
+  }
+
+  throw modern.error;
 }
