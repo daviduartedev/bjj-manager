@@ -162,24 +162,30 @@ export function ProductEditorCard({ product }: Props) {
     >
       <CardContent className="p-0">
         <div className="flex flex-col lg:flex-row lg:items-stretch">
-          {/* Bloco 1 — imagem + identidade (listagem do item) */}
-          <div className="relative aspect-[16/11] w-full shrink-0 border-b border-border/80 bg-muted/30 lg:aspect-auto lg:w-[min(100%,280px)] lg:border-b-0 lg:border-r">
+          {/* Miniatura quadrada — base visual para todo o cartão */}
+          <div
+            className={cn(
+              "relative isolate shrink-0 border-border/80 bg-muted/30",
+              "aspect-square w-full max-w-[min(100%,320px)] border-b sm:mx-auto lg:mx-0 lg:max-w-none lg:w-52 xl:w-60",
+              "rounded-t-xl border lg:rounded-l-xl lg:rounded-tr-none lg:border-b-0 lg:border-r",
+            )}
+          >
             <Image
               src={visual.src}
               alt={visual.alt}
               fill
               className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 280px"
+              sizes="(max-width: 640px) min(100vw, 320px), (max-width: 1024px) 288px, 240px"
               priority={false}
             />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-3 py-2 pt-8">
-              <p className="text-xs font-medium text-white drop-shadow-sm">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/25 to-transparent px-2.5 pb-2 pt-10">
+              <p className="text-[0.65rem] font-medium uppercase tracking-wide text-white/95 drop-shadow-sm sm:text-xs">
                 {visual.credit}
               </p>
             </div>
           </div>
 
-          <div className="flex min-w-0 flex-1 flex-col gap-8 p-5 sm:p-6">
+          <div className="flex min-w-0 flex-1 flex-col gap-6 p-5 sm:gap-7 sm:p-6">
             <header className="space-y-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex min-w-0 items-start gap-2">
