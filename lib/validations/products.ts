@@ -18,6 +18,10 @@ export const productStockQuantitySchema = z.coerce
   .min(0, "O estoque não pode ser negativo.")
   .max(99999, "Quantidade muito alta.");
 
+export const productAudienceSchema = z.enum(["unisex", "masculine", "feminine"]);
+
+export const variantLineSchema = z.enum(["unisex", "feminine"]);
+
 export const createProductSchema = z
   .object({
     name: productNameSchema,
@@ -29,10 +33,15 @@ export const updateProductSchema = z
     productId: z.string().uuid(),
     name: productNameSchema.optional(),
     active: z.boolean().optional(),
+    audience: productAudienceSchema.optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
-    if (data.name === undefined && data.active === undefined) {
+    if (
+      data.name === undefined &&
+      data.active === undefined &&
+      data.audience === undefined
+    ) {
       ctx.addIssue({
         code: "custom",
         message: "Nada para atualizar.",
@@ -46,6 +55,7 @@ export const createProductVariantSchema = z
     productId: z.string().uuid(),
     sizeLabel: productSizeLabelSchema,
     stockQuantity: productStockQuantitySchema.optional().default(0),
+    line: variantLineSchema.optional(),
   })
   .strict();
 
@@ -54,10 +64,15 @@ export const updateProductVariantSchema = z
     variantId: z.string().uuid(),
     sizeLabel: productSizeLabelSchema.optional(),
     stockQuantity: productStockQuantitySchema.optional(),
+    line: variantLineSchema.optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
-    if (data.sizeLabel === undefined && data.stockQuantity === undefined) {
+    if (
+      data.sizeLabel === undefined &&
+      data.stockQuantity === undefined &&
+      data.line === undefined
+    ) {
       ctx.addIssue({
         code: "custom",
         message: "Nada para atualizar.",

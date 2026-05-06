@@ -1,10 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 
+export type ProductAudience = "unisex" | "masculine" | "feminine";
+export type VariantLine = "unisex" | "feminine";
+
 export type ProductVariantRow = {
   id: string;
   size_label: string;
   stock_quantity: number;
   sort_order: number;
+  line: VariantLine;
 };
 
 export type ProductRow = {
@@ -13,6 +17,7 @@ export type ProductRow = {
   name: string;
   active: boolean;
   sort_order: number;
+  audience: ProductAudience;
   variants: ProductVariantRow[];
 };
 
@@ -22,7 +27,10 @@ type ProductRowRaw = {
   name: string;
   active: boolean;
   sort_order: number;
-  product_variants: ProductVariantRow[] | null;
+  audience: ProductAudience | null;
+  product_variants:
+    | (Omit<ProductVariantRow, "line"> & { line?: VariantLine | null })[]
+    | null;
 };
 
 export async function loadProductsPageData(): Promise<ProductRow[]> {
@@ -36,11 +44,13 @@ export async function loadProductsPageData(): Promise<ProductRow[]> {
       name,
       active,
       sort_order,
+      audience,
       product_variants (
         id,
         size_label,
         stock_quantity,
-        sort_order
+        sort_order,
+        line
       )
     `,
     )
@@ -62,14 +72,32 @@ export async function loadProductsPageData(): Promise<ProductRow[]> {
     const rawVariants = row.product_variants ?? [];
     const variantById = new Map<string, ProductVariantRow>();
     for (const v of rawVariants) {
-      if (!variantById.has(v.id)) variantById.set(v.id, v);
+      if (!variantById.has(v.id)) {
+        const line: VariantLine =
+          v.line === "feminine" ? "feminine" : "unisex";
+        variantById.set(v.id, {
+          id: v.id,
+          size_label: v.size_label,
+          stock_quantity: v.stock_quantity,
+          sort_order: v.sort_order,
+          line,
+        });
+      }
     }
+    const audience: ProductAudience =
+      row.audience === "masculine" ||
+      row.audience === "feminine" ||
+      row.audience === "unisex"
+        ? row.audience
+        : "unisex";
+
     return {
       id: row.id,
       code: row.code,
       name: row.name,
       active: row.active,
       sort_order: row.sort_order,
+      audience,
       variants: [...variantById.values()].sort(
         (a, b) =>
           a.sort_order - b.sort_order || a.size_label.localeCompare(b.size_label),

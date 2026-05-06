@@ -171,11 +171,15 @@ CREATE TABLE IF NOT EXISTS public.products (
   name text NOT NULL,
   active boolean NOT NULL DEFAULT true,
   sort_order integer NOT NULL DEFAULT 0,
+  audience text NOT NULL DEFAULT 'unisex',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT products_account_code_unique UNIQUE (account_id, code),
   CONSTRAINT products_name_not_blank CHECK (length(trim(name)) > 0),
-  CONSTRAINT products_code_not_blank CHECK (length(trim(code)) > 0)
+  CONSTRAINT products_code_not_blank CHECK (length(trim(code)) > 0),
+  CONSTRAINT products_audience_check CHECK (
+    audience IN ('unisex', 'masculine', 'feminine')
+  )
 );
 
 CREATE TABLE IF NOT EXISTS public.product_variants (
@@ -184,11 +188,13 @@ CREATE TABLE IF NOT EXISTS public.product_variants (
   size_label text NOT NULL,
   stock_quantity integer NOT NULL DEFAULT 0,
   sort_order integer NOT NULL DEFAULT 0,
+  line text NOT NULL DEFAULT 'unisex',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT product_variants_product_size_unique UNIQUE (product_id, size_label),
   CONSTRAINT product_variants_size_not_blank CHECK (length(trim(size_label)) > 0),
-  CONSTRAINT product_variants_stock_non_negative CHECK (stock_quantity >= 0)
+  CONSTRAINT product_variants_stock_non_negative CHECK (stock_quantity >= 0),
+  CONSTRAINT product_variants_line_check CHECK (line IN ('unisex', 'feminine'))
 );
 
 -- ---------- Indexes ----------

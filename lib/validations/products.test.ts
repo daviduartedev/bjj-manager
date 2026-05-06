@@ -65,6 +65,14 @@ describe("updateProductVariantSchema", () => {
     });
     expect(r.success).toBe(false);
   });
+
+  it("aceita só line", () => {
+    const r = updateProductVariantSchema.safeParse({
+      variantId: "00000000-0000-4000-8000-000000000002",
+      line: "feminine",
+    });
+    expect(r.success).toBe(true);
+  });
 });
 
 describe("deleteProductVariantSchema", () => {

@@ -215,7 +215,7 @@ export function ProductsClient({ products }: { products: ProductRow[] }) {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:gap-8 xl:items-start">
+            <div className="mx-auto flex w-full max-w-4xl flex-col gap-10">
               {products.map((p) => (
                 <ProductEditorCard key={p.id} product={p} />
               ))}

@@ -105,6 +105,9 @@ export async function updateProduct(input: unknown): Promise<ProductActionResult
     if (parsed.data.active !== undefined) {
       patch.active = parsed.data.active;
     }
+    if (parsed.data.audience !== undefined) {
+      patch.audience = parsed.data.audience;
+    }
 
     const { error } = await supabase
       .from("products")
@@ -146,7 +149,7 @@ export async function createProductVariant(
     const supabase = await createClient();
     const { data: productRow, error: prodErr } = await supabase
       .from("products")
-      .select("id")
+      .select("id, audience")
       .eq("id", parsed.data.productId)
       .eq("account_id", ctx.account.id)
       .maybeSingle();
@@ -166,11 +169,16 @@ export async function createProductVariant(
     if (maxErr) throw maxErr;
     const sortOrder = (maxRows?.[0]?.sort_order ?? 0) + 10;
 
+    const lineDefault =
+      parsed.data.line ??
+      (productRow.audience === "feminine" ? "feminine" : "unisex");
+
     const { error } = await supabase.from("product_variants").insert({
       product_id: parsed.data.productId,
       size_label: parsed.data.sizeLabel.trim(),
       stock_quantity: parsed.data.stockQuantity,
       sort_order: sortOrder,
+      line: lineDefault,
       updated_at: new Date().toISOString(),
     });
 
@@ -214,6 +222,9 @@ export async function updateProductVariant(
     }
     if (parsed.data.stockQuantity !== undefined) {
       patch.stock_quantity = parsed.data.stockQuantity;
+    }
+    if (parsed.data.line !== undefined) {
+      patch.line = parsed.data.line;
     }
 
     const { data: variantRow, error: vErr } = await supabase
