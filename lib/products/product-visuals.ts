@@ -24,6 +24,11 @@ export function getProductHeroVisual(code: string, name: string): ProductHeroVis
         credit: "Zanshin",
       };
     case "rash-guards-femininas":
+      return {
+        src: "/products-rash-guard-femininas.png",
+        alt: "Rash guard feminina — manga curta ou longa",
+        credit: "Referência",
+      };
     case "rash-guards-masculinas":
       return {
         src: "/products-rash-guard.png",
