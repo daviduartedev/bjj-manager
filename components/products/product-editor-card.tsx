@@ -161,32 +161,30 @@ export function ProductEditorCard({ product }: Props) {
       )}
     >
       <CardContent className="p-0">
-        <div className="flex flex-col lg:flex-row lg:items-stretch">
-          {/* Miniatura quadrada — base visual para todo o cartão */}
-          <div
-            className={cn(
-              "relative isolate shrink-0 border-border/80 bg-muted/30",
-              "aspect-square w-full max-w-[min(100%,320px)] border-b sm:mx-auto lg:mx-0 lg:max-w-none lg:w-52 xl:w-60",
-              "rounded-t-xl border lg:rounded-l-xl lg:rounded-tr-none lg:border-b-0 lg:border-r",
-            )}
-          >
-            <Image
-              src={visual.src}
-              alt={visual.alt}
-              fill
-              className="object-cover"
-              sizes="(max-width: 640px) min(100vw, 320px), (max-width: 1024px) 288px, 240px"
-              priority={false}
-            />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/25 to-transparent px-2.5 pb-2 pt-10">
-              <p className="text-[0.65rem] font-medium uppercase tracking-wide text-white/95 drop-shadow-sm sm:text-xs">
-                {visual.credit}
-              </p>
-            </div>
-          </div>
+        <div className="flex min-w-0 flex-col gap-6 p-5 sm:gap-7 sm:p-6">
+          <header className="space-y-3">
+            <div className="flex gap-3 sm:gap-4">
+              <div className="flex shrink-0 flex-col items-center gap-1.5 sm:items-start">
+                <div
+                  className={cn(
+                    "relative isolate size-24 overflow-hidden rounded-xl border border-border/80 bg-muted/30 sm:size-28",
+                  )}
+                >
+                  <Image
+                    src={visual.src}
+                    alt={visual.alt}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 96px, 112px"
+                    priority={false}
+                  />
+                </div>
+                <p className="max-w-[6.5rem] text-center text-[0.6rem] leading-tight text-muted-foreground sm:max-w-[7rem] sm:text-left sm:text-[0.65rem]">
+                  {visual.credit}
+                </p>
+              </div>
 
-          <div className="flex min-w-0 flex-1 flex-col gap-6 p-5 sm:gap-7 sm:p-6">
-            <header className="space-y-3">
+              <div className="min-w-0 flex-1 space-y-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex min-w-0 items-start gap-2">
                   <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border bg-background text-muted-foreground">
@@ -287,6 +285,8 @@ export function ProductEditorCard({ product }: Props) {
               >
                 {savingProduct ? "Salvando…" : "Salvar identificação"}
               </Button>
+              </div>
+            </div>
             </header>
 
             {/* Bloco 2 — filtro de tamanhos */}
@@ -507,7 +507,6 @@ export function ProductEditorCard({ product }: Props) {
                 </div>
               </div>
             </section>
-          </div>
         </div>
       </CardContent>
     </Card>
