@@ -160,7 +160,13 @@ export function ProductEditorCard({ product }: Props) {
             </p>
           </div>
 
-          <ul className="divide-y divide-border/80 overflow-hidden rounded-xl border border-bjj-blue/20 bg-card/70 shadow-inner">
+          <ul
+            className={cn(
+              "divide-y divide-border/80 rounded-xl border border-bjj-blue/20 bg-card/70 shadow-inner",
+              product.variants.length > 0 &&
+                "max-h-[min(16rem,42vh)] overflow-y-auto overscroll-contain sm:max-h-[min(18rem,38vh)]",
+            )}
+          >
             {product.variants.length === 0 ? (
               <li className="px-4 py-6 text-crm-sm text-muted-foreground">
                 Nenhum tamanho cadastrado. Adicione abaixo.
@@ -179,7 +185,7 @@ export function ProductEditorCard({ product }: Props) {
                   className="min-h-11"
                   value={newSize}
                   onChange={(e) => setNewSize(e.target.value)}
-                  placeholder="Ex.: M"
+                  placeholder="Ex.: A2 ou M1"
                   disabled={addingVariant}
                 />
               </div>

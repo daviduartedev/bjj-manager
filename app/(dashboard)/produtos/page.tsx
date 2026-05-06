@@ -17,7 +17,7 @@ export default async function ProdutosPage() {
     console.error("[produtos] loadProductsPageData failed", err);
 
     return (
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6">
         <div data-tour="page-produtos">
           <DashboardPageHero
             className="-mx-4 rounded-b-3xl border-b border-primary/15 bg-gradient-to-br from-primary/[0.08] via-background to-bjj-blue/[0.09] px-4 pb-10 pt-2 ring-1 ring-primary/10 sm:-mx-6 sm:px-6"
@@ -64,7 +64,7 @@ export default async function ProdutosPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div data-tour="page-produtos">
         <DashboardPageHero
           className="-mx-4 rounded-b-3xl border-b border-primary/15 bg-gradient-to-br from-primary/[0.08] via-background to-bjj-blue/[0.09] px-4 pb-10 pt-2 ring-1 ring-primary/10 sm:-mx-6 sm:px-6"
