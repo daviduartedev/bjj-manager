@@ -1,46 +1,46 @@
-/** Ilustrações Unsplash (apenas visual na UI de stock). */
+/** Imagens estáticas em `/public` por código de produto do seed / migração. */
 
-export type ProductImageKind = "shirt" | "gi" | "rash";
-
-const UNSPLASH: Record<
-  ProductImageKind,
-  { src: string; alt: string; credit: string }
-> = {
-  shirt: {
-    src: "https://images.unsplash.com/photo-1576566588028-4147f3840f27?auto=format&fit=crop&w=720&q=80",
-    alt: "Camiseta básica em fundo neutro",
-    credit: "Unsplash",
-  },
-  gi: {
-    src: "https://images.unsplash.com/photo-1555597673-b21d5c935866?auto=format&fit=crop&w=720&q=80",
-    alt: "Kimono / arte marcial",
-    credit: "Unsplash",
-  },
-  rash: {
-    src: "https://images.unsplash.com/photo-1518611012118-696072aa245a?auto=format&fit=crop&w=720&q=80",
-    alt: "Roupa de treino / compressão",
-    credit: "Unsplash",
-  },
+export type ProductHeroVisual = {
+  src: string;
+  alt: string;
+  credit: string;
 };
 
-export function resolveProductImageKind(code: string, name: string): ProductImageKind {
-  const s = `${code} ${name}`.toLowerCase();
-  if (s.includes("rash")) return "rash";
-  if (
-    s.includes("quimon") ||
-    s.includes("kimono") ||
-    s.includes("kmno") ||
-    s.includes("zenshin")
-  ) {
-    return "gi";
+/**
+ * Resolve imagem do cartão (miniatura quadrada). Fallback: logo da marca.
+ */
+export function getProductHeroVisual(code: string, name: string): ProductHeroVisual {
+  switch (code) {
+    case "quimonos-kmno":
+      return {
+        src: "/kmno.webp",
+        alt: "Kimono KMNO — linha azul",
+        credit: "KMNO",
+      };
+    case "quimonos-zenshins":
+      return {
+        src: "/images.png",
+        alt: "Kimono Zanshin — linha azul",
+        credit: "Zanshin",
+      };
+    case "rash-guards-femininas":
+    case "rash-guards-masculinas":
+      return {
+        src: "/products-rash-guard.png",
+        alt: "Rash guard — manga curta ou longa",
+        credit: "Referência",
+      };
+    case "academy-shirts":
+      return {
+        src: "/products-camiseta-academy.png",
+        alt: "Camiseta da academia",
+        credit: "Referência",
+      };
+    default:
+      return {
+        src: "/Logo.png",
+        alt: name.trim() || "Produto",
+        credit: "Catálogo",
+      };
   }
-  if (s.includes("camiset") || s.includes("shirt") || s.includes("camisa")) {
-    return "shirt";
-  }
-  return "shirt";
-}
-
-export function getProductHeroVisual(code: string, name: string) {
-  const kind = resolveProductImageKind(code, name);
-  return { kind, ...UNSPLASH[kind] };
 }

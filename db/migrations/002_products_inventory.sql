@@ -48,7 +48,7 @@ FROM
       ('rash-guards-femininas', 'Rash Guards femininas', 20),
       ('rash-guards-masculinas', 'Rash Guards masculinas', 30),
       ('quimonos-kmno', 'Quimonos KMNO', 40),
-      ('quimonos-zenshins', 'Quimonos Zenshins', 50)
+      ('quimonos-zenshins', 'Quimonos Zanshin', 50)
   ) AS seed(code, name, sort_order)
 ON CONFLICT ON CONSTRAINT products_account_code_unique DO NOTHING;
 

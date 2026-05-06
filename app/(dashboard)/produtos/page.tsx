@@ -69,6 +69,13 @@ export default async function ProdutosPage() {
                 <code className="rounded bg-muted px-1 py-0.5 text-xs">line</code>.
               </li>
               <li>
+                Opcional:{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                  db/migrations/004_product_catalog_visuals_and_variants.sql
+                </code>{" "}
+                — nome Zanshin e variantes iniciais (kimono azul por tamanho; rash manga curta/longa).
+              </li>
+              <li>
                 Se usa RLS por conta, aplique as políticas de{" "}
                 <code className="rounded bg-muted px-1 py-0.5 text-xs">db/policies.sql</code> para{" "}
                 <code className="rounded bg-muted px-1 py-0.5 text-xs">products</code> /{" "}
