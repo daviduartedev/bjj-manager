@@ -71,7 +71,7 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: "body",
         title: "Bem-vindo",
         content:
-          "Vamos passar pelo menu e pelas quatro áreas principais: Painel, Alunos, Mensalidades e Configurações. Use Próximo para avançar; dá para pular o tour quando quiser. Só este navegador guarda que você já concluiu, não mexe na sua conta nem nos dados da academia.",
+          "Vamos passar pelo menu e pelas cinco áreas principais: Painel, Alunos, Mensalidades, Produtos e Configurações. Use Próximo para avançar; dá para pular o tour quando quiser. Só este navegador guarda que você já concluiu, não mexe na sua conta nem nos dados da academia.",
         placement: "center",
         skipBeacon: true,
       },
@@ -79,7 +79,7 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: () => firstVisibleShellNav(),
         title: "Menu principal",
         content:
-          "É por aqui que você chega em cada parte do sistema. No celular, o mesmo atalho aparece na barra de baixo. Cada item tem uma função: visão geral do dia, cadastro de alunos, mensalidades e preferências da academia.",
+          "É por aqui que você chega em cada parte do sistema. No celular, o mesmo atalho aparece na barra de baixo. Cada item tem uma função: visão geral do dia, cadastro de alunos, mensalidades, produtos da academia e preferências da conta.",
         placement: "auto",
       },
       {
@@ -140,6 +140,26 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         placement: "auto",
         before: async () => {
           await navigateTo(ROUTES.mensalidades);
+        },
+      },
+      {
+        target: () => firstVisibleDataTour("tour-produtos"),
+        title: "Produtos",
+        content:
+          "Controle interno de produtos da academia: tamanhos e quantidades em estoque. Nesta etapa não há venda, checkout nem baixa automática por venda.",
+        placement: "right",
+        before: async () => {
+          await navigateTo(ROUTES.produtos);
+        },
+      },
+      {
+        target: () => firstVisibleDataTour("page-produtos"),
+        title: "Gestão de produtos",
+        content:
+          "Cadastre produtos, edite nomes, ative ou desative itens e atualize o estoque manualmente por tamanho.",
+        placement: "auto",
+        before: async () => {
+          await navigateTo(ROUTES.produtos);
         },
       },
       {

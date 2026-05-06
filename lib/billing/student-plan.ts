@@ -1,7 +1,7 @@
 import type { createClient } from "@/lib/supabase/server";
 import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
 import type { StudentKind } from "@/lib/students/degree";
-import { planKindMatchesStudentKind } from "@/lib/students/plan-kind";
+import { planKindMatchesStudentContext } from "@/lib/students/plan-kind";
 import type { PlanKind } from "@/lib/students/plan-kind";
 
 import { BillingDomainError } from "./domain-error";
@@ -36,7 +36,7 @@ export async function applyStudentPlanChange(args: {
 
   const { data: studentRow, error: studentErr } = await supabase
     .from("students")
-    .select("id, kind")
+    .select("id, kind, current_belt_id")
     .eq("id", studentId)
     .maybeSingle();
 
@@ -46,6 +46,15 @@ export async function applyStudentPlanChange(args: {
   }
 
   const studentKind = studentRow.kind as StudentKind;
+
+  const { data: beltRow, error: beltErr } = await supabase
+    .from("belts")
+    .select("slug")
+    .eq("id", studentRow.current_belt_id)
+    .maybeSingle();
+
+  if (beltErr) throw beltErr;
+  const beltSlug = beltRow?.slug ?? null;
 
   const { data: planRow, error: planErr } = await supabase
     .from("plans")
@@ -62,7 +71,13 @@ export async function applyStudentPlanChange(args: {
   }
 
   const planKind = planRow.kind as PlanKind;
-  if (!planKindMatchesStudentKind(planKind, studentKind)) {
+  if (
+    !planKindMatchesStudentContext({
+      planKind,
+      studentKind,
+      beltSlug,
+    })
+  ) {
     throw new BillingDomainError("PLAN_KIND_MISMATCH");
   }
 

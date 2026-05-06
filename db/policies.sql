@@ -41,6 +41,10 @@ ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE public.belts ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.product_variants ENABLE ROW LEVEL SECURITY;
+
 -- ---------- accounts (no INSERT for authenticated , bootstrap via postgres) ----------
 DROP POLICY IF EXISTS accounts_select_own ON public.accounts;
 
@@ -183,3 +187,37 @@ WITH
 DROP POLICY IF EXISTS belts_select_authenticated ON public.belts;
 
 CREATE POLICY belts_select_authenticated ON public.belts FOR SELECT TO authenticated USING (TRUE);
+
+-- ---------- products ----------
+DROP POLICY IF EXISTS products_tenant_all ON public.products;
+
+CREATE POLICY products_tenant_all ON public.products FOR ALL TO authenticated USING (account_id = public.current_account_id ())
+WITH
+  CHECK (account_id = public.current_account_id ());
+
+-- ---------- product_variants ----------
+DROP POLICY IF EXISTS product_variants_by_product_tenant ON public.product_variants;
+
+CREATE POLICY product_variants_by_product_tenant ON public.product_variants FOR ALL TO authenticated USING (
+  EXISTS (
+    SELECT
+      1
+    FROM
+      public.products p
+    WHERE
+      p.id = product_variants.product_id
+      AND p.account_id = public.current_account_id ()
+  )
+)
+WITH
+  CHECK (
+    EXISTS (
+      SELECT
+        1
+      FROM
+        public.products p
+      WHERE
+        p.id = product_variants.product_id
+        AND p.account_id = public.current_account_id ()
+    )
+  );

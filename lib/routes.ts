@@ -8,6 +8,7 @@ export const ROUTES = {
   alunos: "/alunos",
   alunosNovo: "/alunos/novo",
   mensalidades: "/mensalidades",
+  produtos: "/produtos",
   configuracoes: "/configuracoes",
   perfil: "/perfil",
 } as const;
@@ -42,6 +43,7 @@ export const AUTHENTICATED_PATH_PREFIXES: readonly string[] = [
   ROUTES.painel,
   ROUTES.alunos,
   ROUTES.mensalidades,
+  ROUTES.produtos,
   ROUTES.configuracoes,
   ROUTES.perfil,
 ];
