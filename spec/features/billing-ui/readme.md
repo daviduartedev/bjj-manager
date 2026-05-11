@@ -112,6 +112,33 @@ Contrato canónico para as **telas de fecho mensal** usadas pelo professor na á
 
 ---
 
+## BUI-9. Atalhos pós-pagamento (recibo automático)
+
+**BUI-9.1.** Quando `recordPayment` retorna sucesso e `receipt.status='generated'` (**PBS-9**, **REC-1**, **BR-8**), o componente que disparou o `Pagar` (diálogo, item da lista ou perfil do aluno) deve apresentar **atalhos imediatos** acessíveis sem nova navegação:
+
+| Atalho | Acção |
+|--------|-------|
+| **Baixar PDF** | `getDownloadUrl(documentId)` → abre/descarrega URL assinada de 15 min (**DOC-6.3**) |
+| **Abrir no navegador** | mesma URL assinada, em nova aba |
+| **Compartilhar via WhatsApp** | `getWhatsAppLink(documentId)` → `wa.me/<E.164>?text=…` em nova aba (**DOC-8**); CTA desactivado se aluno sem telefone |
+| **Reemitir** | abre `ReissueDocumentDialog` com motivo obrigatório (**DOC-11**) |
+
+**BUI-9.2.** Quando `receipt.status='failed'`:
+
+- **toast de sucesso** do pagamento (claro: o pagamento foi gravado);
+- **toast de erro** do recibo, em pt-BR genérico (**SEC-3.3**);
+- CTA inline **`Tentar gerar novamente`** que invoca `retryReceiptGeneration({ paymentId })`.
+
+**BUI-9.3.** **Indicador no histórico:** linhas em `BUI-6.2` (detalhe do aluno) e em `BUI-2.2` (lista de mensalidades) mostram **ícone discreto** ao lado do estado **Pago** quando o recibo está em `failed` (tooltip `Recibo pendente de geração; clique para tentar novamente`). Estado `generated` mostra ícone neutro com tooltip `Recibo emitido , baixar / compartilhar`.
+
+**BUI-9.4.** **Bolsista** e **Outro** (**REC-1.4**, **REC-1.5**, **BR-8.4**) **não** mostram atalhos de recibo automático; em vez disso, mostram CTA secundário `Emitir recibo manual` que leva ao módulo documental (**DOC-1.1**) com payload pré-preenchido.
+
+**BUI-9.5.** **Mobile:** os 4 atalhos cabem em **dois pares empilhados** ou num menu compacto (`MoreActions`), conforme espaço disponível, mantendo **toque ≥ 44px** (**DS-1.3**).
+
+**BUI-9.6.** Toda interacção com recibos (download, abertura, compartilhamento, reemissão) é registada em `audit_log` ou em `generated_document_deliveries` (**DOC-10**, **E16**), conforme o caso.
+
+---
+
 ## Manutenção
 
-Alterações nestas telas ou no fluxo de registo devem actualizar **este readme**, **`spec/features/app-shell/readme.md`** se mudarem paths, **`spec/features/dashboard/readme.md`** se mudarem **BUI-2.6** ou atalhos do painel, **`spec/features/student-profile/readme.md`** se afectarem **SPR-8/9**, **`spec/features/payments-billing-status/readme.md`** se mudarem contratos **PBS-**, e cenários em `cycles/.../14-0430-billing-ui/scenarios.feature`.
+Alterações nestas telas ou no fluxo de registo devem actualizar **este readme**, **`spec/features/app-shell/readme.md`** se mudarem paths, **`spec/features/dashboard/readme.md`** se mudarem **BUI-2.6** ou atalhos do painel, **`spec/features/student-profile/readme.md`** se afectarem **SPR-8/9** ou **SPR-11**, **`spec/features/payments-billing-status/readme.md`** se mudarem contratos **PBS-** ou **PBS-9**, **`spec/features/payment-receipts/readme.md`** se mudarem atalhos pós-pagamento (**REC-7**, **BUI-9**), e cenários em `cycles/.../14-0430-billing-ui/scenarios.feature` e `cycles/.../25-0510-pedagogical-documents-finance/scenarios.feature`.

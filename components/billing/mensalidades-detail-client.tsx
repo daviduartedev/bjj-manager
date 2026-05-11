@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { voidPayment } from "@/actions/billing";
 import { BillingIndicatorBadge } from "@/components/billing/billing-indicator-badge";
+import { ReceiptViewerDialog } from "@/components/billing/receipt-viewer-dialog";
 import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
@@ -30,7 +31,7 @@ import {
   paymentStatusLabelPt,
 } from "@/lib/students/payment-ui";
 import { profileFormatPaidAt } from "@/lib/data/students-profile.shared";
-import { Wallet } from "lucide-react";
+import { Receipt, Wallet } from "lucide-react";
 
 export function MensalidadesDetailClient({
   payload,
@@ -39,6 +40,13 @@ export function MensalidadesDetailClient({
 }) {
   const router = useRouter();
   const [payOpen, setPayOpen] = useState(false);
+  const [receiptForPayment, setReceiptForPayment] = useState<
+    | {
+        paymentId: string;
+        referenceMonth: string;
+      }
+    | null
+  >(null);
   const [pendingVoid, startVoid] = useTransition();
 
   const snap = payload.snapshot;
@@ -174,16 +182,35 @@ export function MensalidadesDetailClient({
                       {profileFormatPaidAt(p.paid_at)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="min-h-9 text-destructive hover:text-destructive"
-                        disabled={pendingVoid}
-                        onClick={() => confirmVoid(p.id)}
-                      >
-                        Estornar
-                      </Button>
+                      <div className="inline-flex items-center justify-end gap-1">
+                        {p.status === "paid" ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="min-h-9"
+                            onClick={() =>
+                              setReceiptForPayment({
+                                paymentId: p.id,
+                                referenceMonth: p.reference_month,
+                              })
+                            }
+                          >
+                            <Receipt className="mr-1.5 size-3.5" />
+                            Comprovante
+                          </Button>
+                        ) : null}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="min-h-9 text-destructive hover:text-destructive"
+                          disabled={pendingVoid}
+                          onClick={() => confirmVoid(p.id)}
+                        >
+                          Estornar
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -200,6 +227,18 @@ export function MensalidadesDetailClient({
         defaultReferenceMonth={payload.referenceMonth}
         amountCents={payload.amountCentsExpected}
       />
+
+      {receiptForPayment ? (
+        <ReceiptViewerDialog
+          open={true}
+          onOpenChange={(o) => {
+            if (!o) setReceiptForPayment(null);
+          }}
+          paymentId={receiptForPayment.paymentId}
+          studentName={payload.fullName}
+          referenceMonthLabel={formatDateBR(receiptForPayment.referenceMonth) ?? undefined}
+        />
+      ) : null}
     </div>
   );
 }

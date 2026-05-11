@@ -7,6 +7,10 @@ import { BillingDomainError } from "@/lib/billing/domain-error";
 import { getEffectivePrice } from "@/lib/billing/get-effective-price";
 import { normalizeReferenceMonth } from "@/lib/billing/reference-month";
 import { applyStudentPlanChange } from "@/lib/billing/student-plan";
+import { logDocumentEvent } from "@/lib/documents/audit";
+import { buildPaymentReceiptPayload } from "@/lib/documents/payload-builder";
+import { DocumentGenerationService } from "@/lib/documents/service";
+import { archiveDocumentArtifact } from "@/lib/documents/storage";
 import { ROUTES } from "@/lib/routes";
 import {
   recordPaymentSchema,
@@ -22,12 +26,55 @@ export type BillingActionResult =
   | { ok: true }
   | { ok: false; error: string };
 
+export type ReceiptOutcome =
+  | { status: "ready"; documentId: string; number: string; reused: boolean }
+  | { status: "failed"; error: string }
+  | { status: "skipped" };
+
+export type RecordPaymentResult =
+  | {
+      ok: true;
+      paymentId: string;
+      studentId: string;
+      receipt: ReceiptOutcome;
+    }
+  | { ok: false; error: string };
+
 export type RecordPaymentsBulkResult =
   | {
       ok: true;
       recorded: number;
       failures: { studentId: string; error: string }[];
     }
+  | { ok: false; error: string };
+
+export type RetryReceiptResult =
+  | {
+      ok: true;
+      receipt: ReceiptOutcome;
+    }
+  | { ok: false; error: string };
+
+/**
+ * Estado do recibo automático para um pagamento confirmado:
+ * - `ready`     há um documento `payment_receipt` em estado `ready`.
+ * - `failed`    a última tentativa terminou em erro, dá para retry.
+ * - `missing`   o pagamento existe e está confirmado mas ainda não há documento gerado
+ *               (pode acontecer com pagamentos antigos, geração saltada por flag,
+ *               ou bolsista/outro).
+ */
+export type ReceiptLookup =
+  | {
+      status: "ready";
+      documentId: string;
+      number: string;
+      reused: true;
+    }
+  | { status: "failed"; documentId: string; error: string }
+  | { status: "missing" };
+
+export type GetReceiptForPaymentResult =
+  | { ok: true; receipt: ReceiptLookup }
   | { ok: false; error: string };
 
 export async function updatePlanPrice(
@@ -237,7 +284,7 @@ async function upsertRecordedPaymentRow(
     notes: string | null;
     paymentMethod: string | null;
   },
-): Promise<void> {
+): Promise<{ paymentId: string }> {
   const {
     studentId,
     refMonth,
@@ -249,24 +296,96 @@ async function upsertRecordedPaymentRow(
   } = args;
   const timestamp = paidAtIso ?? new Date().toISOString();
 
-  const { error: upErr } = await supabase.from("payments").upsert(
-    {
-      student_id: studentId,
-      reference_month: refMonth,
-      amount_cents: amountCents,
-      status,
-      paid_at: timestamp,
-      notes: notes ?? null,
-      payment_method: paymentMethod,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "student_id,reference_month" },
-  );
+  const { data, error: upErr } = await supabase
+    .from("payments")
+    .upsert(
+      {
+        student_id: studentId,
+        reference_month: refMonth,
+        amount_cents: amountCents,
+        status,
+        paid_at: timestamp,
+        notes: notes ?? null,
+        payment_method: paymentMethod,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "student_id,reference_month" },
+    )
+    .select("id")
+    .single();
 
   if (upErr) throw upErr;
+  return { paymentId: data.id as string };
 }
 
-export async function recordPayment(input: unknown): Promise<BillingActionResult> {
+async function tryAutoIssueReceipt(
+  supabase: SupabaseServer,
+  args: { paymentId: string; studentId: string; userId: string | null },
+): Promise<ReceiptOutcome> {
+  try {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("account_id")
+      .eq("user_id", args.userId ?? "")
+      .maybeSingle();
+    if (!profile?.account_id) {
+      return { status: "skipped" };
+    }
+    const accountId = profile.account_id as string;
+
+    const built = await buildPaymentReceiptPayload(supabase, {
+      accountId,
+      paymentId: args.paymentId,
+    });
+
+    const service = new DocumentGenerationService(supabase);
+    const r = await service.generate({
+      accountId,
+      type: "payment_receipt",
+      payload: built.payload,
+      idempotencyKey: args.paymentId,
+      paymentId: args.paymentId,
+      studentId: built.studentId,
+      createdByUserId: args.userId ?? null,
+    });
+
+    if (r.ok) {
+      logDocumentEvent({
+        level: "info",
+        event: "auto_receipt.ready",
+        accountId,
+        documentId: r.documentId,
+        documentType: "payment_receipt",
+        payload: { paymentId: args.paymentId, reused: r.reused },
+      });
+      return {
+        status: "ready",
+        documentId: r.documentId,
+        number: r.number,
+        reused: r.reused,
+      };
+    }
+
+    logDocumentEvent({
+      level: "warn",
+      event: "auto_receipt.failed",
+      accountId,
+      documentType: "payment_receipt",
+      payload: { paymentId: args.paymentId, code: r.errorCode },
+    });
+    return { status: "failed", error: r.errorMessage };
+  } catch (err) {
+    const message = (err as Error).message ?? "Falha ao gerar recibo.";
+    logDocumentEvent({
+      level: "warn",
+      event: "auto_receipt.exception",
+      payload: { paymentId: args.paymentId, message },
+    });
+    return { status: "failed", error: message };
+  }
+}
+
+export async function recordPayment(input: unknown): Promise<RecordPaymentResult> {
   try {
     const parsed = recordPaymentSchema.safeParse(input);
     if (!parsed.success) {
@@ -302,14 +421,18 @@ export async function recordPayment(input: unknown): Promise<BillingActionResult
     }
 
     const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     const price = await fetchEffectivePriceCents(supabase, studentId);
     if (!price.ok) {
       return { ok: false, error: price.error };
     }
 
+    let inserted: { paymentId: string };
     if (recordingKind === "scholarship") {
-      await upsertRecordedPaymentRow(supabase, {
+      inserted = await upsertRecordedPaymentRow(supabase, {
         studentId,
         refMonth,
         status: "scholarship",
@@ -319,7 +442,7 @@ export async function recordPayment(input: unknown): Promise<BillingActionResult
         paymentMethod: paymentMethod ?? null,
       });
     } else {
-      await upsertRecordedPaymentRow(supabase, {
+      inserted = await upsertRecordedPaymentRow(supabase, {
         studentId,
         refMonth,
         status: "paid",
@@ -330,9 +453,23 @@ export async function recordPayment(input: unknown): Promise<BillingActionResult
       });
     }
 
+    let receipt: ReceiptOutcome = { status: "skipped" };
+    if (recordingKind === "paid") {
+      receipt = await tryAutoIssueReceipt(supabase, {
+        paymentId: inserted.paymentId,
+        studentId,
+        userId: user?.id ?? null,
+      });
+    }
+
     revalidateGlobalBilling();
     revalidateStudentBilling(studentId);
-    return { ok: true };
+    return {
+      ok: true,
+      paymentId: inserted.paymentId,
+      studentId,
+      receipt,
+    };
   } catch (e) {
     return { ok: false, error: mapBillingActionError(e) };
   }
@@ -440,6 +577,34 @@ export async function voidPayment(input: unknown): Promise<BillingActionResult> 
 
     const studentId = row.student_id as string;
 
+    const { data: receipts } = await supabase
+      .from("generated_documents")
+      .select("id, pdf_path, status")
+      .eq("payment_id", paymentId)
+      .neq("status", "archived");
+
+    if (receipts && receipts.length > 0) {
+      for (const r of receipts) {
+        try {
+          if (r.pdf_path) {
+            await archiveDocumentArtifact(supabase, r.pdf_path as string);
+          }
+        } catch (storageErr) {
+          logDocumentEvent({
+            level: "warn",
+            event: "auto_receipt.archive_storage_failed",
+            documentId: (r.id as string) ?? undefined,
+            payload: { message: (storageErr as Error).message },
+          });
+        }
+      }
+      const ids = receipts.map((r) => r.id as string);
+      await supabase
+        .from("generated_documents")
+        .update({ status: "archived", updated_at: new Date().toISOString() })
+        .in("id", ids);
+    }
+
     const { error: delErr } = await supabase
       .from("payments")
       .delete()
@@ -450,6 +615,127 @@ export async function voidPayment(input: unknown): Promise<BillingActionResult> 
     revalidateGlobalBilling();
     revalidateStudentBilling(studentId);
     return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
+
+export async function retryReceiptGeneration(
+  input: unknown,
+): Promise<RetryReceiptResult> {
+  try {
+    const parsed = voidPaymentSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: "Identificador de pagamento inválido." };
+    }
+    const { paymentId } = parsed.data;
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "Sessão inválida." };
+
+    const { data: payment } = await supabase
+      .from("payments")
+      .select("id, student_id, status")
+      .eq("id", paymentId)
+      .maybeSingle();
+    if (!payment) {
+      return { ok: false, error: "Pagamento não encontrado." };
+    }
+    if (payment.status !== "paid") {
+      return {
+        ok: false,
+        error: "Apenas pagamentos confirmados geram recibo.",
+      };
+    }
+
+    const receipt = await tryAutoIssueReceipt(supabase, {
+      paymentId,
+      studentId: payment.student_id as string,
+      userId: user.id,
+    });
+
+    revalidateGlobalBilling();
+    revalidateStudentBilling(payment.student_id as string);
+
+    return { ok: true, receipt };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
+
+/**
+ * Lê (sem regenerar) o estado do recibo automático para um pagamento.
+ * Usado pelo botão "Comprovante" da lista de mensalidades para abrir o popup
+ * sem disparar render desnecessário quando o documento já existe.
+ */
+export async function getReceiptForPayment(
+  input: unknown,
+): Promise<GetReceiptForPaymentResult> {
+  try {
+    const parsed = voidPaymentSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: "Identificador de pagamento inválido." };
+    }
+    const { paymentId } = parsed.data;
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "Sessão inválida." };
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("account_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!profile?.account_id) {
+      return { ok: false, error: "Conta não encontrada." };
+    }
+
+    const { data: row, error } = await supabase
+      .from("generated_documents")
+      .select("id, status, number, error_message")
+      .eq("account_id", profile.account_id as string)
+      .eq("payment_id", paymentId)
+      .eq("type", "payment_receipt")
+      .neq("status", "archived")
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!row) {
+      return { ok: true, receipt: { status: "missing" } };
+    }
+
+    if (row.status === "ready") {
+      return {
+        ok: true,
+        receipt: {
+          status: "ready",
+          documentId: row.id as string,
+          number: (row.number as string) ?? "",
+          reused: true,
+        },
+      };
+    }
+
+    return {
+      ok: true,
+      receipt: {
+        status: "failed",
+        documentId: row.id as string,
+        error:
+          (row.error_message as string | null) ??
+          "Recibo ainda não foi gerado com sucesso.",
+      },
+    };
   } catch (e) {
     return { ok: false, error: mapBillingActionError(e) };
   }

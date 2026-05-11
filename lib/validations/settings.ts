@@ -1,5 +1,31 @@
 import { z } from "zod";
 
+const optionalText = (max: number, msg: string) =>
+  z
+    .union([z.string().trim().max(max, msg), z.literal("")])
+    .optional()
+    .transform((v) => (v === undefined || v === "" ? null : v));
+
+const cnpjDigits = /^[0-9]{14}$/;
+
+export function digitsOnly(v: string): string {
+  return v.replace(/\D+/g, "");
+}
+
+export function isValidCnpjBasic(v: string): boolean {
+  const digits = digitsOnly(v);
+  return cnpjDigits.test(digits) && !/^([0-9])\1{13}$/.test(digits);
+}
+
+export function maskCnpj(v: string): string {
+  const d = digitsOnly(v).slice(0, 14);
+  if (d.length <= 2) return d;
+  if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`;
+  if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`;
+  if (d.length <= 12) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`;
+  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
+}
+
 export const updateAccountSchema = z
   .object({
     name: z
@@ -9,6 +35,60 @@ export const updateAccountSchema = z
       .max(200, "Nome demasiado longo."),
   })
   .strict();
+
+/** Receiver data (CFG-6): aceita CNPJ mascarado ou só dígitos; servidor armazena 14 dígitos. */
+export const updateReceiverSchema = z
+  .object({
+    legalName: optionalText(200, "Razão social demasiado longa."),
+    cnpj: z
+      .union([
+        z
+          .string()
+          .trim()
+          .transform((v) => digitsOnly(v))
+          .refine((d) => d.length === 0 || cnpjDigits.test(d), {
+            message: "CNPJ deve ter 14 dígitos.",
+          })
+          .refine((d) => d.length === 0 || !/^([0-9])\1{13}$/.test(d), {
+            message: "CNPJ inválido.",
+          }),
+        z.literal(""),
+      ])
+      .optional()
+      .transform((v) => (v === undefined || v === "" ? null : v)),
+  })
+  .strict();
+
+export type UpdateReceiverInput = z.infer<typeof updateReceiverSchema>;
+
+/** Cliente: mantém máscara para edição, validador igual ao servidor. */
+export const updateReceiverFormSchema = z
+  .object({
+    legalName: z.string().trim().max(200, "Razão social demasiado longa."),
+    cnpj: z
+      .string()
+      .trim()
+      .superRefine((v, ctx) => {
+        const d = digitsOnly(v);
+        if (d.length === 0) return;
+        if (!cnpjDigits.test(d)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "CNPJ deve ter 14 dígitos.",
+          });
+          return;
+        }
+        if (/^([0-9])\1{13}$/.test(d)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "CNPJ inválido.",
+          });
+        }
+      }),
+  })
+  .strict();
+
+export type UpdateReceiverFormValues = z.infer<typeof updateReceiverFormSchema>;
 
 export const updateProfileSchema = z
   .object({

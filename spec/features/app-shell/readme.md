@@ -34,10 +34,12 @@ Os primeiros segmentos da área operacional (autenticada) são:
 | Rota | Função |
 |------|--------|
 | `/painel` | Entrada principal pós-login , **painel operacional** (**PNL-** em [`spec/features/dashboard/readme.md`](../dashboard/readme.md)): KPIs, «Atenção hoje», distribuição por faixa |
-| `/alunos` | Alunos e subrotas (ex.: **`/alunos/novo`**, **`/alunos/[id]`** (perfil , **SPR-**), **`/alunos/[id]/editar`**, **`/alunos/[id]/graduacoes`** (histórico de graduações , **GRD-**); ver **STU-1** em [`students-crud/readme.md`](../students-crud/readme.md)) |
+| `/alunos` | Alunos e subrotas (ex.: **`/alunos/novo`**, **`/alunos/[id]`** (perfil , **SPR-**, com aba **Documentos** , **SPR-11**), **`/alunos/[id]/editar`**, **`/alunos/[id]/graduacoes`** (histórico de graduações , **GRD-**); ver **STU-1** em [`students-crud/readme.md`](../students-crud/readme.md)) |
 | `/mensalidades` | Mensalidades , lista mensal de cobrança (**BUI-1**) |
 | `/mensalidades/[studentId]` | Detalhe financeiro do aluno (**BUI-1**) |
-| `/configuracoes` | Configurações da academia / conta (**CFG-** em [`spec/features/settings/readme.md`](../settings/readme.md)) |
+| `/pedagogico/planos` | Planos de aula mensais por categoria (**PED-** em [`spec/features/lesson-plans/readme.md`](../lesson-plans/readme.md)); subrotas: `novo`, `[id]`, `[id]/editar` |
+| `/documentos` | Hub central de documentos do aluno (**DOC-** em [`spec/features/student-documents/readme.md`](../student-documents/readme.md)); subrota `[documentId]` para detalhe |
+| `/configuracoes` | Configurações da academia / conta (**CFG-** em [`spec/features/settings/readme.md`](../settings/readme.md), inclui **CFG-6** , recebedor para documentos formais) |
 | `/perfil` | Perfil do utilizador |
 
 Novas áreas autenticadas devem acrescentar prefixo aqui e no middleware, salvo decisão futura de agrupamento sob um único segmento.
@@ -46,7 +48,7 @@ Para inventário de testes de segurança (**SECE2E-4**), incluir também rotas p
 
 ## SHELL-3. Navegação e estado ativo
 
-**SHELL-3.1.** Itens principais da navegação (rótulos em **pt-BR**): **Painel**, **Alunos**, **Mensalidades**, **Configurações**.
+**SHELL-3.1.** Itens principais da navegação (rótulos em **pt-BR**): **Painel**, **Alunos**, **Mensalidades**, **Pedagógico**, **Documentos**, **Configurações**. Em mobile (bottom navigation) mantém-se o subset principal; os itens menos frequentes (**Documentos**) podem ficar atrás de um menu compacto se o espaço da bottom bar não acomodar todos sem comprometer toque ≥ 44px (**SHELL-7.3**, **DS-1.3**).
 
 **SHELL-3.2.** O destino atual deve ficar **visualmente destacado** (cor de destaque acordada com identidade , vermelho no chrome escuro).
 

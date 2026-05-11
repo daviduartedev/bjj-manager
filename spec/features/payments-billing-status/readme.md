@@ -100,6 +100,18 @@ Valores canónicos (slug inglês, UI pt-BR à parte): **`paid`**, **`pending`**,
 
 ---
 
+## PBS-9. Geração automática de recibo
+
+**PBS-9.1.** Após o `upsert` em `payments` resultar em `status='paid'`, a Server Action **`recordPayment`** dispara, no **mesmo request**, a emissão do recibo formal (**REC-1**, **BR-8**). O contrato `recordPayment` retorna `{ ok: true, paymentId, receipt: { documentId, status, downloadUrl? } }`; quando `receipt.status='failed'`, o pagamento permanece intacto e o cliente recebe a indicação para `Tentar gerar novamente` (**REC-7**).
+
+**PBS-9.2.** Para `status ∈ {scholarship, other}`, **PBS-9** **não** se aplica , `recordPayment` continua a responder `{ ok: true, paymentId }` sem campo `receipt` (**REC-1.4**, **REC-1.5**). Recibos manuais ficam disponíveis via módulo documental (**DOC-1.1**).
+
+**PBS-9.3.** Idempotência casa com **PBS-4.4**: chamadas com mesmo `(student_id, reference_month, amount_cents)` devolvem o **mesmo recibo** já gerado (**REC-2.1**), sem nova renderização.
+
+**PBS-9.4.** **`voidPayment`** (**PBS-5**) deve marcar o recibo activo correspondente como `archived` (**REC-12**, **BR-8.6**); o documento permanece consultável no histórico do aluno.
+
+---
+
 ## Manutenção
 
-Alterações em `payments`, actions ou helpers devem actualizar **este readme**, **`spec/features/billing-ui/readme.md`** quando afectarem UX, **`spec/features/dashboard/readme.md`** quando afectarem **PBS-6** no painel, **`spec/product/billing-rules.md`** + **`docs/product/billing-rules.md`**, e cenários em `cycles/.../13-0430-payments-billing-status/scenarios.feature` e `cycles/.../14-0430-billing-ui/scenarios.feature` quando aplicável.
+Alterações em `payments`, actions ou helpers devem actualizar **este readme**, **`spec/features/billing-ui/readme.md`** quando afectarem UX, **`spec/features/dashboard/readme.md`** quando afectarem **PBS-6** no painel, **`spec/features/payment-receipts/readme.md`** quando afectarem **REC-** ou **PBS-9**, **`spec/product/billing-rules.md`** + **`docs/product/billing-rules.md`**, e cenários em `cycles/.../13-0430-payments-billing-status/scenarios.feature`, `cycles/.../14-0430-billing-ui/scenarios.feature` e `cycles/.../25-0510-pedagogical-documents-finance/scenarios.feature` quando aplicável.

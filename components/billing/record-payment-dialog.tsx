@@ -6,6 +6,7 @@ import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { recordPayment } from "@/actions/billing";
+import { PostPaymentSummary } from "@/components/billing/post-payment-summary";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -46,6 +47,14 @@ export function RecordPaymentDialog({
   const [paidAtLocal, setPaidAtLocal] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [notes, setNotes] = useState("");
+  const [summary, setSummary] = useState<{
+    paymentId: string;
+    studentId: string;
+    receipt:
+      | { status: "ready"; documentId: string; number: string; reused: boolean }
+      | { status: "failed"; error: string }
+      | { status: "skipped" };
+  } | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -54,6 +63,7 @@ export function RecordPaymentDialog({
       setPaymentMethod("");
       setNotes("");
       setPendingKind(null);
+      setSummary(null);
     }
   }, [open, defaultReferenceMonth]);
 
@@ -90,12 +100,28 @@ export function RecordPaymentDialog({
           return;
         }
 
-        toast.success(
-          kind === "scholarship"
-            ? "Isenção (bolsista) registrada."
-            : "Pagamento registrado.",
-        );
-        onOpenChange(false);
+        if (kind === "scholarship") {
+          toast.success("Isenção (bolsista) registrada.");
+          onOpenChange(false);
+          router.refresh();
+          return;
+        }
+
+        if (result.receipt.status === "ready") {
+          toast.success("Pagamento registrado e recibo emitido.");
+        } else if (result.receipt.status === "failed") {
+          toast.warning(
+            "Pagamento registrado. Recibo falhou — tente gerar novamente.",
+          );
+        } else {
+          toast.success("Pagamento registrado.");
+        }
+
+        setSummary({
+          paymentId: result.paymentId,
+          studentId: result.studentId,
+          receipt: result.receipt,
+        });
         router.refresh();
       } finally {
         setPendingKind(null);
@@ -104,6 +130,34 @@ export function RecordPaymentDialog({
   }
 
   const canSubmit = amountCents != null;
+
+  if (summary) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="flex max-h-[min(92vh,720px)] flex-col gap-4 overflow-y-auto sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Pagamento registrado</DialogTitle>
+            <DialogDescription>
+              Atalhos rápidos para o recibo emitido.
+            </DialogDescription>
+          </DialogHeader>
+          <PostPaymentSummary
+            paymentId={summary.paymentId}
+            receipt={summary.receipt}
+          />
+          <DialogFooter>
+            <Button
+              type="button"
+              className="min-h-11 w-full sm:w-auto"
+              onClick={() => onOpenChange(false)}
+            >
+              Concluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -26,11 +26,17 @@
 
 **SPEC-2.7.** **Painel** (`/painel`) com visão resumida da academia: KPIs (alunos activos, mensalidades atrasadas, aniversariantes do mês, alertas de tempo em faixa/grau), secção **Atenção hoje** (aniversários do dia, vencimentos do dia, atrasos prolongados), distribuição compacta por faixa (adulto/kids) e atalhos para cadastro e mensalidades , **sem** gráficos pesados; detalhe contratual em **PNL-** em [`spec/features/dashboard/readme.md`](../../spec/features/dashboard/readme.md).
 
+**SPEC-2.8.** **Módulo pedagógico** (`/pedagogico/planos`) , criação, manutenção, histórico imutável por revisão, duplicação entre meses, anexos e exportação PDF de **planos de aula mensais** por categoria (reaproveitando `plan_kind`: Adulto, Kids 1, Kids 2). Detalhe contratual em **PED-** em [`spec/features/lesson-plans/readme.md`](../../spec/features/lesson-plans/readme.md).
+
+**SPEC-2.9.** **Módulo documental** (`/documentos` e aba **Documentos** em `/alunos/[id]`) , geração server-side de **certificados**, **termos de responsabilidade**, **comprovantes de matrícula** e **recibos manuais** a partir de templates HTML versionados, com persistência de metadados, snapshot de payload e binário privado em Supabase Storage. Reemissão **auditável** com selo `2ª via`. Detalhe contratual em **DOC-** em [`spec/features/student-documents/readme.md`](../../spec/features/student-documents/readme.md).
+
+**SPEC-2.10.** **Recibo automático ao registrar pagamento** , a Server Action `recordPayment` dispara, de forma **síncrona blocking** e **idempotente por `payment_id`**, a emissão de um **recibo formal** (tipo `payment_receipt`), persistido como documento, com URL assinada para download e compartilhamento via **WhatsApp Web (`wa.me`)** com o telefone do aluno. Recibos `failed` mantêm o pagamento intacto e oferecem `Tentar gerar novamente`. Detalhe contratual em **REC-** em [`spec/features/payment-receipts/readme.md`](../../spec/features/payment-receipts/readme.md) e em **BR-8** ([`billing-rules.md`](billing-rules.md)).
+
 ---
 
 ## 3. Fora do MVP (explícito)
 
-**SPEC-3.1.** Presença, turmas, QR code, WhatsApp, documentos, certificados.
+**SPEC-3.1.** Presença, turmas, QR code, **integração com WhatsApp Business API** (compartilhamento por **`wa.me`** **dentro** do MVP via **DOC-8**), **assinatura digital ICP-Brasil**, **portal do aluno**, e **outros documentos formais** que não estejam nos tipos canónicos de **DOC-1** (laudos, atestados, declarações específicas, contratos com cláusulas externas).
 
 **SPEC-3.2.** Exportação CSV/Excel.
 
@@ -67,6 +73,12 @@
 **SPEC-5.4.** **Cobrança**: definir planos Kids 1 / Kids 2 / Adulto e valores padrão → vincular aluno a plano → ajustar preço personalizado e dia de vencimento → por mês de referência, revisar status (**Pago**, **Não pago**, **Pendente**, **Bolsista**, **Outro**) , com **Pago** e **Bolsista** apenas por confirmação manual e **Pendente** evoluindo para **Não pago** conforme **BR-4.5** → opcionalmente **marcar todos como pagos** em lote para um recorte/mês (**BR-** em [`billing-rules.md`](billing-rules.md)).
 
 **SPEC-5.5.** **Rotina mensal**: professor revisa pendências no dashboard e atualiza status de mensalidades do mês.
+
+**SPEC-5.6.** **Rotina pedagógica**: professor abre **`/pedagogico/planos`**, filtra pelo **mês de referência** corrente, **duplica** o plano do mês anterior por categoria (Adulto / Kids 1 / Kids 2) → revisa tópicos e técnicas → **publica** → opcionalmente exporta PDF para distribuir aos colegas (**PED-**).
+
+**SPEC-5.7.** **Emissão documental**: professor abre o **perfil do aluno** ou **`/documentos`** → escolhe o tipo (Comprovante de matrícula, Certificado, Termo de responsabilidade, Recibo manual) → revisa preview → confirma geração → **baixa**, **abre** ou **compartilha por WhatsApp** com o aluno (**DOC-**).
+
+**SPEC-5.8.** **Cobrança com recibo automático**: professor clica em `Pagar` no diálogo de mensalidade → a Server Action grava o pagamento e gera o recibo no **mesmo request** → toast de sucesso e atalhos pós-pagamento (baixar, abrir, WhatsApp, reemitir) ficam imediatamente disponíveis (**REC-**, **BR-8**, **BUI-9**).
 
 ---
 

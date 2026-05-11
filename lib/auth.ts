@@ -5,6 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 export type AccountRow = {
   id: string;
   name: string;
+  legal_name: string | null;
+  cnpj: string | null;
+  signature_url: string | null;
+  logo_url: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -60,6 +64,10 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
       accounts (
         id,
         name,
+        legal_name,
+        cnpj,
+        signature_url,
+        logo_url,
         created_at,
         updated_at
       )

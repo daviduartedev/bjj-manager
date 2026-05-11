@@ -9,6 +9,9 @@ export const ROUTES = {
   alunosNovo: "/alunos/novo",
   mensalidades: "/mensalidades",
   produtos: "/produtos",
+  documentos: "/documentos",
+  pedagogicoPlanos: "/pedagogico/planos",
+  pedagogicoPlanoNovo: "/pedagogico/planos/novo",
   configuracoes: "/configuracoes",
   perfil: "/perfil",
 } as const;
@@ -38,12 +41,28 @@ export function routeAlunoEditar(studentId: string): string {
   return `${ROUTES.alunos}/${studentId}/editar`;
 }
 
+/** Detalhe de documento gerado (`/documentos/[documentId]`). */
+export function routeDocumentoDetalhe(documentId: string): string {
+  return `${ROUTES.documentos}/${documentId}`;
+}
+
+/** Detalhe / edição de plano pedagógico. */
+export function routePedagogicoPlano(id: string): string {
+  return `${ROUTES.pedagogicoPlanos}/${id}`;
+}
+
+export function routePedagogicoPlanoEditar(id: string): string {
+  return `${ROUTES.pedagogicoPlanos}/${id}/editar`;
+}
+
 /** Prefixos protegidos pelo middleware (sessão obrigatória). */
 export const AUTHENTICATED_PATH_PREFIXES: readonly string[] = [
   ROUTES.painel,
   ROUTES.alunos,
   ROUTES.mensalidades,
   ROUTES.produtos,
+  ROUTES.documentos,
+  "/pedagogico",
   ROUTES.configuracoes,
   ROUTES.perfil,
 ];

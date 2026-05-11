@@ -81,3 +81,25 @@
 **BR-7.2.** Índices e unicidade por (**student**, **reference_month**) devem evitar duplicidade de lançamento do mesmo mês (ciclo schema).
 
 **BR-7.3.** Valores de enum persistidos no banco seguem **slugs em inglês** (ex.: `scholarship` para **Bolsista**); rótulos **pt-BR** ficam na camada de apresentação.
+
+---
+
+## BR-8. Recibo automático no `Pagar`
+
+Detalhe contratual em **REC-** ([`spec/features/payment-receipts/readme.md`](../../spec/features/payment-receipts/readme.md)).
+
+**BR-8.1. Gatilho.** Toda Server Action **`recordPayment`** que persistir uma linha em `payments` com `status='paid'` deve **disparar a geração de um recibo formal** (`type='payment_receipt'`) no **mesmo request HTTP** , de forma **síncrona blocking** (**REC-1.1**).
+
+**BR-8.2. Idempotência.** A geração é idempotente por `payment_id`: nova chamada de `recordPayment` para o mesmo (`student_id`, `reference_month`) com **mesmo `amount_cents`** **não duplica** o recibo (devolve o existente , **REC-2.1**, **PBS-4.4**).
+
+**BR-8.3. Resiliência.** Falha na geração do recibo **nunca** invalida o pagamento já gravado: o pagamento permanece em `payments` e o documento fica em `status='failed'` com `failure_reason` preservado, expondo CTA `Tentar gerar novamente` ao utilizador (**REC-7**, **CA-REC-004**).
+
+**BR-8.4. Excepções por status.** Não são gerados recibos automáticos para `status='scholarship'` (sem valor recebido a comprovar , **REC-1.4**) nem `status='other'` (semântica explicitamente atípica , **REC-1.5**). Recibos manuais para esses casos podem ser gerados pelo módulo documental (**DOC-1.1**).
+
+**BR-8.5. Reemissão.** Recibos automáticos podem ser reemitidos com **motivo obrigatório** (**DOC-11**), gerando nova `version` com selo `2ª via`, sem afectar o pagamento.
+
+**BR-8.6. Estorno.** Quando `voidPayment` remove um pagamento (**PBS-5**), o recibo activo correspondente é marcado como `archived` (**REC-12**); permanece consultável no histórico documental do aluno mas deixa de ser o «corrente». Ressecharger requer novo `recordPayment`.
+
+**BR-8.7. Multi-mês.** No MVP, **um recibo por `payment`** (**REC-5.1**); o template visual já comporta lista de meses para evolução futura (recibo agregado manual).
+
+**BR-8.8. Dados do recebedor.** O recibo usa `accounts.legal_name`, `accounts.cnpj` e `accounts.signature_url` (**CFG-6**); ausência destes campos não bloqueia a geração (campos respectivos ficam vazios no PDF) mas a UI de **`/configuracoes`** sinaliza configuração incompleta.

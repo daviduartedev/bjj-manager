@@ -34,6 +34,7 @@ import {
   toCalendarDateStringInAppTZ,
 } from "@/lib/dates";
 import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog";
+import { StudentDocumentsTab } from "@/components/students/student-documents-tab";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { ROUTES, routeAlunoEditar, routeMensalidadesAluno } from "@/lib/routes";
@@ -180,6 +181,9 @@ export function StudentProfileClient({ profile }: Props) {
             </TabsTrigger>
             <TabsTrigger value="financeiro" className="min-h-11 shrink-0">
               Financeiro
+            </TabsTrigger>
+            <TabsTrigger value="documentos" className="min-h-11 shrink-0">
+              Documentos
             </TabsTrigger>
           </TabsList>
         </div>
@@ -417,6 +421,10 @@ export function StudentProfileClient({ profile }: Props) {
               </ProfileSurfaceCard>
             )}
           </Section>
+        </TabsContent>
+
+        <TabsContent value="documentos" className="space-y-4">
+          <StudentDocumentsTab studentId={profile.id} />
         </TabsContent>
       </Tabs>
 

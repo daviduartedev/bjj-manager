@@ -45,6 +45,20 @@ ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE public.product_variants ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE public.document_templates ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.generated_documents ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.generated_document_deliveries ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.document_sequences ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.lesson_plans ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.lesson_plan_revisions ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.lesson_plan_attachments ENABLE ROW LEVEL SECURITY;
+
 -- ---------- accounts (no INSERT for authenticated , bootstrap via postgres) ----------
 DROP POLICY IF EXISTS accounts_select_own ON public.accounts;
 
@@ -221,3 +235,109 @@ WITH
         AND p.account_id = public.current_account_id ()
     )
   );
+
+-- ---------- document_templates: globais (account_id IS NULL) leitura para todos; por conta tenant-only ----------
+DROP POLICY IF EXISTS document_templates_select ON public.document_templates;
+
+DROP POLICY IF EXISTS document_templates_modify_tenant ON public.document_templates;
+
+CREATE POLICY document_templates_select ON public.document_templates FOR SELECT TO authenticated USING (
+  account_id IS NULL OR account_id = public.current_account_id ()
+);
+
+CREATE POLICY document_templates_modify_tenant ON public.document_templates FOR ALL TO authenticated USING (
+  account_id = public.current_account_id ()
+)
+WITH CHECK (
+  account_id = public.current_account_id ()
+);
+
+-- ---------- generated_documents ----------
+DROP POLICY IF EXISTS generated_documents_tenant_all ON public.generated_documents;
+
+CREATE POLICY generated_documents_tenant_all ON public.generated_documents FOR ALL TO authenticated USING (
+  account_id = public.current_account_id ()
+)
+WITH CHECK (
+  account_id = public.current_account_id ()
+);
+
+-- ---------- generated_document_deliveries (via parent) ----------
+DROP POLICY IF EXISTS generated_document_deliveries_by_doc_tenant ON public.generated_document_deliveries;
+
+CREATE POLICY generated_document_deliveries_by_doc_tenant ON public.generated_document_deliveries FOR ALL TO authenticated USING (
+  EXISTS (
+    SELECT 1
+    FROM public.generated_documents d
+    WHERE d.id = generated_document_deliveries.document_id
+      AND d.account_id = public.current_account_id ()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1
+    FROM public.generated_documents d
+    WHERE d.id = generated_document_deliveries.document_id
+      AND d.account_id = public.current_account_id ()
+  )
+);
+
+-- ---------- document_sequences ----------
+DROP POLICY IF EXISTS document_sequences_tenant_all ON public.document_sequences;
+
+CREATE POLICY document_sequences_tenant_all ON public.document_sequences FOR ALL TO authenticated USING (
+  account_id = public.current_account_id ()
+)
+WITH CHECK (
+  account_id = public.current_account_id ()
+);
+
+-- ---------- lesson_plans ----------
+DROP POLICY IF EXISTS lesson_plans_tenant_all ON public.lesson_plans;
+
+CREATE POLICY lesson_plans_tenant_all ON public.lesson_plans FOR ALL TO authenticated USING (
+  account_id = public.current_account_id ()
+)
+WITH CHECK (
+  account_id = public.current_account_id ()
+);
+
+-- ---------- lesson_plan_revisions (via parent) ----------
+DROP POLICY IF EXISTS lesson_plan_revisions_by_plan_tenant ON public.lesson_plan_revisions;
+
+CREATE POLICY lesson_plan_revisions_by_plan_tenant ON public.lesson_plan_revisions FOR ALL TO authenticated USING (
+  EXISTS (
+    SELECT 1
+    FROM public.lesson_plans lp
+    WHERE lp.id = lesson_plan_revisions.lesson_plan_id
+      AND lp.account_id = public.current_account_id ()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1
+    FROM public.lesson_plans lp
+    WHERE lp.id = lesson_plan_revisions.lesson_plan_id
+      AND lp.account_id = public.current_account_id ()
+  )
+);
+
+-- ---------- lesson_plan_attachments (via parent) ----------
+DROP POLICY IF EXISTS lesson_plan_attachments_by_plan_tenant ON public.lesson_plan_attachments;
+
+CREATE POLICY lesson_plan_attachments_by_plan_tenant ON public.lesson_plan_attachments FOR ALL TO authenticated USING (
+  EXISTS (
+    SELECT 1
+    FROM public.lesson_plans lp
+    WHERE lp.id = lesson_plan_attachments.lesson_plan_id
+      AND lp.account_id = public.current_account_id ()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1
+    FROM public.lesson_plans lp
+    WHERE lp.id = lesson_plan_attachments.lesson_plan_id
+      AND lp.account_id = public.current_account_id ()
+  )
+);

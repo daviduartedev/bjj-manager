@@ -54,6 +54,7 @@ export default async function ConfiguracoesPage() {
       <ConfiguracoesClient
         initialAccountName={data.ctx.account.name}
         plans={data.plans}
+        receiver={data.receiver}
       />
     </div>
   );

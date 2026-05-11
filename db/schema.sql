@@ -36,12 +36,62 @@ EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
 
+DO $$ BEGIN
+  CREATE TYPE public.document_type AS ENUM (
+    'payment_receipt',
+    'enrollment_proof',
+    'certificate',
+    'liability_term',
+    'manual_receipt'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE public.generated_document_status AS ENUM (
+    'pending',
+    'ready',
+    'failed',
+    'archived'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE public.delivery_channel AS ENUM (
+    'download',
+    'whatsapp',
+    'browser_open',
+    'reissue'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE public.delivery_status AS ENUM (
+    'requested',
+    'completed',
+    'failed'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE public.lesson_plan_status AS ENUM ('draft', 'published', 'archived');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
 -- ---------- Tables ----------
 CREATE TABLE IF NOT EXISTS public.accounts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   name text NOT NULL,
+  legal_name text NULL,
+  cnpj text NULL,
+  signature_url text NULL,
+  logo_url text NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT accounts_cnpj_format_ck CHECK (
+    cnpj IS NULL OR cnpj ~ '^[0-9]{14}$'
+  ),
+  CONSTRAINT accounts_legal_name_not_blank CHECK (
+    legal_name IS NULL OR length(trim(legal_name)) > 0
+  )
 );
 
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -197,6 +247,148 @@ CREATE TABLE IF NOT EXISTS public.product_variants (
   CONSTRAINT product_variants_line_check CHECK (line IN ('unisex', 'feminine'))
 );
 
+-- ---------- Documents core (DOC- / REC-) ----------
+CREATE TABLE IF NOT EXISTS public.document_templates (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+  account_id uuid NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
+  type public.document_type NOT NULL,
+  version integer NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  storage_path text NULL,
+  defaults_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT document_templates_account_type_version_uq UNIQUE (account_id, type, version),
+  CONSTRAINT document_templates_version_positive_ck CHECK (version >= 1)
+);
+
+CREATE TABLE IF NOT EXISTS public.generated_documents (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+  account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
+  type public.document_type NOT NULL,
+  status public.generated_document_status NOT NULL DEFAULT 'pending',
+  number text NULL,
+  version integer NOT NULL DEFAULT 1,
+  supersedes_id uuid NULL REFERENCES public.generated_documents (id) ON DELETE SET NULL,
+  idempotency_key text NULL,
+  student_id uuid NULL REFERENCES public.students (id) ON DELETE SET NULL,
+  payment_id uuid NULL REFERENCES public.payments (id) ON DELETE SET NULL,
+  template_id uuid NULL REFERENCES public.document_templates (id) ON DELETE SET NULL,
+  payload_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  pdf_path text NULL,
+  html_path text NULL,
+  byte_size integer NULL,
+  error_code text NULL,
+  error_message text NULL,
+  reissue_reason text NULL,
+  created_by uuid NULL REFERENCES auth.users (id) ON DELETE SET NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT generated_documents_version_positive_ck CHECK (version >= 1),
+  CONSTRAINT generated_documents_status_consistency_ck CHECK (
+    (status = 'failed' AND error_code IS NOT NULL)
+    OR (status <> 'failed')
+  )
+);
+
+CREATE TABLE IF NOT EXISTS public.generated_document_deliveries (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+  document_id uuid NOT NULL REFERENCES public.generated_documents (id) ON DELETE CASCADE,
+  channel public.delivery_channel NOT NULL,
+  status public.delivery_status NOT NULL DEFAULT 'completed',
+  metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  performed_by uuid NULL REFERENCES auth.users (id) ON DELETE SET NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.document_sequences (
+  account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
+  type public.document_type NOT NULL,
+  year smallint NOT NULL,
+  last_seq integer NOT NULL DEFAULT 0,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT document_sequences_pk PRIMARY KEY (account_id, type, year),
+  CONSTRAINT document_sequences_seq_non_negative CHECK (last_seq >= 0),
+  CONSTRAINT document_sequences_year_bounds CHECK (year BETWEEN 2000 AND 2999)
+);
+
+CREATE OR REPLACE FUNCTION public.reserve_document_number (
+  p_account_id uuid,
+  p_type public.document_type,
+  p_year smallint
+) RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_next integer;
+BEGIN
+  INSERT INTO public.document_sequences (account_id, type, year, last_seq, updated_at)
+  VALUES (p_account_id, p_type, p_year, 1, now())
+  ON CONFLICT (account_id, type, year)
+  DO UPDATE SET last_seq = public.document_sequences.last_seq + 1, updated_at = now()
+  RETURNING last_seq INTO v_next;
+  RETURN v_next;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.reserve_document_number (uuid, public.document_type, smallint) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.reserve_document_number (uuid, public.document_type, smallint) TO authenticated;
+
+-- ---------- Lesson plans (PED-) ----------
+CREATE TABLE IF NOT EXISTS public.lesson_plans (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+  account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
+  plan_kind public.plan_kind NOT NULL,
+  reference_month date NOT NULL,
+  title text NOT NULL,
+  status public.lesson_plan_status NOT NULL DEFAULT 'draft',
+  internal_notes text NULL,
+  current_revision_id uuid NULL,
+  created_by uuid NULL REFERENCES auth.users (id) ON DELETE SET NULL,
+  archived_at timestamptz NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT lesson_plans_title_not_blank CHECK (length(trim(title)) > 0),
+  CONSTRAINT lesson_plans_reference_month_first_day_ck CHECK (
+    EXTRACT(DAY FROM reference_month) = 1
+  )
+);
+
+CREATE TABLE IF NOT EXISTS public.lesson_plan_revisions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+  lesson_plan_id uuid NOT NULL REFERENCES public.lesson_plans (id) ON DELETE CASCADE,
+  revision_number integer NOT NULL,
+  content_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  change_summary text NULL,
+  created_by uuid NULL REFERENCES auth.users (id) ON DELETE SET NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT lesson_plan_revisions_uq UNIQUE (lesson_plan_id, revision_number),
+  CONSTRAINT lesson_plan_revisions_number_positive_ck CHECK (revision_number >= 1)
+);
+
+DO $$ BEGIN
+  ALTER TABLE public.lesson_plans
+    ADD CONSTRAINT lesson_plans_current_revision_fk
+    FOREIGN KEY (current_revision_id)
+    REFERENCES public.lesson_plan_revisions (id)
+    ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+CREATE TABLE IF NOT EXISTS public.lesson_plan_attachments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+  lesson_plan_id uuid NOT NULL REFERENCES public.lesson_plans (id) ON DELETE CASCADE,
+  storage_path text NOT NULL,
+  filename text NOT NULL,
+  mime_type text NOT NULL,
+  byte_size integer NOT NULL,
+  uploaded_by uuid NULL REFERENCES auth.users (id) ON DELETE SET NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT lesson_plan_attachments_filename_not_blank CHECK (length(trim(filename)) > 0),
+  CONSTRAINT lesson_plan_attachments_byte_size_non_negative CHECK (byte_size >= 0)
+);
+
 -- ---------- Indexes ----------
 CREATE INDEX IF NOT EXISTS idx_students_account_id ON public.students (account_id);
 
@@ -211,3 +403,41 @@ WHERE
 CREATE INDEX IF NOT EXISTS idx_products_account_id ON public.products (account_id);
 
 CREATE INDEX IF NOT EXISTS idx_product_variants_product_id ON public.product_variants (product_id);
+
+CREATE INDEX IF NOT EXISTS idx_document_templates_type_active
+  ON public.document_templates (type, is_active);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_generated_documents_account_idem_key
+  ON public.generated_documents (account_id, idempotency_key)
+  WHERE idempotency_key IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_generated_documents_account_type_created
+  ON public.generated_documents (account_id, type, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_generated_documents_student_created
+  ON public.generated_documents (student_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_generated_documents_payment
+  ON public.generated_documents (payment_id);
+
+CREATE INDEX IF NOT EXISTS idx_generated_documents_supersedes
+  ON public.generated_documents (supersedes_id);
+
+CREATE INDEX IF NOT EXISTS idx_generated_document_deliveries_document_created
+  ON public.generated_document_deliveries (document_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_lesson_plans_account_kind_month
+  ON public.lesson_plans (account_id, plan_kind, reference_month);
+
+CREATE INDEX IF NOT EXISTS idx_lesson_plans_account_status_updated
+  ON public.lesson_plans (account_id, status, updated_at DESC);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_lesson_plans_one_published_per_kind_month
+  ON public.lesson_plans (account_id, plan_kind, reference_month)
+  WHERE status = 'published';
+
+CREATE INDEX IF NOT EXISTS idx_lesson_plan_revisions_plan_created
+  ON public.lesson_plan_revisions (lesson_plan_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_lesson_plan_attachments_plan
+  ON public.lesson_plan_attachments (lesson_plan_id);

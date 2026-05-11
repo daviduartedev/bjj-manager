@@ -125,6 +125,25 @@ Contrato canónico para a **vista de detalhe só leitura** do aluno (**SPEC-2.2*
 
 ---
 
+## SPR-11. Aba **Documentos**
+
+**SPR-11.1.** O perfil ganha um separador adicional **Documentos** que coexiste com **Dados pessoais**, **Graduação** e **Financeiro** (**SPR-5.1**). A aba mostra:
+
+- **Cards por tipo documental** (Comprovante de matrícula, Certificado, Termo de responsabilidade, Recibo manual) com descrição curta e CTA `Gerar` que abre o diálogo descrito em **DOC-2.4**.
+- **Histórico de documentos** abaixo, ordem cronológica inversa, com colunas/linhas: tipo, número (`{PREFIX}-{YYYY}-{seq4}`), versão, emissor, data, status, atalhos (**Baixar / Abrir / WhatsApp / Reemitir**).
+
+**SPR-11.2.** Documentos com `status='archived'` aparecem marcados como **versão substituída** (chip discreto), mantendo download disponível (**DOC-11.4**).
+
+**SPR-11.3.** Documentos com `status='failed'` mostram o motivo (`failure_reason`) e CTA `Tentar gerar novamente` (delegado a **DOC-** / **REC-7** conforme tipo).
+
+**SPR-11.4.** **Recibos automáticos** aparecem nesta aba **e** no separador **Financeiro** (**SPR-8.4**) com indicador visual referindo o recibo associado a cada `paid` (**BUI-9.3**).
+
+**SPR-11.5.** Quando o aluno **não tem telefone** ou o telefone falha na normalização E.164, o atalho **WhatsApp** fica desactivado com tooltip explicativo (**DOC-8.2**).
+
+**SPR-11.6.** A aba **Documentos** existe mesmo quando ainda não há documentos emitidos , empty state explícito com os cards `Gerar` activos.
+
+---
+
 ## Manutenção
 
-Alterações em **`/alunos/[id]`**, regras de resumo ou de integração lista/perfil devem actualizar **este readme**, **`spec/features/billing-ui/readme.md`** quando afectarem **SPR-8** / **SPR-9** / fluxo de pagamento, **`spec/features/graduation-engine/readme.md`** quando afectarem **GRD-** / **SPR-7** / **SPR-9**, **`spec/features/students-crud/readme.md`** quando afectarem **STU-7**, **`spec/features/app-shell/readme.md`** se os paths mudarem, e os cenários em `cycles/.../10-0430-student-profile/scenarios.feature`.
+Alterações em **`/alunos/[id]`**, regras de resumo ou de integração lista/perfil devem actualizar **este readme**, **`spec/features/billing-ui/readme.md`** quando afectarem **SPR-8** / **SPR-9** / fluxo de pagamento ou atalhos pós-pagamento (**BUI-9**), **`spec/features/student-documents/readme.md`** quando afectarem **DOC-** / **SPR-11**, **`spec/features/payment-receipts/readme.md`** quando afectarem **REC-** ou indicadores de recibo, **`spec/features/graduation-engine/readme.md`** quando afectarem **GRD-** / **SPR-7** / **SPR-9**, **`spec/features/students-crud/readme.md`** quando afectarem **STU-7**, **`spec/features/app-shell/readme.md`** se os paths mudarem, e os cenários em `cycles/.../10-0430-student-profile/scenarios.feature` e `cycles/.../25-0510-pedagogical-documents-finance/scenarios.feature`.

@@ -136,3 +136,136 @@ Student 1 : N Payment (por reference_month)
 ## E10. Fora do MVP
 
 **ENT-10.1.** Turmas, chamadas, fichas médicas, contratos, ledger contábil completo, gateway de pagamento.
+
+---
+
+## E11. Plano de aula (`LessonPlan`)
+
+**ENT-11.1.** Registro principal de **plano pedagógico mensal** por **categoria** (`plan_kind`: `adult`, `kids_1`, `kids_2` , reaproveita **ENT-6.1**, **não** introduz enum novo). Detalhe contratual em **PED-** ([`spec/features/lesson-plans/readme.md`](../features/lesson-plans/readme.md)).
+
+| Campo | Obrigatório | Notas |
+|-------|-------------|--------|
+| Conta | Sim | Multi-tenant |
+| Professor responsável | Sim | FK para perfil |
+| Título | Sim | 5 a 150 caracteres |
+| Mês de referência | Sim | `date` no dia 1 do mês (mesma convenção de **ENT-8.1**) |
+| Categoria | Sim | `plan_kind` (Adulto / Kids 1 / Kids 2) |
+| Status | Sim | `draft` / `published` / `archived` (**PED-4**) |
+| Revisão actual | Não | FK para **E12**; null logo após criação até a primeira revisão ser persistida |
+| Arquivado em | Não | `timestamptz`; preenchido ao arquivar |
+
+**ENT-11.2.** Pode existir mais de um `LessonPlan` por par (`reference_month`, `category`), mas **apenas um** pode estar `published` simultaneamente (índice único parcial , **PED-3.2**).
+
+---
+
+## E12. Revisão de plano (`LessonPlanRevision`)
+
+**ENT-12.1.** Histórico imutável do **conteúdo** do plano. Toda edição que altera conteúdo cria nova revisão (**PED-6**).
+
+| Campo | Obrigatório | Notas |
+|-------|-------------|--------|
+| Plano | Sim | FK para **E11** |
+| Número da revisão | Sim | Inteiro monotónico por plano (1, 2, 3, …) |
+| Descrição rica | Sim | `jsonb` (modelo serializado pelo editor TipTap mínimo, **PED-9**) |
+| Tópicos | Sim | `jsonb` , lista ordenada `[{ id, title, items[] }]` |
+| Técnicas | Não | `jsonb`; mesmo formato dos tópicos |
+| Observações | Não | `jsonb` (modelo TipTap mínimo) |
+| Autor | Sim | FK para perfil que criou a revisão |
+| Criado em | Sim | `timestamptz` |
+
+---
+
+## E13. Anexo de plano (`LessonPlanAttachment`)
+
+**ENT-13.1.** Material de apoio (PDF, imagem, planilha) associado a um plano. **Não** é embutido no PDF principal do plano (**PED-12.2**).
+
+| Campo | Obrigatório | Notas |
+|-------|-------------|--------|
+| Plano | Sim | FK para **E11** |
+| Storage key | Sim | Chave no bucket privado de anexos |
+| Nome de ficheiro | Sim | Display |
+| MIME type | Sim | Validado contra lista permitida |
+| Tamanho | Sim | Bytes; limite configurável |
+| Enviado por | Sim | FK para perfil |
+| Criado em | Sim | `timestamptz` |
+
+---
+
+## E14. Template documental (`DocumentTemplate`)
+
+**ENT-14.1.** Template HTML+CSS versionado por **tipo documental** (**DOC-1**). No MVP os templates vivem em código (`lib/documents/templates/<type>/v<n>/`); a tabela existe para suportar **override por conta** no futuro. Resolução em **DOC-5**.
+
+| Campo | Obrigatório | Notas |
+|-------|-------------|--------|
+| Conta | Não | Null = template global do sistema; preenchido = override por conta (futuro) |
+| Tipo | Sim | `payment_receipt`, `enrollment_proof`, `certificate`, `liability_term`, `lesson_plan` |
+| Versão | Sim | Inteiro monotónico por (`account?`, `type`) |
+| Nome | Sim | Display |
+| Fonte HTML | Sim | Texto |
+| CSS | Não | Texto |
+| Schema do payload | Sim | `jsonb` espelhando o Zod schema |
+| Activo | Sim | Boolean |
+| Criado em | Sim | `timestamptz` |
+
+---
+
+## E15. Documento gerado (`GeneratedDocument`)
+
+**ENT-15.1.** Cada **emissão** de documento (manual ou automática, **DOC-1**) cria uma linha imutável (**RB-DOC-002**).
+
+| Campo | Obrigatório | Notas |
+|-------|-------------|--------|
+| Conta | Sim | Multi-tenant |
+| Aluno | Não | Preenchido para todos os tipos do MVP |
+| Pagamento | Não | Apenas para `payment_receipt` (**REC-1**) |
+| Tipo | Sim | Slug (**DOC-1**) |
+| Status | Sim | `pending`, `generating`, `generated`, `failed`, `archived` |
+| Número documental | Não | Formato `{PREFIX}-{YYYY}-{seq4}` (**DOC-4**); preenchido ao gerar |
+| Versão | Sim | 1 na primeira emissão; reemissões incrementam (**DOC-11**) |
+| Versão do template | Sim | Inteiro |
+| Snapshot do payload | Sim | `jsonb` , dados exactos usados na renderização (**RB-DOC-003**) |
+| Storage key | Não | Preenchido após upload |
+| Bucket | Não | Idem |
+| MIME type | Não | `application/pdf` |
+| Tamanho do ficheiro | Não | Bytes |
+| Checksum SHA-256 | Não | Hex |
+| Emissor | Sim | FK para perfil que disparou a geração |
+| Gerado em | Não | `timestamptz`; null em `pending`/`generating` |
+| Razão da falha | Não | Texto, quando `failed` |
+| Substitui | Não | FK para a versão anterior na mesma série (reemissão) |
+| Criado em / Atualizado em | Sim | `timestamptz` |
+
+**ENT-15.2.** Numeração: a sequência `seq` é monotónica por (`account_id`, `type`, ano) , **DOC-4.3**.
+
+---
+
+## E16. Tentativa de entrega (`GeneratedDocumentDelivery`)
+
+**ENT-16.1.** Registo das tentativas de **compartilhamento** de um documento gerado (**DOC-8**), preparada para a futura API oficial sem mudança de contrato.
+
+| Campo | Obrigatório | Notas |
+|-------|-------------|--------|
+| Documento | Sim | FK para **E15** |
+| Canal | Sim | `whatsapp_web`, `whatsapp_api` (futuro), `download`, `email` (futuro) |
+| Status | Sim | `pending`, `opened`, `sent`, `failed`, `canceled` |
+| Telefone do destinatário | Não | E.164 quando aplicável |
+| Snapshot do payload de entrega | Não | `jsonb` (mensagem, link assinado usado, etc.) |
+| Identificador externo | Não | `external_message_id` (preenchido com API oficial futura) |
+| Resposta do provedor | Não | `jsonb` (preenchido com API oficial futura) |
+| Iniciado por | Sim | FK para perfil |
+| Criado em / Atualizado em | Sim | `timestamptz` |
+
+---
+
+## E17. Relações adicionais (resumo)
+
+```
+Account 1 : N LessonPlan
+LessonPlan 1 : N LessonPlanRevision
+LessonPlan 1 : N LessonPlanAttachment
+Account 1 : N DocumentTemplate (futuro override)
+Account 1 : N GeneratedDocument
+Student 1 : N GeneratedDocument
+Payment 1 : N GeneratedDocument (apenas type=payment_receipt; uma versão activa)
+GeneratedDocument 1 : N GeneratedDocumentDelivery
+```

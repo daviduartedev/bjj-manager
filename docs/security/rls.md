@@ -75,9 +75,27 @@ Com a aplicação em execução, o professor abre **`/login`**, entra com o e-ma
 | `student_graduations`, `payments` | CRUD só quando o `student_id` aponta para aluno dessa conta. |
 | `student_plans` | CRUD só quando o aluno é da conta **e** o plano escolhido pertence à **mesma** conta que o aluno. |
 | `belts` | Só leitura. |
+| `document_templates` | Leitura quando `account_id IS NULL` (templates globais) ou `account_id = current_account_id()`. Escrita apenas para a conta. |
+| `generated_documents` | CRUD só quando `account_id = current_account_id()`. |
+| `generated_document_deliveries` | Via parent: o `document_id` tem de pertencer à conta. |
+| `document_sequences` | CRUD só quando `account_id = current_account_id()`. |
+| `lesson_plans` | CRUD só quando `account_id = current_account_id()`. |
+| `lesson_plan_revisions`, `lesson_plan_attachments` | Via parent: o `lesson_plan_id` tem de pertencer à conta. |
 | `anon` | Sem acesso às tabelas acima (RLS sem política ⇒ nega). |
 
 Detalhe exato: ver [`db/policies.sql`](../../db/policies.sql).
+
+## Buckets Supabase Storage (DOC- / PED-)
+
+Criar manualmente no painel Supabase **com `Public bucket = OFF`**:
+
+- `documents-{env}` — PDFs/HTMLs gerados (`generated_documents.pdf_path`, `html_path`).
+- `lesson-plans-attachments-{env}` — anexos de planos pedagógicos.
+- `branding-{env}` — logos e assinaturas (referenciados por `accounts.signature_url` / `accounts.logo_url`).
+
+Após criar, **aplicar policies de Storage** (sem elas, `INSERT` em bucket privado é negado mesmo para utilizadores autenticados): correr o SQL em [`db/sql/storage-policies.sql`](../../db/sql/storage-policies.sql) no SQL Editor. As policies permitem CRUD apenas quando o primeiro segmento do path (`storage.foldername(name)[1]`) bate com `public.current_account_id()`.
+
+Acesso é sempre via **signed URL** (`createSignedUrl`) gerada por Server Action com filtro de `account_id`. Caminhos seguem o padrão `account_id/...` para reforço defensivo.
 
 ## Service role
 

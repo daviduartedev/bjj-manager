@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { BillingIndicatorBadge } from "@/components/billing/billing-indicator-badge";
 import { BulkPayDialog } from "@/components/billing/bulk-pay-dialog";
+import { ReceiptViewerDialog } from "@/components/billing/receipt-viewer-dialog";
 import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
@@ -41,7 +42,7 @@ import type { MonthBillingIndicator } from "@/lib/billing/month-billing-indicato
 import { ROUTES, routeMensalidadesAluno } from "@/lib/routes";
 import { formatMoneyBrFromCents } from "@/lib/students/payment-ui";
 import { cn } from "@/lib/utils";
-import { Wallet } from "lucide-react";
+import { Receipt, Wallet } from "lucide-react";
 
 import { MensalidadesMonthFinancePanel } from "@/components/billing/mensalidades-month-finance-panel";
 
@@ -109,6 +110,8 @@ export function MensalidadesClient({
   }, [initialPlanFilter]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [payStudent, setPayStudent] = useState<MensalidadesStudentRow | null>(null);
+  const [receiptStudent, setReceiptStudent] =
+    useState<MensalidadesStudentRow | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
 
   const filteredRows = useMemo(() => {
@@ -359,7 +362,7 @@ export function MensalidadesClient({
                   <TableHead className="h-7 min-h-0 py-0 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Estado
                   </TableHead>
-                  <TableHead className="h-7 min-h-0 w-[5rem] py-0 pr-2 text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <TableHead className="h-7 min-h-0 w-[8.5rem] py-0 pr-2 text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Ação
                   </TableHead>
                 </TableRow>
@@ -419,16 +422,32 @@ export function MensalidadesClient({
                         <BillingIndicatorBadge indicator={row.indicator} compact />
                       </TableCell>
                       <TableCell className="min-h-0 py-0.5 pr-2 text-right leading-none">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          className="h-7 min-h-0 shrink-0 px-2 py-0 text-[11px] font-medium leading-none"
-                          disabled={row.amountCentsExpected == null}
-                          onClick={() => setPayStudent(row)}
-                        >
-                          Pagar
-                        </Button>
+                        <div className="inline-flex items-center justify-end gap-1">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            className="h-7 min-h-0 shrink-0 px-2 py-0 text-[11px] font-medium leading-none"
+                            disabled={row.amountCentsExpected == null}
+                            onClick={() => setPayStudent(row)}
+                          >
+                            Pagar
+                          </Button>
+                          {row.indicator === "paid" && row.paymentId ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 min-h-0 shrink-0 px-2 py-0 text-[11px] font-medium leading-none"
+                              onClick={() => setReceiptStudent(row)}
+                              title="Ver / gerar comprovante"
+                              aria-label={`Comprovante de ${row.fullName}`}
+                            >
+                              <Receipt className="mr-1 size-3.5" />
+                              Comprovante
+                            </Button>
+                          ) : null}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -487,15 +506,29 @@ export function MensalidadesClient({
                     </span>
                   </span>
                 </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  className="h-9 w-full text-xs"
-                  disabled={row.amountCentsExpected == null}
-                  onClick={() => setPayStudent(row)}
-                >
-                  Registrar pagamento
-                </Button>
+                <div className="flex flex-col gap-1.5">
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-9 w-full text-xs"
+                    disabled={row.amountCentsExpected == null}
+                    onClick={() => setPayStudent(row)}
+                  >
+                    Registrar pagamento
+                  </Button>
+                  {row.indicator === "paid" && row.paymentId ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 w-full text-xs"
+                      onClick={() => setReceiptStudent(row)}
+                    >
+                      <Receipt className="mr-1.5 size-3.5" />
+                      Ver comprovante
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             ))
           )}
@@ -511,6 +544,18 @@ export function MensalidadesClient({
           studentId={payStudent.studentId}
           defaultReferenceMonth={referenceMonth}
           amountCents={payStudent.amountCentsExpected}
+        />
+      ) : null}
+
+      {receiptStudent && receiptStudent.paymentId ? (
+        <ReceiptViewerDialog
+          open={true}
+          onOpenChange={(o) => {
+            if (!o) setReceiptStudent(null);
+          }}
+          paymentId={receiptStudent.paymentId}
+          studentName={receiptStudent.fullName}
+          referenceMonthLabel={monthCaption}
         />
       ) : null}
 

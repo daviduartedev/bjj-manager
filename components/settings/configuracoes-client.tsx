@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { updatePlan } from "@/actions/billing";
-import { updateAccount } from "@/actions/settings";
+import { updateAccount, updateReceiver } from "@/actions/settings";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
@@ -21,21 +21,28 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { SettingsPlanRow } from "@/lib/data/settings-page";
+import { CnpjInput } from "@/components/settings/cnpj-input";
+import { SignatureUploader } from "@/components/settings/signature-uploader";
+import type { SettingsPlanRow, SettingsReceiverRow } from "@/lib/data/settings-page";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
 import {
+  digitsOnly,
+  maskCnpj,
   parsePlanRowReaisToCents,
   planRowFormSchema,
   updateAccountSchema,
+  updateReceiverFormSchema,
   type PlanRowFormValues,
   type UpdateAccountInput,
+  type UpdateReceiverFormValues,
 } from "@/lib/validations/settings";
 import { cn } from "@/lib/utils";
-import { Building2, Layers } from "lucide-react";
+import { AlertTriangle, Building2, Layers, Receipt } from "lucide-react";
 
 type Props = {
   initialAccountName: string;
   plans: SettingsPlanRow[];
+  receiver: SettingsReceiverRow;
 };
 
 function reaisFromCents(cents: number): string {
@@ -110,6 +117,8 @@ export function ConfiguracoesClient(props: Props) {
         </Form>
       </DashboardPanel>
 
+      <ReceiverPanel receiver={props.receiver} onSaved={() => router.refresh()} />
+
       <DashboardPanel icon={Layers} title="Planos" subtitle="Preços e estado dos planos da conta">
         <div className="space-y-6">
           <p className="text-crm-sm text-muted-foreground">
@@ -128,6 +137,140 @@ export function ConfiguracoesClient(props: Props) {
         </div>
       </DashboardPanel>
     </div>
+  );
+}
+
+function ReceiverPanel({
+  receiver,
+  onSaved,
+}: {
+  receiver: SettingsReceiverRow;
+  onSaved: () => void;
+}) {
+  const form = useForm<UpdateReceiverFormValues>({
+    resolver: zodResolver(updateReceiverFormSchema),
+    defaultValues: {
+      legalName: receiver.legal_name ?? "",
+      cnpj: receiver.cnpj ? maskCnpj(receiver.cnpj) : "",
+    },
+    mode: "onSubmit",
+  });
+
+  useEffect(() => {
+    form.reset({
+      legalName: receiver.legal_name ?? "",
+      cnpj: receiver.cnpj ? maskCnpj(receiver.cnpj) : "",
+    });
+  }, [receiver.legal_name, receiver.cnpj, form]);
+
+  const incomplete =
+    !receiver.legal_name ||
+    !receiver.cnpj ||
+    !receiver.signature_path;
+
+  async function submit(values: UpdateReceiverFormValues) {
+    const cnpjDigits = digitsOnly(values.cnpj);
+    const r = await updateReceiver({
+      legalName: values.legalName,
+      cnpj: cnpjDigits.length > 0 ? cnpjDigits : "",
+    });
+    if (!r.ok) {
+      toast.error(r.error);
+      return;
+    }
+    toast.success("Dados do recebedor atualizados.");
+    onSaved();
+  }
+
+  return (
+    <DashboardPanel
+      icon={Receipt}
+      title="Recebedor"
+      subtitle="Razão social, CNPJ e assinatura usados nos recibos e documentos"
+    >
+      {incomplete ? (
+        <div
+          role="alert"
+          className="mb-4 flex items-start gap-3 rounded-md border border-amber-300/60 bg-amber-50 p-3 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/40 dark:text-amber-200"
+        >
+          <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden />
+          <div className="text-crm-sm">
+            <p className="font-medium">Configuração incompleta.</p>
+            <p>
+              Os recibos automáticos serão gerados com os campos preenchidos. Os campos em falta ficarão vazios.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(submit)}
+          className="grid gap-4 md:max-w-2xl md:grid-cols-2"
+        >
+          <FormField
+            control={form.control}
+            name="legalName"
+            render={({ field }) => (
+              <FormItem className="md:col-span-2">
+                <FormLabel className="flex flex-wrap items-baseline gap-2">
+                  Razão social
+                  <span className="text-crm-xs font-normal text-muted-foreground">(opcional)</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    autoComplete="organization"
+                    className="min-h-11 touch-manipulation"
+                    maxLength={200}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="cnpj"
+            render={({ field }) => (
+              <FormItem className="md:col-span-2">
+                <FormLabel className="flex flex-wrap items-baseline gap-2">
+                  CNPJ
+                  <span className="text-crm-xs font-normal text-muted-foreground">(opcional)</span>
+                </FormLabel>
+                <FormControl>
+                  <CnpjInput
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    className="min-h-11 touch-manipulation tabular-nums"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="md:col-span-2">
+            <Button
+              type="submit"
+              className="min-h-11 w-full touch-manipulation sm:w-auto"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting ? "Salvando…" : "Salvar recebedor"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+
+      <div className="mt-6">
+        <Label className="mb-2 block text-crm-sm font-medium">Assinatura digital</Label>
+        <SignatureUploader
+          initialPath={receiver.signature_path}
+          initialPreviewUrl={receiver.signature_preview_url}
+        />
+      </div>
+    </DashboardPanel>
   );
 }
 

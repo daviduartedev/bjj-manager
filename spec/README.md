@@ -30,6 +30,9 @@ Documentação canônica de produto e domínio. Implementação e ciclos devem r
 - [`spec/features/dashboard/readme.md`](features/dashboard/readme.md) , painel operacional (`/painel`), KPIs e atenção do dia (**PNL-**, Q2 2026).
 - [`spec/features/settings/readme.md`](features/settings/readme.md) , configurações da academia e perfil do professor (**CFG-**, Q2 2026).
 - [`spec/features/security-e2e/readme.md`](features/security-e2e/readme.md) , verificação automatizada de segurança E2E/API e CI (**SECE2E-**, Q2 2026).
+- [`spec/features/lesson-plans/readme.md`](features/lesson-plans/readme.md) , módulo pedagógico, planos mensais por categoria (`plan_kind`) com revisões e exportação PDF (**PED-**, Q2 2026).
+- [`spec/features/student-documents/readme.md`](features/student-documents/readme.md) , módulo documental: certificados, termos, comprovantes e recibos manuais com numeração, versionamento, storage privado e compartilhamento por WhatsApp (**DOC-**, Q2 2026).
+- [`spec/features/payment-receipts/readme.md`](features/payment-receipts/readme.md) , recibo formal automático ao registrar pagamento (`Pagar`), idempotente por `payment_id`, com reemissão auditável (**REC-**, Q2 2026).
 
 ## Convenção de IDs de regra
 
@@ -52,6 +55,9 @@ Documentação canônica de produto e domínio. Implementação e ciclos devem r
 - **PNL-** , painel operacional (`spec/features/dashboard/readme.md`).
 - **CFG-** , configurações (`/configuracoes`) e perfil (`/perfil`) (`spec/features/settings/readme.md`).
 - **SECE2E-** , suíte Playwright, contratos HTTP de Route Handlers, anti-IDOR, anti-vazamento e integração CI com validação RLS quando disponível (`spec/features/security-e2e/readme.md`).
+- **PED-** , planos de aula mensais (módulo pedagógico) (`spec/features/lesson-plans/readme.md`).
+- **DOC-** , documentos do aluno (certificado, termo, comprovante, recibo manual) e infraestrutura partilhada de geração/storage/numeração/compartilhamento (`spec/features/student-documents/readme.md`).
+- **REC-** , recibo automático ao registrar pagamento e reemissão (`spec/features/payment-receipts/readme.md`).
 
 ## Manutenção e rastreabilidade
 
