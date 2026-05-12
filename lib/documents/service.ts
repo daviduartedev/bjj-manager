@@ -7,6 +7,8 @@ import {
   reserveNextDocumentNumber,
   reserveNextDocumentNumberFallback,
 } from "./numbering";
+import { sanitizePdfRenderFailureForUser } from "@/lib/documents/render-user-message";
+
 import { renderHtmlToPdf } from "./renderer";
 import {
   buildDocumentPath,
@@ -283,19 +285,23 @@ export class DocumentGenerationService {
         reused: false,
       };
     } catch (err) {
-      const message = (err as Error).message ?? "Falha ao gerar PDF.";
-      const lower = message.toLowerCase();
+      const raw = (err as Error).message ?? "Falha ao gerar PDF.";
+      const lower = raw.toLowerCase();
       const code =
-        lower.includes("playwright") || lower.includes("chromium")
+        lower.includes("playwright") ||
+        lower.includes("chromium") ||
+        lower.includes("puppeteer")
           ? "RENDER_FAILED"
           : "STORAGE_FAILED";
+
+      const userMessage = sanitizePdfRenderFailureForUser(raw);
 
       await this.client
         .from("generated_documents")
         .update({
           status: "failed",
           error_code: code,
-          error_message: message.slice(0, 500),
+          error_message: userMessage.slice(0, 500),
           updated_at: new Date().toISOString(),
         })
         .eq("id", documentId);
@@ -306,7 +312,7 @@ export class DocumentGenerationService {
         accountId: input.accountId,
         documentId,
         documentType: input.type,
-        payload: { code, message },
+        payload: { code, message: raw },
       });
 
       return {
@@ -314,7 +320,7 @@ export class DocumentGenerationService {
         documentId,
         status: "failed",
         errorCode: code,
-        errorMessage: message,
+        errorMessage: userMessage,
       };
     }
   }

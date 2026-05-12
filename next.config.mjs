@@ -31,6 +31,11 @@ const serverActionsAllowedOrigins =
 
 const nextConfig = {
   reactStrictMode: true,
+  serverExternalPackages: [
+    "playwright",
+    "puppeteer-core",
+    "@sparticuz/chromium",
+  ],
   images: {
     remotePatterns: [
       {

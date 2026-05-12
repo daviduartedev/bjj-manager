@@ -1,4 +1,4 @@
-# Entidades de domínio , Casca - Gestão de Academias de BJJ
+﻿# Entidades de domínio , Casca - Gestão de Academias de BJJ
 
 Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Campos detalhados de banco podem evoluir no ciclo de schema; aqui está o **contrato de produto**.
 
@@ -55,9 +55,14 @@ Conceito orientador: modelo **multi-tenant** (`account_id` onde aplicável). Cam
 | Faixa atual | Sim | FK para faixa |
 | Grau atual | Sim | Limites por tipo/faixa , ver **GR-** |
 | Status do aluno | Sim | Enum no schema: **ativo**, **inativo**, **trial**, **pausado** (trial pode designar período curto, ex. um dia, definido operacionalmente na UI , sem cron obrigatório no MVP salvo ciclo dedicado). Na UI do ciclo de alunos (**STU-3**), **trial** não é exposto; **ativo**, **inativo** e **pausado** sim. |
+| Arquivo operacional (`archived_at`) | Não | Marca saída do quadro habitual + vista **Arquivados** (**STU-10**). |
+| «Remover cadastro» soft (`removed_at`) | Não | Marca saída distinta do arquivo; sem `DELETE` de pagamentos/recibos (**STU-11**). |
+| Audit trail opcional | Não | `lifecycle_updated_by` → **`profiles`** quando DDL existir. |
 | Data de nascimento | Recomendado | Idade e transição kids/adulto |
 | Data de início na academia | Recomendado | Tempo de treino |
 | Documento, telefone, e-mail, observações | Não | LGPD / minimização |
+
+**ENT-4.2.** **Recorte mensal trabalhável**: lista **`/mensalidades`**, totais (**BUI-2.8** quando existir) e KPIs **`PNL`** onde partilharem esse universo, mais leituras em lote **PBS-6** já filtradas ao mesmo conjunto (**BR-9**): **`student_status = active`** com **`archived_at`** e **`removed_at`** nulos; **inactive**/**paused**/arquivo/**remover cadastro** soft ficam **fora** até acções reversíveis (**STU-3**, **STU-10**, **STU-11**).
 
 ---
 

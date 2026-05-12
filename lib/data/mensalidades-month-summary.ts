@@ -1,5 +1,7 @@
 import type { createClient } from "@/lib/supabase/server";
 
+import { isStudentInMonthlyOperationalWallet } from "@/lib/students/monthly-operational-wallet";
+
 type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
 
 export type MonthFinanceSummary = {
@@ -24,6 +26,9 @@ type StudentPlanEmbed = {
 };
 
 type StudentEmbed = {
+  status?: string;
+  archived_at?: string | null;
+  removed_at?: string | null;
   student_plans?: StudentPlanEmbed[] | null;
 };
 
@@ -51,6 +56,9 @@ export async function loadMonthFinanceSummary(
       amount_cents,
       status,
       students (
+        status,
+        archived_at,
+        removed_at,
         student_plans (
           ended_at,
           plans ( name )
@@ -74,14 +82,25 @@ export async function loadMonthFinanceSummary(
     const student = row.students as StudentEmbed | StudentEmbed[] | null;
     const st = Array.isArray(student) ? student[0] : student;
 
+    const inMonthlyWallet =
+      st != null &&
+      isStudentInMonthlyOperationalWallet({
+        status: String(st.status ?? ""),
+        archived_at: st.archived_at ?? null,
+        removed_at: st.removed_at ?? null,
+      });
+
     if (status === "paid") {
+      if (!inMonthlyWallet) continue;
       totalPaidReceivedCents += amount;
       paidCount += 1;
       const label = openPlanLabel(st);
       byPlan.set(label, (byPlan.get(label) ?? 0) + amount);
     } else if (status === "scholarship") {
+      if (!inMonthlyWallet) continue;
       scholarshipCount += 1;
     } else if (status === "other") {
+      if (!inMonthlyWallet) continue;
       otherCount += 1;
     }
   }

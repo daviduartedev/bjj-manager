@@ -3,6 +3,7 @@ import {
   toCalendarDateStringInAppTZ,
 } from "@/lib/dates";
 import type { PaymentStatusSlug } from "@/lib/students/payment-ui";
+import { isStudentInMonthlyOperationalWallet } from "@/lib/students/monthly-operational-wallet";
 
 /** Tipos e helpers puros partilhados, seguros para import em `"use client"`. */
 
@@ -27,6 +28,8 @@ export type StudentProfilePayload = {
   full_name: string;
   kind: "adult" | "kids";
   status: string;
+  archived_at: string | null;
+  removed_at: string | null;
   birth_date: string | null;
   academy_start_date: string | null;
   document: string | null;
@@ -56,7 +59,65 @@ export type StudentProfilePayload = {
   currentMonthEffectiveStatus: PaymentStatusSlug;
   currentMonthStatusLabel: string;
   currentMonthOverdue: boolean;
+  /** **SPR-9**, **BR-9**: requer Ativo sem arquivo/remoção e plano efectivo. */
+  canRegisterMonthlyPayments: boolean;
+  monthlyPaymentsBlockedReason: string | null;
 };
+
+export function resolveProfileMonthlyPaymentsAccess(args: {
+  billingPresent: boolean;
+  status: string;
+  archived_at: string | null;
+  removed_at: string | null;
+}): { canRegisterMonthlyPayments: boolean; monthlyPaymentsBlockedReason: string | null } {
+  if (!args.billingPresent) {
+    return {
+      canRegisterMonthlyPayments: false,
+      monthlyPaymentsBlockedReason:
+        "Associe um plano ao aluno na ficha completa para registar pagamentos.",
+    };
+  }
+
+  const ok = isStudentInMonthlyOperationalWallet({
+    status: args.status,
+    archived_at: args.archived_at,
+    removed_at: args.removed_at,
+  });
+
+  if (ok) {
+    return { canRegisterMonthlyPayments: true, monthlyPaymentsBlockedReason: null };
+  }
+
+  if (args.removed_at) {
+    return {
+      canRegisterMonthlyPayments: false,
+      monthlyPaymentsBlockedReason:
+        "Este cadastro foi removido da operação corrente. Anule a remoção na lista «Removidos» antes de registar mensalidades.",
+    };
+  }
+
+  if (args.archived_at) {
+    return {
+      canRegisterMonthlyPayments: false,
+      monthlyPaymentsBlockedReason:
+        "Aluno arquivado. Desarquive-o na vista «Arquivados» antes de registar mensalidades.",
+    };
+  }
+
+  if (args.status !== "active") {
+    return {
+      canRegisterMonthlyPayments: false,
+      monthlyPaymentsBlockedReason:
+        "Apenas alunos Activos fazem parte da carteira mensal. Ajuste a situação do aluno.",
+    };
+  }
+
+  return {
+    canRegisterMonthlyPayments: false,
+    monthlyPaymentsBlockedReason:
+      "Não é possível registar mensalidade para este estado do aluno.",
+  };
+}
 
 export function profileFormatPaidAt(iso: string | null): string {
   if (!iso) return ",";

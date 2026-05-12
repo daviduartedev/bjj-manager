@@ -111,7 +111,9 @@ Contrato canónico para a **vista de detalhe só leitura** do aluno (**SPEC-2.2*
 
 **SPR-9.2.** **Promover** abre o **modal cliente** de promoção conforme **GRD-5** (substitui o placeholder do ciclo **10**): escrita na base via Server Action **promoteStudent**; disponível também na página de histórico completo (**GRD-1.1**).
 
-**SPR-9.3.** **Registrar pagamento** abre o **mesmo modal / fluxo** que na lista de mensalidades (**BUI-7**): **`recordPayment`** com valor igual ao preço efetivo, opcionalmente método e notas; toast com resultado (**BLM-3**).
+**SPR-9.3.** **Registrar pagamento** abre o **mesmo modal / fluxo** que na lista de mensalidades (**BUI-7**) **apenas quando o aluno está no mesmo recorte de cobrança em curso** (**BR-9**/ **STU-3**/ **BUI-2`): **`recordPayment`** com valor igual ao preço efetivo, opcionalmente método e notas; toast com resultado (**BLM-3**).
+
+**SPR-9.4.** Para **`inactive`**, **`paused`**, arquivo (`archived_at` preenchido) ou «**remover cadastro**» (`removed_at` preenchido), conforme **STU-10**/**STU-11**, **omitir** o botão «**Registrar pagamento**» (**não** apenas desabilitar sem explicação); mensagem breve indica regressar primeiro à carteira do quadro corrente.
 
 ---
 
@@ -146,4 +148,4 @@ Contrato canónico para a **vista de detalhe só leitura** do aluno (**SPEC-2.2*
 
 ## Manutenção
 
-Alterações em **`/alunos/[id]`**, regras de resumo ou de integração lista/perfil devem actualizar **este readme**, **`spec/features/billing-ui/readme.md`** quando afectarem **SPR-8** / **SPR-9** / fluxo de pagamento ou atalhos pós-pagamento (**BUI-9**), **`spec/features/student-documents/readme.md`** quando afectarem **DOC-** / **SPR-11**, **`spec/features/payment-receipts/readme.md`** quando afectarem **REC-** ou indicadores de recibo, **`spec/features/graduation-engine/readme.md`** quando afectarem **GRD-** / **SPR-7** / **SPR-9**, **`spec/features/students-crud/readme.md`** quando afectarem **STU-7**, **`spec/features/app-shell/readme.md`** se os paths mudarem, e os cenários em `cycles/.../10-0430-student-profile/scenarios.feature` e `cycles/.../25-0510-pedagogical-documents-finance/scenarios.feature`.
+Alterações em **`/alunos/[id]`**, regras de resumo ou de integração lista/perfil devem actualizar **este readme**, **`spec/features/billing-ui/readme.md`** quando afectarem **SPR-8** / **SPR-9** / fluxo de pagamento ou atalhos pós-pagamento (**BUI-9**), **`spec/features/student-documents/readme.md`** quando afectarem **DOC-** / **SPR-11**, **`spec/features/payment-receipts/readme.md`** quando afectarem **REC-** ou indicadores de recibo, **`spec/features/graduation-engine/readme.md`** quando afectarem **GRD-** / **SPR-7** / **SPR-9**, **`spec/features/students-crud/readme.md`** quando afectarem **STU-7**/ **STU-10**/ **STU-11**/ ciclo de vida, **`spec/product/billing-rules.md`** (**BR-9** quando aplicável), **`spec/features/app-shell/readme.md`** se os paths mudarem, e cenários em `cycles/Q22026/10-0430-student-profile/scenarios.feature` e `cycles/Q22026/25-0510-pedagogical-documents-finance/scenarios.feature` quando comportamento observable mudar.

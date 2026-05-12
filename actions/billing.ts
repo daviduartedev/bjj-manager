@@ -9,9 +9,11 @@ import { normalizeReferenceMonth } from "@/lib/billing/reference-month";
 import { applyStudentPlanChange } from "@/lib/billing/student-plan";
 import { logDocumentEvent } from "@/lib/documents/audit";
 import { buildPaymentReceiptPayload } from "@/lib/documents/payload-builder";
+import { sanitizePdfRenderFailureForUser } from "@/lib/documents/render-user-message";
 import { DocumentGenerationService } from "@/lib/documents/service";
 import { archiveDocumentArtifact } from "@/lib/documents/storage";
 import { ROUTES } from "@/lib/routes";
+import { requireStudentEligibleForMonthlyPayment } from "@/lib/billing/student-monthly-eligibility";
 import {
   recordPaymentSchema,
   recordPaymentsBulkSchema,
@@ -381,7 +383,7 @@ async function tryAutoIssueReceipt(
       event: "auto_receipt.exception",
       payload: { paymentId: args.paymentId, message },
     });
-    return { status: "failed", error: message };
+    return { status: "failed", error: sanitizePdfRenderFailureForUser(message) };
   }
 }
 
@@ -424,6 +426,8 @@ export async function recordPayment(input: unknown): Promise<RecordPaymentResult
     const {
       data: { user },
     } = await supabase.auth.getUser();
+
+    await requireStudentEligibleForMonthlyPayment(supabase, studentId);
 
     const price = await fetchEffectivePriceCents(supabase, studentId);
     if (!price.ok) {
@@ -512,6 +516,18 @@ export async function recordPaymentsBulk(
     const okIds: string[] = [];
 
     for (const studentId of studentIds) {
+      try {
+        await requireStudentEligibleForMonthlyPayment(supabase, studentId);
+      } catch {
+        failures.push({
+          studentId,
+          error: mapBillingActionError(
+            new BillingDomainError("MONTHLY_WALLET_EXCLUDED"),
+          ),
+        });
+        continue;
+      }
+
       const price = await fetchEffectivePriceCents(supabase, studentId);
       if (!price.ok) {
         failures.push({ studentId, error: price.error });

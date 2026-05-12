@@ -4,6 +4,7 @@ import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
 import type { PlanKind } from "@/lib/students/plan-kind";
 import { studentGraduationDurationLine } from "@/lib/students/duration-display";
 import type { GraduationRecordInput } from "@/lib/students/graduation-reference";
+import type { StudentListLifecycle } from "@/lib/students/alunos-url";
 import type { ListSortKey } from "@/lib/validations/students";
 
 export type ListStudentRow = {
@@ -34,6 +35,8 @@ export type ListStudentsParams = {
   status?: "active" | "inactive" | "paused" | "all";
   sort?: ListSortKey;
   page?: number;
+  /** Vista de ciclo-vida (**STU-10** / **STU-11**). */
+  lista?: StudentListLifecycle;
 };
 
 export async function listStudentsQuery(
@@ -105,6 +108,15 @@ export async function listStudentsQuery(
     params.status === "paused"
   ) {
     q = q.eq("status", params.status);
+  }
+
+  const lista = params.lista ?? "principal";
+  if (lista === "principal") {
+    q = q.is("archived_at", null).is("removed_at", null);
+  } else if (lista === "arquivados") {
+    q = q.not("archived_at", "is", null).is("removed_at", null);
+  } else if (lista === "removidos") {
+    q = q.not("removed_at", "is", null);
   }
 
   const sort = params.sort ?? "name";

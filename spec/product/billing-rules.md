@@ -1,4 +1,4 @@
-# Regras de planos e cobrança , Casca - Gestão de Academias de BJJ
+﻿# Regras de planos e cobrança , Casca - Gestão de Academias de BJJ
 
 **Sem gateway de pagamento no MVP.** Valores em **centavos** e **BRL**; exibição **pt-BR**.
 
@@ -103,3 +103,17 @@ Detalhe contratual em **REC-** ([`spec/features/payment-receipts/readme.md`](../
 **BR-8.7. Multi-mês.** No MVP, **um recibo por `payment`** (**REC-5.1**); o template visual já comporta lista de meses para evolução futura (recibo agregado manual).
 
 **BR-8.8. Dados do recebedor.** O recibo usa `accounts.legal_name`, `accounts.cnpj` e `accounts.signature_url` (**CFG-6**); ausência destes campos não bloqueia a geração (campos respectivos ficam vazios no PDF) mas a UI de **`/configuracoes`** sinaliza configuração incompleta.
+
+---
+
+## BR-9. Recorte mensal trabalhável (`/mensalidades` e KPI correlatos)
+
+Detalhe também em **ENT-4.2**; semânticas de **inactive**/**paused**/arquivo/remover em **STU-3**, **STU-10**, **STU-11**; consumidores **BUI-2**, **PNL-3** (e afins), **PBS-6.3**.
+
+**BR-9.1.** A **lista trabalhável** em **`/mensalidades`** só inclui estudantes com **`student_status = active`**, **`archived_at`** nulo e **`removed_at`** nulo (colunas adicionadas quando o ciclo de DDL as introduzir).
+
+**BR-9.2.** KPIs do **painel** e leituras **`PBS-6`** que **devem** refletir o **mesmo conjunto** que a lista (ex.: **`PNL-3`**, secções de **`PNL-5`** já alinhadas ao recorte) aplicam o filtro **antes** de derivar **`MonthBillingIndicator`**.
+
+**BR-9.3.** **Totais monetários** na vista de mensalidades que reportam o fecho do mês (**BUI-2.8** quando existir) devem **alinhar-se** ao mesmo universo da lista (não incluir linhas de **`payments`** cujo aluno **já não** satisfaz **BR-9.1**).
+
+**BR-9.4.** **Histórico** de pagamentos já gravados **mantém-se**; apenas o **recorte de operações** muda. Páginas **detalhe**/**perfil** comportam-se segundo **SPR** e **SEC-3.3**.

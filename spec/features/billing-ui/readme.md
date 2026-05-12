@@ -7,7 +7,7 @@ Contrato canónico para as **telas de fecho mensal** usadas pelo professor na á
 - Rotas e navegação: [`spec/features/app-shell/readme.md`](../app-shell/readme.md) (**SHELL-2**, **SHELL-3**).
 - Pagamentos e indicadores: [`spec/features/payments-billing-status/readme.md`](../payments-billing-status/readme.md) (**PBS-**).
 - Planos e preço efetivo: [`spec/features/plans-billing-model/readme.md`](../plans-billing-model/readme.md) (**BLM-6**).
-- Regras de produto: [`spec/product/billing-rules.md`](../../product/billing-rules.md) (**BR-4**, **BR-5**).
+- Regras de produto: [`spec/product/billing-rules.md`](../../product/billing-rules.md) (**BR-4**, **BR-5**, **BR-9**).
 - Perfil do aluno: [`spec/features/student-profile/readme.md`](../student-profile/readme.md) (**SPR-8**, **SPR-9**).
 - Tokens e chrome: [`spec/features/design-system/readme.md`](../design-system/readme.md) (**DS-1.11**, **DS-1.12**).
 - Schema: [`spec/features/supabase-schema/readme.md`](../supabase-schema/readme.md) (`payments.payment_method`).
@@ -47,6 +47,10 @@ Contrato canónico para as **telas de fecho mensal** usadas pelo professor na á
 **BUI-2.5.** **Desktop:** tabela densa legível; **mobile:** mesmos dados em **cartões** empilhados; **sem gráficos** neste âmbito.
 
 **BUI-2.6.** Parâmetro opcional de query **`filtro`** na URL da lista **`/mensalidades`**: valores admitidos (pt-BR, case-insensitive) **`todos`**, **`pago`**, **`pendente`**, **`atrasado`**, **`bolsista`**, **`outro`** , mapeados aos indicadores internos (**`paid`**, **`pending`**, **`overdue`**, **`scholarship`**, **`other`**) e ao modo «todos». Parâmetro ausente, desconhecido ou vazio equivale a **`todos`**. A página deve **inicializar** o selector de filtro em coerência com o servidor (props derivadas de `searchParams`), para que atalhos do **painel** (**PNL-3.3**, **PNL-7.2**) abram a lista já filtrada.
+
+**BUI-2.7.** A lista **considera apenas alunos elegíveis para o quadro mensal em curso** (**BR-9.1**, **STU-3**) : **`student_status = active`**, **`archived_at`** e **`removed_at`** nulos (**ENT-4**).
+
+**BUI-2.8.** O **painel de resumo monetário mensalidades** («totais», repartições que partilharem esse universo) **mantém‑se restrito aos mesmos alunos elegíveis** da lista trabalhável, para que o topo da página **não** misture entrada de caixa com alunos já fora do fecho (**BR-9.2**).
 
 ---
 
@@ -141,4 +145,4 @@ Contrato canónico para as **telas de fecho mensal** usadas pelo professor na á
 
 ## Manutenção
 
-Alterações nestas telas ou no fluxo de registo devem actualizar **este readme**, **`spec/features/app-shell/readme.md`** se mudarem paths, **`spec/features/dashboard/readme.md`** se mudarem **BUI-2.6** ou atalhos do painel, **`spec/features/student-profile/readme.md`** se afectarem **SPR-8/9** ou **SPR-11**, **`spec/features/payments-billing-status/readme.md`** se mudarem contratos **PBS-** ou **PBS-9**, **`spec/features/payment-receipts/readme.md`** se mudarem atalhos pós-pagamento (**REC-7**, **BUI-9**), e cenários em `cycles/.../14-0430-billing-ui/scenarios.feature` e `cycles/.../25-0510-pedagogical-documents-finance/scenarios.feature`.
+Alterações nestas telas ou no fluxo de registo devem actualizar **este readme**, **`spec/features/app-shell/readme.md`** se mudarem paths, **`spec/features/dashboard/readme.md`** se mudarem **BUI-2.6**/ **BUI-2.7**/ **BUI-2.8** ou atalhos do painel, **`spec/features/student-profile/readme.md`** se afectarem **SPR-8/9** ou **SPR-11**, **`spec/features/students-crud/readme.md`** quando o recorte **BR-9** mudar, **`spec/features/payments-billing-status/readme.md`** se mudarem contratos **PBS-** ou **PBS-9**, **`spec/features/payment-receipts/readme.md`** se mudarem atalhos pós-pagamento (**REC-7**, **BUI-9**), **`spec/product/billing-rules.md`** + **`docs/product/billing-rules.md`** (**BR-9** quando aplicável), e cenários em `cycles/Q22026/14-0430-billing-ui/scenarios.feature` e `cycles/Q22026/25-0510-pedagogical-documents-finance/scenarios.feature` quando comportamento observable mudar.

@@ -6,7 +6,8 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 - Shell e URLs: [`spec/features/app-shell/readme.md`](../app-shell/readme.md) (**SHELL-2**, **SHELL-5.3** redirect `/dashboard` → `/painel`).
 - Cobrança e indicadores: [`spec/features/payments-billing-status/readme.md`](../payments-billing-status/readme.md) (**PBS-6**).
-- Lista mensalidades: [`spec/features/billing-ui/readme.md`](../billing-ui/readme.md) (**BUI-2.6** query `filtro`).
+- Regras de quadro mensal: [`spec/product/billing-rules.md`](../../product/billing-rules.md) (**BR-9**).
+- Lista mensalidades: [`spec/features/billing-ui/readme.md`](../billing-ui/readme.md) (**BUI-2.6**, **BUI-2.7**, **BUI-2.8**, query `filtro`).
 - Lista alunos: [`spec/features/students-crud/readme.md`](../students-crud/readme.md) (**STU-7.4** , durações alinhadas a **PNL-4.3** / **PNL-4.4**).
 - Graduação e ordem de faixas: [`spec/product/graduation-rules.md`](../../product/graduation-rules.md) (**GR-**).
 - Datas: [`spec/features/date-duration-utilities/readme.md`](../date-duration-utilities/readme.md) (**DATE-**).
@@ -32,7 +33,7 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 ## PNL-2. KPI , Alunos ativos
 
-**PNL-2.1.** Mostrar **totais** de alunos com **`student_status = active`** (**STU-3.1**).
+**PNL-2.1.** Mostrar **totais** de alunos com **`student_status = active`**, **`archived_at`** e **`removed_at`** nulos (**ENT-4**, **STU-3**).
 
 **PNL-2.2.** O cartão liga à **lista de alunos** (`/alunos`), preferencialmente com filtro **ativo** já aplicado se a lista o suportar; caso contrário, `/alunos` só.
 
@@ -42,7 +43,7 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 **PNL-3.1.** **Mês de referência** = primeiro dia do **mês civil actual** em **America/São_Paulo** (**PBS-1**).
 
-**PNL-3.2.** **Contagem** = número de **alunos distintos** com **`MonthBillingIndicator`** **`overdue`** para esse mês (**PBS-3**).
+**PNL-3.2.** **Contagem** = número de **alunos distintos**, **dentro do mesmo recorte que a lista trabalhável de `/mensalidades`** (**BR-9.1**, **BUI-2.7**), para os quais o **`MonthBillingIndicator`** é **`overdue`** nesse mês (**PBS-3**).
 
 **PNL-3.3.** O cartão liga a **`/mensalidades?filtro=atrasado`** (**BUI-2.6**). Opcionalmente acrescentar **`mes=`** se o painel algum dia permitir mudar o mês de contexto; no MVP o parâmetro pode omitir-se (lista usa default do mês actual).
 
@@ -50,9 +51,9 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 ## PNL-4. KPI , Aniversariantes e alertas de graduação
 
-**PNL-4.1.** **Aniversariantes do mês**: contagem de alunos **ativos** com **data de nascimento** cujo dia/mês cai no **mês civil atual** (SP). O cartão liga a **`/alunos`** (lista), com prioridade de implementação para **filtro ou âncora** que destaque aniversariantes quando existir; até lá, lista geral aceitável desde que o cenário de ciclo exija visibilidade dos nomes na secção «Atenção hoje» (**PNL-5.1**).
+**PNL-4.1.** **Aniversariantes do mês**: contagem de alunos contados segundo **PNL-2.1**, com **data de nascimento** cujo dia/mês cai no **mês civil atual** (SP). O cartão liga a **`/alunos`** (lista), com prioridade de implementação para **filtro ou âncora** que destaque aniversariantes quando existir; até lá, lista geral aceitável desde que o cenário de ciclo exija visibilidade dos nomes na secção «Atenção hoje» (**PNL-5.1**).
 
-**PNL-4.2.** **Alertas de graduação** (heurística MVP, configurável mais tarde): incluir o aluno ativo se **`daysOnCurrentDegree`** ≥ **120** dias civis SP **ou** **`daysOnCurrentBelt`** ≥ **365** dias civis SP.
+**PNL-4.2.** **Alertas de graduação** (heurística MVP, configurável mais tarde): considerar apenas alunos contados segundo **PNL-2.1**; incluir o aluno se **`daysOnCurrentDegree`** ≥ **120** dias civis SP **ou** **`daysOnCurrentBelt`** ≥ **365** dias civis SP.
 
 **PNL-4.3.** **Cálculo , tempo no grau:** data de referência = **`graduated_at`** da **última** linha em **`student_graduations`** cujo par **(faixa resultante, grau resultante)** coincide com **`students.current_belt_id`** / **`current_degree`**; se não existir, usar **`academy_start_date`** como referência única e tratá-la como aproximação na UX quando relevante.
 
@@ -64,11 +65,11 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 ## PNL-5. Secção «Atenção hoje»
 
-**PNL-5.1.** **Aniversariantes do dia**: alunos ativos com DOB e aniversário **neste dia civil** (SP); mostrar **nome completo**; lista **sem limite artificial**.
+**PNL-5.1.** **Aniversariantes do dia**: alunos contados segundo **PNL-2.1**, com DOB e aniversário **neste dia civil** (SP); mostrar **nome completo**; lista **sem limite artificial**.
 
-**PNL-5.2.** **Vencimentos no dia**: alunos com **vínculo aberto** em **`student_plans`** para os quais o **dia de vencimento civil** no **mês de referência actual** coincide com **hoje** (**PBS-2**).
+**PNL-5.2.** **Vencimentos no dia**: alunos com **`student_status = active`**, **`archived_at`** e **`removed_at`** nulos, com **vínculo aberto** em **`student_plans`**, para os quais o **dia de vencimento civil** no **mês de referência actual** coincide com **hoje** (**PBS-2**).
 
-**PNL-5.3.** **Atraso prolongado**: alunos **ativos** para os quais o indicador do **mês civil atual** é **`overdue`** (**PBS-3**) **e** já decorreram **pelo menos 14 dias civis** em **America/São_Paulo** desde o **dia de vencimento civil** desse mês (**PBS-2**) até **`today`**. Lista **sem limite artificial**.
+**PNL-5.3.** **Atraso prolongado**: mesmo universo de **PNL-5.2** (**BR-9**), **`MonthBillingIndicator` = `overdue`** (**PBS-3**) e **pelo menos 14 dias civis SP** desde o dia de vencimento civil desse mês até **`today`**. Lista **sem limite artificial**.
 
 **PNL-5.4.** Sem **gráficos pesados**; texto e listas compactas.
 
@@ -76,7 +77,7 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 ## PNL-6. Distribuição por faixa
 
-**PNL-6.1.** Duas subsecções: **Adulto** e **Kids**, usando **`student_kind`** (**STU-4**).
+**PNL-6.1.** Duas subsecções: **Adulto** e **Kids**, usando **`student_kind`** (**STU-4**); apenas entram contagens os alunos contados segundo **PNL-2.1**.
 
 **PNL-6.2.** Em cada uma, contagens por **faixa** (rótulo + **cor da barra alinhada ao slug da faixa** na UI , paleta estável em código até existir **`belts.color_hex`** na BD), ordenadas pela **ordem oficial** (**GR-** / catálogo `belts`).
 
@@ -112,4 +113,4 @@ Contrato canónico para a **página inicial autenticada**: KPIs, «Atenção hoj
 
 ## Manutenção
 
-Alterações em KPIs, URLs ou heurísticas devem actualizar **este readme**, **`spec/features/billing-ui/readme.md`** se mudarem o contrato de query, **`spec/features/students-crud/readme.md`** se a lista e o painel partilharem métricas de duração, e os cenários em `cycles/.../15-0430-dashboard/scenarios.feature`.
+Alterações em KPIs, URLs ou heurísticas devem actualizar **este readme**, **`spec/features/billing-ui/readme.md`** se mudarem o contrato de query, **`spec/features/students-crud/readme.md`** se o recorte **`BR-9`** mudar, **`spec/product/billing-rules.md`** (**BR-9**), e cenários em `cycles/Q22026/15-0430-dashboard/scenarios.feature` quando comportamento observable mudar.

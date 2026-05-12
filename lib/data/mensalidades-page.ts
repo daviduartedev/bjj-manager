@@ -64,6 +64,9 @@ export async function loadMensalidadesRows(referenceMonthInput: string | null): 
       student_plans ( plan_id, due_day, ended_at, plans ( name, kind ) )
     `,
       )
+      .eq("status", "active")
+      .is("archived_at", null)
+      .is("removed_at", null)
       .order("full_name", { ascending: true }),
     loadMonthFinanceSummary(supabase, referenceMonth),
   ]);

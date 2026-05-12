@@ -64,7 +64,18 @@ Contrato canónico para o **recibo formal emitido automaticamente** quando o pro
 renderHtmlToPdf({ html, css, format: 'A4', margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' } }): Promise<{ pdfBuffer: Buffer; checksumSha256: string }>
 ```
 
-**REC-3.3.** Em ambientes serverless (Vercel/Lambda) onde Playwright não cabe sem ajuste, o adaptador `lib/documents/renderer.ts` aceita override por env var `PDF_RENDERER_DRIVER` (`playwright` default, `puppeteer-chromium` futuro), sem quebrar o contrato. **No MVP** assume-se host com Playwright instalável (Docker, Fly.io, container customizado, etc.).
+**REC-3.3.** O motor implementa‑se através de **`lib/documents/renderer.ts`** (ou módulos internos chamados só dali). A tecnologia efectiva por ambiente selecciona‑se através de **`PDF_RENDERER_DRIVER`**, sempre sem alterar assinatura pública de **REC-3.2** para o gerador documental :
+
+| Driver (slug canónico) | Uso esperado |
+|------------------------|---------------|
+| `playwright-local` (`playwright` como alias onde compatível) | **Desenvolvimento** e hospedagens onde `playwright` pode instalar o binário esperado (**não é** o cenário típido de produto apenas Vercel). |
+| `puppeteer-serverless` (nome exacto opcional desde que univoco no código e documentado no `.env.example`) | **Produção Vercel** e similares: **Chromium** adequado ao runtime serverless (**puppeteer‑core + pacote chromium compacto tipo `@sparticuz/chromium*`** alinhados na versão) em vez do `Launcher` oficial do Playwright com binários em `/.cache/ms-playwright/`. |
+
+**REC-3.3.1.** Em **Production** hospedado na **Vercel**, o driver por defeito de produto deve ser o da linha **`puppeteer-serverless`**; em **Development** deve ser suficiente `playwright-local`/`playwright`.
+
+**REC-3.3.2.** Mensagens exponíveis ao utilizador final **não** devem citar comandos tipo `npx playwright install`, caminhos de cache nem nomes binários (**SEC-**); erros infraestruturais tratam‑se conforme **REC-7**/ **REC-9** mesmo em produção bem configurada (**falha transitória**).
+
+**REC-3.3.3.** Deploy **documentado e reprodutível** : variáveis de ambiente registadas na documentação ou pipeline e, na Vercel, **limites adequados da função** (memória e timeout) como parte do ciclo de release — **SEC-**/operacional apenas.
 
 **REC-3.4.** **Fontes embarcadas** (Inter ou similar com pesos 400/500/700) servidas localmente, **sem** fetch a CDN público durante o render (**§23.3** do request). Logo da academia e assinatura entram como **`data:`-URL** ou via path interno do servidor; nunca como URL pública.
 
@@ -245,4 +256,4 @@ Assinatura ___________________________
 
 ## Manutenção
 
-Alterações ao gatilho do `recordPayment`, ao payload do recibo, ao template visual ou à idempotência devem actualizar **este readme**, [`spec/product/billing-rules.md`](../../product/billing-rules.md) (**BR-8**) + [`docs/product/billing-rules.md`](../../../docs/product/billing-rules.md), [`spec/features/payments-billing-status/readme.md`](../payments-billing-status/readme.md) (**PBS-9**), [`spec/features/billing-ui/readme.md`](../billing-ui/readme.md) (**BUI-9**), [`spec/features/student-documents/readme.md`](../student-documents/readme.md) quando o motor mudar, e os cenários do ciclo em `cycles/Q22026/25-0510-pedagogical-documents-finance/scenarios.feature`.
+Alterações ao gatilho do `recordPayment`, ao payload do recibo, ao template visual ou à idempotência devem actualizar **este readme**, [`spec/product/billing-rules.md`](../../product/billing-rules.md) (**BR-8**) + [`docs/product/billing-rules.md`](../../../docs/product/billing-rules.md), [`spec/features/payments-billing-status/readme.md`](../payments-billing-status/readme.md) (**PBS-9**), [`spec/features/billing-ui/readme.md`](../billing-ui/readme.md) (**BUI-9**), [`spec/features/student-documents/readme.md`](../student-documents/readme.md) quando o motor mudar, e os cenários do ciclo em `cycles/Q22026/25-0510-pedagogical-documents-finance/scenarios.feature` quando mexer na experiência observável ao professor.

@@ -30,6 +30,7 @@ Stub do job **BR-4.5**: [`db/jobs/br-45-auto-unpaid.sql`](../../../db/jobs/br-45
 | `payments.payment_method` | Texto opcional (ex.: PIX, dinheiro); nullable (**BUI-4.2**, **ENT-8**) |
 | `plan_kind` | `kids_1`, `kids_2`, `adult` ↔ Kids 1, Kids 2, Adulto. **Reaproveitado** como categoria pedagógica em `lesson_plans.category` (**PED-2**) , **não** existe enum `lesson_plan_category`. |
 | `student_status` | `active`, `inactive`, `trial`, `paused` |
+| Ciclo‑vida extra (`students`) | `archived_at`, `removed_at` (timestamptz nullable); opcional `lifecycle_updated_by` → `profiles` (**STU-10**, **STU-11**, **BR-9**). |
 | `lesson_plan_status` | `draft`, `published`, `archived` (**PED-4**) |
 | `document_type` | `payment_receipt`, `enrollment_proof`, `certificate`, `liability_term`, `lesson_plan` (**DOC-1**) |
 | `generated_document_status` | `pending`, `generating`, `generated`, `failed`, `archived` (**DOC-3.1**) |
@@ -39,6 +40,7 @@ Stub do job **BR-4.5**: [`db/jobs/br-45-auto-unpaid.sql`](../../../db/jobs/br-45
 ## Regras delegadas à aplicação
 
 - Indicador de cobrança do mês, validação de **`recordPayment`** e leitura em lote: ver **PBS-** em [`spec/features/payments-billing-status/readme.md`](../payments-billing-status/readme.md).
+- **Recorte da lista `/mensalidades`** (alunos activos sem arquivo nem removido soft): **BR-9** em [`spec/product/billing-rules.md`](../../product/billing-rules.md); colunas `students.archived_at` / `students.removed_at` quando o DDL do ciclo existir.
 - **Geração automática de recibo** ao executar **`recordPayment`** com `status='paid'`: ver **REC-** em [`spec/features/payment-receipts/readme.md`](../payment-receipts/readme.md) e **BR-8** em [`spec/product/billing-rules.md`](../../product/billing-rules.md). O DDL apenas garante o vínculo `generated_documents.payment_id` e a unicidade do recibo activo por `payment_id`; a renderização e numeração ficam na app (**DOC-7**, **DOC-4**).
 - Ordem de faixas, **pulo de faixa** com justificativa, **um grau por operação** na mesma faixa, e rejeição de **demotion** / **no-op**: ver **GR-4.5** e **GRD-3** em [`spec/features/graduation-engine/readme.md`](../graduation-engine/readme.md).
 - Limite fino de **grau por faixa** (preta **1–6**, demais **0–4** por **GR-1** / **GR-2**): o banco garante faixa **0–6** em `students.current_degree`; validação por faixa no app ou trigger futuro.

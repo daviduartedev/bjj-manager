@@ -18,7 +18,7 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 | Área | Artefatos típicos |
 |------|-------------------|
-| Rotas | `app/(dashboard)/alunos/page.tsx`, `…/alunos/novo/page.tsx`, `…/alunos/[id]/page.tsx`, `…/alunos/[id]/editar/page.tsx` |
+| Rotas | `app/(dashboard)/alunos/page.tsx`, `…/alunos/novo/page.tsx`, `…/alunos/[id]/page.tsx`, `…/alunos/[id]/editar/page.tsx` , vista **Arquivados** / **Removidos** (sub-rota ou aba **STU-10**/ **STU-11**) |
 | Actions | `actions/students.ts` (Server Actions + cliente Supabase **só servidor**) |
 | Validação | `lib/validations/students.ts` (Zod); formulários com React Hook Form |
 | Rotas canónicas | Constantes partilhadas com **SHELL-** (ex. `lib/routes.ts`) |
@@ -45,7 +45,11 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 **STU-3.2.** **Trial** (`trial`) **não** é exposto neste ciclo (nem filtro nem select); o valor pode existir no enum por compatibilidade com dados/evo futura.
 
-**STU-3.3.** Ação de **“remover” / desligar da operação ativa** na UI corresponde a **`inactive`** , **sem** `DELETE` físico de `students` neste ciclo.
+**STU-3.3.** **`inactive`** e **`paused`** significam que o aluno **não faz parte da carteira de cobrança mensal em curso**: continuam registados e podem ser achados através de filtros adequados (**STU-7**) mas **não entram na lista trabalhável de `/mensalidades`** nem nas contagens de KPI mensais ligadas ao mesmo universo que essa lista (**BR-9**, **BUI-**, e secções pertinentes do **PNL-** onde o indicador partilhar o mesmo recorte).
+
+**STU-3.4.** **Arquivar** (camada **`archived_at`**, ver **ENT-4**) e **Remover cadastro** (**`removed_at`**) são acções **distintas entre si** e **distinta** de apenas `inactive`/`paused`; em todos os casos **não** há eliminação física de **`payments`** ou **`generated_documents`** ligados.
+
+**STU-3.5.** Enquanto **`archived_at`** ou **`removed_at`** estão preenchidos, o aluno sai do **valor por defeito** da vista operativa diária de alunos até operação reversible prevista (**STU-10**, **STU-11**).
 
 ## STU-4. Planos e tipo de aluno
 
@@ -93,8 +97,36 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 ## STU-9. API das Server Actions (nomes)
 
-**STU-9.1.** O ciclo prevê as ações: `createStudent`, `updateStudent`, `setStudentStatus`, `deleteStudent`. **`deleteStudent`** tem semântica de **desativação** (**`inactive`**), não remoção física da linha. A lógica canónica de vínculo aluno–plano está alinhada a **`actions/billing.ts`** / **`lib/billing/`** (**BLM-5**); o CRUD de alunos reutiliza o mesmo comportamento.
+**STU-9.1.** **Base:** `createStudent`, `updateStudent`, `setStudentStatus` (**apenas** mudanças do enum **`student_status`**). Mudar para **`inactive`** ou **`paused`** **não** equivale por si só a **Arquivar** ou a **Remover cadastro**.
+
+**STU-9.2.** Nomes legacy tipo **`deleteStudent`** só são admissíveis se estiverem **documentados como alias** inequívoco de **`inactive`** (**sem DELETE físico**) ; **rótulos de produto «Remover»** que impliquem **STU-11** **não** podem apenas chamar esse alias (**STU-3.4**).
+
+**STU-9.3.** **Arquivo:** `archiveStudent`, `unarchiveStudent` (**STU-10**). **Remoção soft:** acção típica `removeStudentFromDirectory`/`undoRemoveStudentFromDirectory` ou nomenclatura equivalente documentada (**STU-11**). Todas com **servidor** + tenant.
+
+**STU-9.4.** A lógica de vínculo aluno-plano (**ENT-7**, **BLM-5**) mantém‑se sempre que alterações tocando em plano passarem pela camada já existente de **`actions/billing.ts`** / **`lib/billing/`**.
+
+## STU-10. Arquivar / desarquivar
+
+**STU-10.1.** **Arquivar** preenche **`archived_at`** (instante servidor) sobre `students`; **desarquivar** limpa **`archived_at`**. Preferir registar opcionalmente **quem** executou (**`lifecycle_updated_by` → profiles**) quando já existir coluna (**ENT-4**, schema).
+
+**STU-10.2.** **Confirmação obrigatória** com texto explícindo **exclusão do quadro de mensalidades** e **dos KPIs mensais ligados ao mesmo recorte**, e onde consultar arquivo.
+
+**STU-10.3.** **Vistas dedicadas:** professor encontra arquivo via **lista**, **abas** ou **rota próprias** («Arquivados») sem confundir com aluno apenas **inactive**/`paused`.
+
+**STU-10.4.** **Invariante servidor:** **`archived_at` e `removed_at` não ficam simultaneamente preenchidos**. Nova acção arquivo exige **`removed_at` IS NULL**; nova remoção exige **`archived_at` IS NULL**.
+
+**STU-10.5.** **Histórico financeiro** (**SPR-8** onde aplicável): permite **consulta** de pagamentos já existentes; **novos `recordPayment`** só quando o ciclo assim o permitir após regressar aos critérios de elegibilidade (**BR-9**, **SPR-9**).
+
+## STU-11. Remover cadastro (soft directory removal)
+
+**STU-11.1.** **Remover cadastro** preenche **`removed_at`** **sem DELETE** físico das linhas de **`students`**, **`payments`** ou **`generated_documents`**.
+
+**STU-11.2.** **Confirmação obrigatória** destacando semântica **distinta do arquivo**: caso típico **cadastro erróneo / duplicado** onde o professor já **não** quer o registro no dia a dia.
+
+**STU-11.3.** **Vistas dedicadas** (**«Removidos»** ou secção dentro do módulo) permitem encontrar esse recorte até **reverse** onde o ciclo permite.
+
+**STU-11.4.** Ao **reverter**, limpar **`removed_at`** conforme servidor e regressar aos fluxos activos combinando **`student_status`** e campos de ciclo vida (**STU-3**, **STU-10**).
 
 ## Manutenção
 
-Alterações em rotas sob **`/alunos`**, regras de plano/tipo, ou políticas em `students` / `student_plans` devem actualizar **este readme**, **`spec/features/dashboard/readme.md`** se afectarem métricas partilhadas com o painel (**PNL-4**), **`spec/features/plans-billing-model/readme.md`**, **`spec/features/app-shell/readme.md`** e **`spec/features/student-profile/readme.md`** se afectarem navegação perfil/lista, e os cenários em `cycles/.../08-0430-students-crud/scenarios.feature` e `cycles/.../10-0430-student-profile/scenarios.feature` quando aplicável.
+Alterações em rotas sob **`/alunos`**, regras de plano/tipo, ou políticas em `students` / `student_plans` devem actualizar **este readme**, **`spec/features/dashboard/readme.md`** quando afectarem métricas do painel, **`spec/features/billing-ui/readme.md`** e **`spec/features/payments-billing-status/readme.md`** quando a carteira **`/mensalidades`** mudar (**BR-9**), **`spec/product/billing-rules.md`** + **`docs/product/billing-rules.md`**, **`spec/features/plans-billing-model/readme.md`**, **`spec/features/app-shell/readme.md`**, **`spec/features/student-profile/readme.md`** e **`spec/features/supabase-schema/readme.md`** quando o DDL mudar, e cenários em `cycles/Q22026/08-0430-students-crud/scenarios.feature`, `cycles/Q22026/10-0430-student-profile/scenarios.feature`, `cycles/Q22026/14-0430-billing-ui/scenarios.feature` e `cycles/Q22026/15-0430-dashboard/scenarios.feature` quando o comportamento observável ao professor mudar.

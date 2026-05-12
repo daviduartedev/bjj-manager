@@ -235,6 +235,7 @@ export async function updateStudent(
 
     revalidatePath(ROUTES.alunos);
     revalidatePath(`${ROUTES.alunos}/${studentId}/editar`);
+    revalidatePath(`${ROUTES.alunos}/${studentId}`);
     return { ok: true };
   } catch (e) {
     if (e instanceof BillingDomainError) {
@@ -307,6 +308,7 @@ export async function quickUpdateStudent(
     });
 
     revalidatePath(ROUTES.alunos);
+    revalidatePath(`${ROUTES.alunos}/${studentId}`);
     return { ok: true };
   } catch (e) {
     if (e instanceof BillingDomainError) {
@@ -326,6 +328,7 @@ export async function setStudentStatus(
       return { ok: false, error: "Situação inválida." };
     }
     const supabase = await createClient();
+    /** `inactive` / `paused` **não equivalem** a arquivo/remoção (**STU-3**). */
     const { error } = await supabase
       .from("students")
       .update({
@@ -335,13 +338,185 @@ export async function setStudentStatus(
       .eq("id", studentId);
     if (error) throw error;
     revalidatePath(ROUTES.alunos);
+    revalidatePath(`${ROUTES.alunos}/${studentId}`);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: mapStudentServerError(e) };
   }
 }
 
-/** Semântica **STU-9.1**: desativa o aluno (`inactive`). */
+function lifecycleStamp(profileId: string, nowIso: string) {
+  return {
+    lifecycle_updated_at: nowIso,
+    lifecycle_updated_by: profileId,
+    updated_at: nowIso,
+  } as const;
+}
+
+/** **STU-10**: retira da lista pré-definida / mensalidades sem apagar dados financeiros. */
+export async function archiveStudent(
+  studentId: string,
+): Promise<StudentActionResult> {
+  try {
+    const ctx = await getCurrentAccount();
+    if (!ctx) {
+      return {
+        ok: false,
+        error:
+          "Conta da academia indisponível. Confirme o vínculo perfil/conta ou volte a iniciar sessão.",
+      };
+    }
+    const supabase = await createClient();
+    const now = new Date().toISOString();
+    const stamp = lifecycleStamp(ctx.profile.id, now);
+    const { data, error } = await supabase
+      .from("students")
+      .update({
+        archived_at: now,
+        ...stamp,
+      })
+      .eq("id", studentId)
+      .is("archived_at", null)
+      .is("removed_at", null)
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      return {
+        ok: false,
+        error:
+          "Não foi possível arquivar este registo (já está arquivado ou removido da operação corrente).",
+      };
+    }
+    revalidatePath(ROUTES.alunos);
+    revalidatePath(`${ROUTES.alunos}/${studentId}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapStudentServerError(e) };
+  }
+}
+
+export async function unarchiveStudent(
+  studentId: string,
+): Promise<StudentActionResult> {
+  try {
+    const ctx = await getCurrentAccount();
+    if (!ctx) {
+      return {
+        ok: false,
+        error:
+          "Conta da academia indisponível. Confirme o vínculo perfil/conta ou volte a iniciar sessão.",
+      };
+    }
+    const supabase = await createClient();
+    const now = new Date().toISOString();
+    const stamp = lifecycleStamp(ctx.profile.id, now);
+    const { data, error } = await supabase
+      .from("students")
+      .update({
+        archived_at: null,
+        ...stamp,
+      })
+      .eq("id", studentId)
+      .not("archived_at", "is", null)
+      .is("removed_at", null)
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      return {
+        ok: false,
+        error: "Este aluno não está arquivado ou já foi removido da operação corrente.",
+      };
+    }
+    revalidatePath(ROUTES.alunos);
+    revalidatePath(`${ROUTES.alunos}/${studentId}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapStudentServerError(e) };
+  }
+}
+
+/** **STU-11**: remoção soft distinta do arquivo; sem DELETE de pagamentos. */
+export async function removeStudentRecord(
+  studentId: string,
+): Promise<StudentActionResult> {
+  try {
+    const ctx = await getCurrentAccount();
+    if (!ctx) {
+      return {
+        ok: false,
+        error:
+          "Conta da academia indisponível. Confirme o vínculo perfil/conta ou volte a iniciar sessão.",
+      };
+    }
+    const supabase = await createClient();
+    const now = new Date().toISOString();
+    const stamp = lifecycleStamp(ctx.profile.id, now);
+    const { data, error } = await supabase
+      .from("students")
+      .update({
+        removed_at: now,
+        archived_at: null,
+        ...stamp,
+      })
+      .eq("id", studentId)
+      .is("removed_at", null)
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      return {
+        ok: false,
+        error: "Este registo já está marcado como removido ou não existe.",
+      };
+    }
+    revalidatePath(ROUTES.alunos);
+    revalidatePath(`${ROUTES.alunos}/${studentId}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapStudentServerError(e) };
+  }
+}
+
+export async function undoRemoveStudentRecord(
+  studentId: string,
+): Promise<StudentActionResult> {
+  try {
+    const ctx = await getCurrentAccount();
+    if (!ctx) {
+      return {
+        ok: false,
+        error:
+          "Conta da academia indisponível. Confirme o vínculo perfil/conta ou volte a iniciar sessão.",
+      };
+    }
+    const supabase = await createClient();
+    const now = new Date().toISOString();
+    const stamp = lifecycleStamp(ctx.profile.id, now);
+    const { data, error } = await supabase
+      .from("students")
+      .update({
+        removed_at: null,
+        ...stamp,
+      })
+      .eq("id", studentId)
+      .not("removed_at", "is", null)
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      return { ok: false, error: "Não há remoção soft activa para anular neste registo." };
+    }
+    revalidatePath(ROUTES.alunos);
+    revalidatePath(`${ROUTES.alunos}/${studentId}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapStudentServerError(e) };
+  }
+}
+
+/** Semântica **STU-9.1**: desativa o aluno (`inactive`), distinto de **arquivar** / **remover**. */
 export async function deleteStudent(
   studentId: string,
 ): Promise<StudentActionResult> {

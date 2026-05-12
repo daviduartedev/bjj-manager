@@ -11,6 +11,7 @@ import type {
   ProfilePaymentRow,
   StudentProfilePayload,
 } from "@/lib/data/students-profile.shared";
+import { resolveProfileMonthlyPaymentsAccess } from "@/lib/data/students-profile.shared";
 import { calendarDateWhenCurrentBeltDegreeEstablished } from "@/lib/students/graduation-current-since";
 import type { PaymentStatusSlug } from "@/lib/students/payment-ui";
 import {
@@ -45,6 +46,8 @@ export async function getStudentProfileById(
       full_name,
       kind,
       status,
+      archived_at,
+      removed_at,
       birth_date,
       academy_start_date,
       document,
@@ -219,11 +222,22 @@ export async function getStudentProfileById(
       todayYmd,
     });
 
+  const archivedAt = (st.archived_at as string | null) ?? null;
+  const removedAt = (st.removed_at as string | null) ?? null;
+  const mpAccess = resolveProfileMonthlyPaymentsAccess({
+    billingPresent: billing !== null,
+    status: st.status as string,
+    archived_at: archivedAt,
+    removed_at: removedAt,
+  });
+
   return {
     id: st.id as string,
     full_name: st.full_name as string,
     kind: st.kind as "adult" | "kids",
     status: st.status as string,
+    archived_at: archivedAt,
+    removed_at: removedAt,
     birth_date: st.birth_date as string | null,
     academy_start_date: academyStart,
     document: st.document as string | null,
@@ -247,5 +261,7 @@ export async function getStudentProfileById(
     currentMonthEffectiveStatus,
     currentMonthStatusLabel: paymentStatusLabelPt(currentMonthEffectiveStatus),
     currentMonthOverdue,
+    canRegisterMonthlyPayments: mpAccess.canRegisterMonthlyPayments,
+    monthlyPaymentsBlockedReason: mpAccess.monthlyPaymentsBlockedReason,
   };
 }

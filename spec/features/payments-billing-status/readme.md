@@ -4,7 +4,7 @@ Contrato canónico para **ações de pagamento**, **derivados de status por mês
 
 ## Relação com outras specs
 
-- Regras de produto: [`spec/product/billing-rules.md`](../../product/billing-rules.md) (**BR-3**, **BR-4**, **BR-7**).
+- Regras de produto: [`spec/product/billing-rules.md`](../../product/billing-rules.md) (**BR-3**, **BR-4**, **BR-7**, **BR-9**).
 - Entidades: [`spec/product/entities.md`](../../product/entities.md) (**ENT-7**, **ENT-8**).
 - Schema: [`spec/features/supabase-schema/readme.md`](../supabase-schema/readme.md) (`payments`, `payment_status`).
 - Planos e preço efetivo: [`spec/features/plans-billing-model/readme.md`](../plans-billing-model/readme.md) (**BLM-6**).
@@ -84,6 +84,8 @@ Valores canónicos (slug inglês, UI pt-BR à parte): **`paid`**, **`pending`**,
 
 **PBS-6.2.** Consumido pelo **painel** (**PNL-** em [`spec/features/dashboard/readme.md`](../dashboard/readme.md)), pela lista **`/mensalidades`** e pelo detalhe **`/mensalidades/[studentId]`** (**BUI-**).
 
+**PBS-6.3.** A lista **`BUI`** primeiro restringe **`student_id`** ao recorte **BR-9** / **BUI-2** / **ENT-4** / **STU-3** antes de usar **`MonthBillingIndicator`**. O contrato **`PBS-6.1`** também serve quando só existe um par válido já autorizado (ex.: **detalhe**). Ver **SPR-9.4** para CTAs quando o aluno ficou extra-carteira.
+
 ---
 
 ## PBS-7. Erros e segurança
@@ -114,4 +116,4 @@ Valores canónicos (slug inglês, UI pt-BR à parte): **`paid`**, **`pending`**,
 
 ## Manutenção
 
-Alterações em `payments`, actions ou helpers devem actualizar **este readme**, **`spec/features/billing-ui/readme.md`** quando afectarem UX, **`spec/features/dashboard/readme.md`** quando afectarem **PBS-6** no painel, **`spec/features/payment-receipts/readme.md`** quando afectarem **REC-** ou **PBS-9**, **`spec/product/billing-rules.md`** + **`docs/product/billing-rules.md`**, e cenários em `cycles/.../13-0430-payments-billing-status/scenarios.feature`, `cycles/.../14-0430-billing-ui/scenarios.feature` e `cycles/.../25-0510-pedagogical-documents-finance/scenarios.feature` quando aplicável.
+Alterações em `payments`, actions ou helpers devem actualizar **este readme**, **`spec/features/billing-ui/readme.md`** quando afectarem UX, **`spec/features/dashboard/readme.md`** quando afectarem **PBS-6** no painel, **`spec/features/payment-receipts/readme.md`** quando afectarem **REC-** ou **PBS-9**, **`spec/product/billing-rules.md`** + **`docs/product/billing-rules.md`**, e cenários em `cycles/Q22026/13-0430-payments-billing-status/scenarios.feature`, `cycles/Q22026/14-0430-billing-ui/scenarios.feature` e `cycles/Q22026/25-0510-pedagogical-documents-finance/scenarios.feature` quando comportamento observable mudar.

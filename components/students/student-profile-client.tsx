@@ -138,20 +138,20 @@ export function StudentProfileClient({ profile }: Props) {
               >
                 Promover
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="min-h-11"
-                disabled={!profile.billing}
-                title={
-                  profile.billing
-                    ? undefined
-                    : "Associe um plano ao aluno para registar pagamentos."
-                }
-                onClick={() => setPaymentOpen(true)}
-              >
-                Registrar pagamento
-              </Button>
+              {profile.canRegisterMonthlyPayments ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11"
+                  onClick={() => setPaymentOpen(true)}
+                >
+                  Registrar pagamento
+                </Button>
+              ) : profile.monthlyPaymentsBlockedReason ? (
+                <span className="max-w-xl self-center rounded-md border border-border/80 bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                  {profile.monthlyPaymentsBlockedReason}
+                </span>
+              ) : null}
             </div>
           </div>
         </CardContent>

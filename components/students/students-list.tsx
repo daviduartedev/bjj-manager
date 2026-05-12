@@ -6,7 +6,13 @@ import { useRouter } from "next/navigation";
 import { FilterX, ListFilter, MoreHorizontal, Pencil, Search, Users } from "lucide-react";
 import { toast } from "sonner";
 
-import { deleteStudent } from "@/actions/students";
+import {
+  archiveStudent,
+  deleteStudent,
+  removeStudentRecord,
+  undoRemoveStudentRecord,
+  unarchiveStudent,
+} from "@/actions/students";
 import { QuickEditDialog } from "@/components/students/quick-edit-dialog";
 import { StudentAgeLabel } from "@/components/students/student-age";
 import { StudentStatusBadge } from "@/components/students/student-status-badge";
@@ -117,10 +123,63 @@ export function StudentsList({
     router.refresh();
   }
 
+  async function handleArchive(student: ListStudentRow) {
+    if (
+      !confirm(
+        `Arquivar ${student.full_name}? Deixa de aparecer na lista principal e nas mensalidades; o histórico financeiro mantém‑se.`,
+      )
+    )
+      return;
+    const r = await archiveStudent(student.id);
+    if (!r.ok) {
+      toast.error(r.error);
+      return;
+    }
+    toast.success("Aluno arquivado.");
+    router.refresh();
+  }
+
+  async function handleRemoveSoft(student: ListStudentRow) {
+    if (
+      !confirm(
+        `Remover o cadastro de ${student.full_name} da operação corrente? É uma remoção soft (distincta de Arquivar e de Inativo).`,
+      )
+    )
+      return;
+    const r = await removeStudentRecord(student.id);
+    if (!r.ok) {
+      toast.error(r.error);
+      return;
+    }
+    toast.success("Cadastro removido da operação corrente.");
+    router.refresh();
+  }
+
+  async function handleUnarchive(student: ListStudentRow) {
+    const r = await unarchiveStudent(student.id);
+    if (!r.ok) {
+      toast.error(r.error);
+      return;
+    }
+    toast.success("Aluno desarquivado.");
+    router.refresh();
+  }
+
+  async function handleUndoRemove(student: ListStudentRow) {
+    const r = await undoRemoveStudentRecord(student.id);
+    if (!r.ok) {
+      toast.error(r.error);
+      return;
+    }
+    toast.success("Remoção soft anulada.");
+    router.refresh();
+  }
+
   const hasFilters =
     urlState.q !== "" ||
     urlState.plan !== "all" ||
     urlState.status !== "all" ||
+    urlState.lista !== "principal" ||
     urlState.sort !== "name";
 
   const emptyNoFilters = total === 0 && !hasFilters;
@@ -138,9 +197,44 @@ export function StudentsList({
           <div>
             <p className="text-crm-sm font-semibold text-foreground">Filtros e pesquisa</p>
             <p className="text-crm-xs text-muted-foreground">
-              Refine a lista por nome, plano e situação.
+              Refine a lista por nome, plano e situação. Use as vistas para alunos arquivados ou removidos.
             </p>
           </div>
+        </div>
+        <div className="flex flex-wrap gap-2 border-t border-border/60 px-4 py-4 sm:px-5">
+          <Button
+            type="button"
+            size="sm"
+            variant={urlState.lista === "principal" ? "default" : "outline"}
+            className="min-h-10"
+            onClick={() =>
+              pushUrl({ ...urlState, lista: "principal", page: 1 })
+            }
+          >
+            Lista principal
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={urlState.lista === "arquivados" ? "default" : "outline"}
+            className="min-h-10"
+            onClick={() =>
+              pushUrl({ ...urlState, lista: "arquivados", page: 1 })
+            }
+          >
+            Arquivados
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={urlState.lista === "removidos" ? "default" : "outline"}
+            className="min-h-10"
+            onClick={() =>
+              pushUrl({ ...urlState, lista: "removidos", page: 1 })
+            }
+          >
+            Removidos
+          </Button>
         </div>
         <div className="space-y-5 border-t border-border/60 px-4 pb-5 pt-4 sm:px-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end">
@@ -254,9 +348,19 @@ export function StudentsList({
           <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground">
             <FilterX className="size-6" aria-hidden />
           </div>
-          <p className="type-card-heading">Nenhum resultado</p>
+          <p className="type-card-heading">
+            {urlState.lista === "arquivados"
+              ? "Nenhum aluno arquivado"
+              : urlState.lista === "removidos"
+                ? "Nenhuma remoção soft"
+                : "Nenhum resultado"}
+          </p>
           <p className="type-lead mx-auto mt-2 max-w-sm">
-            Nenhum aluno corresponde aos filtros atuais. Ajuste a pesquisa ou limpe os filtros.
+            {urlState.lista === "principal"
+              ? "Nenhum aluno corresponde aos filtros atuais. Ajuste a pesquisa ou limpe os filtros."
+              : urlState.lista === "arquivados"
+                ? "Ainda não há alunos arquivados nesta conta."
+                : "Ainda não há cadastros com remoção soft nesta vista."}
           </p>
           <div className="mt-6">
             <Button variant="outline" className="min-h-11" asChild>
@@ -333,12 +437,17 @@ export function StudentsList({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <RowActions
+                        lista={urlState.lista}
                         row={row}
                         onQuick={() => {
                           setQuickStudent(row);
                           setQuickOpen(true);
                         }}
                         onDeactivate={() => handleDeactivate(row)}
+                        onArchive={() => handleArchive(row)}
+                        onRemoveSoft={() => handleRemoveSoft(row)}
+                        onUnarchive={() => handleUnarchive(row)}
+                        onUndoRemove={() => handleUndoRemove(row)}
                       />
                     </TableCell>
                   </TableRow>
@@ -377,12 +486,17 @@ export function StudentsList({
                   </button>
                   <div className="mt-4 flex justify-end border-t border-border/60 pt-4">
                     <RowActions
+                      lista={urlState.lista}
                       row={row}
                       onQuick={() => {
                         setQuickStudent(row);
                         setQuickOpen(true);
                       }}
                       onDeactivate={() => handleDeactivate(row)}
+                      onArchive={() => handleArchive(row)}
+                      onRemoveSoft={() => handleRemoveSoft(row)}
+                      onUnarchive={() => handleUnarchive(row)}
+                      onUndoRemove={() => handleUndoRemove(row)}
                     />
                   </div>
                 </div>
@@ -437,13 +551,23 @@ export function StudentsList({
 }
 
 function RowActions({
+  lista,
   row,
   onQuick,
   onDeactivate,
+  onArchive,
+  onRemoveSoft,
+  onUnarchive,
+  onUndoRemove,
 }: {
+  lista: AlunosUrlState["lista"];
   row: ListStudentRow;
   onQuick: () => void;
   onDeactivate: () => void;
+  onArchive: () => void;
+  onRemoveSoft: () => void;
+  onUnarchive: () => void;
+  onUndoRemove: () => void;
 }) {
   return (
     <div className="flex items-center justify-end gap-1">
@@ -491,14 +615,52 @@ function RowActions({
               Editar ficha completa
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeactivate();
-            }}
-          >
-            Desativar
-          </DropdownMenuItem>
+          {lista === "principal" ? (
+            <>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onArchive();
+                }}
+              >
+                Arquivar…
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveSoft();
+                }}
+              >
+                Remover cadastro (soft)…
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeactivate();
+                }}
+              >
+                Desativar
+              </DropdownMenuItem>
+            </>
+          ) : lista === "arquivados" ? (
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onUnarchive();
+              }}
+            >
+              Desarquivar
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onUndoRemove();
+              }}
+            >
+              Anular remoção soft
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

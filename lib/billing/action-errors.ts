@@ -25,6 +25,8 @@ export function mapBillingActionError(error: unknown): string {
         return "O valor não corresponde ao preço efetivo vigente para este aluno.";
       case "PAYMENT_NOT_AVAILABLE":
         return NOT_AVAILABLE;
+      case "MONTHLY_WALLET_EXCLUDED":
+        return "Este aluno está fora da carteira mensal (inativo, pausado, arquivado ou removido). Não é possível registar a mensalidade neste fluxo.";
       default:
         return NOT_AVAILABLE;
     }

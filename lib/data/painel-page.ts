@@ -114,6 +114,8 @@ export async function loadPainelPageData(): Promise<{
       `,
       )
       .eq("status", "active")
+      .is("archived_at", null)
+      .is("removed_at", null)
       .order("full_name", { ascending: true }),
   ]);
 

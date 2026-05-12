@@ -29,6 +29,7 @@ export default async function AlunosPage({ searchParams }: PageProps) {
       q: urlState.q || undefined,
       plan: urlState.plan === "all" ? undefined : urlState.plan,
       status: urlState.status === "all" ? undefined : urlState.status,
+      lista: urlState.lista,
       sort: urlState.sort,
       page: urlState.page,
     }),

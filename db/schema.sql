@@ -130,6 +130,10 @@ CREATE TABLE IF NOT EXISTS public.students (
   phone text NULL,
   email text NULL,
   notes text NULL,
+  archived_at timestamptz NULL,
+  removed_at timestamptz NULL,
+  lifecycle_updated_at timestamptz NULL,
+  lifecycle_updated_by uuid NULL REFERENCES public.profiles (id),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT students_degree_bounds CHECK (
