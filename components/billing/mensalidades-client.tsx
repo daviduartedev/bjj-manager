@@ -189,7 +189,9 @@ export function MensalidadesClient({
         className="pb-4"
       />
 
-      <MensalidadesMonthFinancePanel summary={monthFinance} monthCaption={monthCaption} />
+      <div data-tour="mensalidades-resumo-mes">
+        <MensalidadesMonthFinancePanel summary={monthFinance} monthCaption={monthCaption} />
+      </div>
 
       <DashboardPanel
         icon={Wallet}

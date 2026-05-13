@@ -201,7 +201,10 @@ export function StudentsList({
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 border-t border-border/60 px-4 py-4 sm:px-5">
+        <div
+          className="flex flex-wrap gap-2 border-t border-border/60 px-4 py-4 sm:px-5"
+          data-tour="alunos-vistas-tabs"
+        >
           <Button
             type="button"
             size="sm"

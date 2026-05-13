@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Joyride, EVENTS, STATUS, type EventData, type Step } from "react-joyride";
 
+import { APP_NAME } from "@/lib/branding";
 import { ROUTES } from "@/lib/routes";
 
 /** Quando `1`, este navegador já concluiu o tour automático da primeira vez. */
@@ -71,7 +72,7 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: "body",
         title: "Bem-vindo",
         content:
-          "Vamos passar pelo menu e pelas cinco áreas principais: Painel, Alunos, Mensalidades, Produtos e Configurações. Use Próximo para avançar; dá para pular o tour quando quiser. Só este navegador guarda que você já concluiu, não mexe na sua conta nem nos dados da academia.",
+          "Vamos guiar você pela área autenticada: Painel, Alunos e vistas da lista, Mensalidades com resumo financeiro e comprovantes, Pedagógico (planos de aula), Documentos já emitidos, Produtos em estoque, Configurações da academia, Perfil pessoal e atalhos do topo. Avance em Próximo ou pule o tour quando quiser. Somente este navegador guarda que o tour foi concluído.",
         placement: "center",
         skipBeacon: true,
       },
@@ -79,14 +80,14 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: () => firstVisibleShellNav(),
         title: "Menu principal",
         content:
-          "É por aqui que você chega em cada parte do sistema. No celular, o mesmo atalho aparece na barra de baixo. Cada item tem uma função: visão geral do dia, cadastro de alunos, mensalidades, produtos da academia e preferências da conta.",
+          "É por aqui que você navega pelo app. Painel resume o dia; Alunos e Mensalidades concentram a operação financeira do mês; Pedagógico prepara os planos; Documentos agrupa PDFs já gerados (recibos, termos etc.); Produtos serve para controlar inventário sem venda integrada pelo sistema; Configurações trata nome da academia e valores de planos. No telefone esta mesma navegação aparece na barra inferior.",
         placement: "auto",
       },
       {
         target: () => firstVisibleDataTour("tour-painel"),
         title: "Painel",
         content:
-          "Abre o resumo do dia: totais rápidos, aniversariantes, atrasos e atalhos. Comece por aqui na rotina diária.",
+          "Resumo do dia: números principais, aniversários, pendências financeiras visualizadas pelo painel e atalhos para listas já filtradas.",
         placement: "right",
         before: async () => {
           await navigateTo(ROUTES.painel);
@@ -96,7 +97,7 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: () => firstVisibleDataTour("page-painel"),
         title: "Tela do Painel",
         content:
-          "Aqui ficam o cumprimento, os números principais e o que pede atenção. Nos cartões, quando aparecer, um clique leva direto para Alunos ou Mensalidades.",
+          "Use os cartões para saltar rápido para Alunos ou Mensalidades quando um cartão falar do assunto — menos cliques no dia.",
         placement: "auto",
         before: async () => {
           await navigateTo(ROUTES.painel);
@@ -106,7 +107,7 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: () => firstVisibleDataTour("tour-alunos"),
         title: "Alunos",
         content:
-          "Cadastro completo: dados, faixa, grau, histórico de graduação e visão do mês na mesma ficha.",
+          "Cadastro vivo: fichas só leitura, edição quando precisar, graduações e vínculos com os planos usados em Mensalidades.",
         placement: "right",
         before: async () => {
           await navigateTo(ROUTES.alunos);
@@ -116,7 +117,17 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: () => firstVisibleDataTour("page-alunos"),
         title: "Lista de alunos",
         content:
-          "Busque, filtre e abra a ficha pela linha. O botão de novo aluno fica nesta área. Quando subir de faixa, registre a graduação na ficha para manter o histórico certo.",
+          "Pesquisa rápida, filtros por plano e estado, botão novo aluno (quando aparece ao lado da lista) e cada linha leva ao perfil do aluno. No menu ⋮ há ações adicionais, incluindo remoções suaves onde existirem.",
+        placement: "auto",
+        before: async () => {
+          await navigateTo(ROUTES.alunos);
+        },
+      },
+      {
+        target: () => firstVisibleDataTour("alunos-vistas-tabs"),
+        title: "Vistas da lista",
+        content:
+          "Lista principal agrupa os alunos do dia a dia; Arquivados guarda cadastros inativos preservados por histórico; Removidos mostra aqueles marcados como removidos pela academia — dá para anular a partir do menu quando a função existir.",
         placement: "auto",
         before: async () => {
           await navigateTo(ROUTES.alunos);
@@ -126,27 +137,77 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: () => firstVisibleDataTour("tour-mensalidades"),
         title: "Mensalidades",
         content:
-          "Acompanhe o mês de referência, quem está em dia e quem não está. Registre o pagamento quando o valor for confirmado.",
+          "O mês de referência vale para todas as linhas ao mesmo tempo — confira sempre o seletor de mês no topo antes de registrar pagamentos em lote.",
         placement: "right",
         before: async () => {
           await navigateTo(ROUTES.mensalidades);
         },
       },
       {
-        target: () => firstVisibleDataTour("page-mensalidades"),
-        title: "Mensalidades do mês",
+        target: () => firstVisibleDataTour("mensalidades-resumo-mes"),
+        title: "Resumo do mês",
         content:
-          "Confira o mês no topo, use os filtros e abra o aluno para ver detalhes. Registre o pagamento no momento em que fechar o valor com a família.",
+          "Antes de descer na lista confira este bloco para entender o que já foi pago, o pendente ou atrasado; ele atualiza quando os registros mudam.",
         placement: "auto",
         before: async () => {
           await navigateTo(ROUTES.mensalidades);
         },
       },
       {
+        target: () => firstVisibleDataTour("page-mensalidades"),
+        title: "Registrar e comprovantes",
+        content:
+          "Filtros por estado (pago/pendente etc.) ajudam a limpar visualmente. Ao abrir um aluno e confirmar valor, gere ou reabra comprovante PDF pelos próprios comandos dentro do fluxo; os documentos ficam repetíveis também em Documentos no menu lateral.",
+        placement: "auto",
+        before: async () => {
+          await navigateTo(ROUTES.mensalidades);
+        },
+      },
+      {
+        target: () => firstVisibleDataTour("tour-pedagogico"),
+        title: "Pedagógico",
+        content:
+          "Planos mensais organizados por categoria (kids 1/kids 2/adulto), revisão antes de publicar e exportação em PDF quando fizer parte da sua rotina.",
+        placement: "right",
+        before: async () => {
+          await navigateTo(ROUTES.pedagogicoPlanos);
+        },
+      },
+      {
+        target: () => firstVisibleDataTour("page-pedagogico-planos"),
+        title: "Planos pedagógicos",
+        content:
+          "Filtros por estado e período aparecem no painel inferior; criar novo plano, duplicar rascunhos e publicar a versão válida ficam sempre a partir desta lista.",
+        placement: "auto",
+        before: async () => {
+          await navigateTo(ROUTES.pedagogicoPlanos);
+        },
+      },
+      {
+        target: () => firstVisibleDataTour("tour-documentos"),
+        title: "Documentos",
+        content:
+          "Histórico unificado das emissões: comprovante de mensalidade, termos e certificados. Use quando precisar encontrar arquivo antigo ou baixar de novo o que já foi gerado.",
+        placement: "right",
+        before: async () => {
+          await navigateTo(ROUTES.documentos);
+        },
+      },
+      {
+        target: () => firstVisibleDataTour("page-documentos"),
+        title: "Histórico e filtros",
+        content:
+          "Filtros por tipo e estado; ao abrir o detalhe você baixa novamente quando o arquivo já existe — nem sempre precisa passar só pela Mensalidades.",
+        placement: "auto",
+        before: async () => {
+          await navigateTo(ROUTES.documentos);
+        },
+      },
+      {
         target: () => firstVisibleDataTour("tour-produtos"),
         title: "Produtos",
         content:
-          "Controle interno de produtos da academia: tamanhos e quantidades em estoque. Nesta etapa não há venda, checkout nem baixa automática por venda.",
+          "Controle interno de SKU por tamanho e quantidade em estoque. Não substitui checkout de vitrine: depois da contagem física, ajuste as quantidades manualmente aqui.",
         placement: "right",
         before: async () => {
           await navigateTo(ROUTES.produtos);
@@ -154,9 +215,9 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
       },
       {
         target: () => firstVisibleDataTour("page-produtos"),
-        title: "Gestão de produtos",
+        title: "Estoque e cadastro",
         content:
-          "Cadastre produtos, edite nomes, ative ou desative itens e atualize o estoque manualmente por tamanho.",
+          "Ative/desative ítens, edite nomenclatura e ajuste contagem quando contar físicamente produtos disponíveis no tatame ou lojinha própria.",
         placement: "auto",
         before: async () => {
           await navigateTo(ROUTES.produtos);
@@ -166,7 +227,7 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
         target: () => firstVisibleDataTour("tour-configuracoes"),
         title: "Configurações",
         content:
-          "Nome da academia e valores dos planos (kids e adulto). Isso padroniza o vínculo de cada aluno com o plano certo e reduz erro de mensalidade.",
+          "Centraliza nome da academia e planos (valores usados quando você lança registros mensais). Esses números alimentam expectativas e relatórios do mês atual.",
         placement: "right",
         before: async () => {
           await navigateTo(ROUTES.configuracoes);
@@ -174,20 +235,43 @@ export function GuidedTour({ run, onRunChange, sessionKey }: GuidedTourProps) {
       },
       {
         target: () => firstVisibleDataTour("page-configuracoes"),
-        title: "Preferências da academia",
+        title: "Preferências institucionais",
         content:
-          "Ajuste aquilo que vale para toda a escola. Nome de exibição, e-mail e dados pessoais ficam em Perfil, no ícone de usuário ao lado do botão Wizard.",
+          "Tudo configurado vale para relatórios e próximos lançamentos. Preferências apenas suas (nome aparecendo no app, telefone da conta operador) ficam em Perfil — veja ícone seguinte depois.",
         placement: "auto",
         before: async () => {
           await navigateTo(ROUTES.configuracoes);
         },
       },
       {
-        target: () => firstVisibleDataTour("shell-wizard-trigger"),
-        title: "Abrir o tour de novo",
+        target: () => firstVisibleDataTour("shell-user-menu"),
+        title: "Menu do usuário",
         content:
-          "Sempre que precisar rever o passo a passo, clique em Wizard. No mesmo canto, o ícone de usuário abre Perfil e Sair.",
+          "Abra o ícone redondo (iniciais ou silhueta). De lá vai para Perfil — nome exibido para quem trabalha dentro do mesmo ambiente — ou encerre sessão ao terminar em computador compartilhado.",
         placement: "auto",
+        before: async () => {
+          await navigateTo(ROUTES.configuracoes);
+        },
+      },
+      {
+        target: () => firstVisibleDataTour("page-perfil"),
+        title: `Perfil em ${APP_NAME}`,
+        content:
+          "Preferências apenas suas: nome e contato aparecendo onde o sistema menciona você. Para nome da academia inteira sempre use Configurações no menu lateral.",
+        placement: "auto",
+        before: async () => {
+          await navigateTo(ROUTES.perfil);
+        },
+      },
+      {
+        target: () => firstVisibleDataTour("shell-wizard-trigger"),
+        title: "Reabrir Wizard",
+        content:
+          "Quando onboarding de novo membro repetir as mesmas etapas, clique Wizard (ou ícone menor no celular) para repetir este tour guiado e os popups voltam a aparecer até você concluir. Use Pular tour se já quiser seguir usando o app sem guia.",
+        placement: "auto",
+        before: async () => {
+          await navigateTo(ROUTES.painel);
+        },
       },
     ],
     [navigateTo],

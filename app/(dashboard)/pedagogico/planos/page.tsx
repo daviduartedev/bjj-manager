@@ -33,7 +33,7 @@ export default async function PlanosPage({
   const { rows } = await loadLessonPlansList({ planKind, status, referenceMonth });
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6" data-tour="page-pedagogico-planos">
       <DashboardPageHero
         badge="Pedagógico"
         title="Planos pedagógicos"

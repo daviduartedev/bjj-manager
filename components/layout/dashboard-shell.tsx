@@ -149,6 +149,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
           size="icon"
           className="shrink-0 text-foreground hover:bg-muted focus-visible:ring-primary focus-visible:ring-offset-background"
           aria-label="Menu do utilizador"
+          data-tour="shell-user-menu"
         >
           <UserRound className="size-5" />
         </Button>

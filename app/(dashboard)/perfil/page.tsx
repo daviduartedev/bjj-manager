@@ -15,7 +15,7 @@ export default async function PerfilPage() {
   const ctx = await getCurrentAccount();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6" data-tour="page-perfil">
       <DashboardPageHero
         badge="Conta"
         title="Perfil"
