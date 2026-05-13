@@ -82,26 +82,17 @@ function stripTrailingSlash(u: string): string {
 }
 
 /**
- * Host alvo do self-fetch para a rota interna de PDF.
- * - Producção com domínio próprio costuma não passar pela “Vercel Authentication” do `*.vercel.app`.
- * - Previews permanecem em `VERCEL_URL` (mesmo deployment).
- * - Com Deployment Protection em qualquer URL, definir bypass (ver fetch) ou **PDF_RENDER_ORIGIN**.
+ * Host do self-fetch para a rota interna de PDF.
+ * Deve coincidir com **este** deployment (`VERCEL_URL`). Chamar `NEXT_PUBLIC_APP_URL`
+ * (domínio customizado) a partir da Lambda costuma rebentar com **DEPLOYMENT_NOT_FOUND**
+ * no edge da Vercel. Com Deployment Protection em `*.vercel.app`, usar
+ * `VERCEL_AUTOMATION_BYPASS_SECRET` no header (já injectado pela Vercel quando activo).
+ * Só use **PDF_RENDER_ORIGIN** se souberes que precisas de outro host explícito.
  */
 function resolveInternalPdfRenderOrigin(): string {
   const explicit = process.env.PDF_RENDER_ORIGIN?.trim();
   if (explicit?.length) {
     return stripTrailingSlash(explicit);
-  }
-
-  const pub = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  const isHttpsProdApp =
-    process.env.VERCEL_ENV === "production" &&
-    pub != null &&
-    pub.startsWith("https://") &&
-    !pub.includes("localhost") &&
-    !pub.includes("127.0.0.1");
-  if (isHttpsProdApp) {
-    return stripTrailingSlash(pub);
   }
 
   const vu = process.env.VERCEL_URL?.trim();
@@ -110,6 +101,7 @@ function resolveInternalPdfRenderOrigin(): string {
     return `https://${host}`;
   }
 
+  const pub = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (pub?.length) {
     return stripTrailingSlash(pub);
   }
@@ -144,6 +136,7 @@ async function renderPdfViaInternalPost(
     method: "POST",
     headers,
     body: JSON.stringify({ html, options }),
+    cache: "no-store",
   });
 
   if (!res.ok) {
