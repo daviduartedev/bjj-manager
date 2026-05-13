@@ -89,10 +89,24 @@ export async function POST(req: NextRequest) {
     });
   } catch (e) {
     console.error("[pdf-from-html]", e);
+    const message = e instanceof Error ? e.message : String(e);
+
+    /** Só ligar na Vercel para diagnóstico temporário ; redige caminhos. */
+    const expose =
+      process.env.PDF_RENDERER_EXPOSE_ERRORS?.trim().toLowerCase() === "1";
+    let detail: string | undefined;
+    if (expose) {
+      detail = message
+        .replace(/\/[^\s]+/g, "[path]")
+        .replace(/\b[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}\b/gi, "[uuid]")
+        .slice(0, 900);
+    }
+
     return NextResponse.json(
       {
         ok: false,
         error: "Renderização falhou.",
+        ...(detail ? { detail } : {}),
       },
       { status: 500 },
     );

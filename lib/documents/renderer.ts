@@ -162,8 +162,20 @@ async function renderPdfViaInternalPost(
         "PDF bloqueado pelo Deployment Protection da Vercel. Active “Protection Bypass for Automation” no projecto (ou defina PDF_DEPLOYMENT_PROTECTION_BYPASS igual ao bypass) e redesploy.",
       );
     }
+    let parsedDetail: string | undefined;
+    try {
+      const j = JSON.parse(errText) as { detail?: unknown };
+      if (typeof j.detail === "string" && j.detail.length > 0) {
+        parsedDetail = j.detail;
+      }
+    } catch {
+      /* ignora parsing */
+    }
+
     throw new Error(
-      `PDF interno falhou (${res.status}): ${errText.slice(0, 500)}`,
+      parsedDetail
+        ? `PDF interno falhou (${res.status}): ${parsedDetail.slice(0, 850)}`
+        : `PDF interno falhou (${res.status}): ${errText.slice(0, 500)}`,
     );
   }
 
