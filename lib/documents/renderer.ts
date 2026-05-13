@@ -3,11 +3,9 @@ import "server-only";
 import type { Browser } from "playwright";
 import { chromium as playwrightChromium } from "playwright";
 
-export type RenderHtmlToPdfOptions = {
-  format?: "A4" | "Letter";
-  margin?: { top?: string; right?: string; bottom?: string; left?: string };
-  printBackground?: boolean;
-};
+import type { RenderHtmlToPdfOptions } from "./pdf-types";
+
+export type { RenderHtmlToPdfOptions } from "./pdf-types";
 
 function resolvePdfDriver(): "playwright" | "serverless-chromium" {
   const v = process.env.PDF_RENDERER_DRIVER?.trim().toLowerCase();
@@ -59,17 +57,6 @@ const defaultMargin = {
   left: "16mm",
 } as const;
 
-type SparticuzChromiumMod = typeof import("@sparticuz/chromium");
-
-async function loadSparticuzChromium(): Promise<SparticuzChromiumMod> {
-  const mod = await import("@sparticuz/chromium");
-  if (typeof mod === "object" && mod !== null && "default" in mod) {
-    const d = (mod as { default?: SparticuzChromiumMod }).default;
-    if (d) return d;
-  }
-  return mod as SparticuzChromiumMod;
-}
-
 async function renderWithPlaywright(
   html: string,
   options: RenderHtmlToPdfOptions,
@@ -90,59 +77,54 @@ async function renderWithPlaywright(
   }
 }
 
-async function renderWithServerlessChromium(
+function resolveInternalPdfRenderOrigin(): string {
+  const explicit = process.env.PDF_RENDER_ORIGIN?.trim();
+  if (explicit && explicit.length > 0) {
+    return explicit.replace(/\/$/, "");
+  }
+  const vu = process.env.VERCEL_URL?.trim();
+  if (vu && vu.length > 0) {
+    const host = vu.replace(/^https?:\/\//, "");
+    return `https://${host}`;
+  }
+  const pub = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (pub && pub.length > 0) {
+    return pub.replace(/\/$/, "");
+  }
+  throw new Error(
+    "Defina PDF_RENDER_ORIGIN ou VERCEL_URL ou NEXT_PUBLIC_APP_URL para renderizar PDF na Vercel.",
+  );
+}
+
+async function renderPdfViaInternalPost(
   html: string,
   options: RenderHtmlToPdfOptions,
+  token: string,
 ): Promise<Buffer> {
-  if (process.env.VERCEL) {
-    process.env.HOME ??= "/tmp";
+  const origin = resolveInternalPdfRenderOrigin();
+  const url = `${origin}/api/internal/pdf-from-html`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ html, options }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(
+      `PDF interno falhou (${res.status}): ${errText.slice(0, 500)}`,
+    );
   }
 
-  const puppeteer = await import("puppeteer-core");
-  const Chromium = await loadSparticuzChromium();
-  try {
-    Chromium.setGraphicsMode = false;
-  } catch {
-    /* ignore builds antigos / ambientes incomuns */
+  const ct = res.headers.get("content-type") ?? "";
+  if (!ct.includes("application/pdf")) {
+    throw new Error("Resposta do renderizador interno não é PDF.");
   }
 
-  const margin = options.margin ?? defaultMargin;
-  const printableMargin = {
-    top: margin.top ?? defaultMargin.top,
-    right: margin.right ?? defaultMargin.right,
-    bottom: margin.bottom ?? defaultMargin.bottom,
-    left: margin.left ?? defaultMargin.left,
-  };
-
-  let browser:
-    | Awaited<ReturnType<(typeof puppeteer)["default"]["launch"]>>
-    | null = null;
-  try {
-    const executablePath = await Chromium.executablePath();
-    browser = await puppeteer.default.launch({
-      args: Chromium.args,
-      defaultViewport: Chromium.defaultViewport,
-      executablePath,
-      headless: Chromium.headless,
-    });
-
-    const page = await browser.newPage();
-    page.setDefaultNavigationTimeout(45_000);
-    page.setDefaultTimeout(45_000);
-    await page.setContent(html, {
-      waitUntil: "load",
-      timeout: 45_000,
-    });
-    const buf = await page.pdf({
-      format: options.format ?? "A4",
-      printBackground: options.printBackground ?? true,
-      margin: printableMargin,
-      timeout: 45_000,
-    });
-    return Buffer.from(buf);
-  } finally {
-    if (browser) await browser.close();
-  }
+  return Buffer.from(await res.arrayBuffer());
 }
 
 export async function renderHtmlToPdf(
@@ -150,6 +132,20 @@ export async function renderHtmlToPdf(
   options: RenderHtmlToPdfOptions = {},
 ): Promise<Buffer> {
   const driver = resolvePdfDriver();
-  if (driver === "playwright") return renderWithPlaywright(html, options);
+  if (driver === "playwright") {
+    return renderWithPlaywright(html, options);
+  }
+
+  if (process.env.VERCEL) {
+    const token = process.env.PDF_INTERNAL_RENDER_TOKEN?.trim();
+    if (!token || token.length < 24) {
+      throw new Error(
+        "PDF_INTERNAL_RENDER_TOKEN em falta ou curto demais (mín. 24). Necessário na Vercel para gerar PDF.",
+      );
+    }
+    return renderPdfViaInternalPost(html, options, token);
+  }
+
+  const { renderWithServerlessChromium } = await import("./chromium-serverless");
   return renderWithServerlessChromium(html, options);
 }
