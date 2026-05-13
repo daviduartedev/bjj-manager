@@ -117,17 +117,29 @@ async function renderPdfViaInternalPost(
   token: string,
 ): Promise<Buffer> {
   const origin = resolveInternalPdfRenderOrigin();
-  const url = `${origin}/api/internal/pdf-from-html`;
 
-  /** System env quando “Protection Bypass for Automation” está activo na Vercel (Deployment Protection). */
-  const vercelBypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+  /** Vercel injeita quando “Protection Bypass for Automation” está activo; cópia manual opcional na env. */
+  const rawBypassA =
+    process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim() ?? "";
+  const rawBypassB =
+    process.env.PDF_DEPLOYMENT_PROTECTION_BYPASS?.trim() ?? "";
+  const vercelBypass =
+    rawBypassA.length > 0 ? rawBypassA : rawBypassB;
+
+  const bypassQp =
+    vercelBypass.length > 0
+      ? `?${new URLSearchParams({ "x-vercel-protection-bypass": vercelBypass }).toString()}`
+      : "";
+
+  const url = `${origin}/api/internal/pdf-from-html${bypassQp}`;
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
   };
 
-  if (vercelBypass) {
+  /* Header + query: em alguns caminhos o edge só aplica o bypass por um dos lados. */
+  if (vercelBypass.length > 0) {
     (headers as Record<string, string>)["x-vercel-protection-bypass"] =
       vercelBypass;
   }
@@ -141,6 +153,15 @@ async function renderPdfViaInternalPost(
 
   if (!res.ok) {
     const errText = await res.text().catch(() => "");
+    if (
+      res.status === 401 &&
+      (errText.includes("Authentication Required") ||
+        errText.includes("Vercel Authentication"))
+    ) {
+      throw new Error(
+        "PDF bloqueado pelo Deployment Protection da Vercel. Active “Protection Bypass for Automation” no projecto (ou defina PDF_DEPLOYMENT_PROTECTION_BYPASS igual ao bypass) e redesploy.",
+      );
+    }
     throw new Error(
       `PDF interno falhou (${res.status}): ${errText.slice(0, 500)}`,
     );
