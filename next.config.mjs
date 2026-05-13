@@ -40,10 +40,9 @@ const nextConfig = {
    * Vercel / output file tracing: o binário compactado do Chromium não é seguido por
    * `import()` dinâmico e ficava de fora do bundle → "bin directory missing" / falha ao gerar PDF.
    */
+  /** Só binários Chromium; não forçar o pacote inteiro (evita symlinks .pnpm → zip inválido no Vercel). */
   outputFileTracingIncludes: {
-    "/*": [
-      "node_modules/@sparticuz/chromium/**/*",
-    ],
+    "/*": ["node_modules/@sparticuz/chromium/bin/**"],
   },
   images: {
     remotePatterns: [
