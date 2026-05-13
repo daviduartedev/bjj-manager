@@ -77,20 +77,43 @@ async function renderWithPlaywright(
   }
 }
 
+function stripTrailingSlash(u: string): string {
+  return u.replace(/\/$/, "");
+}
+
+/**
+ * Host alvo do self-fetch para a rota interna de PDF.
+ * - Producção com domínio próprio costuma não passar pela “Vercel Authentication” do `*.vercel.app`.
+ * - Previews permanecem em `VERCEL_URL` (mesmo deployment).
+ * - Com Deployment Protection em qualquer URL, definir bypass (ver fetch) ou **PDF_RENDER_ORIGIN**.
+ */
 function resolveInternalPdfRenderOrigin(): string {
   const explicit = process.env.PDF_RENDER_ORIGIN?.trim();
-  if (explicit && explicit.length > 0) {
-    return explicit.replace(/\/$/, "");
+  if (explicit?.length) {
+    return stripTrailingSlash(explicit);
   }
+
+  const pub = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const isHttpsProdApp =
+    process.env.VERCEL_ENV === "production" &&
+    pub != null &&
+    pub.startsWith("https://") &&
+    !pub.includes("localhost") &&
+    !pub.includes("127.0.0.1");
+  if (isHttpsProdApp) {
+    return stripTrailingSlash(pub);
+  }
+
   const vu = process.env.VERCEL_URL?.trim();
-  if (vu && vu.length > 0) {
+  if (vu?.length) {
     const host = vu.replace(/^https?:\/\//, "");
     return `https://${host}`;
   }
-  const pub = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (pub && pub.length > 0) {
-    return pub.replace(/\/$/, "");
+
+  if (pub?.length) {
+    return stripTrailingSlash(pub);
   }
+
   throw new Error(
     "Defina PDF_RENDER_ORIGIN ou VERCEL_URL ou NEXT_PUBLIC_APP_URL para renderizar PDF na Vercel.",
   );
@@ -103,12 +126,23 @@ async function renderPdfViaInternalPost(
 ): Promise<Buffer> {
   const origin = resolveInternalPdfRenderOrigin();
   const url = `${origin}/api/internal/pdf-from-html`;
+
+  /** System env quando “Protection Bypass for Automation” está activo na Vercel (Deployment Protection). */
+  const vercelBypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+
+  if (vercelBypass) {
+    (headers as Record<string, string>)["x-vercel-protection-bypass"] =
+      vercelBypass;
+  }
+
   const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
     body: JSON.stringify({ html, options }),
   });
 
