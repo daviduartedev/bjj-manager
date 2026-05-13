@@ -36,6 +36,15 @@ const nextConfig = {
     "puppeteer-core",
     "@sparticuz/chromium",
   ],
+  /**
+   * Vercel / output file tracing: o binário compactado do Chromium não é seguido por
+   * `import()` dinâmico e ficava de fora do bundle → "bin directory missing" / falha ao gerar PDF.
+   */
+  outputFileTracingIncludes: {
+    "/*": [
+      "node_modules/@sparticuz/chromium/**/*",
+    ],
+  },
   images: {
     remotePatterns: [
       {

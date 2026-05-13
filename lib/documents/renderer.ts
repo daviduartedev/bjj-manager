@@ -59,6 +59,17 @@ const defaultMargin = {
   left: "16mm",
 } as const;
 
+type SparticuzChromiumMod = typeof import("@sparticuz/chromium");
+
+async function loadSparticuzChromium(): Promise<SparticuzChromiumMod> {
+  const mod = await import("@sparticuz/chromium");
+  if (typeof mod === "object" && mod !== null && "default" in mod) {
+    const d = (mod as { default?: SparticuzChromiumMod }).default;
+    if (d) return d;
+  }
+  return mod as SparticuzChromiumMod;
+}
+
 async function renderWithPlaywright(
   html: string,
   options: RenderHtmlToPdfOptions,
@@ -83,8 +94,17 @@ async function renderWithServerlessChromium(
   html: string,
   options: RenderHtmlToPdfOptions,
 ): Promise<Buffer> {
+  if (process.env.VERCEL) {
+    process.env.HOME ??= "/tmp";
+  }
+
   const puppeteer = await import("puppeteer-core");
-  const chromiumPack = await import("@sparticuz/chromium");
+  const Chromium = await loadSparticuzChromium();
+  try {
+    Chromium.setGraphicsMode = false;
+  } catch {
+    /* ignore builds antigos / ambientes incomuns */
+  }
 
   const margin = options.margin ?? defaultMargin;
   const printableMargin = {
@@ -98,20 +118,26 @@ async function renderWithServerlessChromium(
     | Awaited<ReturnType<(typeof puppeteer)["default"]["launch"]>>
     | null = null;
   try {
-    const executablePath = await chromiumPack.default.executablePath();
+    const executablePath = await Chromium.executablePath();
     browser = await puppeteer.default.launch({
-      args: chromiumPack.default.args,
-      defaultViewport: chromiumPack.default.defaultViewport,
+      args: Chromium.args,
+      defaultViewport: Chromium.defaultViewport,
       executablePath,
-      headless: chromiumPack.default.headless,
+      headless: Chromium.headless,
     });
 
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    page.setDefaultNavigationTimeout(45_000);
+    page.setDefaultTimeout(45_000);
+    await page.setContent(html, {
+      waitUntil: "load",
+      timeout: 45_000,
+    });
     const buf = await page.pdf({
       format: options.format ?? "A4",
       printBackground: options.printBackground ?? true,
       margin: printableMargin,
+      timeout: 45_000,
     });
     return Buffer.from(buf);
   } finally {
