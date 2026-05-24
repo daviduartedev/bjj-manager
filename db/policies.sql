@@ -24,6 +24,50 @@ GRANT EXECUTE ON FUNCTION public.current_account_id () TO authenticated;
 
 COMMENT ON FUNCTION public.current_account_id () IS 'Returns profiles.account_id for auth.uid(); SEC-1 in spec/features/rls-security/readme.md';
 
+-- ---------- Helper: current application role from auth session ----------
+CREATE OR REPLACE FUNCTION public.current_profile_role () RETURNS public.profile_role
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(
+    (
+      SELECT p.role
+      FROM public.profiles p
+      WHERE p.user_id = auth.uid ()
+      LIMIT 1
+    ),
+    'professor'::public.profile_role
+  );
+$$;
+
+REVOKE ALL ON FUNCTION public.current_profile_role () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.current_profile_role () TO authenticated;
+
+COMMENT ON FUNCTION public.current_profile_role () IS 'Returns profiles.role for auth.uid(); defaults to professor; SEC-1.4 in spec/features/rls-security/readme.md';
+
+-- ---------- Helper: current student row from auth session (portal) ----------
+CREATE OR REPLACE FUNCTION public.current_student_id () RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT s.id
+  FROM public.students s
+  WHERE s.user_id = auth.uid ()
+    AND s.account_id = public.current_account_id ()
+  LIMIT 1;
+$$;
+
+REVOKE ALL ON FUNCTION public.current_student_id () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.current_student_id () TO authenticated;
+
+COMMENT ON FUNCTION public.current_student_id () IS 'Returns students.id for auth.uid() in current account; SEC-3.7 portal Fase 2';
+
 -- ---------- Enable RLS ----------
 ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
 
@@ -59,6 +103,18 @@ ALTER TABLE public.lesson_plan_revisions ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE public.lesson_plan_attachments ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE public.classes ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.class_recurring_schedules ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.class_sessions ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.student_class_enrollments ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.check_ins ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.attendances ENABLE ROW LEVEL SECURITY;
+
 -- ---------- accounts (no INSERT for authenticated , bootstrap via postgres) ----------
 DROP POLICY IF EXISTS accounts_select_own ON public.accounts;
 
@@ -77,11 +133,23 @@ CREATE POLICY accounts_delete_own ON public.accounts FOR DELETE TO authenticated
 -- ---------- profiles ----------
 DROP POLICY IF EXISTS profiles_select_same_account ON public.profiles;
 
+DROP POLICY IF EXISTS profiles_select_operational ON public.profiles;
+
+DROP POLICY IF EXISTS profiles_select_student_self ON public.profiles;
+
 DROP POLICY IF EXISTS profiles_update_self ON public.profiles;
 
 DROP POLICY IF EXISTS profiles_delete_self ON public.profiles;
 
-CREATE POLICY profiles_select_same_account ON public.profiles FOR SELECT TO authenticated USING (account_id = public.current_account_id ());
+CREATE POLICY profiles_select_operational ON public.profiles FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+);
+
+CREATE POLICY profiles_select_student_self ON public.profiles FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND user_id = auth.uid ()
+);
 
 CREATE POLICY profiles_update_self ON public.profiles FOR UPDATE TO authenticated USING (
   user_id = auth.uid ()
@@ -91,6 +159,11 @@ WITH
   CHECK (
     user_id = auth.uid ()
     AND account_id = public.current_account_id ()
+    AND role = (
+      SELECT p.role
+      FROM public.profiles p
+      WHERE p.id = profiles.id
+    )
   );
 
 CREATE POLICY profiles_delete_self ON public.profiles FOR DELETE TO authenticated USING (
@@ -101,9 +174,37 @@ CREATE POLICY profiles_delete_self ON public.profiles FOR DELETE TO authenticate
 -- ---------- students ----------
 DROP POLICY IF EXISTS students_tenant_all ON public.students;
 
-CREATE POLICY students_tenant_all ON public.students FOR ALL TO authenticated USING (account_id = public.current_account_id ())
+DROP POLICY IF EXISTS students_operational_all ON public.students;
+
+DROP POLICY IF EXISTS students_student_select ON public.students;
+
+DROP POLICY IF EXISTS students_student_update ON public.students;
+
+CREATE POLICY students_operational_all ON public.students FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+)
 WITH
-  CHECK (account_id = public.current_account_id ());
+  CHECK (
+    public.current_profile_role () = 'professor'::public.profile_role
+    AND account_id = public.current_account_id ()
+  );
+
+CREATE POLICY students_student_select ON public.students FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND user_id = auth.uid ()
+);
+
+CREATE POLICY students_student_update ON public.students FOR UPDATE TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND user_id = auth.uid ()
+)
+WITH
+  CHECK (
+    public.current_profile_role () = 'student'::public.profile_role
+    AND user_id = auth.uid ()
+    AND account_id = public.current_account_id ()
+  );
 
 -- ---------- plans ----------
 DROP POLICY IF EXISTS plans_tenant_all ON public.plans;
@@ -340,4 +441,151 @@ WITH CHECK (
     WHERE lp.id = lesson_plan_attachments.lesson_plan_id
       AND lp.account_id = public.current_account_id ()
   )
+);
+
+-- ---------- classes (portal Fase 2) ----------
+DROP POLICY IF EXISTS classes_operational_all ON public.classes;
+
+DROP POLICY IF EXISTS classes_student_select ON public.classes;
+
+CREATE POLICY classes_operational_all ON public.classes FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+)
+WITH CHECK (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+);
+
+CREATE POLICY classes_student_select ON public.classes FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND EXISTS (
+    SELECT 1
+    FROM public.student_class_enrollments e
+    WHERE e.class_id = classes.id
+      AND e.student_id = public.current_student_id ()
+  )
+);
+
+-- ---------- class_recurring_schedules ----------
+DROP POLICY IF EXISTS class_recurring_schedules_operational_all ON public.class_recurring_schedules;
+
+DROP POLICY IF EXISTS class_recurring_schedules_student_select ON public.class_recurring_schedules;
+
+CREATE POLICY class_recurring_schedules_operational_all ON public.class_recurring_schedules FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+)
+WITH CHECK (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+);
+
+CREATE POLICY class_recurring_schedules_student_select ON public.class_recurring_schedules FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND EXISTS (
+    SELECT 1
+    FROM public.student_class_enrollments e
+    WHERE e.class_id = class_recurring_schedules.class_id
+      AND e.student_id = public.current_student_id ()
+  )
+);
+
+-- ---------- class_sessions ----------
+DROP POLICY IF EXISTS class_sessions_operational_all ON public.class_sessions;
+
+DROP POLICY IF EXISTS class_sessions_student_select ON public.class_sessions;
+
+CREATE POLICY class_sessions_operational_all ON public.class_sessions FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+)
+WITH CHECK (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+);
+
+CREATE POLICY class_sessions_student_select ON public.class_sessions FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND EXISTS (
+    SELECT 1
+    FROM public.student_class_enrollments e
+    WHERE e.class_id = class_sessions.class_id
+      AND e.student_id = public.current_student_id ()
+  )
+);
+
+-- ---------- student_class_enrollments ----------
+DROP POLICY IF EXISTS student_class_enrollments_operational_all ON public.student_class_enrollments;
+
+DROP POLICY IF EXISTS student_class_enrollments_student_select ON public.student_class_enrollments;
+
+CREATE POLICY student_class_enrollments_operational_all ON public.student_class_enrollments FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+)
+WITH CHECK (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+);
+
+CREATE POLICY student_class_enrollments_student_select ON public.student_class_enrollments FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND student_id = public.current_student_id ()
+);
+
+-- ---------- check_ins ----------
+DROP POLICY IF EXISTS check_ins_operational_all ON public.check_ins;
+
+DROP POLICY IF EXISTS check_ins_student_select ON public.check_ins;
+
+DROP POLICY IF EXISTS check_ins_student_insert ON public.check_ins;
+
+DROP POLICY IF EXISTS check_ins_student_delete ON public.check_ins;
+
+CREATE POLICY check_ins_operational_all ON public.check_ins FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+)
+WITH CHECK (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+);
+
+CREATE POLICY check_ins_student_select ON public.check_ins FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND student_id = public.current_student_id ()
+);
+
+CREATE POLICY check_ins_student_insert ON public.check_ins FOR INSERT TO authenticated
+WITH CHECK (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND student_id = public.current_student_id ()
+  AND account_id = public.current_account_id ()
+  AND EXISTS (
+    SELECT 1
+    FROM public.class_sessions cs
+    INNER JOIN public.student_class_enrollments e
+      ON e.class_id = cs.class_id
+      AND e.student_id = public.current_student_id ()
+    WHERE cs.id = check_ins.class_session_id
+      AND cs.account_id = public.current_account_id ()
+  )
+);
+
+CREATE POLICY check_ins_student_delete ON public.check_ins FOR DELETE TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND student_id = public.current_student_id ()
+);
+
+-- ---------- attendances (professor only; aluno sem políticas de write) ----------
+DROP POLICY IF EXISTS attendances_operational_all ON public.attendances;
+
+CREATE POLICY attendances_operational_all ON public.attendances FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+)
+WITH CHECK (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
 );

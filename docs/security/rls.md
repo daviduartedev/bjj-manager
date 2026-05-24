@@ -65,13 +65,67 @@ Com a aplicação em execução, o professor abre **`/login`**, entra com o e-ma
 3. Inserir um aluno de teste em cada conta (via Table Editor como cada utilizador, ou SQL assumindo identidade , ver documentação Supabase para “test as user”).
 4. Confirmar: sessão **A** não lista alunos/planos/pagamentos da conta **B**.
 
+## Bootstrap aluno (teste RLS / provisionamento manual)
+
+Para validar políticas **SEC-3.7** parcial (`profiles`, `students`):
+
+1. Criar utilizador em Auth (email dedicado de teste, ex. conta `E2E_STUDENT_EMAIL` — **não** reutilizar o professor de produção).
+2. Na **mesma** `account_id` da academia, criar perfil com `role = 'student'` (SQL Editor com role postgres / service role).
+3. Ligar **um** registo `students` existente: `UPDATE students SET user_id = '<auth.users.id>' WHERE id = '<student_id>' AND account_id = '<account_id>'`.
+
+Exemplo (substituir UUIDs; **não** correr em produção sem rever IDs):
+
+```sql
+-- Utilizador tem de existir em auth.users. Aluno e conta têm de ser da mesma academia.
+UPDATE public.profiles
+SET role = 'student'
+WHERE user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  AND account_id = '00000000-0000-0000-0000-000000000002'::uuid;
+
+UPDATE public.students
+SET user_id = '00000000-0000-0000-0000-000000000001'::uuid
+WHERE id = '00000000-0000-0000-0000-000000000003'::uuid
+  AND account_id = '00000000-0000-0000-0000-000000000002'::uuid;
+```
+
+`pnpm db:validate-rls` com `E2E_STUDENT_EMAIL` cria fixture **só** com marcadores `RLS-V-*` na conta de teste A; não altera alunos reais.
+
+## Bootstrap turma de teste (portal Fase 2)
+
+Para testes manuais ou E2E de aulas/check-in (substituir UUIDs):
+
+```sql
+-- Pré-requisitos: account_id, profiles.id (professor), students.id (aluno)
+INSERT INTO public.classes (account_id, name, kind, instructor_profile_id)
+VALUES ('<account_id>', 'Turma teste', 'adult', '<professor_profile_id>')
+RETURNING id;
+
+-- Usar extract(isodow from current_date + 1) para day_of_week ISO (1=seg … 7=dom)
+INSERT INTO public.class_recurring_schedules
+  (account_id, class_id, day_of_week, start_time, end_time)
+VALUES ('<account_id>', '<class_id>', 1, '19:00', '20:30');
+
+INSERT INTO public.class_sessions
+  (account_id, class_id, session_date, start_time, end_time)
+VALUES ('<account_id>', '<class_id>', current_date + 1, '19:00', '20:30');
+
+INSERT INTO public.student_class_enrollments (account_id, student_id, class_id)
+VALUES ('<account_id>', '<student_id>', '<class_id>');
+```
+
+`pnpm db:validate-rls` cria automaticamente fixture `RLS-V-CLASS` quando `E2E_STUDENT_EMAIL` está definido.
+
+Funções auxiliares em `db/policies.sql`:
+
+- `public.current_student_id()` — devolve `students.id` para `auth.uid()` na conta actual (**SEC-3.7** Fase 2).
+
 ## Lista de políticas (resumo em prosa)
 
 | Tabela | Comportamento para `authenticated` |
 |--------|--------------------------------------|
 | `accounts` | Só a linha cuja `id` é a conta do perfil atual: ler, atualizar, apagar. |
-| `profiles` | Ler todos os perfis da mesma conta; atualizar/apagar só o próprio (`auth.uid()`). |
-| `students`, `plans` | CRUD só quando `account_id` é a conta do utilizador. |
+| `profiles` | **Professor:** ler todos os perfis da mesma conta; atualizar/apagar só o próprio (`auth.uid()`). **Student:** ler/atualizar **apenas** o próprio perfil; `role` imutável via RLS. |
+| `students`, `plans` | **Professor:** CRUD quando `account_id` é a conta do utilizador. **Student:** em `students`, ler/atualizar **apenas** a linha com `user_id = auth.uid()` (onboarding); sem criar/apagar alunos. |
 | `student_graduations`, `payments` | CRUD só quando o `student_id` aponta para aluno dessa conta. |
 | `student_plans` | CRUD só quando o aluno é da conta **e** o plano escolhido pertence à **mesma** conta que o aluno. |
 | `belts` | Só leitura. |
@@ -81,6 +135,12 @@ Com a aplicação em execução, o professor abre **`/login`**, entra com o e-ma
 | `document_sequences` | CRUD só quando `account_id = current_account_id()`. |
 | `lesson_plans` | CRUD só quando `account_id = current_account_id()`. |
 | `lesson_plan_revisions`, `lesson_plan_attachments` | Via parent: o `lesson_plan_id` tem de pertencer à conta. |
+| **Portal Fase 2** | |
+| `classes` | **Professor:** CRUD na conta. **Student:** `SELECT` turmas em que está inscrito. |
+| `class_recurring_schedules`, `class_sessions` | **Professor:** CRUD na conta. **Student:** `SELECT` via inscrição na turma. |
+| `student_class_enrollments` | **Professor:** CRUD na conta. **Student:** `SELECT` inscrições próprias. |
+| `check_ins` | **Professor:** CRUD na conta. **Student:** `SELECT`/`INSERT`/`DELETE` só na própria linha e turma inscrita. |
+| `attendances` | **Professor:** CRUD na conta. **Student:** sem políticas (sem acesso). |
 | `anon` | Sem acesso às tabelas acima (RLS sem política ⇒ nega). |
 
 Detalhe exato: ver [`db/policies.sql`](../../db/policies.sql).
@@ -103,7 +163,7 @@ A **service_role key** contorna RLS. Usar só em **servidor** (Edge Functions, s
 
 ## Verificação automatizada
 
-Na raiz do repositório, com `.env.local` preenchido (`DATABASE_URL`, chaves Supabase e **`VALIDATION_TEST_PASSWORD`** para login JWT): **`pnpm db:validate-rls`** , confirma `anon` sem linhas em `students`/`belts`, isolamento para `maikon@aslam.com.br` vs `rls-validation-b@aslam.com.br`, e rejeição de `INSERT` com `account_id` alheio.
+Na raiz do repositório, com `.env.local` preenchido (`DATABASE_URL`, chaves Supabase e **`VALIDATION_TEST_PASSWORD`** para login JWT): **`pnpm db:validate-rls`** , confirma `anon` sem linhas em `students`/`belts`, isolamento para contas A/B de teste, rejeição de `INSERT` com `account_id` alheio, e (com **`E2E_STUDENT_EMAIL`**) isolamento do papel `student`.
 
 ## Referências
 
