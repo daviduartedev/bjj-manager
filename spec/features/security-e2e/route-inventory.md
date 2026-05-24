@@ -23,6 +23,16 @@ Gerado a partir da estrutura `app/**` e `lib/routes.ts`. Actualizar quando entra
 | `/pedagogico/planos/[id]` | Privada dinâmica | **PED-** detalhe (read-only + acções). |
 | `/pedagogico/planos/[id]/editar` | Privada dinâmica | **PED-** editor (cria nova revisão). |
 | `/dashboard` | Legado → redirect | `/painel` (**SHELL-5.3**). |
+| `/aulas` | Privada (operacional) | Hub sessões próximas (**SPT-6.1**, Fase 2). |
+| `/aulas/turmas` | Privada (operacional) | CRUD turmas. |
+| `/aulas/turmas/nova` | Privada (operacional) | Criar turma. |
+| `/aulas/turmas/[classId]` | Privada dinâmica | Editar turma, recorrência, inscrições. |
+| `/aulas/sessao/[sessionId]` | Privada dinâmica | Check-ins da sessão (polling). |
+| `/portal` | Privada (student) | Home aluno (**SPT-**, **AUTH-8**). |
+| `/portal/aulas` | Privada (student) | Listagem e check-in (**SPT-5**, **SPT-7**). |
+| `/portal/loja` | Privada (student) | Placeholder Fase 3. |
+| `/portal/financeiro` | Privada (student) | PIX placeholder (**SPT-9**). |
+| `/portal/onboarding` | Privada (student) | Onboarding Fase 1. |
 | `/design-system` | Pública (dev) / 404 (prod) | `middleware.ts` bloqueia em produção. |
 | `app/api/**` | — | **Nenhum Route Handler** presente no repositório; superfície HTTP de escrita/leitura dominada por **Server Actions** e cliente Supabase com RLS. |
 

@@ -9,6 +9,7 @@ Verificação automatizada dos fluxos **AUTH-** (redirects, logout, ausência de
 - Produto (escopo MVP): **SPEC-2.1**, **SPEC-3.7**, **SPEC-5.1** em [`spec/product/spec.md`](../../product/spec.md).
 - Entidades / provisionamento: **ENT-2.3** em [`spec/product/entities.md`](../../product/entities.md).
 - Infraestrutura: **SPEC-11.2** em [`spec/product/spec.md`](../../product/spec.md) (sem `service_role` no cliente).
+- Portal do aluno (contrato): **SPT-** em [`spec/features/student-portal/readme.md`](../student-portal/readme.md) (**AUTH-8**).
 
 ## Implementação (referência)
 
@@ -31,9 +32,9 @@ Verificação automatizada dos fluxos **AUTH-** (redirects, logout, ausência de
 
 ## AUTH-2. Destinos e navegação
 
-**AUTH-2.1.** Após autenticação bem-sucedida, o utilizador deve ser levado ao **`/painel`** (área operacional).
+**AUTH-2.1.** Após autenticação bem-sucedida, utilizadores com role **operacional** (`professor` ou equivalente) vão para **`/painel`**. Utilizadores com `profiles.role = student` vão para **`/portal`** (**AUTH-8.1**).
 
-**AUTH-2.2.** Utilizador **com sessão válida** que abre **`/login`** deve ser **redirecionado para `/painel`**.
+**AUTH-2.2.** Utilizador **com sessão válida** que abre **`/login`** é redirecionado para **`/portal`** (role `student`) ou **`/painel`** (operacional).
 
 **AUTH-2.3.** Utilizador **sem sessão** que acede a qualquer rota sob os **prefixos da área operacional** definidos em **SHELL-2** em [`spec/features/app-shell/readme.md`](../app-shell/readme.md) deve ser **redirecionado para `/login`**. O caminho legado **`/dashboard`** deve **redirecionar para `/painel`** (**SHELL-5.3**).
 
@@ -62,6 +63,16 @@ Verificação automatizada dos fluxos **AUTH-** (redirects, logout, ausência de
 **AUTH-7.1.** Criação de utilizador em **Auth** e das linhas **`accounts` + `profiles`** é **manual** no MVP, conforme [`docs/security/rls.md`](../../../docs/security/rls.md), coerente com **SEC-2.2** (sem política de `INSERT` para essas tabelas no papel `authenticated`).
 
 **AUTH-7.2.** **Recomendação** para futuro **autocadastro**: implementar criação atómica via **trigger** (ou função **`SECURITY DEFINER`** no Postgres) associada a `auth.users`, em vez de depender de `service_role` no browser , reduz superfície e mantém transação única no banco.
+
+## AUTH-8. Portal do aluno (contrato — Fase 1+)
+
+> Implementado no cycle `Q22026/0524-student-portal-auth`. Fase 2 (aulas/check-in) em `0524-student-portal-classes-checkin`.
+
+**AUTH-8.1.** Utilizadores com `profiles.role = student` autenticam-se pelo mesmo fluxo **`/login`** e são redirecionados para **`/portal`** (**SPT-2.2**).
+
+**AUTH-8.2.** Utilizadores com role operacional (`professor` ou equivalente) continuam a ir para **`/painel`** (**AUTH-2.1**).
+
+**AUTH-8.3.** Provisionamento: professor, na ficha do aluno, associa `students.user_id` a utilizador Auth existente (e-mail). Convite por e-mail quando suportado pelo ambiente Supabase. Unicidade: um auth user → no máximo um `students` por `account_id` (**SPT-2.3**).
 
 ## Manutenção
 

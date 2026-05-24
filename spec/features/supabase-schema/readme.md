@@ -65,6 +65,20 @@ Buckets Supabase Storage privados associados:
 - `lesson-plans-attachments-{env}` , anexos de planos.
 - `branding-{env}` , logotipo e assinatura institucional da conta (**CFG-6.3**).
 
+## Domínios portal do aluno — Fase 2
+
+| Tabela | Finalidade |
+|--------|------------|
+| `classes` | Turma: `account_id`, `name`, `kind` (`student_kind`), `instructor_profile_id` → `profiles` |
+| `class_recurring_schedules` | Recorrência semanal: `class_id`, `day_of_week` (ISO 1–7), `start_time`, `end_time`, `account_id` |
+| `class_sessions` | Instância: `class_id`, `session_date`, `start_time`, `end_time`, `capacity` nullable, `account_id` |
+| `student_class_enrollments` | N:N `students` ↔ `classes`; unique `(student_id, class_id)` |
+| `check_ins` | Intenção pré-aula: `class_session_id`, `student_id`, `created_at`, `account_id`; unique `(class_session_id, student_id)` |
+| `attendances` | Presença oficial (preparatória Fase 2): `class_session_id`, `student_id`, `recorded_at`, `recorded_by`, `origin` (`checkin_student` \| `manual_instructor`), `account_id` |
+| Enum | `attendance_origin` |
+
+Migration: [`db/migrations/010_student_portal_phase2_classes_checkin.sql`](../../../db/migrations/010_student_portal_phase2_classes_checkin.sql). RLS **SEC-3.7** em [`spec/features/rls-security/readme.md`](../rls-security/readme.md).
+
 ## Manutenção
 
 Alterações de schema devem atualizar **este readme**, [`db/schema.sql`](../../../db/schema.sql), [`db/seed.sql`](../../../db/seed.sql), [`db/policies.sql`](../../../db/policies.sql) quando o isolamento por conta mudar, e os contratos em **`spec/product/`** + **`docs/product/`** no mesmo raciocínio de commit descrito no hub [`spec/README.md`](../../README.md); políticas em prosa também em [`docs/security/rls.md`](../../../docs/security/rls.md) e [`spec/features/rls-security/readme.md`](../rls-security/readme.md).

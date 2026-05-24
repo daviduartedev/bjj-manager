@@ -7,6 +7,7 @@ Contrato canónico para o **chrome autenticado**: navegação persistente, cabe�
 - Autenticação: **AUTH-2.x** em [`spec/features/authentication/readme.md`](../authentication/readme.md) (destino **`/painel`**, anónimos → `/login`).
 - Design system: **DS-** em [`spec/features/design-system/readme.md`](../design-system/readme.md) (tokens, alvos de toque, tema claro/escuro).
 - Produto: **SPEC-2.1**, **SPEC-5.1**, **SPEC-10.x** em [`spec/product/spec.md`](../../product/spec.md).
+- Portal do aluno: **SPT-** em [`spec/features/student-portal/readme.md`](../student-portal/readme.md).
 
 ## Implementação (referência)
 
@@ -41,6 +42,22 @@ Os primeiros segmentos da área operacional (autenticada) são:
 | `/documentos` | Hub central de documentos do aluno (**DOC-** em [`spec/features/student-documents/readme.md`](../student-documents/readme.md)); subrota `[documentId]` para detalhe |
 | `/configuracoes` | Configurações da academia / conta (**CFG-** em [`spec/features/settings/readme.md`](../settings/readme.md), inclui **CFG-6** , recebedor para documentos formais) |
 | `/perfil` | Perfil do utilizador |
+| `/aulas` | Sessões próximas (7 dias) — entrada da sidebar **Aulas** |
+| `/aulas/turmas` | Lista e gestão de turmas |
+| `/aulas/turmas/nova` | Criar turma |
+| `/aulas/turmas/[classId]` | Editar turma, recorrência, inscrições |
+| `/aulas/sessao/[sessionId]` | Check-ins da sessão (polling 30s) |
+
+### Área do aluno (`/portal`) — Fase 1+
+
+> Rotas activas desde Fase 1 (`0524-student-portal-auth`). Middleware protege sessão e isola papéis (**SHELL-9**).
+
+| Rota | Função |
+|------|--------|
+| `/portal` | Entrada do aluno pós-login (**SPT-2**, **AUTH-8**) |
+| `/portal/aulas` | Listagem de aulas e check-in (**SPT-5**, **SPT-7**) |
+| `/portal/loja` | Vitrine e reservas (**SPT-8**) |
+| `/portal/financeiro` | Área financeira incl. placeholder PIX (**SPT-9**) |
 
 Novas áreas autenticadas devem acrescentar prefixo aqui e no middleware, salvo decisão futura de agrupamento sob um único segmento.
 
@@ -48,7 +65,7 @@ Para inventário de testes de segurança (**SECE2E-4**), incluir também rotas p
 
 ## SHELL-3. Navegação e estado ativo
 
-**SHELL-3.1.** Itens principais da navegação (rótulos em **pt-BR**): **Painel**, **Alunos**, **Mensalidades**, **Pedagógico**, **Documentos**, **Configurações**. Em mobile (bottom navigation) mantém-se o subset principal; os itens menos frequentes (**Documentos**) podem ficar atrás de um menu compacto se o espaço da bottom bar não acomodar todos sem comprometer toque ≥ 44px (**SHELL-7.3**, **DS-1.3**).
+**SHELL-3.1.** Itens principais da navegação (rótulos em **pt-BR**): **Painel**, **Alunos**, **Mensalidades**, **Aulas**, **Pedagógico**, **Documentos**, **Configurações**. Em mobile (bottom navigation) mantém-se o subset principal; os itens menos frequentes (**Documentos**) podem ficar atrás de um menu compacto se o espaço da bottom bar não acomodar todos sem comprometer toque ≥ 44px (**SHELL-7.3**, **DS-1.3**).
 
 **SHELL-3.2.** O destino atual deve ficar **visualmente destacado** (cor de destaque acordada com identidade , vermelho no chrome escuro).
 
@@ -85,6 +102,18 @@ Para inventário de testes de segurança (**SECE2E-4**), incluir também rotas p
 ## SHELL-8. Stack de navegação
 
 **SHELL-8.1.** Sem bibliotecas adicionais só para navegação; usar **Radix** + **Tailwind** (ex.: primitivos shadcn **Sheet** / **Dropdown** conforme já adoptados).
+
+## SHELL-9. Shell do aluno
+
+**SHELL-9.1.** Layout partilhado em `app/(student)/layout.tsx` com **`StudentShell`**: cabeçalho, navegação e área de conteúdo.
+
+**SHELL-9.2.** Navegação principal (pt-BR): **Início** (`/portal`), **Aulas** (`/portal/aulas`), **Loja** (`/portal/loja`), **Financeiro** (`/portal/financeiro`).
+
+**SHELL-9.3.** Responsividade: sidebar em desktop (`lg+`); bottom nav ou drawer em mobile — espelhar padrões **SHELL-1.x** / **DS-**.
+
+**SHELL-9.4.** Isolamento: middleware impede `student` em prefixos operacionais e operacional em `/portal` (**AUTH-8**).
+
+**SHELL-9.5.** Flag `student-portal.enabled=false`: página de indisponibilidade; subrotas não expõem conteúdo funcional.
 
 ## Manutenção
 

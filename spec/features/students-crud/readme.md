@@ -127,6 +127,16 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 **STU-11.4.** Ao **reverter**, limpar **`removed_at`** conforme servidor e regressar aos fluxos activos combinando **`student_status`** e campos de ciclo vida (**STU-3**, **STU-10**).
 
+## STU-12. Provisionamento de acesso ao portal
+
+**STU-12.1.** Na ficha/perfil do aluno (**SPR-** / edição), professor pode **associar acesso ao portal** ligando `students.user_id` a um utilizador Auth existente (por e-mail).
+
+**STU-12.2.** Não permitir associar o mesmo auth user a dois `students` na mesma conta (**SPT-2.3**).
+
+**STU-12.3.** Aluno arquivado ou removido (**STU-3.4**) não deve receber novo provisionamento enquanto nesse estado.
+
+**STU-12.4.** UI indica claramente se o aluno já tem acesso (`user_id` preenchido) ou pendente.
+
 ## Manutenção
 
 Alterações em rotas sob **`/alunos`**, regras de plano/tipo, ou políticas em `students` / `student_plans` devem actualizar **este readme**, **`spec/features/dashboard/readme.md`** quando afectarem métricas do painel, **`spec/features/billing-ui/readme.md`** e **`spec/features/payments-billing-status/readme.md`** quando a carteira **`/mensalidades`** mudar (**BR-9**), **`spec/product/billing-rules.md`** + **`docs/product/billing-rules.md`**, **`spec/features/plans-billing-model/readme.md`**, **`spec/features/app-shell/readme.md`**, **`spec/features/student-profile/readme.md`** e **`spec/features/supabase-schema/readme.md`** quando o DDL mudar, e cenários em `cycles/Q22026/08-0430-students-crud/scenarios.feature`, `cycles/Q22026/10-0430-student-profile/scenarios.feature`, `cycles/Q22026/14-0430-billing-ui/scenarios.feature` e `cycles/Q22026/15-0430-dashboard/scenarios.feature` quando o comportamento observável ao professor mudar.

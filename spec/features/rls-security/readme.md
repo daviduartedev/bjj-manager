@@ -9,6 +9,7 @@ Contrato canónico para **isolamento multi-tenant** no banco: cada professor aut
 - Infraestrutura e ambiente: **SPEC-11.x** em [`spec/product/spec.md`](../../product/spec.md).
 - Prosa operacional (bootstrap, testes A/B): [`docs/security/rls.md`](../../../docs/security/rls.md).
 - Suíte CI e critérios de vazamento / IDOR na app: **SECE2E-** em [`spec/features/security-e2e/readme.md`](../security-e2e/readme.md) (**SECE2E-7.3** para `pnpm db:validate-rls`).
+- Portal do aluno: **SPT-10**, **SEC-3.7** em [`spec/features/student-portal/readme.md`](../student-portal/readme.md).
 
 ## Implementação
 
@@ -46,6 +47,18 @@ Contrato canónico para **isolamento multi-tenant** no banco: cada professor aut
 **SEC-3.5. `student_plans`:** além do aluno pertencer à conta, o `plan_id` referenciado tem de ser um `plans` com **`plans.account_id` igual a `students.account_id`** do mesmo `student_id` (impede referenciar plano de outra academia).
 
 **SEC-3.6. `belts`:** apenas `SELECT` para `authenticated`; sem políticas para `anon`; sem `INSERT`/`UPDATE`/`DELETE` para roles de aplicação (alterações só migrações/seed com role privilegiada).
+
+**SEC-3.7. Papel `student` (portal — Fase 1+):** políticas em tabelas `class_*`, `check_ins`, `attendances`, `products`, `reservations` (**SPT-10**) garantem:
+
+- Aluno (`students.user_id = auth.uid()`) lê/escreve **apenas** linhas do próprio `student_id`.
+- Professor mantém acesso via `account_id = public.current_account_id()` como em **SEC-3.3**.
+- Nenhuma política permite aluno ler dados de outro aluno.
+
+> **Fase 2 (`0524-student-portal-classes-checkin`):** políticas para `classes`, `class_recurring_schedules`, `class_sessions`, `student_class_enrollments`, `check_ins`, `attendances`:
+>
+> - **Professor** (`current_profile_role() = 'professor'`): CRUD em turmas/sessões/inscrições e leitura de check-ins/attendances quando `account_id = current_account_id()`.
+> - **Aluno** (`student`): `SELECT` em sessões/turmas das inscrições próprias; `INSERT`/`DELETE` em `check_ins` apenas com `student_id` ligado a `students.user_id = auth.uid()`; **sem** `INSERT`/`UPDATE`/`DELETE` em `attendances`.
+> - Isolamento entre alunos: aluno A não lê/escreve check-ins do aluno B.
 
 ## SEC-4. Validação
 
