@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 
+import type { AuthRole } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 
 export type AccountRow = {
@@ -19,6 +20,7 @@ export type ProfileRow = {
   account_id: string;
   display_name: string;
   phone: string | null;
+  role: AuthRole;
   created_at: string;
   updated_at: string;
 };
@@ -59,6 +61,7 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
       account_id,
       display_name,
       phone,
+      role,
       created_at,
       updated_at,
       accounts (
@@ -93,6 +96,7 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
     account_id: profileRow.account_id,
     display_name: profileRow.display_name,
     phone: profileRow.phone ?? null,
+    role: (profileRow.role === "student" ? "student" : "professor") as AuthRole,
     created_at: profileRow.created_at,
     updated_at: profileRow.updated_at,
   };

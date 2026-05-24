@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { mapAuthErrorToMessage } from "@/lib/auth/map-auth-error";
-import { ROUTES } from "@/lib/routes";
+import { postLoginPathForRole, resolveAuthRole } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/client";
 import { loginSchema, type LoginFormValues } from "@/lib/validations/auth";
 
@@ -51,8 +51,12 @@ export function LoginForm() {
         toast.error(mapAuthErrorToMessage(error));
         return;
       }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const role = user ? await resolveAuthRole(supabase, user.id) : "professor";
       toast.success("Sessão iniciada.");
-      router.push(ROUTES.painel);
+      router.push(postLoginPathForRole(role));
       router.refresh();
     } finally {
       setLoading(false);

@@ -12,11 +12,19 @@ Utilizadores **distintos** do professor real em produção. Os segredos ficam **
 
 ## Provisionamento recomendado
 
-1. Crie um projeto Supabase (ou schema) **só para testes**.
-2. Copie [`.env.test.example`](../../.env.test.example) para **`.env.test`** na raiz (ficheiro ignorado pelo Git) e preencha emails e passwords **gerados para teste** (ex.: `casca-e2e-a+<suffix>@seudominio.test`).
-3. Rode **`pnpm db:apply`** (ou schema + seed + migrations + policies) contra esse Postgres.
-4. Rode **`pnpm db:validate-rls`** com `VALIDATION_TEST_PASSWORD` ou `E2E_USER_A_PASSWORD` definido: o script cria ou sincroniza os utilizadores Auth A/B, liga `profiles`/`accounts` e garante alunos marcadores **`RLS-V-A`** e **`RLS-V-B`** (ver [`db/e2e-seed-notes.md`](../../db/e2e-seed-notes.md)).
+1. Garanta `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `DATABASE_URL` em **`.env.local`** (projeto de teste/staging — **não** emails de produção).
+2. Rode **`pnpm setup:e2e-accounts`** — cria utilizadores Auth `@cascabjj.test` (prof A, prof B, student) e grava `E2E_*` + `VALIDATION_TEST_PASSWORD` em `.env.local` e `.env.test`.
+3. Rode **`pnpm db:apply`** se o schema ainda não estiver aplicado.
+4. Rode **`pnpm db:validate-rls`** — liga `profiles`/`accounts` e alunos marcadores **`RLS-V-*`** (não altera alunos reais).
 5. Rode **`pnpm test:e2e`** (Playwright usa `.env.test` via `playwright.config.ts`).
+
+Emails por defeito do setup (substituíveis via env antes de correr o script):
+
+| Variável | Email |
+|----------|--------|
+| `E2E_USER_A_EMAIL` | `casca-e2e-prof-a@cascabjj.test` |
+| `E2E_USER_B_EMAIL` | `casca-e2e-prof-b@cascabjj.test` |
+| `E2E_STUDENT_EMAIL` | `casca-e2e-student@cascabjj.test` |
 
 ## Rotas e superfícies cobertas pela suíte
 

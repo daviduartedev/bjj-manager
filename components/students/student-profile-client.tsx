@@ -8,7 +8,7 @@ import { Section } from "@/components/layout/section";
 import { StudentStatusBadge } from "@/components/students/student-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,7 @@ import {
 } from "@/lib/dates";
 import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog";
 import { StudentDocumentsTab } from "@/components/students/student-documents-tab";
+import { ProvisionPortalAccess } from "@/components/students/provision-portal-access";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { ROUTES, routeAlunoEditar, routeMensalidadesAluno } from "@/lib/routes";
@@ -184,6 +185,9 @@ export function StudentProfileClient({ profile }: Props) {
             </TabsTrigger>
             <TabsTrigger value="documentos" className="min-h-11 shrink-0">
               Documentos
+            </TabsTrigger>
+            <TabsTrigger value="portal" className="min-h-11 shrink-0">
+              Portal
             </TabsTrigger>
           </TabsList>
         </div>
@@ -425,6 +429,27 @@ export function StudentProfileClient({ profile }: Props) {
 
         <TabsContent value="documentos" className="space-y-4">
           <StudentDocumentsTab studentId={profile.id} />
+        </TabsContent>
+
+        <TabsContent value="portal" className="space-y-4">
+          <Section title="Acesso ao portal do aluno">
+            <ProfileSurfaceCard>
+              <CardHeader>
+                <CardTitle className="text-base">Provisionamento</CardTitle>
+                <CardDescription>
+                  Associe uma conta Supabase Auth existente para o aluno aceder a{" "}
+                  <span className="font-medium">/portal</span>.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ProvisionPortalAccess
+                  studentId={profile.id}
+                  linkedUserId={profile.user_id}
+                  blocked={Boolean(profile.archived_at || profile.removed_at)}
+                />
+              </CardContent>
+            </ProfileSurfaceCard>
+          </Section>
         </TabsContent>
       </Tabs>
 

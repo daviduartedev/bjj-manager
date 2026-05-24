@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BookOpen,
+  CalendarDays,
   FileText,
   LayoutDashboard,
   Package,
@@ -23,6 +24,7 @@ export const MAIN_NAV_ITEMS: MainNavItem[] = [
   { href: ROUTES.painel, label: "Painel", icon: LayoutDashboard, dataTour: "tour-painel" },
   { href: ROUTES.alunos, label: "Alunos", icon: Users, dataTour: "tour-alunos" },
   { href: ROUTES.mensalidades, label: "Mensalidades", icon: Wallet, dataTour: "tour-mensalidades" },
+  { href: ROUTES.aulas, label: "Aulas", icon: CalendarDays, dataTour: "tour-aulas" },
   { href: ROUTES.pedagogicoPlanos, label: "Pedagógico", icon: BookOpen, dataTour: "tour-pedagogico" },
   { href: ROUTES.documentos, label: "Documentos", icon: FileText, dataTour: "tour-documentos" },
   { href: ROUTES.produtos, label: "Produtos", icon: Package, dataTour: "tour-produtos" },

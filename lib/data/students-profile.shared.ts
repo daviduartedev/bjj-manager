@@ -62,6 +62,9 @@ export type StudentProfilePayload = {
   /** **SPR-9**, **BR-9**: requer Ativo sem arquivo/remoção e plano efectivo. */
   canRegisterMonthlyPayments: boolean;
   monthlyPaymentsBlockedReason: string | null;
+  /** Vínculo portal (**SPT-2.3**). */
+  user_id: string | null;
+  portal_terms_accepted_at: string | null;
 };
 
 export function resolveProfileMonthlyPaymentsAccess(args: {

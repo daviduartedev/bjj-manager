@@ -1,12 +1,47 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { isStudentRole, postLoginPathForRole, resolveAuthRole } from "@/lib/auth/roles";
+import { isStudentPortalEnabled } from "@/lib/feature-flags/student-portal";
 import { mergeSessionCookieOptions } from "@/lib/security/cookie-hardening";
 import {
-  isAuthenticatedAreaPath,
+  isOperationalAreaPath,
+  isPortalBloqueadoPath,
+  isPortalIndisponivelPath,
+  isPortalOnboardingPath,
+  isProtectedAuthenticatedPath,
+  isStudentPortalPath,
   LEGACY_DASHBOARD_PREFIX,
   ROUTES,
 } from "@/lib/routes";
+
+type StudentPortalGateRow = {
+  archived_at: string | null;
+  removed_at: string | null;
+  portal_terms_accepted_at: string | null;
+};
+
+async function resolveStudentPortalGateRow(
+  supabase: Parameters<typeof resolveAuthRole>[0],
+  userId: string,
+): Promise<StudentPortalGateRow | null> {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("account_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!profile?.account_id) return null;
+
+  const { data: student } = await supabase
+    .from("students")
+    .select("archived_at, removed_at, portal_terms_accepted_at")
+    .eq("user_id", userId)
+    .eq("account_id", profile.account_id)
+    .maybeSingle();
+
+  return (student as StudentPortalGateRow | null) ?? null;
+}
 
 function copyCookies(from: NextResponse, to: NextResponse) {
   from.cookies.getAll().forEach(({ name, value }) => {
@@ -14,9 +49,19 @@ function copyCookies(from: NextResponse, to: NextResponse) {
   });
 }
 
+function redirectWithCookies(
+  request: NextRequest,
+  supabaseResponse: NextResponse,
+  pathname: string,
+) {
+  const redirectResponse = NextResponse.redirect(new URL(pathname, request.url));
+  copyCookies(supabaseResponse, redirectResponse);
+  return redirectResponse;
+}
+
 /**
  * Atualiza a sessão Supabase em cada navegação (necessário para SSR) e aplica
- * redirecionamentos AUTH-2 (login → /painel, proteção **SHELL-2**, legado /dashboard).
+ * redirecionamentos AUTH-2 / AUTH-8, proteção **SHELL-2** e legado /dashboard.
  *
  * Sem variáveis Supabase (.env), comportamento no-op (bootstrap do projeto).
  */
@@ -65,22 +110,54 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse;
   }
 
-  if (user && (pathname === "/login" || pathname === "/register")) {
-    const redirectResponse = NextResponse.redirect(new URL(ROUTES.painel, request.url));
-    copyCookies(supabaseResponse, redirectResponse);
-    return redirectResponse;
+  if (user && (pathname === ROUTES.login || pathname === "/register")) {
+    const role = await resolveAuthRole(supabase, user.id);
+    return redirectWithCookies(request, supabaseResponse, postLoginPathForRole(role));
   }
 
-  if (!user && isAuthenticatedAreaPath(pathname)) {
-    const redirectResponse = NextResponse.redirect(new URL(ROUTES.login, request.url));
-    copyCookies(supabaseResponse, redirectResponse);
-    return redirectResponse;
+  if (!user && isProtectedAuthenticatedPath(pathname)) {
+    return redirectWithCookies(request, supabaseResponse, ROUTES.login);
   }
 
   if (!user && pathname === "/register") {
-    const redirectResponse = NextResponse.redirect(new URL("/login", request.url));
-    copyCookies(supabaseResponse, redirectResponse);
-    return redirectResponse;
+    return redirectWithCookies(request, supabaseResponse, ROUTES.login);
+  }
+
+  if (user && (isStudentPortalPath(pathname) || isOperationalAreaPath(pathname))) {
+    const role = await resolveAuthRole(supabase, user.id);
+
+    if (isStudentPortalPath(pathname) && !isStudentRole(role)) {
+      return redirectWithCookies(request, supabaseResponse, ROUTES.painel);
+    }
+
+    if (isOperationalAreaPath(pathname) && isStudentRole(role)) {
+      return redirectWithCookies(request, supabaseResponse, ROUTES.portal);
+    }
+
+    if (
+      isStudentRole(role) &&
+      isStudentPortalPath(pathname) &&
+      !isStudentPortalEnabled() &&
+      !isPortalIndisponivelPath(pathname)
+    ) {
+      return redirectWithCookies(request, supabaseResponse, ROUTES.portalIndisponivel);
+    }
+
+    if (isStudentRole(role) && isStudentPortalPath(pathname) && isStudentPortalEnabled()) {
+      const studentRow = await resolveStudentPortalGateRow(supabase, user.id);
+
+      if (studentRow?.archived_at || studentRow?.removed_at) {
+        if (!isPortalBloqueadoPath(pathname)) {
+          return redirectWithCookies(request, supabaseResponse, ROUTES.portalBloqueado);
+        }
+      } else if (studentRow && !studentRow.portal_terms_accepted_at) {
+        if (!isPortalOnboardingPath(pathname)) {
+          return redirectWithCookies(request, supabaseResponse, ROUTES.portalOnboarding);
+        }
+      } else if (studentRow?.portal_terms_accepted_at && isPortalOnboardingPath(pathname)) {
+        return redirectWithCookies(request, supabaseResponse, ROUTES.portal);
+      }
+    }
   }
 
   return supabaseResponse;

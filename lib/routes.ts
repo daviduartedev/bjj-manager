@@ -4,6 +4,13 @@
 
 export const ROUTES = {
   login: "/login",
+  portal: "/portal",
+  portalAulas: "/portal/aulas",
+  portalLoja: "/portal/loja",
+  portalFinanceiro: "/portal/financeiro",
+  portalIndisponivel: "/portal/indisponivel",
+  portalOnboarding: "/portal/onboarding",
+  portalBloqueado: "/portal/bloqueado",
   painel: "/painel",
   alunos: "/alunos",
   alunosNovo: "/alunos/novo",
@@ -12,9 +19,22 @@ export const ROUTES = {
   documentos: "/documentos",
   pedagogicoPlanos: "/pedagogico/planos",
   pedagogicoPlanoNovo: "/pedagogico/planos/novo",
+  aulas: "/aulas",
+  aulasTurmas: "/aulas/turmas",
+  aulasTurmasNova: "/aulas/turmas/nova",
   configuracoes: "/configuracoes",
   perfil: "/perfil",
 } as const;
+
+/** Edição de turma, horários e inscrições. */
+export function routeAulasTurma(classId: string): string {
+  return `${ROUTES.aulasTurmas}/${classId}`;
+}
+
+/** Detalhe de sessão com lista de check-ins. */
+export function routeAulasSessao(sessionId: string): string {
+  return `/aulas/sessao/${sessionId}`;
+}
 
 /** Perfil só leitura (`/alunos/[id]`, **SPR-1**). */
 export function routeAlunoPerfil(studentId: string): string {
@@ -55,22 +75,73 @@ export function routePedagogicoPlanoEditar(id: string): string {
   return `${ROUTES.pedagogicoPlanos}/${id}/editar`;
 }
 
-/** Prefixos protegidos pelo middleware (sessão obrigatória). */
-export const AUTHENTICATED_PATH_PREFIXES: readonly string[] = [
+/** Prefixos da área operacional (professor/academia). Ver **SHELL-2**. */
+export const OPERATIONAL_PATH_PREFIXES: readonly string[] = [
   ROUTES.painel,
   ROUTES.alunos,
   ROUTES.mensalidades,
   ROUTES.produtos,
   ROUTES.documentos,
   "/pedagogico",
+  ROUTES.aulas,
   ROUTES.configuracoes,
   ROUTES.perfil,
 ];
 
-export function isAuthenticatedAreaPath(pathname: string): boolean {
-  return AUTHENTICATED_PATH_PREFIXES.some(
+/** Prefixos do portal do aluno (**SPT-**, **SHELL-2**). */
+export const STUDENT_PORTAL_PATH_PREFIXES: readonly string[] = [ROUTES.portal];
+
+/** @deprecated Preferir {@link OPERATIONAL_PATH_PREFIXES}. */
+export const AUTHENTICATED_PATH_PREFIXES = OPERATIONAL_PATH_PREFIXES;
+
+export function isOperationalAreaPath(pathname: string): boolean {
+  return OPERATIONAL_PATH_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
+}
+
+/** @deprecated Preferir {@link isOperationalAreaPath}. */
+export function isAuthenticatedAreaPath(pathname: string): boolean {
+  return isOperationalAreaPath(pathname);
+}
+
+export function isStudentPortalPath(pathname: string): boolean {
+  return STUDENT_PORTAL_PATH_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+export function isPortalIndisponivelPath(pathname: string): boolean {
+  return (
+    pathname === ROUTES.portalIndisponivel ||
+    pathname.startsWith(`${ROUTES.portalIndisponivel}/`)
+  );
+}
+
+export function isPortalOnboardingPath(pathname: string): boolean {
+  return (
+    pathname === ROUTES.portalOnboarding ||
+    pathname.startsWith(`${ROUTES.portalOnboarding}/`)
+  );
+}
+
+export function isPortalBloqueadoPath(pathname: string): boolean {
+  return (
+    pathname === ROUTES.portalBloqueado ||
+    pathname.startsWith(`${ROUTES.portalBloqueado}/`)
+  );
+}
+
+export function isPortalExemptFromOnboardingPath(pathname: string): boolean {
+  return (
+    isPortalIndisponivelPath(pathname) ||
+    isPortalOnboardingPath(pathname) ||
+    isPortalBloqueadoPath(pathname)
+  );
+}
+
+export function isProtectedAuthenticatedPath(pathname: string): boolean {
+  return isOperationalAreaPath(pathname) || isStudentPortalPath(pathname);
 }
 
 /** Legado: rota antiga da área operacional. */
