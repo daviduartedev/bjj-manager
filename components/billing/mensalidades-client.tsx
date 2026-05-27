@@ -409,7 +409,7 @@ export function MensalidadesClient({
                       </TableCell>
                       <TableCell className="max-w-[10rem] min-h-0 truncate py-0.5 px-2 text-muted-foreground leading-tight">
                         {row.planLabel ?? (
-                          <span className="text-amber-700 dark:text-amber-400">Sem plano</span>
+                          <span className="text-[hsl(var(--status-pending-foreground))]">Sem plano</span>
                         )}
                       </TableCell>
                       <TableCell className="min-h-0 py-0.5 px-2 text-right tabular-nums-crm leading-tight">
@@ -486,7 +486,7 @@ export function MensalidadesClient({
                     </Link>
                     <p className="text-[11px] text-muted-foreground">
                       {row.planLabel ?? (
-                        <span className="text-amber-700 dark:text-amber-400">Sem plano</span>
+                        <span className="text-[hsl(var(--status-pending-foreground))]">Sem plano</span>
                       )}
                     </p>
                   </div>

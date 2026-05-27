@@ -2,7 +2,7 @@
 
 Contrato canónico para a **área do aluno** complementar ao painel do professor: aulas, check-in, loja com reserva e placeholder de pagamento PIX. Prefixo de regras: **SPT-**.
 
-**Estado:** Fases 1–2 implementadas (cycles `0524-student-portal-auth`, `0524-student-portal-classes-checkin`). Rotas `/portal`, **AUTH-8**, shell, placeholder PIX, aulas e check-in activos quando as flags correspondentes estão ligadas. Loja (Fase 3) permanece placeholder.
+**Estado:** Fases 1–2 implementadas (cycles `0524-student-portal-auth`, `0524-student-portal-classes-checkin`). Cycle `0524-visual-mobile-attendance-onboarding` entregou presença **SPT-6.2–6.4**, histórico **SPT-13**/**SPR-12**, visual mobile e provisionamento **STU-12.5+**. Rotas `/portal`, **AUTH-8**, shell, placeholder PIX, aulas, check-in, presença e histórico activos quando as flags correspondentes estão ligadas. Loja (Fase 3) permanece placeholder.
 
 Roadmap estratégico: [`ROADMAP_PORTAL_ALUNO.md`](../../../ROADMAP_PORTAL_ALUNO.md).
 
@@ -114,15 +114,15 @@ Roadmap estratégico: [`ROADMAP_PORTAL_ALUNO.md`](../../../ROADMAP_PORTAL_ALUNO.
 
 ## SPT-6. Presença (professor)
 
-**SPT-6.1.** Professor abre sessão no painel e vê lista de check-ins em tempo real.
+**SPT-6.1.** Professor abre sessão no painel e vê lista de check-ins em tempo real (polling 30s em `/aulas/sessao/[sessionId]`).
 
-> **Fase 2 (`0524-student-portal-classes-checkin`):** implementado **apenas** visualização de check-ins (`/aulas/sessao/[sessionId]`, polling 30s). Conversão em lote (**SPT-6.2**), presença manual (**SPT-6.3**) e exclusão da lista final (**SPT-6.4**) ficam para cycle futuro.
+**SPT-6.2.** Conversão em lote: professor confirma check-ins seleccionados (ou todos) → insert em **`attendances`** com `origin = checkin_student`, `recorded_by` = perfil do professor, `recorded_at` = instante servidor. Check-ins **não** são apagados.
 
-**SPT-6.2.** Ao encerrar chamada: conversão em lote check-ins → **`attendances`** com `origin = checkin_student`.
+**SPT-6.3.** Presença manual: professor adiciona aluno **inscrito na turma** da sessão sem check-in → `origin = manual_instructor`, mesmos metadados de registo.
 
-**SPT-6.3.** Presença manual: `origin = manual_instructor`.
+**SPT-6.4.** Professor pode **remover** aluno da lista final de presença da sessão (delete em `attendances`); o **check-in permanece** para métricas quando existir.
 
-**SPT-6.4.** Professor pode excluir da lista final quem fez check-in mas faltou; check-in permanece para métricas.
+> **Implementado** no cycle `0524-visual-mobile-attendance-onboarding` Stage 2 — UI em `/aulas/sessao/[sessionId]` com acções server-side em `actions/attendances.ts`.
 
 ---
 
@@ -212,7 +212,26 @@ Master desligada ⇒ portal inacessível ou mensagem de indisponibilidade docume
 | 1 | `0524-student-portal-auth` | Auth, shell, onboarding, PIX layout | ✅ Implementado |
 | 2 | `0524-student-portal-classes-checkin` | Turmas, sessões, check-in, visão professor | ✅ Implementado |
 | 3 | `student-portal-shop` | Produtos, reservas | Pendente |
-| 4 | `student-portal-refinements` | Histórico, métricas, E2E | Pendente |
+| 4 | `0524-visual-mobile-attendance-onboarding` | Visual mobile, presença **SPT-6.2–6.4**, histórico **SPT-13** / **SPR-12**, provisionamento **STU-12.5+** | ✅ Implementado |
+| 5 | `student-portal-refinements` | Métricas avançadas, E2E adicional | Pendente |
+
+---
+
+## SPT-13. Histórico de presença (portal aluno)
+
+**SPT-13.1.** Rota **`/portal/presenca`**: aluno autenticado vê **total** de aulas frequentadas e **listagem paginada** dos **próprios** registos em **`attendances`** (presença oficial confirmada pelo professor).
+
+**SPT-13.2.** Campos por linha (quando disponíveis): **data da sessão**, **horário** (início–fim), **turma**, **professor**, **origem** (check-in do aluno / manual), **registado por**, **data/hora do registo**. Ordem: **mais recente primeiro**.
+
+**SPT-13.3.** Paginação: **20** registos por página; controlos «Anterior» / «Próxima»; **mobile-first** (cartões empilhados).
+
+**SPT-13.4.** **Empty state** explícito quando não há `attendances` («Ainda não há aulas frequentadas registadas» ou equivalente).
+
+**SPT-13.5.** **Check-ins** não convertidos **não** entram no total nem na listagem (**SPT-10.2**).
+
+**SPT-13.6.** Item **Presença** na navegação principal do aluno (**SHELL-9.2**). Flag: requer `student-portal.enabled` e dados de aulas (`student-portal.classes.checkin` recomendada para coerência de produto).
+
+> **Implementado** no cycle `0524-visual-mobile-attendance-onboarding` Stage 3 — rota `/portal/presenca`, nav do aluno, query `lib/data/student-attendances.ts`.
 
 ---
 

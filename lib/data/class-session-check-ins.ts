@@ -11,11 +11,37 @@ export type SessionCheckInRow = {
   checkedInAt: string;
   /** PBS-3 indicador financeiro do mês corrente. */
   billingIndicator: MonthBillingIndicator;
+  /** Já convertido em presença oficial. */
+  hasAttendance: boolean;
 };
 
-export type SessionCheckInsResult =
-  | { ok: true; session: SessionInfo; checkIns: SessionCheckInRow[] }
+export type SessionAttendanceRow = {
+  attendanceId: string;
+  studentId: string;
+  studentName: string;
+  origin: "checkin_student" | "manual_instructor";
+  recordedAt: string;
+  billingIndicator: MonthBillingIndicator;
+};
+
+export type SessionManualEligibleRow = {
+  studentId: string;
+  studentName: string;
+  billingIndicator: MonthBillingIndicator;
+};
+
+export type SessionPresenceResult =
+  | {
+      ok: true;
+      session: SessionInfo;
+      checkIns: SessionCheckInRow[];
+      attendances: SessionAttendanceRow[];
+      manualEligible: SessionManualEligibleRow[];
+    }
   | { ok: false; error: string };
+
+/** @deprecated Use SessionPresenceResult */
+export type SessionCheckInsResult = SessionPresenceResult;
 
 export type SessionInfo = {
   id: string;
@@ -36,9 +62,29 @@ function relationOne<T>(x: T | T[] | null | undefined): T | null {
   return Array.isArray(x) ? (x[0] ?? null) : x;
 }
 
-export async function listSessionCheckIns(
+async function billingIndicatorsForStudents(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  studentIds: string[],
+): Promise<Map<string, MonthBillingIndicator>> {
+  if (studentIds.length === 0) return new Map();
+
+  const todayYmd = toCalendarDateStringInAppTZ(new Date());
+  const referenceMonthFirstDay =
+    normalizeReferenceMonth(`${todayYmd.slice(0, 7)}-01`) ?? `${todayYmd.slice(0, 7)}-01`;
+
+  const billingSnapshots = await fetchMonthBillingSnapshots({
+    supabase,
+    studentIds,
+    referenceMonthFirstDay,
+    today: todayYmd,
+  });
+
+  return new Map(billingSnapshots.map((s) => [s.studentId, s.indicator]));
+}
+
+export async function listSessionPresence(
   sessionId: string,
-): Promise<SessionCheckInsResult> {
+): Promise<SessionPresenceResult> {
   const supabase = await createClient();
 
   const { data: sessionData, error: sessionError } = await supabase
@@ -46,6 +92,7 @@ export async function listSessionCheckIns(
     .select(
       `
       id,
+      class_id,
       session_date,
       start_time,
       end_time,
@@ -78,59 +125,127 @@ export async function listSessionCheckIns(
     classKind: classRel.kind,
   };
 
-  const { data: checkInsData, error: checkInsError } = await supabase
-    .from("check_ins")
-    .select(
-      `
-      id,
-      student_id,
-      created_at,
-      students ( full_name )
-    `,
-    )
-    .eq("class_session_id", sessionId)
-    .order("created_at", { ascending: true });
+  const classId = sessionData.class_id as string;
 
-  if (checkInsError) {
+  const [checkInsResult, attendancesResult, enrollmentsResult] = await Promise.all([
+    supabase
+      .from("check_ins")
+      .select(
+        `
+        id,
+        student_id,
+        created_at,
+        students ( full_name )
+      `,
+      )
+      .eq("class_session_id", sessionId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("attendances")
+      .select(
+        `
+        id,
+        student_id,
+        origin,
+        recorded_at,
+        students ( full_name )
+      `,
+      )
+      .eq("class_session_id", sessionId)
+      .order("recorded_at", { ascending: true }),
+    supabase
+      .from("student_class_enrollments")
+      .select(
+        `
+        student_id,
+        students ( full_name )
+      `,
+      )
+      .eq("class_id", classId),
+  ]);
+
+  if (checkInsResult.error) {
     return { ok: false, error: "Não foi possível carregar os check-ins." };
   }
-
-  const rows = checkInsData ?? [];
-  if (rows.length === 0) {
-    return { ok: true, session, checkIns: [] };
+  if (attendancesResult.error) {
+    return { ok: false, error: "Não foi possível carregar as presenças." };
+  }
+  if (enrollmentsResult.error) {
+    return { ok: false, error: "Não foi possível carregar inscrições." };
   }
 
-  const todayYmd = toCalendarDateStringInAppTZ(new Date());
-  const referenceMonthFirstDay =
-    normalizeReferenceMonth(`${todayYmd.slice(0, 7)}-01`) ?? `${todayYmd.slice(0, 7)}-01`;
-
-  const studentIds = rows.map((r) => r.student_id as string);
-  const billingSnapshots = await fetchMonthBillingSnapshots({
-    supabase,
-    studentIds,
-    referenceMonthFirstDay,
-    today: todayYmd,
-  });
-
-  const indicatorByStudentId = new Map(
-    billingSnapshots.map((s) => [s.studentId, s.indicator]),
+  const attendedStudentIds = new Set(
+    (attendancesResult.data ?? []).map((a) => a.student_id as string),
+  );
+  const checkInStudentIds = new Set(
+    (checkInsResult.data ?? []).map((c) => c.student_id as string),
   );
 
-  const checkIns: SessionCheckInRow[] = rows.map((r) => {
+  const allStudentIds = new Set<string>([
+    ...(checkInsResult.data ?? []).map((c) => c.student_id as string),
+    ...(attendancesResult.data ?? []).map((a) => a.student_id as string),
+    ...(enrollmentsResult.data ?? []).map((e) => e.student_id as string),
+  ]);
+
+  const indicatorByStudentId = await billingIndicatorsForStudents(
+    supabase,
+    [...allStudentIds],
+  );
+
+  const checkIns: SessionCheckInRow[] = (checkInsResult.data ?? []).map((r) => {
     const studentRel = relationOne(
-      r.students as
-        | { full_name: string }
-        | { full_name: string }[]
-        | null,
+      r.students as { full_name: string } | { full_name: string }[] | null,
     );
+    const studentId = r.student_id as string;
     return {
       checkInId: r.id as string,
-      studentId: r.student_id as string,
+      studentId,
       studentName: studentRel?.full_name ?? "Aluno",
       checkedInAt: r.created_at as string,
-      billingIndicator: indicatorByStudentId.get(r.student_id as string) ?? "pending",
+      billingIndicator: indicatorByStudentId.get(studentId) ?? "pending",
+      hasAttendance: attendedStudentIds.has(studentId),
     };
   });
 
-  return { ok: true, session, checkIns };
+  const attendances: SessionAttendanceRow[] = (attendancesResult.data ?? []).map((r) => {
+    const studentRel = relationOne(
+      r.students as { full_name: string } | { full_name: string }[] | null,
+    );
+    const studentId = r.student_id as string;
+    return {
+      attendanceId: r.id as string,
+      studentId,
+      studentName: studentRel?.full_name ?? "Aluno",
+      origin: r.origin as "checkin_student" | "manual_instructor",
+      recordedAt: r.recorded_at as string,
+      billingIndicator: indicatorByStudentId.get(studentId) ?? "pending",
+    };
+  });
+
+  const manualEligible: SessionManualEligibleRow[] = (enrollmentsResult.data ?? [])
+    .filter((e) => {
+      const studentId = e.student_id as string;
+      return !checkInStudentIds.has(studentId) && !attendedStudentIds.has(studentId);
+    })
+    .map((e) => {
+      const studentRel = relationOne(
+        e.students as { full_name: string } | { full_name: string }[] | null,
+      );
+      const studentId = e.student_id as string;
+      return {
+        studentId,
+        studentName: studentRel?.full_name ?? "Aluno",
+        billingIndicator: indicatorByStudentId.get(studentId) ?? "pending",
+      };
+    })
+    .sort((a, b) => a.studentName.localeCompare(b.studentName, "pt-BR"));
+
+  return { ok: true, session, checkIns, attendances, manualEligible };
+}
+
+/** Alias retrocompatível — preferir `listSessionPresence`. */
+export async function listSessionCheckIns(
+  sessionId: string,
+): Promise<SessionPresenceResult> {
+  return listSessionPresence(sessionId);
 }

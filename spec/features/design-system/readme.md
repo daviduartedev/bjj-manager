@@ -47,7 +47,7 @@ Padronizar tipografia, componentes de interface (shadcn/ui), padrões de layout 
 
 **DS-1.11.** **Realce cromático da área operacional:** além da sobriedade marcial, o tema pode incluir **gradientes subtis** na área de conteúdo ou cabeçalhos de secção, **acentos de `--primary` / `--status-*`** em cartões e estados hover focados, e **navegação activa** mais legível no shell , sempre derivado de **tokens** (**SPEC-10.4**). Evitar hex soltas em componentes; validar **contraste** nos dois temas. Ciclo de referência: **11-0430-graduation-engine**.
 
-**DS-1.12.** **Chrome premium (dashboard):** a **sidebar** usa fundo **preto de identidade** (`--secondary` / **#050505**); o **conteúdo** pode usar **lavagem** (`--content-wash-*`) e **status** (`--status-*`, `--primary`) para cartões, cabeçalhos de página e hover , ver **BUI-8** em [`spec/features/billing-ui/readme.md`](../billing-ui/readme.md). Manter legibilidade e contraste **WCAG AA** onde aplicável.
+**DS-1.12.** **Chrome premium (dashboard):** a **sidebar** usa fundo **preto de identidade** (`--secondary` / **#050505**); o **conteúdo** pode usar **lavagem** (`--content-wash-*`) e **status** (`--status-*`, `--primary`) para cartões, cabeçalhos de página e hover , ver **BUI-8** em [`spec/features/billing-ui/readme.md`](../billing-ui/readme.md). Utilitários CSS em `app/globals.css`: `.dashboard-hero-badge`, `.dashboard-kpi-card--*`, `.dashboard-empty-state`, `.dashboard-main-surface`. Manter legibilidade e contraste **WCAG AA** onde aplicável. Cycle de referência visual mobile: **`0524-visual-mobile-attendance-onboarding`** (núcleo operacional D-R1, Stage 1 concluída).
 
 ## Decisões registradas (refino)
 

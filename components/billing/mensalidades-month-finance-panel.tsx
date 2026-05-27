@@ -26,11 +26,11 @@ export function MensalidadesMonthFinancePanel(props: Props) {
       contentClassName="p-4 sm:p-5"
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-border/80 bg-emerald-500/[0.06] px-4 py-3 dark:bg-emerald-500/[0.09]">
+        <div className="rounded-lg border border-[hsl(var(--status-paid)/0.28)] bg-gradient-to-br from-[hsl(var(--status-paid)/0.08)] to-card px-4 py-3">
           <p className="text-crm-xs font-medium uppercase tracking-wide text-muted-foreground">
             Total em pagamentos (Pago)
           </p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-emerald-800 dark:text-emerald-400">
+          <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-[hsl(var(--status-paid-foreground))]">
             {formatMoneyBrFromCents(summary.totalPaidReceivedCents)}
           </p>
           <p className="mt-1 text-crm-xs text-muted-foreground">

@@ -4,7 +4,57 @@ import {
   cancelCheckInSchema,
   checkInSchema,
   completeStudentOnboardingSchema,
+  provisionPortalAccessSchema,
 } from "@/lib/validations/student-portal";
+
+const STUDENT_ID = "550e8400-e29b-41d4-a716-446655440000";
+
+describe("provisionPortalAccessSchema", () => {
+  it("accepts link_existing mode", () => {
+    const result = provisionPortalAccessSchema.safeParse({
+      mode: "link_existing",
+      studentId: STUDENT_ID,
+      authEmail: "aluno@example.com",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts create_invite mode", () => {
+    const result = provisionPortalAccessSchema.safeParse({
+      mode: "create_invite",
+      studentId: STUDENT_ID,
+      email: "aluno@example.com",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts create_password mode", () => {
+    const result = provisionPortalAccessSchema.safeParse({
+      mode: "create_password",
+      studentId: STUDENT_ID,
+      email: "aluno@example.com",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects link_existing without authEmail", () => {
+    const result = provisionPortalAccessSchema.safeParse({
+      mode: "link_existing",
+      studentId: STUDENT_ID,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects extra fields", () => {
+    const result = provisionPortalAccessSchema.safeParse({
+      mode: "create_invite",
+      studentId: STUDENT_ID,
+      email: "aluno@example.com",
+      authEmail: "extra@example.com",
+    });
+    expect(result.success).toBe(false);
+  });
+});
 
 describe("completeStudentOnboardingSchema", () => {
   it("requires acceptTerms true", () => {

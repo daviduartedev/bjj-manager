@@ -43,7 +43,7 @@ export default async function AlunosPage({ searchParams }: PageProps) {
         description="Cadastro e filtros. Abra uma linha para o perfil ou use a edição rápida."
         aside={
           <>
-            <DashboardStatTile label="Total na conta" value={list.total} icon={Users} />
+            <DashboardStatTile label="Total na conta" value={list.total} icon={Users} accent="primary" />
             <Button
               className="min-h-11 shrink-0 shadow-md shadow-primary/20 transition-shadow hover:shadow-lg hover:shadow-primary/25"
               asChild

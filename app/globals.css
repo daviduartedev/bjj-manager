@@ -82,6 +82,7 @@
     --shell-nav-hover-bg: 36 18% 92%;
     --shell-nav-active-bg: 357 73% 96%;
     --shell-edge-glow: 357 73% 43%;
+    --content-wash-start: 36 21% 95%;
     --content-wash-mid: 36 21% 96%;
     --content-wash-accent: 357 73% 43%;
   }
@@ -134,6 +135,7 @@
     --shell-nav-hover-bg: 0 0% 12%;
     --shell-nav-active-bg: 357 45% 12%;
     --shell-edge-glow: 357 73% 48%;
+    --content-wash-start: 0 0% 4%;
     --content-wash-mid: 0 0% 5%;
     --content-wash-accent: 357 73% 50%;
   }
@@ -153,19 +155,22 @@
     font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   }
 
-  /* Área autenticada: lavagem suave + contraste com sidebar escura (**DS-1.12**) */
+  /* Área autenticada: lavagem suave + acento BJJ (**DS-1.12**, **BUI-8**) */
   .dashboard-main-surface {
     background: linear-gradient(
       180deg,
-      hsl(var(--background)) 0%,
-      hsl(var(--content-wash-mid) / 0.65) 42%,
+      hsl(var(--content-wash-start)) 0%,
+      hsl(var(--content-wash-mid) / 0.75) 32%,
+      hsl(var(--content-wash-accent) / 0.035) 52%,
+      hsl(var(--content-wash-mid) / 0.55) 72%,
       hsl(var(--background)) 100%
     );
   }
 
-  /** Vidro do topo em browsers que suportam , sensação premium sem segunda cor sólida */
+  /** Vidro do topo — sensação premium sem segunda cor sólida */
   .dashboard-top-bar {
     @apply border-b border-border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/75;
+    box-shadow: 0 1px 0 0 hsl(var(--primary) / 0.06);
   }
   h1,
   h2,
@@ -232,5 +237,76 @@
     @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
     background-color: hsl(var(--status-info) / 0.12);
     color: hsl(var(--status-info-foreground));
+  }
+
+  /** Badge de secção no hero — acento primary tokenizado */
+  .dashboard-hero-badge {
+    @apply inline-flex w-fit items-center rounded-md border px-2.5 py-0.5 text-crm-xs font-medium shadow-sm;
+    border-color: hsl(var(--primary) / 0.22);
+    background-color: hsl(var(--primary) / 0.07);
+    color: hsl(var(--primary));
+  }
+
+  /** Cartão KPI / métrica com lavagem de status */
+  .dashboard-kpi-card {
+    @apply flex min-h-[5.5rem] flex-col justify-between rounded-xl border p-4 shadow-sm transition-colors;
+  }
+  .dashboard-kpi-card--default {
+    @apply border-border bg-card hover:border-primary/30;
+  }
+  .dashboard-kpi-card--paid {
+    border-color: hsl(var(--status-paid) / 0.28);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--status-paid) / 0.08) 0%,
+      hsl(var(--card)) 72%
+    );
+  }
+  .dashboard-kpi-card--paid:hover {
+    border-color: hsl(var(--status-paid) / 0.42);
+  }
+  .dashboard-kpi-card--pending {
+    border-color: hsl(var(--status-pending) / 0.32);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--status-pending) / 0.1) 0%,
+      hsl(var(--card)) 72%
+    );
+  }
+  .dashboard-kpi-card--pending:hover {
+    border-color: hsl(var(--status-pending) / 0.45);
+  }
+  .dashboard-kpi-card--overdue {
+    border-color: hsl(var(--status-overdue) / 0.28);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--status-overdue) / 0.07) 0%,
+      hsl(var(--card)) 72%
+    );
+  }
+  .dashboard-kpi-card--overdue:hover {
+    border-color: hsl(var(--status-overdue) / 0.4);
+  }
+  .dashboard-kpi-card--info {
+    border-color: hsl(var(--status-info) / 0.28);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--status-info) / 0.07) 0%,
+      hsl(var(--card)) 72%
+    );
+  }
+  .dashboard-kpi-card--info:hover {
+    border-color: hsl(var(--status-info) / 0.4);
+  }
+
+  /** Empty state com acento informativo */
+  .dashboard-empty-state {
+    @apply flex flex-col items-center justify-center rounded-xl border border-dashed px-6 py-12 text-center;
+    border-color: hsl(var(--status-info) / 0.22);
+    background: linear-gradient(
+      180deg,
+      hsl(var(--status-info) / 0.04) 0%,
+      hsl(var(--muted) / 0.25) 100%
+    );
   }
 }

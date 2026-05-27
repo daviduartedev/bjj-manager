@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export type DashboardPageHeroProps = {
@@ -18,7 +17,7 @@ export type DashboardPageHeroProps = {
 };
 
 /**
- * Cabeçalho de página na área autenticada, plano de fundo contínuo com o canvas (evita “card” sobre a vista).
+ * Cabeçalho de página na área autenticada — lavagem contínua com acento BJJ (**DS-1.12**).
  */
 export function DashboardPageHero({
   badge,
@@ -32,21 +31,15 @@ export function DashboardPageHero({
   return (
     <section
       className={cn(
-        "border-b border-border/80 pb-8",
+        "relative border-b border-border/80 pb-8",
+        "before:pointer-events-none before:absolute before:inset-x-0 before:bottom-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-primary/25 before:to-transparent",
         className,
       )}
     >
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
         <div className="min-w-0 max-w-2xl space-y-3">
           {intro ? <div className="pb-1">{intro}</div> : null}
-          {badge ? (
-            <Badge
-              variant="outline"
-              className="w-fit border-border bg-background/90 font-medium text-muted-foreground shadow-sm"
-            >
-              {badge}
-            </Badge>
-          ) : null}
+          {badge ? <span className="dashboard-hero-badge">{badge}</span> : null}
           <h1 className="type-page-title">{title}</h1>
           {description ? <p className="type-lead max-w-xl">{description}</p> : null}
           {children}

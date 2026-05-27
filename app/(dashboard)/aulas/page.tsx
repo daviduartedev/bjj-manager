@@ -69,7 +69,7 @@ export default async function AulasPage() {
               <li key={s.id}>
                 <Link
                   href={routeAulasSessao(s.id)}
-                  className="flex items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-muted/50"
+                  className="flex items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-primary/[0.04] hover:border-l-primary/20"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium">{s.className}</p>

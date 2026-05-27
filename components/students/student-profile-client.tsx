@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { StudentProfilePayload } from "@/lib/data/students-profile.shared";
+import type { StudentAttendancesPage } from "@/lib/data/student-attendances";
 import { profileFormatPaidAt } from "@/lib/data/students-profile.shared";
 import {
   formatDateBR,
@@ -35,6 +36,7 @@ import {
 } from "@/lib/dates";
 import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog";
 import { StudentDocumentsTab } from "@/components/students/student-documents-tab";
+import { StudentAttendanceTab } from "@/components/students/student-attendance-tab";
 import { ProvisionPortalAccess } from "@/components/students/provision-portal-access";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
@@ -49,6 +51,9 @@ import {
 
 type Props = {
   profile: StudentProfilePayload;
+  defaultTab?: "dados" | "graduacao" | "financeiro" | "documentos" | "portal" | "presenca";
+  attendance: StudentAttendancesPage;
+  attendanceError?: string | null;
 };
 
 function kindLabel(kind: "adult" | "kids"): string {
@@ -85,7 +90,12 @@ function Field({
   );
 }
 
-export function StudentProfileClient({ profile }: Props) {
+export function StudentProfileClient({
+  profile,
+  defaultTab = "dados",
+  attendance,
+  attendanceError = null,
+}: Props) {
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
 
@@ -160,7 +170,7 @@ export function StudentProfileClient({ profile }: Props) {
 
       {showKidsAdultBanner ? (
         <div
-          className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-foreground"
+          className="rounded-lg border border-[hsl(var(--status-pending)/0.35)] bg-[hsl(var(--status-pending)/0.1)] px-4 py-3 text-sm text-foreground"
           role="status"
         >
           <p className="font-medium">Transição para faixa adulta</p>
@@ -171,7 +181,7 @@ export function StudentProfileClient({ profile }: Props) {
         </div>
       ) : null}
 
-      <Tabs defaultValue="dados" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <div className="overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <TabsList className="inline-flex w-max min-w-full justify-start sm:w-auto">
             <TabsTrigger value="dados" className="min-h-11 shrink-0">
@@ -185,6 +195,9 @@ export function StudentProfileClient({ profile }: Props) {
             </TabsTrigger>
             <TabsTrigger value="documentos" className="min-h-11 shrink-0">
               Documentos
+            </TabsTrigger>
+            <TabsTrigger value="presenca" className="min-h-11 shrink-0">
+              Presença
             </TabsTrigger>
             <TabsTrigger value="portal" className="min-h-11 shrink-0">
               Portal
@@ -431,19 +444,30 @@ export function StudentProfileClient({ profile }: Props) {
           <StudentDocumentsTab studentId={profile.id} />
         </TabsContent>
 
+        <TabsContent value="presenca" className="space-y-4">
+          <Section title="Histórico de presença">
+            <StudentAttendanceTab
+              studentId={profile.id}
+              data={attendance}
+              error={attendanceError}
+            />
+          </Section>
+        </TabsContent>
+
         <TabsContent value="portal" className="space-y-4">
           <Section title="Acesso ao portal do aluno">
             <ProfileSurfaceCard>
               <CardHeader>
                 <CardTitle className="text-base">Provisionamento</CardTitle>
                 <CardDescription>
-                  Associe uma conta Supabase Auth existente para o aluno aceder a{" "}
-                  <span className="font-medium">/portal</span>.
+                  Associe Auth existente, envie convite por e-mail ou crie utilizador com senha
+                  temporária para o aluno aceder a <span className="font-medium">/portal</span>.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ProvisionPortalAccess
                   studentId={profile.id}
+                  studentEmail={profile.email}
                   linkedUserId={profile.user_id}
                   blocked={Boolean(profile.archived_at || profile.removed_at)}
                 />

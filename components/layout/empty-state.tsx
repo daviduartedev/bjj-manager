@@ -20,17 +20,13 @@ export function EmptyState({
   return (
     <div
       role="status"
-      className={cn(
-        "flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-6 py-12 text-center",
-        className,
-      )}
+      className={cn("dashboard-empty-state", className)}
       {...props}
     >
       {Icon ? (
-        <Icon
-          className="mb-4 size-11 text-muted-foreground"
-          aria-hidden
-        />
+        <span className="mb-4 flex size-12 items-center justify-center rounded-lg border border-[hsl(var(--status-info)/0.2)] bg-[hsl(var(--status-info)/0.08)] text-[hsl(var(--status-info-foreground))]">
+          <Icon className="size-6" aria-hidden />
+        </span>
       ) : null}
       <h3 className="type-card-heading">{title}</h3>
       {description ? (

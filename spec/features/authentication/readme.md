@@ -72,7 +72,15 @@ Verificação automatizada dos fluxos **AUTH-** (redirects, logout, ausência de
 
 **AUTH-8.2.** Utilizadores com role operacional (`professor` ou equivalente) continuam a ir para **`/painel`** (**AUTH-2.1**).
 
-**AUTH-8.3.** Provisionamento: professor, na ficha do aluno, associa `students.user_id` a utilizador Auth existente (e-mail). Convite por e-mail quando suportado pelo ambiente Supabase. Unicidade: um auth user → no máximo um `students` por `account_id` (**SPT-2.3**).
+**AUTH-8.3.** Provisionamento: professor, na ficha do aluno, associa `students.user_id` a utilizador Auth existente (e-mail) **ou cria** utilizador no servidor (**STU-12.5**). Convite por e-mail quando suportado (**AUTH-8.5**). Unicidade: um auth user → no máximo um `students` por `account_id` (**SPT-2.3**).
+
+**AUTH-8.4.** Criação de utilizador aluno via **Admin API** exclusivamente em Server Actions; nunca expor `service_role` no browser (**AUTH-7.1**, **SEC-2.2**).
+
+**AUTH-8.5.** **Convite por e-mail** (`inviteUserByEmail` ou equivalente Supabase) quando o cadastro tem e-mail; **senha temporária** como alternativa documentada (**STU-12.6**).
+
+**AUTH-8.6.** Toasts Sonner em sucesso/erro no provisionamento e no login (**AUTH-5.2**, **DS-1.8**).
+
+> **Implementado** no cycle `0524-visual-mobile-attendance-onboarding` Stage 4 — Admin API (`createUser`, `inviteUserByEmail`) só servidor; senha temporária 12 chars mostrada uma vez.
 
 ## Manutenção
 

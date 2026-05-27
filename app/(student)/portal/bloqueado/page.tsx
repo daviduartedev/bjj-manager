@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { ShieldAlert } from "lucide-react";
+
+import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
+import { EmptyState } from "@/components/layout/empty-state";
 
 export const metadata: Metadata = {
   title: "Acesso bloqueado",
@@ -6,12 +10,13 @@ export const metadata: Metadata = {
 
 export default function PortalBloqueadoPage() {
   return (
-    <main className="container mx-auto flex min-h-[50vh] max-w-lg flex-col items-center justify-center px-4 py-16 text-center">
-      <h1 className="text-2xl font-semibold tracking-tight">Acesso bloqueado</h1>
-      <p className="mt-3 text-muted-foreground">
-        O seu cadastro está arquivado ou removido. Contacte a recepção da academia para mais
-        informações.
-      </p>
-    </main>
+    <div className="mx-auto max-w-lg space-y-8">
+      <DashboardPageHero badge="Portal do aluno" title="Acesso bloqueado" />
+      <EmptyState
+        icon={ShieldAlert}
+        title="Cadastro inactivo"
+        description="O seu cadastro está arquivado ou removido. Contacte a recepção da academia para mais informações."
+      />
+    </div>
   );
 }

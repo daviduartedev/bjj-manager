@@ -27,7 +27,7 @@ export default async function PainelPage() {
           icon={LayoutDashboard}
           title="Provisionamento pendente"
           subtitle="Vínculo com a base de dados"
-          contentClassName="border-t border-amber-500/25 bg-amber-500/[0.04]"
+          contentClassName="border-t border-[hsl(var(--status-pending)/0.25)] bg-[hsl(var(--status-pending)/0.06)]"
         >
           <p className="font-medium text-foreground">Conta não configurada</p>
           <p className="type-lead mt-2">

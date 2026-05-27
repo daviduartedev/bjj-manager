@@ -14,7 +14,7 @@ export function PixPlaceholder() {
 
   return (
     <section
-      className="rounded-xl border border-border bg-card p-6 shadow-sm"
+      className="rounded-xl border border-border/80 border-l-[3px] border-l-primary/30 bg-card p-6 shadow-sm ring-1 ring-border/40"
       aria-labelledby="pix-placeholder-heading"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">

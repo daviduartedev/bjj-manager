@@ -188,10 +188,10 @@ export function StudentsList({
     "text-crm-xs font-semibold uppercase tracking-wider text-muted-foreground";
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm" data-tour="page-alunos">
-      <div className="border-b border-border bg-muted/30">
+    <div className="overflow-hidden rounded-xl border border-border/80 bg-card shadow-sm ring-1 ring-border/40 border-l-[3px] border-l-primary/30" data-tour="page-alunos">
+      <div className="border-b border-border/80 bg-gradient-to-r from-[hsl(var(--content-wash-mid)/0.55)] via-muted/35 to-transparent">
         <div className="flex items-center gap-2 px-4 py-3.5 sm:px-5">
-          <span className="flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground">
+          <span className="flex size-9 items-center justify-center rounded-md border border-primary/20 bg-primary/[0.07] text-primary">
             <ListFilter className="size-4" aria-hidden />
           </span>
           <div>

@@ -31,9 +31,9 @@ export function ClassSessionList({ sessions, error }: ClassSessionListProps) {
   }
 
   return (
-    <ul className="space-y-4">
+    <ul className="space-y-3 sm:space-y-4">
       {sessions.map((session) => (
-        <li key={session.id}>
+        <li key={session.id} className="min-w-0">
           <ClassSessionCard session={session} />
         </li>
       ))}

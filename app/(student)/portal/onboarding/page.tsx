@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
+import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { StudentOnboardingForm } from "@/components/student/onboarding-form";
 import {
   getStudentForCurrentUser,
@@ -29,14 +31,18 @@ export default async function PortalOnboardingPage() {
   });
 
   return (
-    <main className="container mx-auto max-w-lg px-4 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">Bem-vindo ao portal</h1>
-      <div className="mt-6 rounded-lg border bg-card p-6 shadow-sm">
+    <div className="mx-auto max-w-lg space-y-6">
+      <DashboardPageHero
+        badge="Portal do aluno"
+        title="Bem-vindo ao portal"
+        description="Confirme os termos para aceder às aulas e serviços da academia."
+      />
+      <DashboardPanel title="Primeiros passos" subtitle="Termos e contacto do responsável">
         <StudentOnboardingForm
           studentName={student.full_name}
           requiresGuardianEmail={requiresGuardianEmail}
         />
-      </div>
-    </main>
+      </DashboardPanel>
+    </div>
   );
 }

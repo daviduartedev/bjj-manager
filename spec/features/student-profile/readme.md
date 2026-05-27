@@ -57,7 +57,7 @@ Contrato canónico para a **vista de detalhe só leitura** do aluno (**SPEC-2.2*
 
 ## SPR-5. Organização em separadores
 
-**SPR-5.1.** O conteúdo organiza-se em **separadores** (tabs): **Dados pessoais**, **Graduação**, **Financeiro**.
+**SPR-5.1.** O conteúdo organiza-se em **separadores** (tabs): **Dados pessoais**, **Graduação**, **Financeiro**, **Presença** (**SPR-12**), **Documentos** (**SPR-11**).
 
 **SPR-5.2.** **Observações** do aluno aparecem **apenas** em **Dados pessoais** , **não** há separador dedicado só para observações (evitar duplicação de texto).
 
@@ -143,6 +143,24 @@ Contrato canónico para a **vista de detalhe só leitura** do aluno (**SPEC-2.2*
 **SPR-11.5.** Quando o aluno **não tem telefone** ou o telefone falha na normalização E.164, o atalho **WhatsApp** fica desactivado com tooltip explicativo (**DOC-8.2**).
 
 **SPR-11.6.** A aba **Documentos** existe mesmo quando ainda não há documentos emitidos , empty state explícito com os cards `Gerar` activos.
+
+---
+
+## SPR-12. Presença (histórico professor)
+
+**SPR-12.1.** Separador **Presença** em **`/alunos/[id]`** (**SPR-5.1**): mostra **total de aulas frequentadas** (count de **`attendances`** oficiais) e **listagem paginada** cronológica (**mais recente primeiro**).
+
+**SPR-12.2.** Campos por registo (quando disponíveis): **data da sessão**, **horário** (início–fim), **turma**, **professor**, **origem** (check-in do aluno / manual do professor), **registado por** (nome do perfil `recorded_by`), **data/hora do registo** (`recorded_at`).
+
+**SPR-12.3.** Paginação: **20** registos por página; controlos «Anterior» / «Próxima»; **mobile-first** (cartões empilhados, tabs com scroll horizontal — **SPR-5.3**).
+
+**SPR-12.4.** **Empty state** quando não existem `attendances` («Ainda não há presenças registadas» ou equivalente); total **zero**.
+
+**SPR-12.5.** **Check-ins** não convertidos **não** entram no total nem na listagem (**SPT-10.2**). Histórico do aluno no portal: **SPT-13**.
+
+**SPR-12.6.** Dados carregados no **servidor**; **`account_id` não aceite do cliente** (**SPR-2.1**).
+
+> **Implementado** no cycle `0524-visual-mobile-attendance-onboarding` Stage 3 — aba **Presença** em `/alunos/[id]`, query `lib/data/student-attendances.ts`.
 
 ---
 

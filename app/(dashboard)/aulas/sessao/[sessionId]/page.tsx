@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Users } from "lucide-react";
 
 import { SessionCheckInsPanel } from "@/components/classes/session-check-ins-panel";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
-import { listSessionCheckIns } from "@/lib/data/class-session-check-ins";
+import { listSessionPresence } from "@/lib/data/class-session-check-ins";
 import { ROUTES } from "@/lib/routes";
 
 export const metadata: Metadata = {
-  title: "Check-ins da sessão",
+  title: "Presença da sessão",
 };
 
 type Props = {
@@ -40,15 +40,15 @@ function formatSessionDate(ymd: string): string {
 
 export default async function SessionCheckInsPage({ params }: Props) {
   const { sessionId } = await params;
-  const result = await listSessionCheckIns(sessionId);
+  const result = await listSessionPresence(sessionId);
 
   if (!result.ok) notFound();
 
-  const { session, checkIns } = result;
+  const { session, checkIns, attendances, manualEligible } = result;
   const dateLabel = formatSessionDate(session.sessionDate);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6 px-1 sm:px-0">
       <DashboardPageHero
         badge="Aulas"
         intro={<DashboardBackLink href={ROUTES.aulas}>Aulas</DashboardBackLink>}
@@ -58,10 +58,36 @@ export default async function SessionCheckInsPage({ params }: Props) {
 
       <DashboardPanel
         icon={CalendarDays}
-        title={`Check-ins (${checkIns.length})`}
+        title="Check-ins e presença"
         subtitle="Atualização automática a cada 30 segundos"
       >
-        <SessionCheckInsPanel initialCheckIns={checkIns} />
+        <SessionCheckInsPanel
+          sessionId={sessionId}
+          initialCheckIns={checkIns}
+          initialAttendances={attendances}
+          initialManualEligible={manualEligible}
+        />
+      </DashboardPanel>
+
+      <DashboardPanel
+        icon={Users}
+        title="Resumo"
+        subtitle="Contagem rápida desta sessão"
+      >
+        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <div className="rounded-lg border border-border/80 bg-muted/20 p-3">
+            <dt className="text-xs text-muted-foreground">Check-ins</dt>
+            <dd className="text-2xl font-semibold tabular-nums">{checkIns.length}</dd>
+          </div>
+          <div className="rounded-lg border border-border/80 bg-muted/20 p-3">
+            <dt className="text-xs text-muted-foreground">Presença confirmada</dt>
+            <dd className="text-2xl font-semibold tabular-nums">{attendances.length}</dd>
+          </div>
+          <div className="col-span-2 rounded-lg border border-border/80 bg-muted/20 p-3 sm:col-span-1">
+            <dt className="text-xs text-muted-foreground">Elegíveis manual</dt>
+            <dd className="text-2xl font-semibold tabular-nums">{manualEligible.length}</dd>
+          </div>
+        </dl>
       </DashboardPanel>
     </div>
   );

@@ -35,6 +35,7 @@ Toda interface que carrega dados ou executa ações deve implementar:
 - Usar breakpoints do design system existente.
 - Não criar layouts que quebram em telas menores sem justificativa.
 - Testar em ao menos dois tamanhos de tela antes de fechar o cycle.
+- **Matriz de referência** (validação manual): larguras **320**, **375**, **414** e **768** px nos fluxos mobile prioritários (check-in portal, presença professor) — cycle `0524-visual-mobile-attendance-onboarding`.
 
 ---
 

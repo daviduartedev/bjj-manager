@@ -56,6 +56,7 @@ Os primeiros segmentos da área operacional (autenticada) são:
 |------|--------|
 | `/portal` | Entrada do aluno pós-login (**SPT-2**, **AUTH-8**) |
 | `/portal/aulas` | Listagem de aulas e check-in (**SPT-5**, **SPT-7**) |
+| `/portal/presenca` | Histórico de presenças oficiais do aluno (**SPT-13**) |
 | `/portal/loja` | Vitrine e reservas (**SPT-8**) |
 | `/portal/financeiro` | Área financeira incl. placeholder PIX (**SPT-9**) |
 
@@ -107,7 +108,9 @@ Para inventário de testes de segurança (**SECE2E-4**), incluir também rotas p
 
 **SHELL-9.1.** Layout partilhado em `app/(student)/layout.tsx` com **`StudentShell`**: cabeçalho, navegação e área de conteúdo.
 
-**SHELL-9.2.** Navegação principal (pt-BR): **Início** (`/portal`), **Aulas** (`/portal/aulas`), **Loja** (`/portal/loja`), **Financeiro** (`/portal/financeiro`).
+**SHELL-9.2.** Navegação principal (pt-BR): **Início** (`/portal`), **Aulas** (`/portal/aulas`), **Presença** (`/portal/presenca`), **Loja** (`/portal/loja`), **Financeiro** (`/portal/financeiro`).
+
+> **Presença** activa desde cycle `0524-visual-mobile-attendance-onboarding` Stage 3 (**SPT-13**).
 
 **SHELL-9.3.** Responsividade: sidebar em desktop (`lg+`); bottom nav ou drawer em mobile — espelhar padrões **SHELL-1.x** / **DS-**.
 

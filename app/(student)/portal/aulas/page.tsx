@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default async function PortalAulasPage() {
   if (!isStudentPortalClassesCheckinEnabled()) {
     return (
-      <div className="mx-auto max-w-4xl space-y-8">
+      <div className="mx-auto max-w-4xl space-y-6 px-1 sm:space-y-8 sm:px-0">
         <DashboardPageHero badge="Aulas" title="Minhas aulas" description="Check-in e horários." />
         <EmptyState
           icon={CalendarDays}
@@ -29,7 +29,7 @@ export default async function PortalAulasPage() {
   const access = await getStudentPortalAccessState();
   if (access.kind !== "ready") {
     return (
-      <div className="mx-auto max-w-4xl space-y-8">
+      <div className="mx-auto max-w-4xl space-y-6 px-1 sm:space-y-8 sm:px-0">
         <DashboardPageHero badge="Aulas" title="Minhas aulas" description="Check-in e horários." />
         <EmptyState
           icon={CalendarDays}
@@ -43,7 +43,7 @@ export default async function PortalAulasPage() {
   const result = await listStudentClassSessions();
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-4xl space-y-6 px-1 sm:space-y-8 sm:px-0">
       <DashboardPageHero
         badge="Aulas"
         title="Minhas aulas"

@@ -60,7 +60,7 @@ export default async function EditarAlunoPage({ params }: PageProps) {
       >
         {!student.plan_id ? (
           <p
-            className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/8 px-4 py-3 text-crm-sm text-foreground"
+            className="mt-4 rounded-lg border border-[hsl(var(--status-pending)/0.35)] bg-[hsl(var(--status-pending)/0.08)] px-4 py-3 text-crm-sm text-foreground"
             role="status"
           >
             Este aluno não tem plano ativo associado. Escolha um plano compatível e salve.

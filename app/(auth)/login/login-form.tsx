@@ -64,7 +64,7 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md border-white/10 bg-white text-card-foreground shadow-xl">
+    <Card className="w-full max-w-md border-border/70 bg-card/95 text-card-foreground shadow-xl shadow-black/25 backdrop-blur-sm">
       <CardHeader>
         <CardTitle className="text-xl">Entrar</CardTitle>
         <CardDescription>Use o e-mail e a senha que recebeu do administrador.</CardDescription>

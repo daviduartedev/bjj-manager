@@ -137,6 +137,14 @@ Contrato canónico para **SPEC-2.2** e **SPEC-5.2** (gestão de aluno no MVP): C
 
 **STU-12.4.** UI indica claramente se o aluno já tem acesso (`user_id` preenchido) ou pendente.
 
+**STU-12.5.** Professor pode **criar utilizador Auth** no servidor (Admin API / **service role** só no servidor — **AUTH-7.1**, **AUTH-8.4**) e ligar `students.user_id`, além de associar Auth existente (**STU-12.1**).
+
+**STU-12.6.** Modos de credencial: **convite por e-mail** Supabase quando o aluno tem e-mail; **senha temporária** (12 caracteres, gerada no servidor, mostrada **uma vez** na UI copiável) como opção ou fallback (**AUTH-8.5**). Sem troca obrigatória no 1.º login neste MVP.
+
+**STU-12.7.** Após provisionamento bem-sucedido, toast de confirmação; erros genéricos em produto (**STU-2.2**). Aluno autentica em `/login` → **`/portal`** (**AUTH-8.1**, **SPT-2.2**).
+
+> **Implementado** no cycle `0524-visual-mobile-attendance-onboarding` Stage 4 — modos associar / convite / senha temporária em `provision-portal-access.tsx` + `actions/student-portal/provision-access.ts`.
+
 ## Manutenção
 
 Alterações em rotas sob **`/alunos`**, regras de plano/tipo, ou políticas em `students` / `student_plans` devem actualizar **este readme**, **`spec/features/dashboard/readme.md`** quando afectarem métricas do painel, **`spec/features/billing-ui/readme.md`** e **`spec/features/payments-billing-status/readme.md`** quando a carteira **`/mensalidades`** mudar (**BR-9**), **`spec/product/billing-rules.md`** + **`docs/product/billing-rules.md`**, **`spec/features/plans-billing-model/readme.md`**, **`spec/features/app-shell/readme.md`**, **`spec/features/student-profile/readme.md`** e **`spec/features/supabase-schema/readme.md`** quando o DDL mudar, e cenários em `cycles/Q22026/08-0430-students-crud/scenarios.feature`, `cycles/Q22026/10-0430-student-profile/scenarios.feature`, `cycles/Q22026/14-0430-billing-ui/scenarios.feature` e `cycles/Q22026/15-0430-dashboard/scenarios.feature` quando o comportamento observável ao professor mudar.

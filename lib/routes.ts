@@ -6,6 +6,7 @@ export const ROUTES = {
   login: "/login",
   portal: "/portal",
   portalAulas: "/portal/aulas",
+  portalPresenca: "/portal/presenca",
   portalLoja: "/portal/loja",
   portalFinanceiro: "/portal/financeiro",
   portalIndisponivel: "/portal/indisponivel",

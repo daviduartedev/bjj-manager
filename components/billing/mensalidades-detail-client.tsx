@@ -112,7 +112,7 @@ export function MensalidadesDetailClient({
               <p className="type-meta-label">Plano</p>
               <p className="font-medium text-foreground">
                 {payload.planLabel ?? (
-                  <span className="text-amber-700 dark:text-amber-400">Sem plano ativo</span>
+                  <span className="text-[hsl(var(--status-pending-foreground))]">Sem plano ativo</span>
                 )}
               </p>
             </div>

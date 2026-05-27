@@ -47,24 +47,18 @@ function KpiLinkCard(props: {
   label: string;
   value: number;
   icon: typeof Users;
-  variant?: "default" | "amber" | "rose";
+  variant?: "default" | "pending" | "overdue";
 }) {
   const { href, label, value, icon: Icon, variant = "default" } = props;
   const tone =
-    variant === "amber"
-      ? "border-amber-500/25 bg-gradient-to-br from-amber-500/[0.06] to-transparent hover:border-amber-500/40"
-      : variant === "rose"
-        ? "border-rose-500/20 bg-gradient-to-br from-rose-500/[0.05] to-transparent hover:border-rose-500/35"
-        : "border-border bg-card hover:border-primary/30";
+    variant === "pending"
+      ? "dashboard-kpi-card dashboard-kpi-card--pending"
+      : variant === "overdue"
+        ? "dashboard-kpi-card dashboard-kpi-card--overdue"
+        : "dashboard-kpi-card dashboard-kpi-card--default";
 
   return (
-    <Link
-      href={href}
-      className={cn(
-        "flex min-h-[5.5rem] flex-col justify-between rounded-xl border p-4 shadow-sm transition-colors",
-        tone,
-      )}
-    >
+    <Link href={href} className={cn(tone)}>
       <div className="flex items-start justify-between gap-2">
         <span className="text-crm-xs font-medium text-muted-foreground">{label}</span>
         <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -159,8 +153,8 @@ export function PainelDashboard(props: Props) {
           title={`Olá, ${displayName}`}
           description={`${accountName}, resumo do dia e atalhos.`}
           aside={
-            <div className="flex max-w-xs items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted/50 text-muted-foreground">
+            <div className="flex max-w-xs items-center gap-3 rounded-lg border border-primary/20 bg-gradient-to-br from-primary/[0.06] to-card px-4 py-3 shadow-sm">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-md border border-primary/20 bg-primary/[0.08] text-primary">
                 <Sparkles className="size-5" aria-hidden />
               </span>
               <div>
@@ -187,14 +181,14 @@ export function PainelDashboard(props: Props) {
               label="Mensalidades atrasadas"
               value={overdueCount}
               icon={Wallet}
-              variant="rose"
+              variant="overdue"
             />
             <KpiLinkCard
               href={routeAlunosActivos()}
               label="Aniversariantes do mês"
               value={birthdayMonthCount}
               icon={Cake}
-              variant="amber"
+              variant="pending"
             />
             <KpiLinkCard
               href={routeAlunosActivos()}

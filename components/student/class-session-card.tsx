@@ -80,23 +80,25 @@ export function ClassSessionCard({ session }: ClassSessionCardProps) {
   const kindLabel = session.classKind === "kids" ? "Kids" : "Adulto";
 
   return (
-    <article className="rounded-lg border border-border bg-card p-4 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
+    <article className="rounded-lg border border-border border-l-[3px] border-l-primary/35 bg-gradient-to-br from-[hsl(var(--content-wash-mid)/0.4)] to-card p-3 shadow-sm sm:p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-3">
+        <div className="min-w-0 space-y-1">
           <p className="text-sm font-medium text-muted-foreground">{dateLabel}</p>
-          <h3 className="type-card-heading">{session.className}</h3>
+          <h3 className="type-card-heading break-words">{session.className}</h3>
           <p className="text-sm text-muted-foreground">
             {session.startTime} – {session.endTime} · {kindLabel} · {session.instructorName}
           </p>
         </div>
-        <Badge variant={badge.variant}>{badge.label}</Badge>
+        <Badge variant={badge.variant} className="w-fit shrink-0">
+          {badge.label}
+        </Badge>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:flex-wrap">
         {!hasCheckIn && windowState === "open" ? (
           <Button
             type="button"
-            className="min-h-11"
+            className="min-h-11 w-full sm:w-auto"
             disabled={loading}
             onClick={handleCheckIn}
           >
@@ -113,7 +115,7 @@ export function ClassSessionCard({ session }: ClassSessionCardProps) {
           <Button
             type="button"
             variant="outline"
-            className="min-h-11"
+            className="min-h-11 w-full sm:w-auto"
             disabled={loading}
             onClick={handleCancel}
           >

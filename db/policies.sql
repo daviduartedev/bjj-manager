@@ -578,8 +578,10 @@ CREATE POLICY check_ins_student_delete ON public.check_ins FOR DELETE TO authent
   AND student_id = public.current_student_id ()
 );
 
--- ---------- attendances (professor only; aluno sem políticas de write) ----------
+-- ---------- attendances (professor CRUD; aluno SELECT próprio) ----------
 DROP POLICY IF EXISTS attendances_operational_all ON public.attendances;
+
+DROP POLICY IF EXISTS attendances_student_select ON public.attendances;
 
 CREATE POLICY attendances_operational_all ON public.attendances FOR ALL TO authenticated USING (
   public.current_profile_role () = 'professor'::public.profile_role
@@ -588,4 +590,9 @@ CREATE POLICY attendances_operational_all ON public.attendances FOR ALL TO authe
 WITH CHECK (
   public.current_profile_role () = 'professor'::public.profile_role
   AND account_id = public.current_account_id ()
+);
+
+CREATE POLICY attendances_student_select ON public.attendances FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND student_id = public.current_student_id ()
 );
