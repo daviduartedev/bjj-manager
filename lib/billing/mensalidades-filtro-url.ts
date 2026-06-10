@@ -20,6 +20,7 @@ const FILTER_TO_QUERY: Record<MensalidadesClientFilterKey, string | null> = {
   overdue: "atrasado",
   scholarship: "bolsista",
   other: "outro",
+  exempt: null,
 };
 
 /**

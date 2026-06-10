@@ -16,6 +16,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:exploratory": "playwright test --grep @exploratory",
     "db:apply": "node scripts/apply-db.cjs",
+    "db:validate-plans": "node scripts/validate-plan-assignments.cjs",
     "db:validate-rls": "node scripts/validate-rls.cjs",
     "setup:e2e-accounts": "node scripts/setup-e2e-test-accounts.cjs",
     "db:reset-adult-degrees": "node scripts/reset-adult-degrees-zero.mjs",

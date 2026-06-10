@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { StudentProfileClient } from "@/components/students/student-profile-client";
 import { listStudentAttendancesForProfessor } from "@/lib/data/student-attendances";
+import { getBeltsCatalog } from "@/lib/data/students-catalog";
 import { getStudentProfileById } from "@/lib/data/students-profile";
 import { STUDENT_ATTENDANCE_PAGE_SIZE } from "@/lib/constants/classes";
 
@@ -27,12 +28,15 @@ export default async function AlunoPerfilPage({ params, searchParams }: PageProp
   const profile = await getStudentProfileById(id);
   if (!profile) notFound();
 
+  const belts = await getBeltsCatalog();
+
   const attendancePage = Math.max(1, Number(pageParam) || 1);
   const attendanceResult = await listStudentAttendancesForProfessor(id, attendancePage);
 
   return (
     <StudentProfileClient
       profile={profile}
+      belts={belts}
       defaultTab={tab === "presenca" ? "presenca" : undefined}
       attendance={
         attendanceResult.ok

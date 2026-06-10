@@ -12,6 +12,7 @@ export type ListStudentRow = {
   full_name: string;
   kind: "adult" | "kids";
   status: string;
+  is_exempt: boolean;
   birth_date: string | null;
   academy_start_date: string | null;
   current_belt_id: string;
@@ -81,6 +82,7 @@ export async function listStudentsQuery(
       full_name,
       kind,
       status,
+      is_exempt,
       birth_date,
       academy_start_date,
       current_belt_id,
@@ -164,6 +166,7 @@ export async function listStudentsQuery(
       full_name: raw.full_name as string,
       kind: raw.kind as "adult" | "kids",
       status: raw.status as string,
+      is_exempt: raw.is_exempt === true,
       birth_date: (raw.birth_date as string | null) ?? null,
       academy_start_date: (raw.academy_start_date as string | null) ?? null,
       current_belt_id: raw.current_belt_id as string,

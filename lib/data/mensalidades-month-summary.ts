@@ -27,6 +27,7 @@ type StudentPlanEmbed = {
 
 type StudentEmbed = {
   status?: string;
+  is_exempt?: boolean | null;
   archived_at?: string | null;
   removed_at?: string | null;
   student_plans?: StudentPlanEmbed[] | null;
@@ -57,6 +58,7 @@ export async function loadMonthFinanceSummary(
       status,
       students (
         status,
+        is_exempt,
         archived_at,
         removed_at,
         student_plans (
@@ -86,6 +88,7 @@ export async function loadMonthFinanceSummary(
       st != null &&
       isStudentInMonthlyOperationalWallet({
         status: String(st.status ?? ""),
+        is_exempt: st.is_exempt === true,
         archived_at: st.archived_at ?? null,
         removed_at: st.removed_at ?? null,
       });

@@ -63,6 +63,7 @@ export async function fetchMonthBillingSnapshots(args: {
     .select(
       `
       id,
+      is_exempt,
       student_plans (
         due_day,
         custom_price_cents,
@@ -111,6 +112,7 @@ export async function fetchMonthBillingSnapshots(args: {
       today,
       dueDay,
       paymentStatus: persistedStatus,
+      isExempt: row.is_exempt === true,
     });
 
     return {

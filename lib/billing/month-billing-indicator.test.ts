@@ -33,6 +33,18 @@ describe("getMonthBillingIndicator", () => {
     ).toBe("other");
   });
 
+  it("isento persistente não deriva overdue nem pending", () => {
+    expect(
+      getMonthBillingIndicator({
+        referenceMonthFirstDay: REF,
+        today: "2025-03-31",
+        dueDay: 5,
+        paymentStatus: null,
+        isExempt: true,
+      }),
+    ).toBe("exempt");
+  });
+
   it("sem linha: pendente antes ou no vencimento; atrasado depois", () => {
     expect(
       getMonthBillingIndicator({

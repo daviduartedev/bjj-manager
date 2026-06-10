@@ -46,6 +46,7 @@ export async function getStudentProfileById(
       full_name,
       kind,
       status,
+      is_exempt,
       archived_at,
       removed_at,
       birth_date,
@@ -73,6 +74,7 @@ export async function getStudentProfileById(
         graduated_at,
         was_skip,
         skip_reason,
+        weight_kg,
         belts!student_graduations_resulting_belt_id_fkey ( slug, kind )
       )
     `,
@@ -124,6 +126,7 @@ export async function getStudentProfileById(
     graduated_at: string;
     was_skip: boolean;
     skip_reason: string | null;
+    weight_kg: number | null;
     belts:
       | { slug: string; kind: "adult" | "kids" }
       | { slug: string; kind: "adult" | "kids" }[]
@@ -172,6 +175,7 @@ export async function getStudentProfileById(
       graduated_at: g.graduated_at,
       was_skip: g.was_skip,
       skip_reason: g.skip_reason,
+      weight_kg: g.weight_kg,
       belt: g.belts,
     }))
     .sort(
@@ -214,8 +218,10 @@ export async function getStudentProfileById(
   const currentMonthEffectiveStatus: PaymentStatusSlug =
     currentMonthPayment?.status ?? "pending";
 
+  const isExempt = st.is_exempt === true;
   const dueDay = billing?.due_day ?? 10;
   const currentMonthOverdue =
+    !isExempt &&
     billing !== null &&
     isBillingOverdueUi({
       referenceMonthFirstDay: currentMonthFirstDay,
@@ -229,6 +235,7 @@ export async function getStudentProfileById(
   const mpAccess = resolveProfileMonthlyPaymentsAccess({
     billingPresent: billing !== null,
     status: st.status as string,
+    is_exempt: isExempt,
     archived_at: archivedAt,
     removed_at: removedAt,
   });
@@ -238,6 +245,7 @@ export async function getStudentProfileById(
     full_name: st.full_name as string,
     kind: st.kind as "adult" | "kids",
     status: st.status as string,
+    is_exempt: isExempt,
     archived_at: archivedAt,
     removed_at: removedAt,
     birth_date: st.birth_date as string | null,

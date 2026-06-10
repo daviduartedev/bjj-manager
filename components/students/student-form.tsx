@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
 import { ROUTES } from "@/lib/routes";
 import { mapStudentServerError } from "@/lib/students/action-errors";
@@ -80,6 +81,7 @@ export function StudentForm({
 
   const kind = form.watch("kind");
   const beltId = form.watch("current_belt_id");
+  const isExempt = form.watch("is_exempt");
 
   const { adultBelts, orangeJuvenileBelts, kidsBelts } = useMemo(() => {
     const byOrdinal = (a: BeltCatalogRow, b: BeltCatalogRow) =>
@@ -434,6 +436,32 @@ export function StudentForm({
 
         <FormField
           control={form.control}
+          name="is_exempt"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start gap-3 rounded-lg border border-border/60 bg-muted/15 p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  disabled={loading}
+                  onCheckedChange={(checked) =>
+                    field.onChange(checked === true)
+                  }
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Isento de mensalidade</FormLabel>
+                <p className="text-sm text-muted-foreground">
+                  Não entra na lista de mensalidades nem aparece como atrasado.
+                </p>
+              </div>
+            </FormItem>
+          )}
+        />
+
+        {!isExempt ? (
+          <>
+        <FormField
+          control={form.control}
           name="plan_id"
           render={({ field }) => (
             <FormItem>
@@ -489,6 +517,8 @@ export function StudentForm({
             </FormItem>
           )}
         />
+          </>
+        ) : null}
 
         <FormField
           control={form.control}

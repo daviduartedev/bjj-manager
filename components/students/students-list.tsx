@@ -14,8 +14,10 @@ import {
   unarchiveStudent,
 } from "@/actions/students";
 import { QuickEditDialog } from "@/components/students/quick-edit-dialog";
+import { BeltIllustration } from "@/components/graduation/belt-illustration";
 import { StudentAgeLabel } from "@/components/students/student-age";
 import { StudentStatusBadge } from "@/components/students/student-status-badge";
+import { StudentExemptBadge } from "@/components/students/student-exempt-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -104,6 +106,29 @@ export function StudentsList({
   function beltLine(row: ListStudentRow): string {
     if (!row.belt) return "–";
     return beltWithDegreeLine(row.belt.slug, row.belt.kind, row.current_degree);
+  }
+
+  function BeltCell({ row }: { row: ListStudentRow }) {
+    return (
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-2">
+          {row.belt ? (
+            <BeltIllustration
+              slug={row.belt.slug}
+              kind={row.belt.kind}
+              degree={row.current_degree}
+              compact
+            />
+          ) : null}
+          <span className="text-crm-sm text-muted-foreground">{beltLine(row)}</span>
+        </div>
+        {row.graduationDurationLine ? (
+          <span className="text-crm-xs text-muted-foreground/90">
+            {row.graduationDurationLine}
+          </span>
+        ) : null}
+      </div>
+    );
   }
 
   async function handleDeactivate(student: ListStudentRow) {
@@ -420,20 +445,16 @@ export function StudentsList({
                   >
                     <TableCell className="font-semibold text-foreground">{row.full_name}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      <div className="flex flex-col gap-0.5">
-                        <span>{beltLine(row)}</span>
-                        {row.graduationDurationLine ? (
-                          <span className="text-crm-xs text-muted-foreground/90">
-                            {row.graduationDurationLine}
-                          </span>
-                        ) : null}
-                      </div>
+                      <BeltCell row={row} />
                     </TableCell>
                     <TableCell className="tabular-nums-crm text-muted-foreground">
                       <StudentAgeLabel birthDate={row.birth_date} />
                     </TableCell>
                     <TableCell>
-                      <StudentStatusBadge status={row.status} />
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <StudentStatusBadge status={row.status} />
+                        {row.is_exempt ? <StudentExemptBadge /> : null}
+                      </div>
                     </TableCell>
                     <TableCell
                       className="text-right"
@@ -474,17 +495,15 @@ export function StudentsList({
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 space-y-1">
                         <p className="truncate font-semibold text-foreground">{row.full_name}</p>
-                        <p className="text-crm-sm text-muted-foreground">{beltLine(row)}</p>
-                        {row.graduationDurationLine ? (
-                          <p className="text-crm-xs text-muted-foreground/90">
-                            {row.graduationDurationLine}
-                          </p>
-                        ) : null}
+                        <BeltCell row={row} />
                         <p className="text-crm-sm text-muted-foreground tabular-nums-crm">
                           <StudentAgeLabel birthDate={row.birth_date} />
                         </p>
                       </div>
-                      <StudentStatusBadge status={row.status} />
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <StudentStatusBadge status={row.status} />
+                        {row.is_exempt ? <StudentExemptBadge /> : null}
+                      </div>
                     </div>
                   </button>
                   <div className="mt-4 flex justify-end border-t border-border/60 pt-4">

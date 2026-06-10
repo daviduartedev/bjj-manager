@@ -13,6 +13,7 @@ export type ProfileGraduationRow = {
   graduated_at: string;
   was_skip: boolean;
   skip_reason: string | null;
+  weight_kg: number | null;
   belt: { slug: string; kind: "adult" | "kids" } | null;
 };
 
@@ -28,6 +29,7 @@ export type StudentProfilePayload = {
   full_name: string;
   kind: "adult" | "kids";
   status: string;
+  is_exempt: boolean;
   archived_at: string | null;
   removed_at: string | null;
   birth_date: string | null;
@@ -70,9 +72,17 @@ export type StudentProfilePayload = {
 export function resolveProfileMonthlyPaymentsAccess(args: {
   billingPresent: boolean;
   status: string;
+  is_exempt: boolean;
   archived_at: string | null;
   removed_at: string | null;
 }): { canRegisterMonthlyPayments: boolean; monthlyPaymentsBlockedReason: string | null } {
+  if (args.is_exempt) {
+    return {
+      canRegisterMonthlyPayments: false,
+      monthlyPaymentsBlockedReason: null,
+    };
+  }
+
   if (!args.billingPresent) {
     return {
       canRegisterMonthlyPayments: false,

@@ -89,6 +89,9 @@ async function main() {
   } finally {
     await client.end();
   }
+
+  const { main: validatePlans } = require("./validate-plan-assignments.cjs");
+  await validatePlans();
 }
 
 main().catch((err) => {

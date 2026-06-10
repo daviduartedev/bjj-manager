@@ -62,6 +62,11 @@ export function routeAlunoEditar(studentId: string): string {
   return `${ROUTES.alunos}/${studentId}/editar`;
 }
 
+/** Histórico completo de graduações (**GRD-1.1**). */
+export function routeAlunoGraduacoes(studentId: string): string {
+  return `${ROUTES.alunos}/${studentId}/graduacoes`;
+}
+
 /** Detalhe de documento gerado (`/documentos/[documentId]`). */
 export function routeDocumentoDetalhe(documentId: string): string {
   return `${ROUTES.documentos}/${documentId}`;

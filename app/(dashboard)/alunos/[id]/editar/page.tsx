@@ -42,6 +42,7 @@ export default async function EditarAlunoPage({ params }: PageProps) {
     kind: student.kind,
     current_belt_id: student.current_belt_id,
     current_degree: student.current_degree,
+    is_exempt: student.is_exempt,
     plan_id: student.plan_id ?? "",
     due_day: student.due_day ?? 10,
     document: student.document ? maskCpfInput(student.document) : undefined,

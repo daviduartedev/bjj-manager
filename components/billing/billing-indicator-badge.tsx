@@ -7,6 +7,7 @@ const LABEL: Record<MonthBillingIndicator, string> = {
   overdue: "Atrasado",
   scholarship: "Bolsista",
   other: "Outro",
+  exempt: "Isento",
 };
 
 function badgeClass(indicator: MonthBillingIndicator): string {
@@ -17,6 +18,8 @@ function badgeClass(indicator: MonthBillingIndicator): string {
       return "badge-pending";
     case "overdue":
       return "badge-overdue";
+    case "exempt":
+      return "badge-info";
     default:
       return "badge-info";
   }

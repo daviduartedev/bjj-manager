@@ -13,6 +13,7 @@ export type StudentEditRow = {
   phone: string | null;
   email: string | null;
   notes: string | null;
+  is_exempt: boolean;
   openPlanId: string | null;
   plan_id: string | null;
   due_day: number | null;
@@ -38,6 +39,7 @@ export async function getStudentByIdForEdit(
       phone,
       email,
       notes,
+      is_exempt,
       student_plans ( id, plan_id, due_day, ended_at )
     `,
     )
@@ -67,6 +69,7 @@ export async function getStudentByIdForEdit(
     phone: data.phone,
     email: data.email,
     notes: data.notes,
+    is_exempt: data.is_exempt === true,
     openPlanId: open?.id ?? null,
     plan_id: open?.plan_id ?? null,
     due_day: open?.due_day ?? null,

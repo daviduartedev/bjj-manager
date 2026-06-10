@@ -28,6 +28,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: pnpm db:validate-plans (static)
+        run: pnpm db:validate-plans --static-only
+
       - name: pnpm db:validate-rls
         env:
           DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}

@@ -25,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -79,7 +80,7 @@ export function QuickEditDialog({
   );
 
   const defaults = useMemo((): QuickEditFormValues | null => {
-    if (!student?.openPlan) return null;
+    if (!student) return null;
     const st = student.status;
     const statusNorm: QuickEditFormValues["status"] =
       st === "active" ||
@@ -90,8 +91,9 @@ export function QuickEditDialog({
         : "active";
     return {
       status: statusNorm,
-      plan_id: student.openPlan.plan_id,
-      due_day: student.openPlan.due_day,
+      is_exempt: student.is_exempt,
+      plan_id: student.openPlan?.plan_id ?? "",
+      due_day: student.openPlan?.due_day ?? 10,
       current_belt_id: student.current_belt_id,
       current_degree: student.current_degree,
     };
@@ -109,6 +111,7 @@ export function QuickEditDialog({
   }, [defaults, open, form]);
 
   const beltId = form.watch("current_belt_id");
+  const isExempt = form.watch("is_exempt");
   const selectedBelt =
     belts.find((b) => b.id === beltId) ??
     (student ? belts.find((b) => b.id === student.current_belt_id) : undefined);
@@ -249,6 +252,29 @@ export function QuickEditDialog({
 
               <FormField
                 control={form.control}
+                name="is_exempt"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start gap-3 rounded-lg border border-border/60 bg-muted/15 p-3">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        disabled={loading}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked === true)
+                        }
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Isento de mensalidade</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              {!isExempt ? (
+                <>
+              <FormField
+                control={form.control}
                 name="plan_id"
                 render={({ field }) => (
                   <FormItem>
@@ -297,6 +323,8 @@ export function QuickEditDialog({
                   </FormItem>
                 )}
               />
+                </>
+              ) : null}
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField

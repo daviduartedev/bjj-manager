@@ -16,6 +16,7 @@ export function defaultCreateStudentValues(
     kind: "adult",
     current_belt_id: adultBelt?.id ?? "",
     current_degree: 0,
+    is_exempt: false,
     plan_id: adultPlan?.id ?? "",
     due_day: 10,
     document: undefined,

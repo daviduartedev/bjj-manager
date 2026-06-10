@@ -37,8 +37,9 @@ export function buildStudentFullFormSchema(
       kind: studentKindSchema,
       current_belt_id: z.string().uuid("Escolha a faixa."),
       current_degree: z.coerce.number().int(),
-      plan_id: z.string().uuid("Escolha o plano."),
-      due_day: z.coerce.number().int().min(1).max(28),
+      is_exempt: z.boolean().default(false),
+      plan_id: z.string().uuid("Escolha o plano.").optional(),
+      due_day: z.coerce.number().int().min(1).max(28).optional(),
       document: z.preprocess(emptyToUndef, z.string().trim().optional()),
       phone: z.preprocess(emptyToUndef, z.string().trim().optional()),
       email: z.preprocess(emptyToUndef, z.string().trim().optional()),
@@ -68,6 +69,27 @@ export function buildStudentFullFormSchema(
           message: "Grau inválido para esta faixa.",
           path: ["current_degree"],
         });
+      }
+
+      if (!data.is_exempt) {
+        if (!data.plan_id) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Escolha o plano.",
+            path: ["plan_id"],
+          });
+        }
+        if (data.due_day == null) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Informe o dia de vencimento.",
+            path: ["due_day"],
+          });
+        }
+      }
+
+      if (!data.plan_id) {
+        return;
       }
 
       const plan = planById.get(data.plan_id);
@@ -146,8 +168,9 @@ export function buildQuickEditFormSchema(
   return z
     .object({
       status: quickEditStatusSchema,
-      plan_id: z.string().uuid(),
-      due_day: z.coerce.number().int().min(1).max(28),
+      is_exempt: z.boolean().default(false),
+      plan_id: z.string().uuid().optional(),
+      due_day: z.coerce.number().int().min(1).max(28).optional(),
       current_belt_id: z.string().uuid(),
       current_degree: z.coerce.number().int(),
     })
@@ -169,6 +192,28 @@ export function buildQuickEditFormSchema(
           path: ["current_degree"],
         });
       }
+
+      if (!data.is_exempt) {
+        if (!data.plan_id) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Escolha o plano.",
+            path: ["plan_id"],
+          });
+        }
+        if (data.due_day == null) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Informe o dia de vencimento.",
+            path: ["due_day"],
+          });
+        }
+      }
+
+      if (!data.plan_id) {
+        return;
+      }
+
       const plan = planById.get(data.plan_id);
       if (
         !plan ||

@@ -84,6 +84,19 @@ DO $$ BEGIN
   CREATE TYPE public.attendance_origin AS ENUM ('checkin_student', 'manual_instructor');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
+DO $$ BEGIN
+  CREATE TYPE public.reservation_status AS ENUM (
+    'pending_payment',
+    'paid',
+    'expired',
+    'cancelled'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE public.pix_key_type AS ENUM ('cpf', 'cnpj', 'email', 'phone', 'random');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
 -- ---------- Tables ----------
 CREATE TABLE IF NOT EXISTS public.accounts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
@@ -92,6 +105,9 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   cnpj text NULL,
   signature_url text NULL,
   logo_url text NULL,
+  pix_key_type public.pix_key_type NULL,
+  pix_key text NULL,
+  pix_holder_name text NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT accounts_cnpj_format_ck CHECK (
@@ -99,6 +115,9 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   ),
   CONSTRAINT accounts_legal_name_not_blank CHECK (
     legal_name IS NULL OR length(trim(legal_name)) > 0
+  ),
+  CONSTRAINT accounts_pix_holder_name_not_blank CHECK (
+    pix_holder_name IS NULL OR length(trim(pix_holder_name)) > 0
   )
 );
 
@@ -146,6 +165,7 @@ CREATE TABLE IF NOT EXISTS public.students (
   user_id uuid NULL REFERENCES auth.users (id) ON DELETE SET NULL,
   portal_terms_accepted_at timestamptz NULL,
   guardian_email text NULL,
+  is_exempt boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT students_degree_bounds CHECK (
@@ -162,6 +182,7 @@ CREATE TABLE IF NOT EXISTS public.student_graduations (
   graduated_at timestamptz NOT NULL,
   was_skip boolean NOT NULL DEFAULT false,
   skip_reason text NULL,
+  weight_kg numeric(5, 1) NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT student_graduations_skip_reason_ck CHECK (
     (
@@ -177,6 +198,13 @@ CREATE TABLE IF NOT EXISTS public.student_graduations (
   CONSTRAINT student_graduations_degree_bounds CHECK (
     resulting_degree >= 0
     AND resulting_degree <= 6
+  ),
+  CONSTRAINT student_graduations_weight_kg_ck CHECK (
+    weight_kg IS NULL
+    OR (
+      weight_kg >= 20.0
+      AND weight_kg <= 250.0
+    )
   )
 );
 
@@ -236,6 +264,8 @@ CREATE TABLE IF NOT EXISTS public.products (
   code text NOT NULL,
   name text NOT NULL,
   active boolean NOT NULL DEFAULT true,
+  description text NULL,
+  portal_visible boolean NOT NULL DEFAULT false,
   sort_order integer NOT NULL DEFAULT 0,
   audience text NOT NULL DEFAULT 'unisex',
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -253,6 +283,7 @@ CREATE TABLE IF NOT EXISTS public.product_variants (
   product_id uuid NOT NULL REFERENCES public.products (id) ON DELETE CASCADE,
   size_label text NOT NULL,
   stock_quantity integer NOT NULL DEFAULT 0,
+  price_cents bigint NULL,
   sort_order integer NOT NULL DEFAULT 0,
   line text NOT NULL DEFAULT 'unisex',
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -260,7 +291,26 @@ CREATE TABLE IF NOT EXISTS public.product_variants (
   CONSTRAINT product_variants_product_size_unique UNIQUE (product_id, size_label),
   CONSTRAINT product_variants_size_not_blank CHECK (length(trim(size_label)) > 0),
   CONSTRAINT product_variants_stock_non_negative CHECK (stock_quantity >= 0),
+  CONSTRAINT product_variants_price_non_negative CHECK (
+    price_cents IS NULL OR price_cents >= 0
+  ),
   CONSTRAINT product_variants_line_check CHECK (line IN ('unisex', 'feminine'))
+);
+
+CREATE TABLE IF NOT EXISTS public.reservations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+  account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
+  student_id uuid NOT NULL REFERENCES public.students (id) ON DELETE CASCADE,
+  product_variant_id uuid NOT NULL REFERENCES public.product_variants (id) ON DELETE RESTRICT,
+  status public.reservation_status NOT NULL DEFAULT 'pending_payment',
+  price_cents bigint NOT NULL,
+  expires_at timestamptz NOT NULL,
+  paid_at timestamptz NULL,
+  cancelled_at timestamptz NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT reservations_price_non_negative CHECK (price_cents >= 0),
+  CONSTRAINT reservations_expires_after_created CHECK (expires_at > created_at)
 );
 
 -- ---------- Documents core (DOC- / REC-) ----------
@@ -488,6 +538,14 @@ WHERE
 CREATE INDEX IF NOT EXISTS idx_products_account_id ON public.products (account_id);
 
 CREATE INDEX IF NOT EXISTS idx_product_variants_product_id ON public.product_variants (product_id);
+
+CREATE INDEX IF NOT EXISTS idx_reservations_account_id ON public.reservations (account_id);
+
+CREATE INDEX IF NOT EXISTS idx_reservations_student_id ON public.reservations (student_id);
+
+CREATE INDEX IF NOT EXISTS idx_reservations_product_variant_id ON public.reservations (product_variant_id);
+
+CREATE INDEX IF NOT EXISTS idx_reservations_status_expires ON public.reservations (account_id, status, expires_at);
 
 CREATE INDEX IF NOT EXISTS idx_document_templates_type_active
   ON public.document_templates (type, is_active);

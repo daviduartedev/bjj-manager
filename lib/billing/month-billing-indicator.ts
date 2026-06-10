@@ -9,7 +9,8 @@ export type MonthBillingIndicator =
   | "pending"
   | "overdue"
   | "scholarship"
-  | "other";
+  | "other"
+  | "exempt";
 
 export type PaymentStatusSlug =
   | "pending"
@@ -26,7 +27,10 @@ export function getMonthBillingIndicator(args: {
   today: string;
   dueDay: number | null;
   paymentStatus: PaymentStatusSlug | null;
+  isExempt?: boolean;
 }): MonthBillingIndicator {
+  if (args.isExempt === true) return "exempt";
+
   const { today, dueDay, paymentStatus } = args;
 
   if (paymentStatus === "paid") return "paid";

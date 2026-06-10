@@ -33,6 +33,17 @@ describe("isStudentInMonthlyOperationalWallet", () => {
     ).toBe(false);
   });
 
+  it("recusa is_exempt", () => {
+    expect(
+      isStudentInMonthlyOperationalWallet({
+        status: "active",
+        is_exempt: true,
+        archived_at: null,
+        removed_at: null,
+      }),
+    ).toBe(false);
+  });
+
   it("recusa inactive mesmo sem arquivo/remoção", () => {
     expect(
       isStudentInMonthlyOperationalWallet({

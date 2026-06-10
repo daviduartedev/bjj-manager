@@ -2,21 +2,18 @@
 
 import { useState, type ComponentProps, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { UserRound } from "lucide-react";
+
+import { BeltIllustration } from "@/components/graduation/belt-illustration";
+import { GraduationEventDialog } from "@/components/graduation/graduation-event-dialog";
 
 import { Section } from "@/components/layout/section";
 import { StudentStatusBadge } from "@/components/students/student-status-badge";
+import { StudentExemptBadge } from "@/components/students/student-exempt-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -27,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { StudentProfilePayload } from "@/lib/data/students-profile.shared";
+import type { BeltCatalogRow } from "@/lib/data/students-catalog";
 import type { StudentAttendancesPage } from "@/lib/data/student-attendances";
 import { profileFormatPaidAt } from "@/lib/data/students-profile.shared";
 import {
@@ -40,7 +38,7 @@ import { StudentAttendanceTab } from "@/components/students/student-attendance-t
 import { ProvisionPortalAccess } from "@/components/students/provision-portal-access";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
-import { ROUTES, routeAlunoEditar, routeMensalidadesAluno } from "@/lib/routes";
+import { ROUTES, routeAlunoEditar, routeAlunoGraduacoes, routeMensalidadesAluno } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { beltWithDegreeLine } from "@/lib/students/belt-labels";
 import { maskCpfInput, maskPhoneBrInput } from "@/lib/students/input-masks";
@@ -51,10 +49,16 @@ import {
 
 type Props = {
   profile: StudentProfilePayload;
+  belts: BeltCatalogRow[];
   defaultTab?: "dados" | "graduacao" | "financeiro" | "documentos" | "portal" | "presenca";
   attendance: StudentAttendancesPage;
   attendanceError?: string | null;
 };
+
+function formatWeightKg(w: number | null): string | null {
+  if (w == null) return null;
+  return `${w.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg`;
+}
 
 function kindLabel(kind: "adult" | "kids"): string {
   return kind === "adult" ? "Adulto" : "Kids";
@@ -92,12 +96,16 @@ function Field({
 
 export function StudentProfileClient({
   profile,
+  belts,
   defaultTab = "dados",
   attendance,
   attendanceError = null,
 }: Props) {
+  const router = useRouter();
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
+
+  const recentGraduations = profile.graduations.slice(0, 5);
 
   const beltSlug = profile.currentBelt?.slug;
   const beltKind = profile.currentBelt?.kind;
@@ -135,6 +143,7 @@ export function StudentProfileClient({
               <Badge variant="secondary">{beltTitle}</Badge>
               <Badge variant="outline">{kindLabel(profile.kind)}</Badge>
               <StudentStatusBadge status={profile.status} />
+              {profile.is_exempt ? <StudentExemptBadge /> : null}
               <span className="text-sm text-muted-foreground">{ageDisplay}</span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -158,7 +167,7 @@ export function StudentProfileClient({
                 >
                   Registrar pagamento
                 </Button>
-              ) : profile.monthlyPaymentsBlockedReason ? (
+              ) : profile.is_exempt ? null : profile.monthlyPaymentsBlockedReason ? (
                 <span className="max-w-xl self-center rounded-md border border-border/80 bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
                   {profile.monthlyPaymentsBlockedReason}
                 </span>
@@ -250,9 +259,18 @@ export function StudentProfileClient({
           <Section title="Estado actual">
             <ProfileSurfaceCard>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">
-                  {beltTitle}
-                </CardTitle>
+                <div className="flex flex-wrap items-center gap-4">
+                  {beltSlug && beltKind ? (
+                    <BeltIllustration
+                      slug={beltSlug}
+                      kind={beltKind}
+                      degree={profile.current_degree}
+                    />
+                  ) : null}
+                  <CardTitle className="text-base font-semibold">
+                    {beltTitle}
+                  </CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <p>
@@ -282,7 +300,14 @@ export function StudentProfileClient({
             </ProfileSurfaceCard>
           </Section>
           <Section title="Histórico">
-            {profile.graduations.length === 0 ? (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Button variant="outline" size="sm" className="min-h-9" asChild>
+                <Link href={routeAlunoGraduacoes(profile.id)}>
+                  Ver histórico completo
+                </Link>
+              </Button>
+            </div>
+            {recentGraduations.length === 0 ? (
               <ProfileSurfaceCard>
                 <CardContent className="p-8 text-center text-sm text-muted-foreground">
                   Ainda não há graduações registadas.
@@ -290,13 +315,24 @@ export function StudentProfileClient({
               </ProfileSurfaceCard>
             ) : (
               <div className="flex flex-col gap-3">
-                {profile.graduations.map((g) => {
+                {recentGraduations.map((g) => {
                   const gradDay = toCalendarDateStringInAppTZ(
                     new Date(g.graduated_at),
                   );
+                  const weightLabel = formatWeightKg(g.weight_kg);
                   return (
                   <ProfileSurfaceCard key={g.id}>
                     <CardContent className="space-y-2 p-4">
+                      <div className="flex flex-wrap items-center gap-3">
+                        {g.belt ? (
+                          <BeltIllustration
+                            slug={g.belt.slug}
+                            kind={g.belt.kind}
+                            degree={g.resulting_degree}
+                            compact
+                          />
+                        ) : null}
+                        <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-medium text-foreground">
                           {g.belt
@@ -312,10 +348,17 @@ export function StudentProfileClient({
                         <Badge variant="outline" className="font-normal">
                           {formatDateBR(gradDay) ?? ","}
                         </Badge>
+                        {weightLabel ? (
+                          <Badge variant="secondary" className="font-normal">
+                            {weightLabel}
+                          </Badge>
+                        ) : null}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {formatRelativeBR(gradDay, profile.todayYmd) ?? ""}
                       </p>
+                        </div>
+                      </div>
                       {g.was_skip && g.skip_reason ? (
                         <p className="text-sm text-muted-foreground">
                           <span className="font-medium text-foreground">
@@ -334,6 +377,22 @@ export function StudentProfileClient({
         </TabsContent>
 
         <TabsContent value="financeiro" className="space-y-4">
+          {profile.is_exempt ? (
+            <Section title="Situação financeira">
+              <ProfileSurfaceCard>
+                <CardContent className="space-y-2 p-6">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StudentExemptBadge />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Este aluno está marcado como isento de mensalidade. Não entra
+                    na carteira de cobrança nem aparece como atrasado.
+                  </p>
+                </CardContent>
+              </ProfileSurfaceCard>
+            </Section>
+          ) : (
+            <>
           <div className="rounded-lg border border-primary/15 bg-primary/[0.04] px-4 py-3 text-sm text-foreground shadow-sm">
             <Link
               href={`${routeMensalidadesAluno(profile.id)}?mes=${encodeURIComponent(profile.currentMonthFirstDay)}`}
@@ -438,6 +497,8 @@ export function StudentProfileClient({
               </ProfileSurfaceCard>
             )}
           </Section>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="documentos" className="space-y-4">
@@ -477,27 +538,18 @@ export function StudentProfileClient({
         </TabsContent>
       </Tabs>
 
-      <Dialog open={promoteOpen} onOpenChange={setPromoteOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Promover graduação</DialogTitle>
-            <DialogDescription>
-              O registo completo de graduações (grau e faixa, com regras de pulo)
-              será disponibilizado numa próxima entrega. Por agora não há alterações
-              na base de dados a partir deste ecrã.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              className="min-h-11"
-              onClick={() => setPromoteOpen(false)}
-            >
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <GraduationEventDialog
+        open={promoteOpen}
+        onOpenChange={setPromoteOpen}
+        mode="promote"
+        studentId={profile.id}
+        studentKind={profile.kind}
+        ageYears={profile.ageYears}
+        currentBeltId={profile.current_belt_id}
+        currentDegree={profile.current_degree}
+        belts={belts}
+        onSuccess={() => router.refresh()}
+      />
 
       <RecordPaymentDialog
         open={paymentOpen}

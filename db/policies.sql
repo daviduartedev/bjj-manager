@@ -68,6 +68,129 @@ GRANT EXECUTE ON FUNCTION public.current_student_id () TO authenticated;
 
 COMMENT ON FUNCTION public.current_student_id () IS 'Returns students.id for auth.uid() in current account; SEC-3.7 portal Fase 2';
 
+-- ---------- Shop (portal Fase 3 — SPT-8) ----------
+CREATE OR REPLACE FUNCTION public.expire_stale_reservations (p_account_id uuid) RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_count integer := 0;
+  rec record;
+BEGIN
+  IF p_account_id IS NULL THEN
+    RETURN 0;
+  END IF;
+
+  FOR rec IN
+    SELECT r.id, r.product_variant_id
+    FROM public.reservations r
+    WHERE r.account_id = p_account_id
+      AND r.status = 'pending_payment'::public.reservation_status
+      AND r.expires_at < now()
+    FOR UPDATE OF r
+  LOOP
+    UPDATE public.reservations
+    SET status = 'expired'::public.reservation_status, updated_at = now()
+    WHERE id = rec.id;
+
+    UPDATE public.product_variants
+    SET stock_quantity = stock_quantity + 1, updated_at = now()
+    WHERE id = rec.product_variant_id;
+
+    v_count := v_count + 1;
+  END LOOP;
+
+  RETURN v_count;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.expire_stale_reservations (uuid) FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.expire_stale_reservations (uuid) TO authenticated;
+
+COMMENT ON FUNCTION public.expire_stale_reservations (uuid) IS 'Marks expired pending reservations and restores variant stock; SPT-8.4 lazy expiration';
+
+CREATE OR REPLACE FUNCTION public.reserve_product_variant (p_variant_id uuid) RETURNS public.reservations
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_student_id uuid;
+  v_account_id uuid;
+  v_variant public.product_variants;
+  v_product public.products;
+  v_reservation public.reservations;
+BEGIN
+  IF public.current_profile_role () <> 'student'::public.profile_role THEN
+    RAISE EXCEPTION 'Apenas alunos podem reservar produtos.';
+  END IF;
+
+  v_student_id := public.current_student_id ();
+  IF v_student_id IS NULL THEN
+    RAISE EXCEPTION 'Aluno não encontrado para este utilizador.';
+  END IF;
+
+  v_account_id := public.current_account_id ();
+  IF v_account_id IS NULL THEN
+    RAISE EXCEPTION 'Conta não encontrada.';
+  END IF;
+
+  PERFORM public.expire_stale_reservations (v_account_id);
+
+  SELECT pv.* INTO v_variant
+  FROM public.product_variants pv
+  INNER JOIN public.products p ON p.id = pv.product_id
+  WHERE pv.id = p_variant_id AND p.account_id = v_account_id
+  FOR UPDATE OF pv;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Variante não encontrada.';
+  END IF;
+
+  SELECT * INTO v_product FROM public.products WHERE id = v_variant.product_id;
+
+  IF NOT v_product.active OR NOT v_product.portal_visible THEN
+    RAISE EXCEPTION 'Produto não disponível para reserva.';
+  END IF;
+
+  IF v_variant.price_cents IS NULL OR v_variant.price_cents < 0 THEN
+    RAISE EXCEPTION 'Variante sem preço configurado.';
+  END IF;
+
+  IF v_variant.stock_quantity <= 0 THEN
+    RAISE EXCEPTION 'Sem estoque disponível.';
+  END IF;
+
+  UPDATE public.product_variants
+  SET stock_quantity = stock_quantity - 1, updated_at = now()
+  WHERE id = p_variant_id AND stock_quantity > 0
+  RETURNING * INTO v_variant;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Sem estoque disponível.';
+  END IF;
+
+  INSERT INTO public.reservations (
+    account_id, student_id, product_variant_id, status, price_cents, expires_at
+  ) VALUES (
+    v_account_id, v_student_id, p_variant_id,
+    'pending_payment'::public.reservation_status,
+    v_variant.price_cents, now() + interval '72 hours'
+  )
+  RETURNING * INTO v_reservation;
+
+  RETURN v_reservation;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.reserve_product_variant (uuid) FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.reserve_product_variant (uuid) TO authenticated;
+
+COMMENT ON FUNCTION public.reserve_product_variant (uuid) IS 'Atomic shop reservation: decrement variant stock, insert pending_payment reservation; SPT-8.3';
+
 -- ---------- Enable RLS ----------
 ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
 
@@ -115,6 +238,8 @@ ALTER TABLE public.check_ins ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE public.attendances ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE public.reservations ENABLE ROW LEVEL SECURITY;
+
 -- ---------- accounts (no INSERT for authenticated , bootstrap via postgres) ----------
 DROP POLICY IF EXISTS accounts_select_own ON public.accounts;
 
@@ -124,9 +249,19 @@ DROP POLICY IF EXISTS accounts_delete_own ON public.accounts;
 
 CREATE POLICY accounts_select_own ON public.accounts FOR SELECT TO authenticated USING (id = public.current_account_id ());
 
-CREATE POLICY accounts_update_own ON public.accounts FOR UPDATE TO authenticated USING (id = public.current_account_id ())
+DROP POLICY IF EXISTS accounts_update_own ON public.accounts;
+
+DROP POLICY IF EXISTS accounts_update_professor ON public.accounts;
+
+CREATE POLICY accounts_update_professor ON public.accounts FOR UPDATE TO authenticated USING (
+  id = public.current_account_id ()
+  AND public.current_profile_role () = 'professor'::public.profile_role
+)
 WITH
-  CHECK (id = public.current_account_id ());
+  CHECK (
+    id = public.current_account_id ()
+    AND public.current_profile_role () = 'professor'::public.profile_role
+  );
 
 CREATE POLICY accounts_delete_own ON public.accounts FOR DELETE TO authenticated USING (id = public.current_account_id ());
 
@@ -306,15 +441,37 @@ CREATE POLICY belts_select_authenticated ON public.belts FOR SELECT TO authentic
 -- ---------- products ----------
 DROP POLICY IF EXISTS products_tenant_all ON public.products;
 
-CREATE POLICY products_tenant_all ON public.products FOR ALL TO authenticated USING (account_id = public.current_account_id ())
+DROP POLICY IF EXISTS products_operational_all ON public.products;
+
+DROP POLICY IF EXISTS products_student_select ON public.products;
+
+CREATE POLICY products_operational_all ON public.products FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+)
 WITH
-  CHECK (account_id = public.current_account_id ());
+  CHECK (
+    public.current_profile_role () = 'professor'::public.profile_role
+    AND account_id = public.current_account_id ()
+  );
+
+CREATE POLICY products_student_select ON public.products FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND account_id = public.current_account_id ()
+  AND active = true
+  AND portal_visible = true
+);
 
 -- ---------- product_variants ----------
 DROP POLICY IF EXISTS product_variants_by_product_tenant ON public.product_variants;
 
-CREATE POLICY product_variants_by_product_tenant ON public.product_variants FOR ALL TO authenticated USING (
-  EXISTS (
+DROP POLICY IF EXISTS product_variants_operational_all ON public.product_variants;
+
+DROP POLICY IF EXISTS product_variants_student_select ON public.product_variants;
+
+CREATE POLICY product_variants_operational_all ON public.product_variants FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND EXISTS (
     SELECT
       1
     FROM
@@ -326,7 +483,8 @@ CREATE POLICY product_variants_by_product_tenant ON public.product_variants FOR 
 )
 WITH
   CHECK (
-    EXISTS (
+    public.current_profile_role () = 'professor'::public.profile_role
+    AND EXISTS (
       SELECT
         1
       FROM
@@ -336,6 +494,43 @@ WITH
         AND p.account_id = public.current_account_id ()
     )
   );
+
+CREATE POLICY product_variants_student_select ON public.product_variants FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND EXISTS (
+    SELECT
+      1
+    FROM
+      public.products p
+    WHERE
+      p.id = product_variants.product_id
+      AND p.account_id = public.current_account_id ()
+      AND p.active = true
+      AND p.portal_visible = true
+  )
+  AND stock_quantity > 0
+  AND price_cents IS NOT NULL
+);
+
+-- ---------- reservations (portal Fase 3) ----------
+DROP POLICY IF EXISTS reservations_operational_all ON public.reservations;
+
+DROP POLICY IF EXISTS reservations_student_select ON public.reservations;
+
+CREATE POLICY reservations_operational_all ON public.reservations FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+)
+WITH
+  CHECK (
+    public.current_profile_role () = 'professor'::public.profile_role
+    AND account_id = public.current_account_id ()
+  );
+
+CREATE POLICY reservations_student_select ON public.reservations FOR SELECT TO authenticated USING (
+  public.current_profile_role () = 'student'::public.profile_role
+  AND student_id = public.current_student_id ()
+);
 
 -- ---------- document_templates: globais (account_id IS NULL) leitura para todos; por conta tenant-only ----------
 DROP POLICY IF EXISTS document_templates_select ON public.document_templates;

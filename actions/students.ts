@@ -98,22 +98,24 @@ export async function createStudent(
     const supabase = await createClient();
 
     const belt = await resolveBelt(supabase, v.current_belt_id);
-    const plan = await resolvePlan(supabase, v.plan_id);
     if (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind)) {
       return { ok: false, error: "Dados de faixa inválidos." };
     }
-    if (
-      !plan ||
-      !planKindMatchesStudentContext({
-        planKind: plan.kind,
-        studentKind: v.kind as StudentKind,
-        beltSlug: belt.slug,
-      })
-    ) {
-      return {
-        ok: false,
-        error: "Dados de plano inválidos para a faixa do aluno.",
-      };
+    if (!v.is_exempt) {
+      const plan = await resolvePlan(supabase, v.plan_id!);
+      if (
+        !plan ||
+        !planKindMatchesStudentContext({
+          planKind: plan.kind,
+          studentKind: v.kind as StudentKind,
+          beltSlug: belt.slug,
+        })
+      ) {
+        return {
+          ok: false,
+          error: "Dados de plano inválidos para a faixa do aluno.",
+        };
+      }
     }
     if (!isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree)) {
       return { ok: false, error: "Grau inválido para a faixa." };
@@ -138,6 +140,7 @@ export async function createStudent(
         phone: phoneDigits.length ? phoneDigits : null,
         email: v.email?.trim().toLowerCase() ?? null,
         notes: v.notes?.trim() ?? null,
+        is_exempt: v.is_exempt ?? false,
       })
       .select("id")
       .single();
@@ -146,12 +149,14 @@ export async function createStudent(
       throw insertStudentError ?? new Error("insert student");
     }
 
-    await applyStudentPlanChange({
-      supabase,
-      studentId: inserted.id,
-      planId: v.plan_id,
-      dueDay: v.due_day,
-    });
+    if (!v.is_exempt && v.plan_id != null && v.due_day != null) {
+      await applyStudentPlanChange({
+        supabase,
+        studentId: inserted.id,
+        planId: v.plan_id,
+        dueDay: v.due_day,
+      });
+    }
 
     revalidatePath(ROUTES.alunos);
     return { ok: true };
@@ -182,22 +187,24 @@ export async function updateStudent(
     const supabase = await createClient();
 
     const belt = await resolveBelt(supabase, v.current_belt_id);
-    const plan = await resolvePlan(supabase, v.plan_id);
     if (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind)) {
       return { ok: false, error: "Dados de faixa inválidos." };
     }
-    if (
-      !plan ||
-      !planKindMatchesStudentContext({
-        planKind: plan.kind,
-        studentKind: v.kind as StudentKind,
-        beltSlug: belt.slug,
-      })
-    ) {
-      return {
-        ok: false,
-        error: "Dados de plano inválidos para a faixa do aluno.",
-      };
+    if (!v.is_exempt) {
+      const plan = await resolvePlan(supabase, v.plan_id!);
+      if (
+        !plan ||
+        !planKindMatchesStudentContext({
+          planKind: plan.kind,
+          studentKind: v.kind as StudentKind,
+          beltSlug: belt.slug,
+        })
+      ) {
+        return {
+          ok: false,
+          error: "Dados de plano inválidos para a faixa do aluno.",
+        };
+      }
     }
     if (!isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree)) {
       return { ok: false, error: "Grau inválido para a faixa." };
@@ -220,20 +227,24 @@ export async function updateStudent(
         phone: phoneDigits.length ? phoneDigits : null,
         email: v.email?.trim().toLowerCase() ?? null,
         notes: v.notes?.trim() ?? null,
+        is_exempt: v.is_exempt ?? false,
         updated_at: new Date().toISOString(),
       })
       .eq("id", studentId);
 
     if (upErr) throw upErr;
 
-    await applyStudentPlanChange({
-      supabase,
-      studentId,
-      planId: v.plan_id,
-      dueDay: v.due_day,
-    });
+    if (!v.is_exempt && v.plan_id != null && v.due_day != null) {
+      await applyStudentPlanChange({
+        supabase,
+        studentId,
+        planId: v.plan_id,
+        dueDay: v.due_day,
+      });
+    }
 
     revalidatePath(ROUTES.alunos);
+    revalidatePath(ROUTES.mensalidades);
     revalidatePath(`${ROUTES.alunos}/${studentId}/editar`);
     revalidatePath(`${ROUTES.alunos}/${studentId}`);
     return { ok: true };
@@ -273,19 +284,21 @@ export async function quickUpdateStudent(
       return { ok: false, error: "Grau inválido para a faixa." };
     }
 
-    const plan = await resolvePlan(supabase, v.plan_id);
-    if (
-      !plan ||
-      !planKindMatchesStudentContext({
-        planKind: plan.kind,
-        studentKind,
-        beltSlug: belt.slug,
-      })
-    ) {
-      return {
-        ok: false,
-        error: "Dados de plano inválidos para a faixa do aluno.",
-      };
+    if (!v.is_exempt) {
+      const plan = await resolvePlan(supabase, v.plan_id!);
+      if (
+        !plan ||
+        !planKindMatchesStudentContext({
+          planKind: plan.kind,
+          studentKind,
+          beltSlug: belt.slug,
+        })
+      ) {
+        return {
+          ok: false,
+          error: "Dados de plano inválidos para a faixa do aluno.",
+        };
+      }
     }
 
     const { error: upErr } = await supabase
@@ -294,20 +307,24 @@ export async function quickUpdateStudent(
         status: v.status,
         current_belt_id: v.current_belt_id,
         current_degree: v.current_degree,
+        is_exempt: v.is_exempt ?? false,
         updated_at: new Date().toISOString(),
       })
       .eq("id", studentId);
 
     if (upErr) throw upErr;
 
-    await applyStudentPlanChange({
-      supabase,
-      studentId,
-      planId: v.plan_id,
-      dueDay: v.due_day,
-    });
+    if (!v.is_exempt && v.plan_id != null && v.due_day != null) {
+      await applyStudentPlanChange({
+        supabase,
+        studentId,
+        planId: v.plan_id,
+        dueDay: v.due_day,
+      });
+    }
 
     revalidatePath(ROUTES.alunos);
+    revalidatePath(ROUTES.mensalidades);
     revalidatePath(`${ROUTES.alunos}/${studentId}`);
     return { ok: true };
   } catch (e) {

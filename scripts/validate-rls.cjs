@@ -29,6 +29,8 @@ const MARKER_PEER = "RLS-V-A-PEER";
 const MARKER_STUDENT = "RLS-V-A-STUDENT";
 const MARKER_STUDENT_PROFILE = "RLS-V-STUDENT";
 const MARKER_CLASS = "RLS-V-CLASS";
+const MARKER_PRODUCT = "RLS-V-SHOP-PRODUCT";
+const MARKER_PRODUCT_CODE = "RLS-V-SHOP";
 
 function requireEnv(name) {
   const v = process.env[name];
@@ -143,6 +145,68 @@ async function ensureClassPortalFixture(
 
   console.log(`  Fixture portal: turma ${MARKER_CLASS}, sessão ${sessionId}`);
   return { classId, sessionId, studentId, peerStudentId };
+}
+
+/**
+ * Produto portal + variante para testes loja Fase 3 (marcadores RLS-V-SHOP-*).
+ */
+async function ensureShopFixture(pg, accountId) {
+  const existing = await pg.query(
+    `select p.id as product_id, pv.id as variant_id, pv.stock_quantity
+     from public.products p
+     inner join public.product_variants pv on pv.product_id = p.id
+     where p.account_id = $1 and p.code = $2
+     limit 1`,
+    [accountId, MARKER_PRODUCT_CODE]
+  );
+  if (existing.rows.length) {
+    await pg.query(
+      `update public.product_variants
+       set stock_quantity = 2, price_cents = 9900, updated_at = now()
+       where id = $1`,
+      [existing.rows[0].variant_id]
+    );
+    await pg.query(
+      `update public.products
+       set active = true, portal_visible = true, updated_at = now()
+       where id = $1`,
+      [existing.rows[0].product_id]
+    );
+    return {
+      productId: existing.rows[0].product_id,
+      variantId: existing.rows[0].variant_id,
+    };
+  }
+
+  const productIns = await pg.query(
+    `insert into public.products
+       (account_id, code, name, active, portal_visible, description)
+     values ($1, $2, $3, true, true, 'Fixture loja RLS')
+     returning id`,
+    [accountId, MARKER_PRODUCT_CODE, MARKER_PRODUCT]
+  );
+  const productId = productIns.rows[0].id;
+
+  const variantIns = await pg.query(
+    `insert into public.product_variants
+       (product_id, size_label, stock_quantity, price_cents)
+     values ($1, 'M', 2, 9900)
+     returning id`,
+    [productId]
+  );
+
+  console.log(`  Fixture loja: produto ${MARKER_PRODUCT}, variante M`);
+  return { productId, variantId: variantIns.rows[0].id };
+}
+
+async function isShopSchemaReady(pg) {
+  const res = await pg.query(
+    `select exists (
+       select 1 from information_schema.tables
+       where table_schema = 'public' and table_name = 'reservations'
+     ) as ok`
+  );
+  return Boolean(res.rows[0]?.ok);
 }
 
 async function main() {
@@ -743,6 +807,227 @@ async function main() {
       );
 
       await studentPortalClient.auth.signOut();
+    }
+
+    const shopReady = await isShopSchemaReady(pg);
+    if (!shopReady) {
+      console.warn(
+        "  [SKIP portal Fase 3] Tabela reservations ausente — aplique migration 012."
+      );
+    } else if (passwordForSignIn && studentFixture && classPortalFixture) {
+      console.log(", Portal Fase 3: loja/reservas ,");
+      const shopFixture = await ensureShopFixture(pg, studentFixture.accountId);
+
+      await pg.query(`delete from public.reservations where account_id = $1`, [
+        studentFixture.accountId,
+      ]);
+
+      const profShopClient = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInProfShop = await profShopClient.auth.signInWithPassword({
+        email: EMAIL_A,
+        password: passwordForSignIn,
+      });
+      if (signInProfShop.error) throw signInProfShop.error;
+
+      const profProducts = await profShopClient
+        .from("products")
+        .select("id, code")
+        .eq("code", MARKER_PRODUCT_CODE);
+      if (profProducts.error) {
+        throw new Error(`professor products: ${profProducts.error.message}`);
+      }
+      if ((profProducts.data || []).length !== 1) {
+        throw new Error("professor devia ver produto fixture da loja");
+      }
+
+      const evilProductInsert = await profShopClient.from("products").insert({
+        account_id: tenantB.accountId,
+        code: "evil-cross-tenant",
+        name: "should-fail",
+      });
+      if (!evilProductInsert.error) {
+        await profShopClient
+          .from("products")
+          .delete()
+          .eq("code", "evil-cross-tenant");
+        throw new Error("professor não devia inserir produto cross-tenant");
+      }
+
+      await profShopClient.auth.signOut();
+
+      const studentShopClient = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInStudentShop = await studentShopClient.auth.signInWithPassword(
+        {
+          email: studentFixture.email,
+          password: passwordForSignIn,
+        }
+      );
+      if (signInStudentShop.error) throw signInStudentShop.error;
+
+      const studentProducts = await studentShopClient
+        .from("products")
+        .select("id, portal_visible")
+        .eq("code", MARKER_PRODUCT_CODE);
+      if (studentProducts.error) {
+        throw new Error(`student products: ${studentProducts.error.message}`);
+      }
+      if ((studentProducts.data || []).length !== 1) {
+        throw new Error("student devia ver 1 produto portal_visible");
+      }
+
+      const evilStudentProduct = await studentShopClient.from("products").insert({
+        account_id: studentFixture.accountId,
+        code: "evil-student-product",
+        name: "hack",
+      });
+      if (!evilStudentProduct.error) {
+        throw new Error("student não devia inserir produto");
+      }
+
+      const beforeStock = await pg.query(
+        `select stock_quantity from public.product_variants where id = $1`,
+        [shopFixture.variantId]
+      );
+      const stockBefore = Number(beforeStock.rows[0].stock_quantity);
+
+      const reserveRpc = await studentShopClient.rpc("reserve_product_variant", {
+        p_variant_id: shopFixture.variantId,
+      });
+      if (reserveRpc.error) {
+        throw new Error(`student reserve_product_variant: ${reserveRpc.error.message}`);
+      }
+      const reservationId = reserveRpc.data?.id;
+      if (!reservationId) {
+        throw new Error("reserve_product_variant não devolveu reservation");
+      }
+
+      const afterStock = await pg.query(
+        `select stock_quantity from public.product_variants where id = $1`,
+        [shopFixture.variantId]
+      );
+      if (Number(afterStock.rows[0].stock_quantity) !== stockBefore - 1) {
+        throw new Error("stock não desceu após reserva atómica");
+      }
+
+      const ownReservations = await studentShopClient
+        .from("reservations")
+        .select("id, student_id, status");
+      if (ownReservations.error) {
+        throw new Error(`student reservations: ${ownReservations.error.message}`);
+      }
+      const resRows = ownReservations.data || [];
+      if (resRows.length !== 1) {
+        throw new Error(
+          `student devia ver 1 reservation, viu ${resRows.length}`
+        );
+      }
+      if (resRows[0].student_id !== classPortalFixture.studentId) {
+        throw new Error("student viu reservation de outro aluno");
+      }
+
+      await pg.query(
+        `insert into public.reservations
+           (account_id, student_id, product_variant_id, status, price_cents, expires_at)
+         values ($1, $2, $3, 'pending_payment', 9900, now() + interval '1 day')`,
+        [
+          studentFixture.accountId,
+          classPortalFixture.peerStudentId,
+          shopFixture.variantId,
+        ]
+      );
+
+      const visibleAfterPeer = await studentShopClient
+        .from("reservations")
+        .select("id");
+      if ((visibleAfterPeer.data || []).length !== 1) {
+        throw new Error("student não devia ver reservation do peer");
+      }
+
+      const accountPixUpdate = await studentShopClient
+        .from("accounts")
+        .update({ pix_key: "00000000000" })
+        .eq("id", studentFixture.accountId)
+        .select("id");
+      if (accountPixUpdate.error) {
+        console.log(
+          `  Recusado UPDATE pix_key: ${accountPixUpdate.error.message}`
+        );
+      } else if ((accountPixUpdate.data || []).length > 0) {
+        throw new Error("student não devia actualizar pix_key da conta");
+      }
+
+      await studentShopClient.auth.signOut();
+
+      const profConfirmClient = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      await profConfirmClient.auth.signInWithPassword({
+        email: EMAIL_A,
+        password: passwordForSignIn,
+      });
+
+      const confirmPaid = await profConfirmClient
+        .from("reservations")
+        .update({ status: "paid", paid_at: new Date().toISOString() })
+        .eq("id", reservationId)
+        .select("id, status")
+        .single();
+      if (confirmPaid.error) {
+        throw new Error(`professor confirm paid: ${confirmPaid.error.message}`);
+      }
+      if (confirmPaid.data?.status !== "paid") {
+        throw new Error("professor não confirmou reservation como paid");
+      }
+
+      await profConfirmClient.auth.signOut();
+
+      await pg.query(
+        `update public.product_variants set stock_quantity = 0 where id = $1`,
+        [shopFixture.variantId]
+      );
+      const expireResIns = await pg.query(
+        `insert into public.reservations
+           (account_id, student_id, product_variant_id, status, price_cents, expires_at)
+         values ($1, $2, $3, 'pending_payment', 9900, now() + interval '1 day')
+         returning id`,
+        [
+          studentFixture.accountId,
+          classPortalFixture.studentId,
+          shopFixture.variantId,
+        ]
+      );
+      await pg.query(
+        `update public.reservations
+         set created_at = now() - interval '2 days',
+             expires_at = now() - interval '1 hour'
+         where id = $1`,
+        [expireResIns.rows[0].id]
+      );
+      await pg.query(`select public.expire_stale_reservations($1)`, [
+        studentFixture.accountId,
+      ]);
+      const expiredRow = await pg.query(
+        `select status from public.reservations where id = $1`,
+        [expireResIns.rows[0].id]
+      );
+      if (expiredRow.rows[0].status !== "expired") {
+        throw new Error("expire_stale_reservations não marcou expired");
+      }
+      const stockAfterExpire = await pg.query(
+        `select stock_quantity from public.product_variants where id = $1`,
+        [shopFixture.variantId]
+      );
+      if (Number(stockAfterExpire.rows[0].stock_quantity) !== 1) {
+        throw new Error("stock não reposto após expiração");
+      }
+
+      await pg.query(`delete from public.reservations where account_id = $1`, [
+        studentFixture.accountId,
+      ]);
     }
 
     console.log("\nOK , validação RLS concluída.");

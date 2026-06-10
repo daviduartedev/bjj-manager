@@ -118,6 +118,26 @@ VALUES ('<account_id>', '<student_id>', '<class_id>');
 Funções auxiliares em `db/policies.sql`:
 
 - `public.current_student_id()` — devolve `students.id` para `auth.uid()` na conta actual (**SEC-3.7** Fase 2).
+- `public.expire_stale_reservations(account_id)` — expira reservas `pending_payment` vencidas e repõe stock (**SPT-8.4**).
+- `public.reserve_product_variant(variant_id)` — reserva atómica para aluno autenticado (**SPT-8.3**).
+
+## Bootstrap produto portal (portal Fase 3)
+
+Para testes manuais de loja/reservas (substituir UUIDs):
+
+```sql
+-- Pré-requisitos: account_id, students.id (aluno com user_id ligado)
+INSERT INTO public.products (account_id, code, name, active, portal_visible, description)
+VALUES ('<account_id>', 'kimono-teste', 'Kimono teste', true, true, 'Fixture manual')
+RETURNING id;
+
+INSERT INTO public.product_variants (product_id, size_label, stock_quantity, price_cents)
+VALUES ('<product_id>', 'M', 3, 15000);
+```
+
+O aluno reserva via RPC `select * from public.reserve_product_variant('<variant_id>');` (sessão JWT `student`) ou pela UI `/portal/loja` (Stage 2).
+
+`pnpm db:validate-rls` cria fixture `RLS-V-SHOP-PRODUCT` quando migration **012** aplicada e `E2E_STUDENT_EMAIL` definido.
 
 ## Lista de políticas (resumo em prosa)
 
@@ -140,7 +160,12 @@ Funções auxiliares em `db/policies.sql`:
 | `class_recurring_schedules`, `class_sessions` | **Professor:** CRUD na conta. **Student:** `SELECT` via inscrição na turma. |
 | `student_class_enrollments` | **Professor:** CRUD na conta. **Student:** `SELECT` inscrições próprias. |
 | `check_ins` | **Professor:** CRUD na conta. **Student:** `SELECT`/`INSERT`/`DELETE` só na própria linha e turma inscrita. |
-| `attendances` | **Professor:** CRUD na conta. **Student:** sem políticas (sem acesso). |
+| `attendances` | **Professor:** CRUD na conta. **Student:** `SELECT` nas próprias presenças (**SPT-13**). |
+| **Portal Fase 3** | |
+| `products` | **Professor:** CRUD na conta. **Student:** `SELECT` produtos `active` + `portal_visible`. |
+| `product_variants` | **Professor:** CRUD via produto da conta. **Student:** `SELECT` variantes com stock > 0 e preço definido em produto portal. |
+| `reservations` | **Professor:** CRUD na conta. **Student:** `SELECT` próprias reservas; criação via `reserve_product_variant()` (sem INSERT directo). |
+| `accounts` (PIX) | **Professor:** `UPDATE` (incl. `pix_*`). **Student:** `SELECT` apenas; sem alterar chave PIX. |
 | `anon` | Sem acesso às tabelas acima (RLS sem política ⇒ nega). |
 
 Detalhe exato: ver [`db/policies.sql`](../../db/policies.sql).

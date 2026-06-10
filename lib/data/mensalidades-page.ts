@@ -65,6 +65,7 @@ export async function loadMensalidadesRows(referenceMonthInput: string | null): 
     `,
       )
       .eq("status", "active")
+      .eq("is_exempt", false)
       .is("archived_at", null)
       .is("removed_at", null)
       .order("full_name", { ascending: true }),
