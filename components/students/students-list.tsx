@@ -364,9 +364,9 @@ export function StudentsList({
           </Button>
         </div>
         <div className="space-y-5 border-t border-border/60 px-4 pb-5 pt-4 sm:px-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end">
-            <div className="min-w-[200px] flex-1 space-y-2">
-              <label className="type-field-label" htmlFor="student-search">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
+            <div className="space-y-2 sm:col-span-2 lg:col-span-4">
+              <label className="type-field-label block" htmlFor="student-search">
                 Buscar por nome
               </label>
               <div className="relative">
@@ -379,92 +379,91 @@ export function StudentsList({
                   value={localQ}
                   onChange={(e) => setLocalQ(e.target.value)}
                   placeholder="Nome do aluno…"
-                  className="min-h-11 border-border/80 bg-background/80 pl-9 shadow-inner"
+                  className="h-11 border-border/80 bg-background/80 pl-9 shadow-inner"
                 />
               </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3 lg:flex lg:flex-wrap">
-              <div className="space-y-2">
-                <span className="type-field-label">Plano</span>
-                <Select
-                  value={urlState.plan}
-                  onValueChange={(v) =>
-                    pushUrl({
-                      ...urlState,
-                      plan: v as AlunosUrlState["plan"],
-                      page: 1,
-                    })
-                  }
-                >
-                  <SelectTrigger className="min-h-11 w-full border-border/80 bg-background/80 sm:w-[160px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="adult">Adulto</SelectItem>
-                    <SelectItem value="kids_1">Kids 1</SelectItem>
-                    <SelectItem value="kids_2">Kids 2</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <span className="type-field-label">Situação</span>
-                <Select
-                  value={urlState.status}
-                  onValueChange={(v) =>
-                    pushUrl({
-                      ...urlState,
-                      status: v as AlunosUrlState["status"],
-                      page: 1,
-                    })
-                  }
-                >
-                  <SelectTrigger className="min-h-11 w-full border-border/80 bg-background/80 sm:w-[160px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                    <SelectItem value="paused">Pausado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <span className="type-field-label">Ordenar</span>
-                <Select
-                  value={urlState.sort}
-                  onValueChange={(v) =>
-                    pushUrl({
-                      ...urlState,
-                      sort: v as AlunosUrlState["sort"],
-                      page: 1,
-                    })
-                  }
-                >
-                  <SelectTrigger className="min-h-11 w-full border-border/80 bg-background/80 sm:w-[200px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name">Nome (A–Z)</SelectItem>
-                    <SelectItem value="academy_start">Data de entrada</SelectItem>
-                    <SelectItem value="updated_at">Última alteração</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <span className="type-field-label">Colunas</span>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-11 w-full gap-2 border-border/80 bg-background/80 sm:w-auto"
-                    >
-                      <SlidersHorizontal className="size-4" aria-hidden />
-                      Exibir colunas
-                    </Button>
-                  </PopoverTrigger>
+            <div className="space-y-2 lg:col-span-2">
+              <span className="type-field-label block">Plano</span>
+              <Select
+                value={urlState.plan}
+                onValueChange={(v) =>
+                  pushUrl({
+                    ...urlState,
+                    plan: v as AlunosUrlState["plan"],
+                    page: 1,
+                  })
+                }
+              >
+                <SelectTrigger className="h-11 w-full border-border/80 bg-background/80">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="adult">Adulto</SelectItem>
+                  <SelectItem value="kids_1">Kids 1</SelectItem>
+                  <SelectItem value="kids_2">Kids 2</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2 lg:col-span-2">
+              <span className="type-field-label block">Situação</span>
+              <Select
+                value={urlState.status}
+                onValueChange={(v) =>
+                  pushUrl({
+                    ...urlState,
+                    status: v as AlunosUrlState["status"],
+                    page: 1,
+                  })
+                }
+              >
+                <SelectTrigger className="h-11 w-full border-border/80 bg-background/80">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="inactive">Inativo</SelectItem>
+                  <SelectItem value="paused">Pausado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2 lg:col-span-2">
+              <span className="type-field-label block">Ordenar</span>
+              <Select
+                value={urlState.sort}
+                onValueChange={(v) =>
+                  pushUrl({
+                    ...urlState,
+                    sort: v as AlunosUrlState["sort"],
+                    page: 1,
+                  })
+                }
+              >
+                <SelectTrigger className="h-11 w-full border-border/80 bg-background/80">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Nome (A–Z)</SelectItem>
+                  <SelectItem value="academy_start">Data de entrada</SelectItem>
+                  <SelectItem value="updated_at">Última alteração</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2 sm:col-span-2 lg:col-span-2">
+              <span className="type-field-label block">Colunas</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 w-full justify-start gap-2 border-border/80 bg-background/80 font-normal shadow-sm"
+                  >
+                    <SlidersHorizontal className="size-4 shrink-0" aria-hidden />
+                    Exibir colunas
+                  </Button>
+                </PopoverTrigger>
                   <PopoverContent align="end" className="w-56 p-3">
                     <p className="mb-3 text-crm-xs font-medium text-foreground">
                       Escolha o que aparece na lista
@@ -507,7 +506,6 @@ export function StudentsList({
                   </PopoverContent>
                 </Popover>
               </div>
-            </div>
           </div>
         </div>
       </div>
