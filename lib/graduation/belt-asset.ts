@@ -28,3 +28,9 @@ export function beltAssetPath(
   const slugFile = slug.replace(/_/g, "-");
   return `/belts/${kind}-${slugFile}_degree_${d}.png`;
 }
+
+/** Faixas claras — precisam de moldura em fundos brancos da UI. */
+export function beltAssetNeedsContrastFrame(slug: string): boolean {
+  if (slug === "white" || slug === "white_kids") return true;
+  return slug.endsWith("_white");
+}

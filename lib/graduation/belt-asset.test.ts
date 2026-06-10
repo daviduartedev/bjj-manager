@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  beltAssetNeedsContrastFrame,
   beltAssetPath,
   clampDegreeForBeltAsset,
 } from "@/lib/graduation/belt-asset";
@@ -26,5 +27,13 @@ describe("beltAssetPath", () => {
     expect(beltAssetPath("black", "adult", 9)).toBe(
       "/belts/adult-black_degree_6.png",
     );
+  });
+});
+
+describe("beltAssetNeedsContrastFrame", () => {
+  it("detecta faixas claras", () => {
+    expect(beltAssetNeedsContrastFrame("white")).toBe(true);
+    expect(beltAssetNeedsContrastFrame("yellow_white")).toBe(true);
+    expect(beltAssetNeedsContrastFrame("blue")).toBe(false);
   });
 });
