@@ -28,10 +28,11 @@ export function calendarDateWhenCurrentBeltDegreeEstablished(
   );
 
   let last: string | null = null;
+  const degree = Number(currentDegree);
   for (const g of sorted) {
     if (
       g.resulting_belt_id === currentBeltId &&
-      g.resulting_degree === currentDegree
+      Number(g.resulting_degree) === degree
     ) {
       last = graduationCalendarDay(g.graduated_at);
     }

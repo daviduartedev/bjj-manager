@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { studentGraduationDurationLine } from "@/lib/students/duration-display";
 
 describe("studentGraduationDurationLine", () => {
-  it("mostra só tempo no grau actual, sem tempo na faixa", () => {
+  it("conta desde a graduação que estabeleceu o grau actual", () => {
     const line = studentGraduationDurationLine(
       [
         {
@@ -23,12 +23,11 @@ describe("studentGraduationDurationLine", () => {
       "2026-06-01",
     );
     expect(line).toBeTruthy();
-    expect(line).not.toMatch(/Na faixa/i);
-    expect(line).not.toMatch(/No grau:/i);
-    expect(line).toMatch(/2025-03|mar|mês|ano/i);
+    expect(line).not.toMatch(/aprox\./i);
+    expect(line).toMatch(/ano|mês|mes/i);
   });
 
-  it("marca aproximado quando usa data de entrada na academia", () => {
+  it("não usa entrada na academia quando não há graduação correspondente", () => {
     const line = studentGraduationDurationLine(
       [],
       "belt-a",
@@ -36,7 +35,23 @@ describe("studentGraduationDurationLine", () => {
       "2021-06-01",
       "2026-06-01",
     );
-    expect(line).toMatch(/aprox\./i);
-    expect(line).not.toMatch(/Na faixa/i);
+    expect(line).toBeNull();
+  });
+
+  it("coerce grau numérico na comparação com histórico", () => {
+    const line = studentGraduationDurationLine(
+      [
+        {
+          resulting_belt_id: "belt-a",
+          resulting_degree: 2 as unknown as number,
+          graduated_at: "2025-03-15T12:00:00Z",
+        },
+      ],
+      "belt-a",
+      2,
+      "2020-01-01",
+      "2026-06-01",
+    );
+    expect(line).toBeTruthy();
   });
 });

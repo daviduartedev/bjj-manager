@@ -1,31 +1,27 @@
 import { timeAtCurrentDegree } from "@/lib/dates/duration-domain";
 
-import {
-  resolveDegreeStart,
-  type GraduationRecordInput,
-} from "./graduation-reference";
+import { calendarDateWhenCurrentBeltDegreeEstablished } from "./graduation-current-since";
+import type { GraduationRecordInput } from "./graduation-reference";
 
 /**
- * Linha auxiliar **STU-7.4** (lista `/alunos`): apenas tempo no **grau actual**,
- * a partir da última graduação que estabeleceu o par (faixa, grau) vigente.
+ * Linha auxiliar **STU-7.4** (lista `/alunos`): tempo no **grau actual** desde a
+ * graduação que estabeleceu o par (faixa, grau) vigente — sem fallback na entrada na academia.
  */
 export function studentGraduationDurationLine(
   grads: GraduationRecordInput[],
   currentBeltId: string,
   currentDegree: number,
-  academyStartYmd: string | null,
+  _academyStartYmd: string | null,
   todayYmd: string,
 ): string | null {
-  const degR = resolveDegreeStart(
+  const startYmd = calendarDateWhenCurrentBeltDegreeEstablished(
     grads,
     currentBeltId,
     currentDegree,
-    academyStartYmd,
   );
-  const degHum =
-    degR.startYmd != null
-      ? timeAtCurrentDegree(degR.startYmd, todayYmd)
-      : null;
+  if (!startYmd) return null;
+
+  const degHum = timeAtCurrentDegree(startYmd, todayYmd);
   if (!degHum) return null;
-  return `${degHum}${degR.approximate ? " (aprox.)" : ""}`;
+  return degHum;
 }

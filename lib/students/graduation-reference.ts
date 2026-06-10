@@ -4,6 +4,8 @@ import { differenceInCalendarDays } from "date-fns";
 import { APP_TIME_ZONE } from "@/lib/dates/constants";
 import { parseCalendarDate, toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
 
+import { calendarDateWhenCurrentBeltDegreeEstablished } from "./graduation-current-since";
+
 const inSP = { in: tz(APP_TIME_ZONE) } as const;
 
 export type GraduationRecordInput = {
@@ -70,14 +72,13 @@ export function resolveDegreeStart(
   currentDegree: number,
   academyStartYmd: string | null | undefined,
 ): ReferenceStartResult {
-  const sorted = sortGraduationsDesc(grads);
-  const hit = sorted.find(
-    (g) =>
-      g.resulting_belt_id === currentBeltId && g.resulting_degree === currentDegree,
+  const fromHistory = calendarDateWhenCurrentBeltDegreeEstablished(
+    grads,
+    currentBeltId,
+    currentDegree,
   );
-  if (hit) {
-    const ymd = graduationCalendarDateYmd(hit);
-    if (ymd) return { startYmd: ymd, approximate: false };
+  if (fromHistory) {
+    return { startYmd: fromHistory, approximate: false };
   }
   const a = academyStartYmd?.trim() ?? "";
   if (a && /^\d{4}-\d{2}-\d{2}$/.test(a)) {
