@@ -1,6 +1,11 @@
 import { z } from "zod";
 
 import type { PlanKind } from "@/lib/students/plan-kind";
+import {
+  parseAlunosListColumns,
+  stringifyAlunosListColumns,
+  type AlunosListColumn,
+} from "@/lib/students/alunos-list-columns";
 import type { ListSortKey } from "@/lib/validations/students";
 import { listSortSchema } from "@/lib/validations/students";
 
@@ -21,7 +26,11 @@ export type AlunosUrlState = {
   lista: StudentListLifecycle;
   sort: ListSortKey;
   page: number;
+  /** Colunas opcionais visíveis na tabela/cartões (nome e acções são fixos). */
+  colunas: AlunosListColumn[];
 };
+
+export type { AlunosListColumn };
 
 const urlSchema = z.object({
   q: z.string().optional(),
@@ -62,6 +71,7 @@ export function parseAlunosSearchParams(
     lista: v.lista,
     sort: v.sort,
     page,
+    colunas: parseAlunosListColumns(single("colunas")),
   };
 }
 
@@ -73,6 +83,8 @@ export function stringifyAlunosSearchParams(state: AlunosUrlState): string {
   if (state.lista !== "principal") u.set("lista", state.lista);
   if (state.sort !== "name") u.set("sort", state.sort);
   if (state.page > 1) u.set("page", String(state.page));
+  const colunas = stringifyAlunosListColumns(state.colunas);
+  if (colunas) u.set("colunas", colunas);
   const s = u.toString();
   return s ? `?${s}` : "";
 }

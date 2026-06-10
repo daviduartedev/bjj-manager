@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { calendarDateWhenCurrentBeltDegreeEstablished } from "./graduation-current-since";
+import {
+  calendarDateWhenCurrentBeltDegreeEstablished,
+  currentBeltDegreeGraduationMeta,
+} from "./graduation-current-since";
 
 describe("calendarDateWhenCurrentBeltDegreeEstablished", () => {
   it("returns last chronological date where resulting pair matches current", () => {
@@ -44,5 +47,22 @@ describe("calendarDateWhenCurrentBeltDegreeEstablished", () => {
         1,
       ),
     ).toBeNull();
+  });
+
+  it("currentBeltDegreeGraduationMeta inclui peso do evento", () => {
+    const meta = currentBeltDegreeGraduationMeta(
+      [
+        {
+          resulting_belt_id: "belt",
+          resulting_degree: 1,
+          graduated_at: "2025-03-15T12:00:00.000Z",
+          weight_kg: 72.5,
+        },
+      ],
+      "belt",
+      1,
+    );
+    expect(meta?.configuredAtYmd).toBeTruthy();
+    expect(meta?.weightKg).toBe(72.5);
   });
 });

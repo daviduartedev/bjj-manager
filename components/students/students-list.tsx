@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FilterX, ListFilter, MoreHorizontal, Pencil, Search, Users } from "lucide-react";
+import { FilterX, ListFilter, MoreHorizontal, Pencil, Search, SlidersHorizontal, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -20,6 +20,12 @@ import { StudentStatusBadge } from "@/components/students/student-status-badge";
 import { StudentExemptBadge } from "@/components/students/student-exempt-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,12 +49,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { STUDENTS_PAGE_SIZE } from "@/lib/constants/students";
+import { formatDateBR } from "@/lib/dates";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
 import type { ListStudentRow } from "@/lib/data/students-list";
 import { ROUTES, routeAlunoEditar, routeAlunoPerfil } from "@/lib/routes";
+import {
+  ALUNOS_LIST_COLUMN_LABELS,
+  ALUNOS_LIST_COLUMNS,
+  DEFAULT_ALUNOS_LIST_COLUMNS,
+  toggleAlunosListColumn,
+  type AlunosListColumn,
+} from "@/lib/students/alunos-list-columns";
 import type { AlunosUrlState } from "@/lib/students/alunos-url";
 import { stringifyAlunosSearchParams } from "@/lib/students/alunos-url";
 import { beltWithDegreeLine } from "@/lib/students/belt-labels";
+import { formatWeightKgPt } from "@/lib/students/format-weight";
 
 type Props = {
   rows: ListStudentRow[];
@@ -103,31 +118,115 @@ export function StudentsList({
       ? 1
       : Math.ceil(total / STUDENTS_PAGE_SIZE);
 
+  const visibleCols = ALUNOS_LIST_COLUMNS.filter((c) =>
+    urlState.colunas.includes(c),
+  );
+
+  function showCol(col: AlunosListColumn): boolean {
+    return urlState.colunas.includes(col);
+  }
+
   function beltLine(row: ListStudentRow): string {
     if (!row.belt) return "–";
     return beltWithDegreeLine(row.belt.slug, row.belt.kind, row.current_degree);
   }
 
-  function BeltCell({ row }: { row: ListStudentRow }) {
+  function BeltFaixaCell({ row }: { row: ListStudentRow }) {
     return (
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2">
-          {row.belt ? (
-            <BeltIllustration
-              slug={row.belt.slug}
-              kind={row.belt.kind}
-              degree={row.current_degree}
-              compact
-            />
-          ) : null}
-          <span className="text-crm-sm text-muted-foreground">{beltLine(row)}</span>
-        </div>
-        {row.graduationDurationLine ? (
-          <span className="text-crm-xs text-muted-foreground/90">
-            {row.graduationDurationLine}
-          </span>
+      <div className="flex flex-wrap items-center gap-2">
+        {row.belt ? (
+          <BeltIllustration
+            slug={row.belt.slug}
+            kind={row.belt.kind}
+            degree={row.current_degree}
+            compact
+          />
         ) : null}
+        <span className="text-crm-sm text-muted-foreground">{beltLine(row)}</span>
       </div>
+    );
+  }
+
+  function renderColumnCell(col: AlunosListColumn, row: ListStudentRow) {
+    switch (col) {
+      case "faixa":
+        return <BeltFaixaCell row={row} />;
+      case "data_graduacao":
+        return (
+          <span className="tabular-nums-crm text-muted-foreground">
+            {row.graduationConfiguredAtYmd
+              ? (formatDateBR(row.graduationConfiguredAtYmd) ?? "–")
+              : "–"}
+          </span>
+        );
+      case "tempo_grau":
+        return (
+          <span className="text-crm-sm text-muted-foreground">
+            {row.graduationDurationLine ?? "–"}
+          </span>
+        );
+      case "peso":
+        return (
+          <span className="tabular-nums-crm text-muted-foreground">
+            {formatWeightKgPt(row.graduationWeightKg) ?? "–"}
+          </span>
+        );
+      case "idade":
+        return (
+          <span className="tabular-nums-crm text-muted-foreground">
+            <StudentAgeLabel birthDate={row.birth_date} />
+          </span>
+        );
+      case "situacao":
+        return (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <StudentStatusBadge status={row.status} />
+            {row.is_exempt ? <StudentExemptBadge /> : null}
+          </div>
+        );
+      default:
+        return null;
+    }
+  }
+
+  function MobileMetaLines({ row }: { row: ListStudentRow }) {
+    const lines: { label: string; value: ReactNode }[] = [];
+    if (showCol("data_graduacao")) {
+      lines.push({
+        label: ALUNOS_LIST_COLUMN_LABELS.data_graduacao,
+        value: row.graduationConfiguredAtYmd
+          ? (formatDateBR(row.graduationConfiguredAtYmd) ?? "–")
+          : "–",
+      });
+    }
+    if (showCol("tempo_grau")) {
+      lines.push({
+        label: ALUNOS_LIST_COLUMN_LABELS.tempo_grau,
+        value: row.graduationDurationLine ?? "–",
+      });
+    }
+    if (showCol("peso")) {
+      lines.push({
+        label: ALUNOS_LIST_COLUMN_LABELS.peso,
+        value: formatWeightKgPt(row.graduationWeightKg) ?? "–",
+      });
+    }
+    if (showCol("idade")) {
+      lines.push({
+        label: ALUNOS_LIST_COLUMN_LABELS.idade,
+        value: <StudentAgeLabel birthDate={row.birth_date} />,
+      });
+    }
+    if (!lines.length) return null;
+    return (
+      <dl className="mt-2 space-y-1 text-crm-xs text-muted-foreground">
+        {lines.map(({ label, value }) => (
+          <div key={label} className="flex flex-wrap gap-x-1.5">
+            <dt className="font-medium text-foreground/80">{label}:</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
     );
   }
 
@@ -353,6 +452,61 @@ export function StudentsList({
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <span className="type-field-label">Colunas</span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="min-h-11 w-full gap-2 border-border/80 bg-background/80 sm:w-auto"
+                    >
+                      <SlidersHorizontal className="size-4" aria-hidden />
+                      Exibir colunas
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-56 p-3">
+                    <p className="mb-3 text-crm-xs font-medium text-foreground">
+                      Escolha o que aparece na lista
+                    </p>
+                    <ul className="space-y-2">
+                      {ALUNOS_LIST_COLUMNS.map((col) => (
+                        <li key={col}>
+                          <label className="flex cursor-pointer items-center gap-2 text-crm-sm">
+                            <Checkbox
+                              checked={urlState.colunas.includes(col)}
+                              onCheckedChange={() =>
+                                pushUrl({
+                                  ...urlState,
+                                  colunas: toggleAlunosListColumn(
+                                    urlState.colunas,
+                                    col,
+                                  ),
+                                })
+                              }
+                            />
+                            {ALUNOS_LIST_COLUMN_LABELS[col]}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="mt-3 h-8 w-full text-crm-xs"
+                      onClick={() =>
+                        pushUrl({
+                          ...urlState,
+                          colunas: [...DEFAULT_ALUNOS_LIST_COLUMNS],
+                        })
+                      }
+                    >
+                      Restaurar padrão
+                    </Button>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </div>
         </div>
@@ -430,9 +584,11 @@ export function StudentsList({
               <TableHeader className="border-b border-border bg-muted/40 [&_tr]:border-border">
                 <TableRow className="border-0 hover:bg-transparent">
                   <TableHead className={thClass}>Nome</TableHead>
-                  <TableHead className={thClass}>Faixa / grau</TableHead>
-                  <TableHead className={thClass}>Idade</TableHead>
-                  <TableHead className={thClass}>Situação</TableHead>
+                  {visibleCols.map((col) => (
+                    <TableHead key={col} className={thClass}>
+                      {ALUNOS_LIST_COLUMN_LABELS[col]}
+                    </TableHead>
+                  ))}
                   <TableHead className={`${thClass} w-[72px] text-right`}>Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -444,18 +600,11 @@ export function StudentsList({
                     onClick={() => router.push(routeAlunoPerfil(row.id))}
                   >
                     <TableCell className="font-semibold text-foreground">{row.full_name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      <BeltCell row={row} />
-                    </TableCell>
-                    <TableCell className="tabular-nums-crm text-muted-foreground">
-                      <StudentAgeLabel birthDate={row.birth_date} />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <StudentStatusBadge status={row.status} />
-                        {row.is_exempt ? <StudentExemptBadge /> : null}
-                      </div>
-                    </TableCell>
+                    {visibleCols.map((col) => (
+                      <TableCell key={col} className="text-muted-foreground">
+                        {renderColumnCell(col, row)}
+                      </TableCell>
+                    ))}
                     <TableCell
                       className="text-right"
                       onClick={(e) => e.stopPropagation()}
@@ -495,15 +644,15 @@ export function StudentsList({
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 space-y-1">
                         <p className="truncate font-semibold text-foreground">{row.full_name}</p>
-                        <BeltCell row={row} />
-                        <p className="text-crm-sm text-muted-foreground tabular-nums-crm">
-                          <StudentAgeLabel birthDate={row.birth_date} />
-                        </p>
+                        {showCol("faixa") ? <BeltFaixaCell row={row} /> : null}
+                        <MobileMetaLines row={row} />
                       </div>
+                      {showCol("situacao") ? (
                       <div className="flex shrink-0 flex-col items-end gap-1">
                         <StudentStatusBadge status={row.status} />
                         {row.is_exempt ? <StudentExemptBadge /> : null}
                       </div>
+                      ) : null}
                     </div>
                   </button>
                   <div className="mt-4 flex justify-end border-t border-border/60 pt-4">

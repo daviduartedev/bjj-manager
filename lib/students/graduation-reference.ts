@@ -13,6 +13,7 @@ export type GraduationRecordInput = {
   resulting_degree: number;
   /** Instant from DB (`timestamptz`). */
   graduated_at: string;
+  weight_kg?: number | null;
 };
 
 /**

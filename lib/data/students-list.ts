@@ -3,6 +3,7 @@ import { STUDENTS_PAGE_SIZE } from "@/lib/constants/students";
 import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
 import type { PlanKind } from "@/lib/students/plan-kind";
 import { studentGraduationDurationLine } from "@/lib/students/duration-display";
+import { currentBeltDegreeGraduationMeta } from "@/lib/students/graduation-current-since";
 import type { GraduationRecordInput } from "@/lib/students/graduation-reference";
 import type { StudentListLifecycle } from "@/lib/students/alunos-url";
 import type { ListSortKey } from "@/lib/validations/students";
@@ -25,8 +26,12 @@ export type ListStudentRow = {
     plan_name: string;
     plan_kind: PlanKind;
   } | null;
-  /** **STU-7.4**, texto derivado de graduações + academia. */
+  /** **STU-7.4**, tempo humanizado desde a graduação do grau actual. */
   graduationDurationLine: string | null;
+  /** Data civil da graduação que estabeleceu faixa/grau actuais; null se não registada. */
+  graduationConfiguredAtYmd: string | null;
+  /** Peso (kg) registado nessa graduação, se houver. */
+  graduationWeightKg: number | null;
 };
 
 export type ListStudentsParams = {
@@ -90,7 +95,7 @@ export async function listStudentsQuery(
       updated_at,
       belts!students_current_belt_id_fkey ( slug, kind ),
       ${studentPlansSelect},
-      student_graduations ( resulting_belt_id, resulting_degree, graduated_at )
+      student_graduations ( resulting_belt_id, resulting_degree, graduated_at, weight_kg )
     `,
     { count: "exact" },
   );
@@ -154,11 +159,14 @@ export async function listStudentsQuery(
     const open = spArr?.find((s) => s.ended_at == null);
     const gradsRaw = raw.student_graduations as GraduationRecordInput[] | null;
     const grads = Array.isArray(gradsRaw) ? gradsRaw : [];
+    const beltId = raw.current_belt_id as string;
+    const degree = raw.current_degree as number;
+    const gradMeta = currentBeltDegreeGraduationMeta(grads, beltId, degree);
     const graduationDurationLine = studentGraduationDurationLine(
       grads,
-      raw.current_belt_id as string,
-      raw.current_degree as number,
-      (raw.academy_start_date as string | null) ?? null,
+      beltId,
+      degree,
+      null,
       todayYmd,
     );
     return {
@@ -182,6 +190,8 @@ export async function listStudentsQuery(
           }
         : null,
       graduationDurationLine,
+      graduationConfiguredAtYmd: gradMeta?.configuredAtYmd ?? null,
+      graduationWeightKg: gradMeta?.weightKg ?? null,
     };
   });
 
