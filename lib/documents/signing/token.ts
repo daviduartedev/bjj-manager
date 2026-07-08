@@ -1,5 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 
+import { resolvePublicAppOrigin } from "@/lib/app-url";
+
 export const DOC_SIGNING_TTL_SECONDS = Number.parseInt(
   process.env.DOC_SIGNING_TTL_SECONDS ?? "604800",
   10,
@@ -15,10 +17,7 @@ export function hashSigningToken(token: string): string {
 }
 
 export function buildSigningPageUrl(token: string): string {
-  const base = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
+  const base = resolvePublicAppOrigin();
   return `${base}/assinatura/${encodeURIComponent(token)}`;
 }
 

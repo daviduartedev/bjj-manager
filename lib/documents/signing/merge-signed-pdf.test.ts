@@ -52,6 +52,6 @@ describe("renderSignedEnrollmentPdf", () => {
     });
     const html = buf.toString("utf8");
     expect(html).toContain(dataUrl);
-    expect(html).toContain("signature-img");
+    expect(html).toContain("aslam-signature-img");
   });
 });

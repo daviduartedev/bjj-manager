@@ -1,5 +1,6 @@
 import type { DocumentPayload } from "@/lib/documents/types";
 
+import { getAslamLogoDataUrl } from "../../shared/brand-assets";
 import { buildLayout } from "../../shared/layout";
 import { ASLAM_ADULT_CLAUSES, ASLAM_MINOR_CLAUSES } from "./clauses";
 import { renderAdultTemplate, renderMinorTemplate } from "./render";
@@ -24,10 +25,13 @@ export function renderEnrollmentLiabilityFormV1(payload: DocumentPayload): strin
   } = payload.data;
 
   const academyName = receiver.legalName ?? receiver.academyName;
+  const logoDataUrl = getAslamLogoDataUrl();
 
   const body =
     variant === "minor"
       ? renderMinorTemplate({
+          receiver,
+          logoDataUrl,
           academyName,
           documentNumber,
           issuedAt,
@@ -46,6 +50,8 @@ export function renderEnrollmentLiabilityFormV1(payload: DocumentPayload): strin
           signatureImageDataUrl: signatureImageDataUrl ?? null,
         })
       : renderAdultTemplate({
+          receiver,
+          logoDataUrl,
           academyName,
           documentNumber,
           issuedAt,
@@ -70,5 +76,6 @@ export function renderEnrollmentLiabilityFormV1(payload: DocumentPayload): strin
     title: `Matrícula e Termo ${documentNumber}`,
     reissue,
     body,
+    footer: `Documento gerado eletronicamente · ${receiver.legalName ?? receiver.academyName} · ${new Date().getFullYear()}`,
   });
 }
