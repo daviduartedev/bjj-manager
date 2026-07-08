@@ -20,11 +20,13 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -96,6 +98,7 @@ export function QuickEditDialog({
       due_day: student.openPlan?.due_day ?? 10,
       current_belt_id: student.current_belt_id,
       current_degree: student.current_degree,
+      weight_kg: student.graduationWeightKg ?? null,
     };
   }, [student]);
 
@@ -430,6 +433,37 @@ export function QuickEditDialog({
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="weight_kg"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Peso (kg) — opcional</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min={20}
+                        max={250}
+                        placeholder="Ex.: 72,5"
+                        className="min-h-11"
+                        disabled={loading || !student.graduationEventId}
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                    {!student.graduationEventId ? (
+                      <FormDescription>
+                        Sem graduação registada para o grau actual.
+                      </FormDescription>
+                    ) : (
+                      <FormDescription>Entre 20,0 e 250,0 kg.</FormDescription>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <DialogFooter className="flex-col gap-2 sm:flex-col">
                 <Button type="submit" className="min-h-11 w-full" disabled={loading}>

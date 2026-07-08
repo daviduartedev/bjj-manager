@@ -63,7 +63,7 @@ import {
 import type { AlunosUrlState } from "@/lib/students/alunos-url";
 import { stringifyAlunosSearchParams } from "@/lib/students/alunos-url";
 import { beltWithDegreeLine } from "@/lib/students/belt-labels";
-import { StudentWeightInlineEdit } from "@/components/students/student-weight-inline-edit";
+import { formatWeightKgPt } from "@/lib/students/format-weight";
 
 type Props = {
   rows: ListStudentRow[];
@@ -167,11 +167,9 @@ export function StudentsList({
         );
       case "peso":
         return (
-          <StudentWeightInlineEdit
-            studentId={row.id}
-            graduationEventId={row.graduationEventId}
-            weightKg={row.graduationWeightKg}
-          />
+          <span className="tabular-nums-crm text-muted-foreground">
+            {formatWeightKgPt(row.graduationWeightKg) ?? "–"}
+          </span>
         );
       case "idade":
         return (
@@ -210,14 +208,7 @@ export function StudentsList({
     if (showCol("peso")) {
       lines.push({
         label: ALUNOS_LIST_COLUMN_LABELS.peso,
-        value: (
-          <StudentWeightInlineEdit
-            studentId={row.id}
-            graduationEventId={row.graduationEventId}
-            weightKg={row.graduationWeightKg}
-            className="w-[5.75rem]"
-          />
-        ),
+        value: formatWeightKgPt(row.graduationWeightKg) ?? "–",
       });
     }
     if (showCol("idade")) {
@@ -608,11 +599,7 @@ export function StudentsList({
                   >
                     <TableCell className="font-semibold text-foreground">{row.full_name}</TableCell>
                     {visibleCols.map((col) => (
-                      <TableCell
-                        key={col}
-                        className="text-muted-foreground"
-                        onClick={col === "peso" ? (e) => e.stopPropagation() : undefined}
-                      >
+                      <TableCell key={col} className="text-muted-foreground">
                         {renderColumnCell(col, row)}
                       </TableCell>
                     ))}

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -52,6 +53,7 @@ type Props = {
   mode: "create" | "edit";
   studentId?: string;
   defaultValues: StudentFullFormValues;
+  graduationEventId?: string | null;
 };
 
 export function StudentForm({
@@ -60,6 +62,7 @@ export function StudentForm({
   mode,
   studentId,
   defaultValues,
+  graduationEventId = null,
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -433,6 +436,39 @@ export function StudentForm({
             />
           ) : null}
         </div>
+
+        {mode === "edit" ? (
+          <FormField
+            control={form.control}
+            name="weight_kg"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Peso (kg) — opcional</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min={20}
+                    max={250}
+                    placeholder="Ex.: 72,5"
+                    className="min-h-11"
+                    disabled={loading || !graduationEventId}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
+                </FormControl>
+                {!graduationEventId ? (
+                  <FormDescription>
+                    Sem graduação registada para o grau actual.
+                  </FormDescription>
+                ) : (
+                  <FormDescription>Entre 20,0 e 250,0 kg.</FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : null}
 
         <FormField
           control={form.control}

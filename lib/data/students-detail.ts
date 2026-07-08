@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { currentBeltDegreeGraduationMeta } from "@/lib/students/graduation-current-since";
 
 export type StudentEditRow = {
   id: string;
@@ -17,6 +18,8 @@ export type StudentEditRow = {
   openPlanId: string | null;
   plan_id: string | null;
   due_day: number | null;
+  graduationWeightKg: number | null;
+  graduationEventId: string | null;
 };
 
 export async function getStudentByIdForEdit(
@@ -40,7 +43,8 @@ export async function getStudentByIdForEdit(
       email,
       notes,
       is_exempt,
-      student_plans ( id, plan_id, due_day, ended_at )
+      student_plans ( id, plan_id, due_day, ended_at ),
+      student_graduations ( id, resulting_belt_id, resulting_degree, graduated_at, weight_kg )
     `,
     )
     .eq("id", studentId)
@@ -55,6 +59,26 @@ export async function getStudentByIdForEdit(
     ended_at: string | null;
   }[];
   const open = plans?.find((p) => p.ended_at == null);
+  const gradsRaw = data.student_graduations as
+    | {
+        id: string;
+        resulting_belt_id: string;
+        resulting_degree: number;
+        graduated_at: string;
+        weight_kg: number | null;
+      }[]
+    | null;
+  const gradMeta = currentBeltDegreeGraduationMeta(
+    (gradsRaw ?? []).map((g) => ({
+      id: g.id,
+      resulting_belt_id: g.resulting_belt_id,
+      resulting_degree: g.resulting_degree,
+      graduated_at: g.graduated_at,
+      weight_kg: g.weight_kg,
+    })),
+    data.current_belt_id as string,
+    data.current_degree as number,
+  );
 
   return {
     id: data.id,
@@ -73,5 +97,7 @@ export async function getStudentByIdForEdit(
     openPlanId: open?.id ?? null,
     plan_id: open?.plan_id ?? null,
     due_day: open?.due_day ?? null,
+    graduationWeightKg: gradMeta?.weightKg ?? null,
+    graduationEventId: gradMeta?.graduationId ?? null,
   };
 }

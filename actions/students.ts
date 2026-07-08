@@ -7,6 +7,10 @@ import { mapBillingActionError } from "@/lib/billing/action-errors";
 import { BillingDomainError } from "@/lib/billing/domain-error";
 import { applyStudentPlanChange } from "@/lib/billing/student-plan";
 import {
+  applyWeightToCurrentGraduation,
+  GraduationWeightError,
+} from "@/lib/graduation/apply-current-weight";
+import {
   getBeltsCatalog,
   getPlansCatalog,
   getStudentCatalog,
@@ -243,12 +247,23 @@ export async function updateStudent(
       });
     }
 
+    await applyWeightToCurrentGraduation(
+      supabase,
+      studentId,
+      v.current_belt_id,
+      v.current_degree,
+      v.weight_kg ?? null,
+    );
+
     revalidatePath(ROUTES.alunos);
     revalidatePath(ROUTES.mensalidades);
     revalidatePath(`${ROUTES.alunos}/${studentId}/editar`);
     revalidatePath(`${ROUTES.alunos}/${studentId}`);
     return { ok: true };
   } catch (e) {
+    if (e instanceof GraduationWeightError) {
+      return { ok: false, error: e.message, fieldErrors: { weight_kg: [e.message] } };
+    }
     if (e instanceof BillingDomainError) {
       return { ok: false, error: mapBillingActionError(e) };
     }
@@ -323,11 +338,22 @@ export async function quickUpdateStudent(
       });
     }
 
+    await applyWeightToCurrentGraduation(
+      supabase,
+      studentId,
+      v.current_belt_id,
+      v.current_degree,
+      v.weight_kg ?? null,
+    );
+
     revalidatePath(ROUTES.alunos);
     revalidatePath(ROUTES.mensalidades);
     revalidatePath(`${ROUTES.alunos}/${studentId}`);
     return { ok: true };
   } catch (e) {
+    if (e instanceof GraduationWeightError) {
+      return { ok: false, error: e.message, fieldErrors: { weight_kg: [e.message] } };
+    }
     if (e instanceof BillingDomainError) {
       return { ok: false, error: mapBillingActionError(e) };
     }

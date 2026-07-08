@@ -49,6 +49,7 @@ export default async function EditarAlunoPage({ params }: PageProps) {
     phone: student.phone ? maskPhoneBrInput(student.phone) : undefined,
     email: student.email ?? undefined,
     notes: student.notes ?? undefined,
+    weight_kg: student.graduationWeightKg ?? null,
   };
 
   return (
@@ -75,7 +76,14 @@ export default async function EditarAlunoPage({ params }: PageProps) {
         subtitle="Atualize dados pessoais, faixa e vínculo de plano"
         contentClassName="flex justify-center"
       >
-        <StudentForm belts={belts} plans={plans} mode="edit" studentId={id} defaultValues={defaults} />
+        <StudentForm
+          belts={belts}
+          plans={plans}
+          mode="edit"
+          studentId={id}
+          defaultValues={defaults}
+          graduationEventId={student.graduationEventId}
+        />
       </DashboardPanel>
     </div>
   );
