@@ -32,6 +32,8 @@ export type ListStudentRow = {
   graduationConfiguredAtYmd: string | null;
   /** Peso (kg) registado nessa graduação, se houver. */
   graduationWeightKg: number | null;
+  /** Evento de graduação que estabeleceu faixa/grau actuais; null se não registado. */
+  graduationEventId: string | null;
 };
 
 export type ListStudentsParams = {
@@ -95,7 +97,7 @@ export async function listStudentsQuery(
       updated_at,
       belts!students_current_belt_id_fkey ( slug, kind ),
       ${studentPlansSelect},
-      student_graduations ( resulting_belt_id, resulting_degree, graduated_at, weight_kg )
+      student_graduations ( id, resulting_belt_id, resulting_degree, graduated_at, weight_kg )
     `,
     { count: "exact" },
   );
@@ -192,6 +194,7 @@ export async function listStudentsQuery(
       graduationDurationLine,
       graduationConfiguredAtYmd: gradMeta?.configuredAtYmd ?? null,
       graduationWeightKg: gradMeta?.weightKg ?? null,
+      graduationEventId: gradMeta?.graduationId ?? null,
     };
   });
 

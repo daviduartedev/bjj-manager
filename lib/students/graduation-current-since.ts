@@ -5,6 +5,7 @@ import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
  * percorrendo graduações em ordem cronológica ascendente.
  */
 export type GraduationTimelineRow = {
+  id?: string;
   resulting_belt_id: string;
   resulting_degree: number;
   /** ISO instant from Postgres `timestamptz` */
@@ -13,6 +14,7 @@ export type GraduationTimelineRow = {
 };
 
 export type CurrentBeltDegreeGraduationMeta = {
+  graduationId: string | null;
   configuredAtYmd: string;
   weightKg: number | null;
 };
@@ -55,7 +57,11 @@ export function currentBeltDegreeGraduationMeta(
       ? Number(weightRaw)
       : null;
 
-  return { configuredAtYmd, weightKg };
+  return {
+    graduationId: last.id?.trim() ? last.id : null,
+    configuredAtYmd,
+    weightKg,
+  };
 }
 
 export function calendarDateWhenCurrentBeltDegreeEstablished(

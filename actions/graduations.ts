@@ -20,6 +20,7 @@ import type { GraduationEventInput } from "@/lib/graduation/types";
 import {
   routeAlunoGraduacoes,
   routeAlunoPerfil,
+  ROUTES,
 } from "@/lib/routes";
 import { mapStudentServerError } from "@/lib/students/action-errors";
 import { createClient } from "@/lib/supabase/server";
@@ -27,6 +28,7 @@ import {
   addGraduationSchema,
   graduationEventSchema,
   updateGraduationSchema,
+  updateGraduationWeightSchema,
 } from "@/lib/validations/graduations";
 
 export type GraduationActionResult =
@@ -86,6 +88,7 @@ function toEventInput(row: DbGraduationRow): GraduationEventInput {
 function revalidateGraduationPaths(studentId: string) {
   revalidatePath(routeAlunoPerfil(studentId));
   revalidatePath(routeAlunoGraduacoes(studentId));
+  revalidatePath(ROUTES.alunos);
 }
 
 export async function promoteStudent(
@@ -322,6 +325,59 @@ export async function updateGraduation(
       studentId,
       all.map(toEventInput),
     );
+
+    revalidateGraduationPaths(studentId);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapStudentServerError(e) };
+  }
+}
+
+export async function updateGraduationWeight(
+  studentId: string,
+  values: unknown,
+): Promise<GraduationActionResult> {
+  try {
+    const parsed = updateGraduationWeightSchema.safeParse(values);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        error: "Corrija os campos destacados.",
+        fieldErrors: fieldErrorsFromZod(parsed.error),
+      };
+    }
+    const v = parsed.data;
+
+    const supabase = await createClient();
+
+    const { data: student, error: stErr } = await supabase
+      .from("students")
+      .select("id, current_belt_id, current_degree")
+      .eq("id", studentId)
+      .maybeSingle();
+    if (stErr) throw stErr;
+    if (!student) return { ok: false, error: "Registo não encontrado." };
+
+    const existing = await loadStudentGraduations(supabase, studentId);
+    const row = existing.find((r) => r.id === v.graduationId);
+    if (!row) return { ok: false, error: "Registo não encontrado." };
+
+    if (
+      row.resulting_belt_id !== student.current_belt_id ||
+      row.resulting_degree !== (student.current_degree as number)
+    ) {
+      return {
+        ok: false,
+        error: "Só é possível ajustar o peso da graduação actual do aluno.",
+      };
+    }
+
+    const { error: updErr } = await supabase
+      .from("student_graduations")
+      .update({ weight_kg: v.weight_kg })
+      .eq("id", v.graduationId)
+      .eq("student_id", studentId);
+    if (updErr) throw updErr;
 
     revalidateGraduationPaths(studentId);
     return { ok: true };

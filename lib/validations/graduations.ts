@@ -61,4 +61,11 @@ export const updateGraduationSchema = graduationEventFields
   .strict()
   .superRefine(refineGraduationSkip);
 
+export const updateGraduationWeightSchema = z
+  .object({
+    graduationId: z.string().uuid(),
+    weight_kg: weightKgSchema,
+  })
+  .strict();
+
 export type GraduationEventFormValues = z.infer<typeof graduationEventFields>;

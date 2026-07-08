@@ -53,6 +53,7 @@ describe("calendarDateWhenCurrentBeltDegreeEstablished", () => {
     const meta = currentBeltDegreeGraduationMeta(
       [
         {
+          id: "grad-1",
           resulting_belt_id: "belt",
           resulting_degree: 1,
           graduated_at: "2025-03-15T12:00:00.000Z",
@@ -64,5 +65,6 @@ describe("calendarDateWhenCurrentBeltDegreeEstablished", () => {
     );
     expect(meta?.configuredAtYmd).toBeTruthy();
     expect(meta?.weightKg).toBe(72.5);
+    expect(meta?.graduationId).toBe("grad-1");
   });
 });
