@@ -47,6 +47,9 @@ export default async function EditarAlunoPage({ params }: PageProps) {
     due_day: student.due_day ?? 10,
     document: student.document ? maskCpfInput(student.document) : undefined,
     phone: student.phone ? maskPhoneBrInput(student.phone) : undefined,
+    guardian_phone: student.guardian_phone
+      ? maskPhoneBrInput(student.guardian_phone)
+      : undefined,
     email: student.email ?? undefined,
     notes: student.notes ?? undefined,
     weight_kg: student.graduationWeightKg ?? null,

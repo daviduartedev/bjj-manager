@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BookOpen,
   CalendarDays,
+  ClipboardList,
   FileText,
   LayoutDashboard,
   Package,
@@ -27,6 +28,12 @@ export const MAIN_NAV_ITEMS: MainNavItem[] = [
   { href: ROUTES.aulas, label: "Aulas", icon: CalendarDays, dataTour: "tour-aulas" },
   { href: ROUTES.pedagogicoPlanos, label: "Pedagógico", icon: BookOpen, dataTour: "tour-pedagogico" },
   { href: ROUTES.documentos, label: "Documentos", icon: FileText, dataTour: "tour-documentos" },
+  {
+    href: ROUTES.matriculasTermos,
+    label: "Matrículas",
+    icon: ClipboardList,
+    dataTour: "tour-matriculas-termos",
+  },
   { href: ROUTES.produtos, label: "Produtos", icon: Package, dataTour: "tour-produtos" },
   { href: ROUTES.configuracoes, label: "Configurações", icon: Settings, dataTour: "tour-configuracoes" },
 ];

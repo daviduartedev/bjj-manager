@@ -600,6 +600,33 @@ export function StudentForm({
           )}
         />
 
+        {kind === "kids" ? (
+          <FormField
+            control={form.control}
+            name="guardian_phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Telefone do responsável (opcional)</FormLabel>
+                <FormControl>
+                  <Input
+                    disabled={loading}
+                    inputMode="tel"
+                    placeholder="(00) 00000-0000"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(maskPhoneBrInput(e.target.value))
+                    }
+                  />
+                </FormControl>
+                <FormDescription>
+                  Usado para enviar matrícula/termo ASLAM por WhatsApp a menores.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : null}
+
         <FormField
           control={form.control}
           name="email"

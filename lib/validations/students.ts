@@ -43,6 +43,7 @@ export function buildStudentFullFormSchema(
       due_day: z.coerce.number().int().min(1).max(28).optional(),
       document: z.preprocess(emptyToUndef, z.string().trim().optional()),
       phone: z.preprocess(emptyToUndef, z.string().trim().optional()),
+      guardian_phone: z.preprocess(emptyToUndef, z.string().trim().optional()),
       email: z.preprocess(emptyToUndef, z.string().trim().optional()),
       notes: z.preprocess(emptyToUndef, z.string().trim().optional()),
       weight_kg: weightKgSchema.optional(),
@@ -127,6 +128,16 @@ export function buildStudentFullFormSchema(
             code: "custom",
             message: "Telefone inválido.",
             path: ["phone"],
+          });
+        }
+      }
+      if (data.guardian_phone != null) {
+        const d = onlyDigits(data.guardian_phone);
+        if (d.length > 0 && d.length < 10) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Telefone do responsável inválido.",
+            path: ["guardian_phone"],
           });
         }
       }

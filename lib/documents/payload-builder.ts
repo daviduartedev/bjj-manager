@@ -7,12 +7,14 @@ import { planKindLabels } from "@/lib/i18n/domain-enums";
 import type {
   CertificatePayload,
   DocumentPayload,
+  EnrollmentLiabilityFormPayload,
   EnrollmentProofPayload,
   LiabilityTermPayload,
   ManualReceiptPayload,
   PaymentReceiptPayload,
   ReceiverInfo,
 } from "./types";
+import type { EnrollmentLiabilityDraftInput } from "./templates/enrollment-liability-form/v1/schema";
 
 type AccountForReceiver = {
   id: string;
@@ -47,7 +49,9 @@ export class PayloadBuildError extends Error {
       | "STUDENT_NOT_FOUND"
       | "PAYMENT_NOT_FOUND"
       | "PAYMENT_NOT_PAID"
-      | "ACCOUNT_NOT_FOUND",
+      | "ACCOUNT_NOT_FOUND"
+      | "NO_OPEN_PLAN"
+      | "GUARDIAN_REQUIRED",
     message?: string,
   ) {
     super(message ?? code);
@@ -133,6 +137,28 @@ function isMinorOnDate(birthDate: string | null, refDate: Date = new Date()): bo
   const ageMs = refDate.getTime() - birth.getTime();
   const years = ageMs / (1000 * 60 * 60 * 24 * 365.25);
   return years < 18;
+}
+
+function ageOnDate(birthDate: string | null, refDate: Date = new Date()): number | null {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return null;
+  const ageMs = refDate.getTime() - birth.getTime();
+  return Math.floor(ageMs / (1000 * 60 * 60 * 24 * 365.25));
+}
+
+async function assertOpenStudentPlan(
+  client: SupabaseClient,
+  studentId: string,
+): Promise<void> {
+  const { data } = await client
+    .from("student_plans")
+    .select("id")
+    .eq("student_id", studentId)
+    .is("ended_at", null)
+    .limit(1)
+    .maybeSingle();
+  if (!data) throw new PayloadBuildError("NO_OPEN_PLAN", "Aluno sem plano activo.");
 }
 
 export async function buildPaymentReceiptPayload(
@@ -283,4 +309,64 @@ export async function buildManualReceiptPayload(
     },
   };
   return { payload: { type: "manual_receipt", data } };
+}
+
+export async function buildEnrollmentLiabilityFormPayload(
+  client: SupabaseClient,
+  args: { accountId: string; draft: EnrollmentLiabilityDraftInput },
+): Promise<{ payload: DocumentPayload; studentId: string; variant: "adult" | "minor" }> {
+  await assertOpenStudentPlan(client, args.draft.studentId);
+
+  const [account, student] = await Promise.all([
+    getAccount(client, args.accountId),
+    getStudent(client, args.draft.studentId),
+  ]);
+
+  const minor = isMinorOnDate(student.birth_date);
+  const variant = minor ? "minor" : "adult";
+
+  if (minor && !args.draft.guardian) {
+    throw new PayloadBuildError(
+      "GUARDIAN_REQUIRED",
+      "Informe os dados do responsável legal.",
+    );
+  }
+
+  const data: EnrollmentLiabilityFormPayload = {
+    documentNumber: "",
+    issuedAt: new Date().toISOString(),
+    reissue: { isReissue: false, version: 1, reason: null },
+    receiver: buildReceiver(account),
+    variant,
+    signaturePlace: args.draft.signaturePlace,
+    student: {
+      fullName: student.full_name,
+      rg: args.draft.studentRg ?? null,
+      cpf: student.document,
+      address: args.draft.studentAddress,
+      age: ageOnDate(student.birth_date),
+      hasDisability: args.draft.health.hasDisability ?? null,
+      usesMedication: args.draft.health.usesMedication ?? null,
+      medicationDetails: args.draft.health.medicationDetails ?? null,
+      lastPhysicalExamDate: args.draft.health.lastPhysicalExamDate ?? null,
+      medicalConditions: args.draft.health.medicalConditions ?? null,
+    },
+    guardian: minor && args.draft.guardian
+      ? {
+          fullName: args.draft.guardian.fullName,
+          rg: args.draft.guardian.rg ?? null,
+          cpf: args.draft.guardian.cpf ?? null,
+          phone: args.draft.guardian.phone ?? null,
+          municipality: args.draft.guardian.municipality ?? null,
+          state: args.draft.guardian.state ?? null,
+          address: args.draft.guardian.address,
+        }
+      : null,
+  };
+
+  return {
+    payload: { type: "enrollment_liability_form", data },
+    studentId: student.id,
+    variant,
+  };
 }

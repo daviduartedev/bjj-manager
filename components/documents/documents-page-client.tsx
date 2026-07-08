@@ -18,7 +18,14 @@ import { DOCUMENT_TYPE_LABELS } from "@/lib/documents/types";
 const TYPE_OPTIONS = [
   { value: "all", label: "Todos os tipos" },
   ...(
-    ["payment_receipt", "enrollment_proof", "certificate", "liability_term", "manual_receipt"] as const
+    [
+      "payment_receipt",
+      "enrollment_proof",
+      "enrollment_liability_form",
+      "certificate",
+      "liability_term",
+      "manual_receipt",
+    ] as const
   ).map((t) => ({ value: t, label: DOCUMENT_TYPE_LABELS[t] })),
 ];
 

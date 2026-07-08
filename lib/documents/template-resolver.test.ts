@@ -9,6 +9,7 @@ describe("resolveTemplate", () => {
       "enrollment_proof",
       "certificate",
       "liability_term",
+      "enrollment_liability_form",
       "manual_receipt",
     ] as const;
     for (const t of types) {

@@ -38,3 +38,19 @@ export function composeDocumentWhatsAppMessage(args: {
     "Qualquer dúvida, fale com a gente. 🙏",
   ].join("\n");
 }
+
+export function composeEnrollmentLiabilityWhatsAppMessage(args: {
+  documentNumber: string;
+  academyName: string;
+  signingUrl: string;
+  recipientFirstName?: string | null;
+}): string {
+  const greeting = args.recipientFirstName
+    ? `Olá, ${args.recipientFirstName}!`
+    : "Olá!";
+  return [
+    greeting,
+    `Segue sua Matrícula e Termo de Responsabilidade (${args.documentNumber}) da ${args.academyName}.`,
+    `Assine aqui: ${args.signingUrl}`,
+  ].join("\n");
+}

@@ -7,6 +7,7 @@ export type DocumentType =
   | "enrollment_proof"
   | "certificate"
   | "liability_term"
+  | "enrollment_liability_form"
   | "manual_receipt";
 
 export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
@@ -14,6 +15,7 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   enrollment_proof: "Comprovante de matrícula",
   certificate: "Certificado",
   liability_term: "Termo de responsabilidade",
+  enrollment_liability_form: "Matrícula e Termo ASLAM",
   manual_receipt: "Recibo manual",
 };
 
@@ -23,10 +25,13 @@ export const DOCUMENT_TYPE_NUMBER_PREFIX: Record<DocumentType, string> = {
   enrollment_proof: "MAT",
   certificate: "CERT",
   liability_term: "TR",
+  enrollment_liability_form: "ELF",
   manual_receipt: "MREC",
 };
 
 export type DocumentStatus = "pending" | "ready" | "failed" | "archived";
+
+export type DocumentSignatureStatus = "awaiting_signature" | "signed";
 
 export type DeliveryChannel = "download" | "whatsapp" | "browser_open" | "reissue";
 export type DeliveryStatus = "requested" | "completed" | "failed";
@@ -93,6 +98,48 @@ export type LiabilityTermPayload = {
   bodyMarkdown: string;
 };
 
+export type EnrollmentLiabilityAddress = {
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zip: string;
+};
+
+export type EnrollmentLiabilityGuardian = {
+  fullName: string;
+  rg: string | null;
+  cpf: string | null;
+  phone: string | null;
+  municipality: string | null;
+  state: string | null;
+  address: EnrollmentLiabilityAddress;
+};
+
+export type EnrollmentLiabilityFormPayload = {
+  documentNumber: string;
+  issuedAt: string;
+  reissue: { isReissue: boolean; version: number; reason: string | null };
+  receiver: ReceiverInfo;
+  variant: "adult" | "minor";
+  signaturePlace: string;
+  student: {
+    fullName: string;
+    rg: string | null;
+    cpf: string | null;
+    address: EnrollmentLiabilityAddress;
+    age: number | null;
+    hasDisability: boolean | null;
+    usesMedication: boolean | null;
+    medicationDetails: string | null;
+    lastPhysicalExamDate: string | null;
+    medicalConditions: string | null;
+  };
+  guardian: EnrollmentLiabilityGuardian | null;
+  signatureImageDataUrl?: string | null;
+};
+
 export type ManualReceiptPayload = {
   documentNumber: string;
   issuedAt: string;
@@ -111,4 +158,5 @@ export type DocumentPayload =
   | { type: "enrollment_proof"; data: EnrollmentProofPayload }
   | { type: "certificate"; data: CertificatePayload }
   | { type: "liability_term"; data: LiabilityTermPayload }
+  | { type: "enrollment_liability_form"; data: EnrollmentLiabilityFormPayload }
   | { type: "manual_receipt"; data: ManualReceiptPayload };

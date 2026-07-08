@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Plus } from "lucide-react";
+import Link from "next/link";
+import { FileSignature, Plus } from "lucide-react";
 
 import { listDocuments, type DocumentRow } from "@/actions/documents";
 import { DocumentGenerateDialog } from "@/components/documents/document-generate-dialog";
@@ -10,6 +11,7 @@ import { ReissueDialog } from "@/components/documents/reissue-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { DocumentListRow } from "@/lib/data/documents-page";
+import { routeMatriculaTermoNovo } from "@/lib/routes";
 
 type Props = { studentId: string };
 
@@ -63,13 +65,25 @@ export function StudentDocumentsTab({ studentId }: Props) {
               Histórico ordenado pelo mais recente. Recibos automáticos aparecem aqui.
             </p>
           </div>
-          <Button
-            type="button"
-            onClick={() => setGenerateOpen(true)}
-            className="min-h-11 touch-manipulation"
-          >
-            <Plus className="mr-2 size-4" /> Gerar documento
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              asChild
+              className="min-h-11 touch-manipulation"
+            >
+              <Link href={routeMatriculaTermoNovo(studentId)}>
+                <FileSignature className="mr-2 size-4" /> Matrícula e Termo ASLAM
+              </Link>
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setGenerateOpen(true)}
+              className="min-h-11 touch-manipulation"
+            >
+              <Plus className="mr-2 size-4" /> Gerar documento
+            </Button>
+          </div>
         </div>
 
         {pending ? (

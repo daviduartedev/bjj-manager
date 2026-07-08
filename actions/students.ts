@@ -128,6 +128,8 @@ export async function createStudent(
     const documentDigits =
       v.document != null ? onlyDigits(v.document) : "";
     const phoneDigits = v.phone != null ? onlyDigits(v.phone) : "";
+    const guardianPhoneDigits =
+      v.guardian_phone != null ? onlyDigits(v.guardian_phone) : "";
 
     const { data: inserted, error: insertStudentError } = await supabase
       .from("students")
@@ -142,6 +144,7 @@ export async function createStudent(
         academy_start_date: v.academy_start_date,
         document: documentDigits.length ? documentDigits : null,
         phone: phoneDigits.length ? phoneDigits : null,
+        guardian_phone: guardianPhoneDigits.length ? guardianPhoneDigits : null,
         email: v.email?.trim().toLowerCase() ?? null,
         notes: v.notes?.trim() ?? null,
         is_exempt: v.is_exempt ?? false,
@@ -217,6 +220,8 @@ export async function updateStudent(
     const documentDigits =
       v.document != null ? onlyDigits(v.document) : "";
     const phoneDigits = v.phone != null ? onlyDigits(v.phone) : "";
+    const guardianPhoneDigits =
+      v.guardian_phone != null ? onlyDigits(v.guardian_phone) : "";
 
     const { error: upErr } = await supabase
       .from("students")
@@ -229,6 +234,7 @@ export async function updateStudent(
         academy_start_date: v.academy_start_date,
         document: documentDigits.length ? documentDigits : null,
         phone: phoneDigits.length ? phoneDigits : null,
+        guardian_phone: guardianPhoneDigits.length ? guardianPhoneDigits : null,
         email: v.email?.trim().toLowerCase() ?? null,
         notes: v.notes?.trim() ?? null,
         is_exempt: v.is_exempt ?? false,

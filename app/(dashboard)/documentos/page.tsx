@@ -19,6 +19,7 @@ type SearchParams = Promise<{
 const TYPES: DocumentType[] = [
   "payment_receipt",
   "enrollment_proof",
+  "enrollment_liability_form",
   "certificate",
   "liability_term",
   "manual_receipt",

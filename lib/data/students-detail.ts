@@ -12,6 +12,7 @@ export type StudentEditRow = {
   current_degree: number;
   document: string | null;
   phone: string | null;
+  guardian_phone: string | null;
   email: string | null;
   notes: string | null;
   is_exempt: boolean;
@@ -40,6 +41,7 @@ export async function getStudentByIdForEdit(
       current_degree,
       document,
       phone,
+      guardian_phone,
       email,
       notes,
       is_exempt,
@@ -91,6 +93,7 @@ export async function getStudentByIdForEdit(
     current_degree: data.current_degree,
     document: data.document,
     phone: data.phone,
+    guardian_phone: data.guardian_phone as string | null,
     email: data.email,
     notes: data.notes,
     is_exempt: data.is_exempt === true,

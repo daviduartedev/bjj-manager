@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildWhatsAppShareUrl,
   composeDocumentWhatsAppMessage,
+  composeEnrollmentLiabilityWhatsAppMessage,
   normalizePhoneE164,
 } from "./whatsapp";
 
@@ -50,5 +51,19 @@ describe("composeDocumentWhatsAppMessage", () => {
     expect(msg).toContain("Olá, João!");
     expect(msg).toContain("REC-2026-0001");
     expect(msg).toContain("https://x.test/r");
+  });
+});
+
+describe("composeEnrollmentLiabilityWhatsAppMessage", () => {
+  it("inclui número ELF e link de assinatura", () => {
+    const msg = composeEnrollmentLiabilityWhatsAppMessage({
+      documentNumber: "ELF-2026-0001",
+      academyName: "Aslam BJJ",
+      signingUrl: "https://app.test/assinatura/tok",
+      recipientFirstName: "Maria",
+    });
+    expect(msg).toContain("Olá, Maria!");
+    expect(msg).toContain("ELF-2026-0001");
+    expect(msg).toContain("Assine aqui: https://app.test/assinatura/tok");
   });
 });

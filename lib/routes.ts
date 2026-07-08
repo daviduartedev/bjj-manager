@@ -18,6 +18,7 @@ export const ROUTES = {
   mensalidades: "/mensalidades",
   produtos: "/produtos",
   documentos: "/documentos",
+  matriculasTermos: "/matriculas-termos",
   pedagogicoPlanos: "/pedagogico/planos",
   pedagogicoPlanoNovo: "/pedagogico/planos/novo",
   aulas: "/aulas",
@@ -72,6 +73,16 @@ export function routeDocumentoDetalhe(documentId: string): string {
   return `${ROUTES.documentos}/${documentId}`;
 }
 
+/** Hub matrícula e termo ASLAM. */
+export function routeMatriculaTermo(documentId: string): string {
+  return `${ROUTES.matriculasTermos}/${documentId}`;
+}
+
+export function routeMatriculaTermoNovo(studentId?: string): string {
+  if (!studentId) return `${ROUTES.matriculasTermos}/novo`;
+  return `${ROUTES.matriculasTermos}/novo?studentId=${encodeURIComponent(studentId)}`;
+}
+
 /** Detalhe / edição de plano pedagógico. */
 export function routePedagogicoPlano(id: string): string {
   return `${ROUTES.pedagogicoPlanos}/${id}`;
@@ -88,6 +99,7 @@ export const OPERATIONAL_PATH_PREFIXES: readonly string[] = [
   ROUTES.mensalidades,
   ROUTES.produtos,
   ROUTES.documentos,
+  ROUTES.matriculasTermos,
   "/pedagogico",
   ROUTES.aulas,
   ROUTES.configuracoes,

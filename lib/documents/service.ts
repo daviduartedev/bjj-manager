@@ -34,6 +34,8 @@ export type GenerateInput = {
     reason: string;
   };
   createdByUserId?: string | null;
+  /** Rascunho já persistido (matrícula/termo) — gera PDF na mesma linha. */
+  existingDocumentId?: string | null;
 };
 
 export type GenerateResult =
@@ -71,7 +73,42 @@ export class DocumentGenerationService {
         }
       | null = null;
 
-    if (input.idempotencyKey) {
+    if (input.existingDocumentId) {
+      const draft = await this.client
+        .from("generated_documents")
+        .select("id, status, number, pdf_path, html_path, version")
+        .eq("id", input.existingDocumentId)
+        .eq("account_id", input.accountId)
+        .maybeSingle();
+
+      if (draft.error) throw draft.error;
+      if (!draft.data) {
+        return {
+          ok: false,
+          documentId: null,
+          status: "failed",
+          errorCode: "DRAFT_NOT_FOUND",
+          errorMessage: "Rascunho não encontrado.",
+        };
+      }
+      if (draft.data.pdf_path) {
+        return {
+          ok: false,
+          documentId: draft.data.id as string,
+          status: "failed",
+          errorCode: "DRAFT_ALREADY_GENERATED",
+          errorMessage: "Este documento já foi gerado.",
+        };
+      }
+      existingRow = {
+        id: draft.data.id as string,
+        status: (draft.data.status as string) ?? "",
+        number: (draft.data.number as string | null) ?? null,
+        pdf_path: (draft.data.pdf_path as string | null) ?? null,
+        html_path: (draft.data.html_path as string | null) ?? null,
+        version: (draft.data.version as number | null) ?? null,
+      };
+    } else if (input.idempotencyKey) {
       const existing = await this.client
         .from("generated_documents")
         .select("id, status, number, pdf_path, html_path, version")
@@ -159,6 +196,8 @@ export class DocumentGenerationService {
         .from("generated_documents")
         .update({
           status: "pending",
+          number,
+          version: versionForRow,
           payload_json: enriched.data,
           error_code: null,
           error_message: null,
