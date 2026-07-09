@@ -62,7 +62,7 @@ export function StudentForm({
   mode,
   studentId,
   defaultValues,
-  graduationEventId = null,
+  graduationEventId: _graduationEventId = null,
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -452,18 +452,14 @@ export function StudentForm({
                     max={250}
                     placeholder="Ex.: 72,5"
                     className="min-h-11"
-                    disabled={loading || !graduationEventId}
+                    disabled={loading}
                     value={field.value ?? ""}
                     onChange={(e) => field.onChange(e.target.value)}
                   />
                 </FormControl>
-                {!graduationEventId ? (
-                  <FormDescription>
-                    Sem graduação registada para o grau actual.
-                  </FormDescription>
-                ) : (
-                  <FormDescription>Entre 20,0 e 250,0 kg.</FormDescription>
-                )}
+                <FormDescription>
+                  Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

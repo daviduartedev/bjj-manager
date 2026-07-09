@@ -448,18 +448,14 @@ export function QuickEditDialog({
                         max={250}
                         placeholder="Ex.: 72,5"
                         className="min-h-11"
-                        disabled={loading || !student.graduationEventId}
+                        disabled={loading}
                         value={field.value ?? ""}
                         onChange={(e) => field.onChange(e.target.value)}
                       />
                     </FormControl>
-                    {!student.graduationEventId ? (
-                      <FormDescription>
-                        Sem graduação registada para o grau actual.
-                      </FormDescription>
-                    ) : (
-                      <FormDescription>Entre 20,0 e 250,0 kg.</FormDescription>
-                    )}
+                    <FormDescription>
+                      Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
