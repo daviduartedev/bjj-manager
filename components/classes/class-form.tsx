@@ -103,7 +103,7 @@ export function ClassForm({ mode, instructorProfileId, initial }: Props) {
         </Select>
         {kind === "baby" ? (
           <p className="text-xs text-muted-foreground">
-            Turma Baby: faixa etária 4–8 anos, plano R$ 100/mês. Configure um horário
+            Turma Baby: faixa etária 3–5 anos, plano R$ 100/mês. Configure um horário
             recorrente por semana.
           </p>
         ) : null}

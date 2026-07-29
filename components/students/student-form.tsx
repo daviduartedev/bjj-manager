@@ -320,7 +320,7 @@ export function StudentForm({
                 <SelectContent>
                   <SelectItem value="adult">Adulto</SelectItem>
                   <SelectItem value="kids">Kids</SelectItem>
-                  <SelectItem value="baby">Baby (4–8 anos)</SelectItem>
+                  <SelectItem value="baby">Baby (3–5 anos)</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
