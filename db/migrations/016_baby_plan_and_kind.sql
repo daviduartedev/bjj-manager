@@ -1,6 +1,8 @@
 -- =====================================================
--- Migração: turma/plano Baby (idade 4–8, R$ 100/mês)
+-- Migração 016: enums Baby (plan_kind + student_kind)
 -- =====================================================
+-- Postgres exige COMMIT antes de usar valores novos de enum (55P04).
+-- O INSERT do plano Baby está em 017_baby_plan_seed.sql (próxima transação).
 
 DO $$ BEGIN
   ALTER TYPE public.plan_kind ADD VALUE IF NOT EXISTS 'baby';
@@ -13,16 +15,3 @@ DO $$ BEGIN
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
-
--- Plano Baby por conta existente (idempotente)
-INSERT INTO
-  public.plans (account_id, kind, name, price_cents, active)
-SELECT
-  a.id,
-  'baby',
-  'Baby',
-  10000,
-  true
-FROM
-  public.accounts a
-ON CONFLICT ON CONSTRAINT plans_account_kind_unique DO NOTHING;
