@@ -13,7 +13,7 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE public.student_kind AS ENUM ('adult', 'kids');
+  CREATE TYPE public.student_kind AS ENUM ('adult', 'kids', 'baby');
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
@@ -25,7 +25,7 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE public.plan_kind AS ENUM ('kids_1', 'kids_2', 'adult');
+  CREATE TYPE public.plan_kind AS ENUM ('kids_1', 'kids_2', 'adult', 'baby');
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;

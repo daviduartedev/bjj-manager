@@ -21,9 +21,10 @@ export type SettingsReceiverRow = {
 };
 
 const PLAN_KIND_ORDER: Record<PlanKind, number> = {
-  kids_1: 0,
-  kids_2: 1,
-  adult: 2,
+  baby: 0,
+  kids_1: 1,
+  kids_2: 2,
+  adult: 3,
 };
 
 function sortPlans(rows: SettingsPlanRow[]): SettingsPlanRow[] {

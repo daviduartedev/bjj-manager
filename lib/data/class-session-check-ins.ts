@@ -49,7 +49,7 @@ export type SessionInfo = {
   startTime: string;
   endTime: string;
   className: string;
-  classKind: "adult" | "kids";
+  classKind: "adult" | "kids" | "baby";
 };
 
 function formatTimeHm(time: string): string {
@@ -108,8 +108,8 @@ export async function listSessionPresence(
 
   const classRel = relationOne(
     sessionData.classes as
-      | { name: string; kind: "adult" | "kids" }
-      | { name: string; kind: "adult" | "kids" }[]
+      | { name: string; kind: "adult" | "kids" | "baby" }
+      | { name: string; kind: "adult" | "kids" | "baby" }[]
       | null,
   );
   if (!classRel) {

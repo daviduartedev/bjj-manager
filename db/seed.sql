@@ -5,7 +5,7 @@
 -- Dev account UUID fixed for repeatable local/dev seeds (BR-1.4).
 -- =====================================================
 
--- ---------- Dev academy + default plans (Kids 1 / Kids 2 / Adulto) ----------
+-- ---------- Dev academy + default plans (Kids 1 / Kids 2 / Adulto / Baby) ----------
 INSERT INTO
   public.accounts (id, name)
 VALUES
@@ -37,6 +37,13 @@ VALUES
     'adult',
     'Adulto',
     12000,
+    true
+  ),
+  (
+    '00000000-0000-4000-8000-000000000001'::uuid,
+    'baby',
+    'Baby',
+    10000,
     true
   )
 ON CONFLICT ON CONSTRAINT plans_account_kind_unique DO NOTHING;

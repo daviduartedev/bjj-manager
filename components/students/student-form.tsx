@@ -158,8 +158,9 @@ export function StudentForm({
     ? degreeOptionsForBelt(selectedBelt.slug, selectedBelt.kind)
     : [0, 1, 2, 3, 4];
 
-  function syncKind(kindNext: "adult" | "kids") {
-    const b = belts.find((x) => x.kind === kindNext);
+  function syncKind(kindNext: "adult" | "kids" | "baby") {
+    const beltKind = kindNext === "adult" ? "adult" : "kids";
+    const b = belts.find((x) => x.kind === beltKind);
     const p = pickDefaultPlanForStudentContext(plans, kindNext, b?.slug);
     if (b) {
       form.setValue("current_belt_id", b.id);
@@ -307,8 +308,8 @@ export function StudentForm({
                 disabled={loading}
                 value={field.value}
                 onValueChange={(v) => {
-                  field.onChange(v as "adult" | "kids");
-                  syncKind(v as "adult" | "kids");
+                  field.onChange(v as "adult" | "kids" | "baby");
+                  syncKind(v as "adult" | "kids" | "baby");
                 }}
               >
                 <FormControl>
@@ -319,6 +320,7 @@ export function StudentForm({
                 <SelectContent>
                   <SelectItem value="adult">Adulto</SelectItem>
                   <SelectItem value="kids">Kids</SelectItem>
+                  <SelectItem value="baby">Baby (4–8 anos)</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -596,7 +598,7 @@ export function StudentForm({
           )}
         />
 
-        {kind === "kids" ? (
+        {(kind === "kids" || kind === "baby") ? (
           <FormField
             control={form.control}
             name="guardian_phone"

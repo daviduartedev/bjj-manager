@@ -21,6 +21,12 @@ describe("planKindMatchesStudentKind (STU-4)", () => {
     expect(planKindMatchesStudentKind("kids_2", "kids")).toBe(true);
     expect(planKindMatchesStudentKind("adult", "kids")).toBe(true);
   });
+
+  it("baby só aceita plan_kind baby", () => {
+    expect(planKindMatchesStudentKind("baby", "baby")).toBe(true);
+    expect(planKindMatchesStudentKind("kids_1", "baby")).toBe(false);
+    expect(planKindMatchesStudentKind("adult", "baby")).toBe(false);
+  });
 });
 
 describe("pickDefaultPlanForStudentKind", () => {
@@ -69,6 +75,15 @@ describe("beltMatchesStudentKindForBeltRow", () => {
       beltMatchesStudentKindForBeltRow(
         { kind: "kids", slug: "yellow" },
         "kids",
+      ),
+    ).toBe(true);
+  });
+
+  it("baby usa faixas kids", () => {
+    expect(
+      beltMatchesStudentKindForBeltRow(
+        { kind: "kids", slug: "white" },
+        "baby",
       ),
     ).toBe(true);
   });

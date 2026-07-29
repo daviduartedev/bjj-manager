@@ -14,6 +14,7 @@ import {
 } from "@/lib/classes/checkin-window";
 import { formatDateBR } from "@/lib/dates";
 import type { StudentClassSessionRow } from "@/lib/data/student-class-sessions";
+import { studentKindLabels } from "@/lib/i18n/domain-enums";
 
 type ClassSessionCardProps = {
   session: StudentClassSessionRow;
@@ -77,7 +78,7 @@ export function ClassSessionCard({ session }: ClassSessionCardProps) {
   }
 
   const dateLabel = formatDateBR(session.sessionDate) ?? session.sessionDate;
-  const kindLabel = session.classKind === "kids" ? "Kids" : "Adulto";
+  const kindLabel = studentKindLabels[session.classKind];
 
   return (
     <article className="rounded-lg border border-border border-l-[3px] border-l-primary/35 bg-gradient-to-br from-[hsl(var(--content-wash-mid)/0.4)] to-card p-3 shadow-sm sm:p-4">

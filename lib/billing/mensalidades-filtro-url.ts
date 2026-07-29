@@ -43,6 +43,7 @@ const QUERY_TO_PLAN: Record<string, MensalidadesPlanFilterKey> = {
   kids_2: "kids_2",
   kids2: "kids_2",
   "kids-2": "kids_2",
+  baby: "baby",
   kids: "kids_either",
   infantil: "kids_either",
 };
@@ -93,6 +94,7 @@ export function buildMensalidadesListSearchParams(opts: {
   if (tipo === "adult") p.set("tipo", "adulto");
   else if (tipo === "kids_1") p.set("tipo", "kids_1");
   else if (tipo === "kids_2") p.set("tipo", "kids_2");
+  else if (tipo === "baby") p.set("tipo", "baby");
   else if (tipo === "kids_either") p.set("tipo", "kids");
   const s = p.toString();
   return s ? `?${s}` : "";

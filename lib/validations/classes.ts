@@ -12,7 +12,7 @@ const timeSchema = z
 export const classSchema = z
   .object({
     name: z.string().trim().min(1, "Informe o nome da turma.").max(100, "Nome muito longo."),
-    kind: z.enum(["adult", "kids"], { message: "Modalidade inválida." }),
+    kind: z.enum(["adult", "kids", "baby"], { message: "Modalidade inválida." }),
     instructorProfileId: z.string().uuid("Perfil de instrutor inválido."),
   })
   .strict();

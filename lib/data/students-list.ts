@@ -11,7 +11,7 @@ import type { ListSortKey } from "@/lib/validations/students";
 export type ListStudentRow = {
   id: string;
   full_name: string;
-  kind: "adult" | "kids";
+  kind: "adult" | "kids" | "baby";
   status: string;
   is_exempt: boolean;
   birth_date: string | null;
@@ -65,7 +65,8 @@ export async function listStudentsQuery(
   const planFilter =
     params.plan === "adult" ||
     params.plan === "kids_1" ||
-    params.plan === "kids_2"
+    params.plan === "kids_2" ||
+    params.plan === "baby"
       ? params.plan
       : undefined;
 
@@ -174,7 +175,7 @@ export async function listStudentsQuery(
     return {
       id: raw.id as string,
       full_name: raw.full_name as string,
-      kind: raw.kind as "adult" | "kids",
+      kind: raw.kind as "adult" | "kids" | "baby",
       status: raw.status as string,
       is_exempt: raw.is_exempt === true,
       birth_date: (raw.birth_date as string | null) ?? null,

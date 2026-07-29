@@ -16,7 +16,7 @@ export type StudentClassSessionRow = {
   endTime: string;
   classId: string;
   className: string;
-  classKind: "adult" | "kids";
+  classKind: "adult" | "kids" | "baby";
   instructorName: string;
   checkInId: string | null;
   checkInAt: string | null;
@@ -112,7 +112,7 @@ export async function listStudentClassSessions(): Promise<StudentClassSessionsRe
       row.classes as
         | {
             name: string;
-            kind: "adult" | "kids";
+            kind: "adult" | "kids" | "baby";
             profiles:
               | { display_name: string }
               | { display_name: string }[]
@@ -120,7 +120,7 @@ export async function listStudentClassSessions(): Promise<StudentClassSessionsRe
           }
         | {
             name: string;
-            kind: "adult" | "kids";
+            kind: "adult" | "kids" | "baby";
             profiles:
               | { display_name: string }
               | { display_name: string }[]

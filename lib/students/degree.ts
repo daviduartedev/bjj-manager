@@ -1,4 +1,4 @@
-export type StudentKind = "adult" | "kids";
+export type StudentKind = "adult" | "kids" | "baby";
 export type BeltKind = "adult" | "kids";
 
 /** **GR-1.3** / **GR-1.4** / **GR-2.2**, limites de grau por faixa. */

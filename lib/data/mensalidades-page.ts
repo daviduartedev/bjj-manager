@@ -33,8 +33,11 @@ function resolveStudentKind(
   studentKind: unknown,
   planKind: PlanKind | null,
 ): StudentKind {
-  if (studentKind === "adult" || studentKind === "kids") return studentKind;
+  if (studentKind === "adult" || studentKind === "kids" || studentKind === "baby") {
+    return studentKind;
+  }
   if (planKind === "adult") return "adult";
+  if (planKind === "baby") return "baby";
   if (planKind === "kids_1" || planKind === "kids_2") return "kids";
   return "adult";
 }

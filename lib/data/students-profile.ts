@@ -243,7 +243,7 @@ export async function getStudentProfileById(
   return {
     id: st.id as string,
     full_name: st.full_name as string,
-    kind: st.kind as "adult" | "kids",
+    kind: st.kind as "adult" | "kids" | "baby",
     status: st.status as string,
     is_exempt: isExempt,
     archived_at: archivedAt,

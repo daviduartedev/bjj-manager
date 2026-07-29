@@ -25,9 +25,9 @@ type Mode =
 type Props = {
   mode: Mode;
   instructorProfileId: string;
-  initial?: {
+    initial?: {
     name: string;
-    kind: "adult" | "kids";
+    kind: "adult" | "kids" | "baby";
   };
 };
 
@@ -36,7 +36,7 @@ export function ClassForm({ mode, instructorProfileId, initial }: Props) {
   const [isPending, startTransition] = useTransition();
 
   const [name, setName] = useState(initial?.name ?? "");
-  const [kind, setKind] = useState<"adult" | "kids">(initial?.kind ?? "adult");
+  const [kind, setKind] = useState<"adult" | "kids" | "baby">(initial?.kind ?? "adult");
   const [error, setError] = useState<string | null>(null);
 
   function handleSubmit(e: React.FormEvent) {
@@ -87,20 +87,26 @@ export function ClassForm({ mode, instructorProfileId, initial }: Props) {
         <Label htmlFor="class-kind">Modalidade</Label>
         <Select
           value={kind}
-          onValueChange={(v) => setKind(v as "adult" | "kids")}
+          onValueChange={(v) => setKind(v as "adult" | "kids" | "baby")}
           disabled={isPending}
         >
           <SelectTrigger id="class-kind">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {(["adult", "kids"] as const).map((k) => (
+            {(["adult", "kids", "baby"] as const).map((k) => (
               <SelectItem key={k} value={k}>
                 {studentKindLabels[k]}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {kind === "baby" ? (
+          <p className="text-xs text-muted-foreground">
+            Turma Baby: faixa etária 4–8 anos, plano R$ 100/mês. Configure um horário
+            recorrente por semana.
+          </p>
+        ) : null}
       </div>
 
       {error && (

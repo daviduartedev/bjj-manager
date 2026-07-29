@@ -27,7 +27,7 @@ export type ProfilePaymentRow = {
 export type StudentProfilePayload = {
   id: string;
   full_name: string;
-  kind: "adult" | "kids";
+  kind: "adult" | "kids" | "baby";
   status: string;
   is_exempt: boolean;
   archived_at: string | null;

@@ -280,6 +280,7 @@ export function MensalidadesClient({
                   <SelectItem value="adult">Adulto</SelectItem>
                   <SelectItem value="kids_1">Kids 1</SelectItem>
                   <SelectItem value="kids_2">Kids 2</SelectItem>
+                  <SelectItem value="baby">Baby</SelectItem>
                   <SelectItem value="kids_either">Kids 1 ou 2</SelectItem>
                 </SelectContent>
               </Select>

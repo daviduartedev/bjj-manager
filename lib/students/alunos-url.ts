@@ -34,7 +34,7 @@ export type { AlunosListColumn };
 
 const urlSchema = z.object({
   q: z.string().optional(),
-  plan: z.enum(["all", "adult", "kids_1", "kids_2"]).catch("all"),
+  plan: z.enum(["all", "adult", "kids_1", "kids_2", "baby"]).catch("all"),
   status: z
     .enum(["all", "active", "inactive", "paused"])
     .catch("all"),

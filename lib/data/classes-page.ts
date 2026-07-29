@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 export type ClassRow = {
   id: string;
   name: string;
-  kind: "adult" | "kids";
+  kind: "adult" | "kids" | "baby";
   instructorProfileId: string;
   instructorName: string;
   enrollmentCount: number;
@@ -34,7 +34,7 @@ export type EnrollmentRow = {
 export type ClassDetailRow = {
   id: string;
   name: string;
-  kind: "adult" | "kids";
+  kind: "adult" | "kids" | "baby";
   instructorProfileId: string;
   instructorName: string;
   schedules: ScheduleRow[];
@@ -48,7 +48,7 @@ export type UpcomingSessionRow = {
   endTime: string;
   classId: string;
   className: string;
-  classKind: "adult" | "kids";
+  classKind: "adult" | "kids" | "baby";
   checkInCount: number;
 };
 
@@ -100,7 +100,7 @@ export async function listClasses(): Promise<ClassRow[]> {
     return {
       id: row.id as string,
       name: row.name as string,
-      kind: row.kind as "adult" | "kids",
+      kind: row.kind as "adult" | "kids" | "baby",
       instructorProfileId: row.instructor_profile_id as string,
       instructorName: instructor?.display_name ?? "Professor",
       enrollmentCount: enrollments.length,
@@ -161,7 +161,7 @@ export async function getClassDetail(classId: string): Promise<ClassDetailRow | 
   return {
     id: data.id as string,
     name: data.name as string,
-    kind: data.kind as "adult" | "kids",
+    kind: data.kind as "adult" | "kids" | "baby",
     instructorProfileId: data.instructor_profile_id as string,
     instructorName: instructor?.display_name ?? "Professor",
     schedules: scheduleRows.map((s) => ({
@@ -210,8 +210,8 @@ export async function listUpcomingSessions(): Promise<UpcomingSessionRow[]> {
   return sessions.map((row) => {
     const classRel = relationOne(
       row.classes as
-        | { name: string; kind: "adult" | "kids" }
-        | { name: string; kind: "adult" | "kids" }[]
+        | { name: string; kind: "adult" | "kids" | "baby" }
+        | { name: string; kind: "adult" | "kids" | "baby" }[]
         | null,
     );
     const checkIns = (row.check_ins as { id: string }[] | null) ?? [];
@@ -222,7 +222,7 @@ export async function listUpcomingSessions(): Promise<UpcomingSessionRow[]> {
       endTime: formatTimeHm(row.end_time as string),
       classId: row.class_id as string,
       className: classRel?.name ?? "Turma",
-      classKind: (classRel?.kind ?? "adult") as "adult" | "kids",
+      classKind: (classRel?.kind ?? "adult") as "adult" | "kids" | "baby",
       checkInCount: checkIns.length,
     };
   });

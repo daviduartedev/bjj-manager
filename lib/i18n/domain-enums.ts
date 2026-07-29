@@ -13,10 +13,11 @@ export const paymentStatusLabels: Record<
   other: "Outro",
 };
 
-export const planKindLabels: Record<"kids_1" | "kids_2" | "adult", string> = {
+export const planKindLabels: Record<"kids_1" | "kids_2" | "adult" | "baby", string> = {
   kids_1: "Kids 1",
   kids_2: "Kids 2",
   adult: "Adulto",
+  baby: "Baby",
 };
 
 export const studentStatusLabels: Record<
@@ -29,9 +30,10 @@ export const studentStatusLabels: Record<
   paused: "Pausado",
 };
 
-export const studentKindLabels: Record<"adult" | "kids", string> = {
+export const studentKindLabels: Record<"adult" | "kids" | "baby", string> = {
   adult: "Adulto",
   kids: "Kids",
+  baby: "Baby",
 };
 
 export const beltKindLabels: Record<"adult" | "kids", string> = {

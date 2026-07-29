@@ -403,6 +403,7 @@ export function StudentsList({
                   <SelectItem value="adult">Adulto</SelectItem>
                   <SelectItem value="kids_1">Kids 1</SelectItem>
                   <SelectItem value="kids_2">Kids 2</SelectItem>
+                  <SelectItem value="baby">Baby</SelectItem>
                 </SelectContent>
               </Select>
             </div>

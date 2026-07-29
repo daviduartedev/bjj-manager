@@ -4,7 +4,7 @@ import { currentBeltDegreeGraduationMeta } from "@/lib/students/graduation-curre
 export type StudentEditRow = {
   id: string;
   full_name: string;
-  kind: "adult" | "kids";
+  kind: "adult" | "kids" | "baby";
   status: string;
   birth_date: string | null;
   academy_start_date: string | null;
@@ -85,7 +85,7 @@ export async function getStudentByIdForEdit(
   return {
     id: data.id,
     full_name: data.full_name,
-    kind: data.kind as "adult" | "kids",
+    kind: data.kind as "adult" | "kids" | "baby",
     status: data.status,
     birth_date: data.birth_date,
     academy_start_date: data.academy_start_date,

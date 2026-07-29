@@ -1,8 +1,14 @@
 import { z } from "zod";
 
+import { calculateAge } from "@/lib/dates/age";
+import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
 import { isValidCpfDigits, onlyDigits } from "@/lib/students/input-masks";
 import { isValidDegreeForBelt } from "@/lib/students/degree";
 import type { PlanKind } from "@/lib/students/plan-kind";
+import {
+  BABY_MAX_AGE_YEARS,
+  BABY_MIN_AGE_YEARS,
+} from "@/lib/students/baby-age";
 import {
   beltMatchesStudentKindForBeltRow,
   planKindMatchesStudentContext,
@@ -12,7 +18,7 @@ import { weightKgSchema } from "@/lib/validations/graduations";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida.");
 
-export const studentKindSchema = z.enum(["adult", "kids"]);
+export const studentKindSchema = z.enum(["adult", "kids", "baby"]);
 
 /** Status manipulável na UI deste ciclo (**STU-3**). */
 export const studentUiStatusSchema = z.enum(["active", "inactive", "paused"]);
@@ -72,6 +78,22 @@ export function buildStudentFullFormSchema(
           message: "Grau inválido para esta faixa.",
           path: ["current_degree"],
         });
+      }
+
+      if (data.kind === "baby") {
+        const today = toCalendarDateStringInAppTZ(new Date());
+        const age = calculateAge(data.birth_date, today);
+        if (
+          age == null ||
+          age < BABY_MIN_AGE_YEARS ||
+          age > BABY_MAX_AGE_YEARS
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Baby: idade entre ${BABY_MIN_AGE_YEARS} e ${BABY_MAX_AGE_YEARS} anos.`,
+            path: ["birth_date"],
+          });
+        }
       }
 
       if (!data.is_exempt) {

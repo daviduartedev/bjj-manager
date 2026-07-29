@@ -5,7 +5,7 @@ import { DEFAULT_PLAN_ROWS } from "./constants";
 type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
 
 /**
- * Garante os três `plan_kind` por conta (**BLM-2**). Idempotente: ignora violação de unicidade (23505).
+ * Garante os quatro `plan_kind` por conta (**BLM-2**). Idempotente: ignora violação de unicidade (23505).
  */
 export async function ensureDefaultPlansForAccount(
   supabase: SupabaseServer,

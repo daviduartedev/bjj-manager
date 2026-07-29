@@ -46,6 +46,7 @@ import {
   formatMoneyBrFromCents,
   paymentStatusLabelPt,
 } from "@/lib/students/payment-ui";
+import { studentKindLabels } from "@/lib/i18n/domain-enums";
 
 type Props = {
   profile: StudentProfilePayload;
@@ -58,10 +59,6 @@ type Props = {
 function formatWeightKg(w: number | null): string | null {
   if (w == null) return null;
   return `${w.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg`;
-}
-
-function kindLabel(kind: "adult" | "kids"): string {
-  return kind === "adult" ? "Adulto" : "Kids";
 }
 
 function ProfileSurfaceCard({
@@ -130,7 +127,7 @@ export function StudentProfileClient({
         badge="Perfil do aluno"
         intro={<DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>}
         title={profile.full_name}
-        description={`${beltTitle}, ${kindLabel(profile.kind)}, ${ageDisplay}`}
+        description={`${beltTitle}, ${studentKindLabels[profile.kind]}, ${ageDisplay}`}
       />
 
       <ProfileSurfaceCard>
@@ -141,7 +138,7 @@ export function StudentProfileClient({
           <div className="min-w-0 flex-1 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">{beltTitle}</Badge>
-              <Badge variant="outline">{kindLabel(profile.kind)}</Badge>
+              <Badge variant="outline">{studentKindLabels[profile.kind]}</Badge>
               <StudentStatusBadge status={profile.status} />
               {profile.is_exempt ? <StudentExemptBadge /> : null}
               <span className="text-sm text-muted-foreground">{ageDisplay}</span>
