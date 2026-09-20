@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { PlanStatusBadge } from "@/components/lesson-plans/plan-status-badge";
 import { PlanStatusSwitcher } from "@/components/lesson-plans/plan-status-switcher";
+import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,7 @@ import type { LessonPlanListRow } from "@/lib/data/lesson-plans-page";
 import { formatDateTimeBR } from "@/lib/documents/formatters";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
 import { ROUTES, routePedagogicoPlano } from "@/lib/routes";
+import { BookOpen } from "lucide-react";
 
 const KIND_OPTIONS = [
   { value: "all", label: "Todos os tipos" },
@@ -146,9 +148,16 @@ export function PlansList({ rows }: { rows: LessonPlanListRow[] }) {
       </div>
 
       {rows.length === 0 ? (
-        <p className="rounded-md border bg-card/50 p-6 text-center text-crm-sm text-muted-foreground">
-          Sem planos para os filtros atuais.
-        </p>
+        <EmptyState
+          icon={BookOpen}
+          title="Sem planos para os filtros atuais"
+          description="Ajuste o mês, o tipo ou o estado, ou crie um novo plano pedagógico."
+          className="rounded-none border-0 bg-transparent shadow-none"
+        >
+          <Button asChild className="min-h-11">
+            <Link href={ROUTES.pedagogicoPlanoNovo}>Novo plano</Link>
+          </Button>
+        </EmptyState>
       ) : (
         <div className="overflow-x-auto rounded-md border">
           <Table>

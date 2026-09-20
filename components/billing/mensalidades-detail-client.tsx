@@ -12,6 +12,7 @@ import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog"
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,7 +77,7 @@ export function MensalidadesDetailClient({
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Financeiro"
         intro={
@@ -147,11 +148,14 @@ export function MensalidadesDetailClient({
         </div>
       </DashboardPanel>
 
-      <DashboardPanel title="Histórico de pagamentos" subtitle="Mais recentes primeiro">
+      <DashboardPanel icon={Wallet} title="Histórico de pagamentos" subtitle="Mais recentes primeiro">
         {payload.payments.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6">
-            Ainda não há linhas de pagamento registadas.
-          </p>
+          <EmptyState
+            icon={Wallet}
+            title="Ainda não há pagamentos"
+            description="Ainda não há linhas de pagamento registadas neste aluno."
+            className="rounded-none border-0 bg-transparent shadow-none"
+          />
         ) : (
           <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
             <Table>
@@ -188,7 +192,7 @@ export function MensalidadesDetailClient({
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="min-h-9"
+                            className="min-h-11"
                             onClick={() =>
                               setReceiptForPayment({
                                 paymentId: p.id,
@@ -204,7 +208,7 @@ export function MensalidadesDetailClient({
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="min-h-9 text-destructive hover:text-destructive"
+                          className="min-h-11 text-destructive hover:text-destructive"
                           disabled={pendingVoid}
                           onClick={() => confirmVoid(p.id)}
                         >

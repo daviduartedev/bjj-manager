@@ -6,6 +6,7 @@ import { SessionCheckInsPanel } from "@/components/classes/session-check-ins-pan
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { DashboardStatTile } from "@/components/layout/dashboard-stat-tile";
 import { listSessionPresence } from "@/lib/data/class-session-check-ins";
 import { ROUTES } from "@/lib/routes";
 
@@ -48,7 +49,7 @@ export default async function SessionCheckInsPage({ params }: Props) {
   const dateLabel = formatSessionDate(session.sessionDate);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-1 sm:px-0">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Aulas"
         intro={<DashboardBackLink href={ROUTES.aulas}>Aulas</DashboardBackLink>}
@@ -74,20 +75,15 @@ export default async function SessionCheckInsPage({ params }: Props) {
         title="Resumo"
         subtitle="Contagem rápida desta sessão"
       >
-        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <div className="rounded-lg border border-border/80 bg-muted/20 p-3">
-            <dt className="text-xs text-muted-foreground">Check-ins</dt>
-            <dd className="text-2xl font-semibold tabular-nums">{checkIns.length}</dd>
-          </div>
-          <div className="rounded-lg border border-border/80 bg-muted/20 p-3">
-            <dt className="text-xs text-muted-foreground">Presença confirmada</dt>
-            <dd className="text-2xl font-semibold tabular-nums">{attendances.length}</dd>
-          </div>
-          <div className="col-span-2 rounded-lg border border-border/80 bg-muted/20 p-3 sm:col-span-1">
-            <dt className="text-xs text-muted-foreground">Elegíveis manual</dt>
-            <dd className="text-2xl font-semibold tabular-nums">{manualEligible.length}</dd>
-          </div>
-        </dl>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <DashboardStatTile label="Check-ins" value={checkIns.length} />
+          <DashboardStatTile label="Presença confirmada" value={attendances.length} accent="paid" />
+          <DashboardStatTile
+            label="Elegíveis manual"
+            value={manualEligible.length}
+            className="col-span-2 sm:col-span-1"
+          />
+        </div>
       </DashboardPanel>
     </div>
   );

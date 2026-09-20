@@ -1,10 +1,11 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { CalendarDays, Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { addRecurringSchedule, deleteRecurringSchedule } from "@/actions/classes";
+import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -77,7 +78,12 @@ export function ClassSchedulesPanel({ classId, schedules }: Props) {
   return (
     <div className="space-y-6">
       {schedules.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum horário recorrente cadastrado.</p>
+        <EmptyState
+          icon={CalendarDays}
+          title="Nenhum horário recorrente"
+          description="Adicione o primeiro horário abaixo. ISO 8601: 1 = segunda … 7 = domingo."
+          className="rounded-none border-0 bg-transparent shadow-none"
+        />
       ) : (
         <ul className="divide-y rounded-lg border">
           {schedules.map((s) => (
@@ -90,7 +96,7 @@ export function ClassSchedulesPanel({ classId, schedules }: Props) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-destructive hover:text-destructive"
+                className="min-h-11 min-w-11 text-destructive hover:text-destructive"
                 onClick={() => handleDelete(s.id)}
                 disabled={isPending}
                 aria-label="Remover horário"
@@ -109,7 +115,7 @@ export function ClassSchedulesPanel({ classId, schedules }: Props) {
           <div className="space-y-2">
             <Label htmlFor="sched-day">Dia da semana</Label>
             <Select value={dayOfWeek} onValueChange={setDayOfWeek} disabled={isPending}>
-              <SelectTrigger id="sched-day">
+              <SelectTrigger id="sched-day" className="min-h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -131,6 +137,7 @@ export function ClassSchedulesPanel({ classId, schedules }: Props) {
               onChange={(e) => setStartTime(e.target.value)}
               required
               disabled={isPending}
+              className="min-h-11"
             />
           </div>
 
@@ -143,6 +150,7 @@ export function ClassSchedulesPanel({ classId, schedules }: Props) {
               onChange={(e) => setEndTime(e.target.value)}
               required
               disabled={isPending}
+              className="min-h-11"
             />
           </div>
         </div>
@@ -153,7 +161,7 @@ export function ClassSchedulesPanel({ classId, schedules }: Props) {
           </p>
         )}
 
-        <Button type="submit" variant="secondary" size="sm" disabled={isPending}>
+        <Button type="submit" variant="secondary" className="min-h-11" disabled={isPending}>
           {isPending ? "Salvando…" : "Adicionar horário"}
         </Button>
       </form>

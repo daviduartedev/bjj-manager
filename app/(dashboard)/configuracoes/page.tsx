@@ -17,8 +17,8 @@ export default async function ConfiguracoesPage() {
 
   if (!data.ctx) {
     return (
-      <div className="mx-auto max-w-6xl space-y-6">
-        <div className="space-y-6" data-tour="page-configuracoes">
+      <div className="mx-auto max-w-6xl space-y-8">
+        <div className="space-y-8" data-tour="page-configuracoes">
           <DashboardPageHero
             badge="Preferências"
             title="Configurações"
@@ -35,18 +35,20 @@ export default async function ConfiguracoesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <div data-tour="page-configuracoes">
-        <DashboardPageHero badge="Preferências" title="Configurações">
-          <p className="type-lead max-w-xl">
-            Academia e planos (Kids 1, Kids 2, Adulto). Contato e nome de exibição em{" "}
+        <DashboardPageHero
+          badge="Preferências"
+          title="Configurações"
+          description="Academia e planos (Kids 1, Kids 2, Adulto). Contato e nome de exibição em Perfil."
+        >
+          <p className="type-lead">
             <Link
               href={ROUTES.perfil}
-              className="font-medium text-primary underline-offset-4 hover:underline"
+              className="inline-flex min-h-11 items-center font-medium text-primary underline-offset-4 hover:underline"
             >
-              Perfil
+              Ir para Perfil
             </Link>
-            .
           </p>
         </DashboardPageHero>
       </div>

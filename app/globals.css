@@ -168,7 +168,7 @@
 
   /** Top bar da coluna de conteúdo — canvas claro, acento vermelho discreto */
   .dashboard-top-bar {
-    @apply border-b border-border bg-background/92 backdrop-blur-md supports-[backdrop-filter]:bg-background/78;
+    @apply border-b border-border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/80;
     box-shadow: inset 0 -1px 0 0 hsl(var(--primary) / 0.12);
   }
 

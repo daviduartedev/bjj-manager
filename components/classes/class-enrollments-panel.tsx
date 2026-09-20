@@ -1,10 +1,11 @@
 "use client";
 
-import { UserMinus, UserPlus } from "lucide-react";
+import { UserMinus, UserPlus, Users } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { enrollStudent, unenrollStudent } from "@/actions/classes";
+import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -61,7 +62,12 @@ export function ClassEnrollmentsPanel({ classId, enrollments, availableStudents 
   return (
     <div className="space-y-6">
       {enrollments.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum aluno inscrito nesta turma.</p>
+        <EmptyState
+          icon={Users}
+          title="Nenhum aluno inscrito"
+          description="Inscreva um aluno activo nesta turma pelo seletor abaixo."
+          className="rounded-none border-0 bg-transparent shadow-none"
+        />
       ) : (
         <ul className="divide-y rounded-lg border">
           {enrollments.map((e) => (
@@ -70,7 +76,7 @@ export function ClassEnrollmentsPanel({ classId, enrollments, availableStudents 
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-destructive hover:text-destructive"
+                className="min-h-11 min-w-11 text-destructive hover:text-destructive"
                 onClick={() => handleUnenroll(e.studentId, e.studentName)}
                 disabled={isPending}
                 aria-label={`Remover ${e.studentName} da turma`}
@@ -92,7 +98,7 @@ export function ClassEnrollmentsPanel({ classId, enrollments, availableStudents 
               onValueChange={setSelectedStudentId}
               disabled={isPending}
             >
-              <SelectTrigger className="flex-1">
+              <SelectTrigger className="min-h-11 flex-1">
                 <SelectValue placeholder="Selecione o aluno…" />
               </SelectTrigger>
               <SelectContent>
@@ -107,9 +113,8 @@ export function ClassEnrollmentsPanel({ classId, enrollments, availableStudents 
             <Button
               type="submit"
               variant="secondary"
-              size="sm"
               disabled={isPending || !selectedStudentId}
-              className="shrink-0"
+              className="min-h-11 shrink-0"
             >
               <UserPlus className="mr-2 size-4" aria-hidden />
               Inscrever

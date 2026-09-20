@@ -78,7 +78,7 @@ export function PerfilClient(props: Props) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <DashboardPanel icon={UserRound} title="Seus dados" subtitle="Nome, contato e e-mail da conta">
         <div className="flex flex-col gap-6 md:flex-row md:items-start">
           <Avatar className="size-16 shrink-0 border border-border shadow-sm">

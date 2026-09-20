@@ -11,6 +11,7 @@ import { updateAccount, updateReceiver } from "@/actions/settings";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { EmptyState } from "@/components/layout/empty-state";
 import {
   Form,
   FormControl,
@@ -131,9 +132,12 @@ export function ConfiguracoesClient(props: Props) {
             ))}
           </ul>
           {props.plans.length === 0 ? (
-            <p className="text-crm-sm text-muted-foreground" role="status">
-              Nenhum plano encontrado. Saia e entre de novo para gerar os planos padrão da conta.
-            </p>
+            <EmptyState
+              icon={Layers}
+              title="Nenhum plano encontrado"
+              description="Saia e entre de novo para gerar os planos padrão da conta."
+              className="rounded-none border-0 bg-transparent shadow-none"
+            />
           ) : null}
         </div>
       </DashboardPanel>
@@ -192,7 +196,7 @@ function ReceiverPanel({
       {incomplete ? (
         <div
           role="alert"
-          className="mb-4 flex items-start gap-3 rounded-md border border-amber-300/60 bg-amber-50 p-3 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/40 dark:text-amber-200"
+          className="mb-4 flex items-start gap-3 rounded-md border border-[hsl(var(--status-pending)/0.35)] bg-[hsl(var(--status-pending)/0.08)] p-3 text-[hsl(var(--status-pending-foreground))]"
         >
           <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden />
           <div className="text-crm-sm">

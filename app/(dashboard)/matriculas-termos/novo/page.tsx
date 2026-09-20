@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { FileSignature, Users } from "lucide-react";
 
 import { EnrollmentLiabilityFormEditor } from "@/components/enrollment-liability-forms/enrollment-liability-form-editor";
 import { StudentPicker } from "@/components/enrollment-liability-forms/student-picker";
@@ -29,7 +30,7 @@ export default async function NovaMatriculaTermoPage({
   if (!studentId) {
     const { students } = await loadActiveStudentsForPicker();
     return (
-      <div className="mx-auto max-w-3xl space-y-6">
+      <div className="mx-auto max-w-6xl space-y-8">
         <DashboardPageHero
           badge="Nova"
           intro={
@@ -40,7 +41,7 @@ export default async function NovaMatriculaTermoPage({
           title="Escolher aluno"
           description="Seleccione o aluno para iniciar o formulário ASLAM."
         />
-        <DashboardPanel title="Aluno" subtitle="Lista de alunos activos">
+        <DashboardPanel icon={Users} title="Aluno" subtitle="Lista de alunos activos">
           <StudentPicker students={students} />
         </DashboardPanel>
       </div>
@@ -51,7 +52,7 @@ export default async function NovaMatriculaTermoPage({
   if (!student) notFound();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Nova"
         intro={
@@ -62,7 +63,7 @@ export default async function NovaMatriculaTermoPage({
         title="Matrícula e Termo de Responsabilidade"
         description="Preencha os campos complementares. O PDF seguirá o modelo ASLAM."
       />
-      <DashboardPanel title="Formulário" subtitle="Dados para o documento legal">
+      <DashboardPanel icon={FileSignature} title="Formulário" subtitle="Dados para o documento legal">
         <EnrollmentLiabilityFormEditor
           studentId={student.id}
           studentName={student.full_name}

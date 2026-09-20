@@ -4,6 +4,7 @@ import { CalendarDays, ChevronRight, Users } from "lucide-react";
 
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listUpcomingSessions } from "@/lib/data/classes-page";
@@ -39,13 +40,13 @@ export default async function AulasPage() {
   const sessions = await listUpcomingSessions();
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Gestão operacional"
         title="Aulas"
         description="Sessões dos próximos 7 dias. Clique numa sessão para ver os check-ins."
         aside={
-          <Button asChild variant="secondary">
+          <Button asChild variant="secondary" className="min-h-11">
             <Link href={ROUTES.aulasTurmas}>
               <CalendarDays className="mr-2 size-4" aria-hidden />
               Gerenciar turmas
@@ -56,20 +57,23 @@ export default async function AulasPage() {
 
       <DashboardPanel icon={CalendarDays} title="Próximas sessões" subtitle="7 dias à frente">
         {sessions.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            Nenhuma sessão nos próximos 7 dias.{" "}
-            <Link href={ROUTES.aulasTurmas} className="underline underline-offset-4">
-              Verifique as turmas e horários
-            </Link>
-            .
-          </p>
+          <EmptyState
+            icon={CalendarDays}
+            title="Nenhuma sessão nos próximos 7 dias"
+            description="Verifique as turmas e horários para gerar sessões."
+            className="rounded-none border-0 bg-transparent shadow-none"
+          >
+            <Button asChild variant="outline" className="min-h-11">
+              <Link href={ROUTES.aulasTurmas}>Ver turmas</Link>
+            </Button>
+          </EmptyState>
         ) : (
           <ul className="divide-y">
             {sessions.map((s) => (
               <li key={s.id}>
                 <Link
                   href={routeAulasSessao(s.id)}
-                  className="flex items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-primary/[0.04] hover:border-l-primary/20"
+                  className="flex min-h-11 items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-primary/[0.04]"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium">{s.className}</p>

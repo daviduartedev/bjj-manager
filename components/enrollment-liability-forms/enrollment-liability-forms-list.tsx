@@ -6,8 +6,10 @@ import { ptBR } from "date-fns/locale";
 
 import type { EnrollmentLiabilityFormRow } from "@/actions/enrollment-liability-forms";
 import { EnrollmentLiabilityDocBadge } from "@/components/enrollment-liability-forms/signature-status-badge";
+import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { routeMatriculaTermo } from "@/lib/routes";
+import { FileSignature } from "lucide-react";
 
 function pendingDaysChip(updatedAt: string): string | null {
   const days = differenceInCalendarDays(new Date(), new Date(updatedAt));
@@ -23,9 +25,12 @@ type Props = {
 export function EnrollmentLiabilityFormsList({ rows }: Props) {
   if (rows.length === 0) {
     return (
-      <p className="text-crm-sm text-muted-foreground">
-        Nenhuma matrícula/termo encontrada. Crie a primeira pelo botão acima.
-      </p>
+      <EmptyState
+        icon={FileSignature}
+        title="Nenhuma matrícula/termo encontrada"
+        description="Crie a primeira pelo botão acima. Os mesmos estados de rascunho e assinatura continuam a aplicar-se."
+        className="rounded-none border-0 bg-transparent shadow-none"
+      />
     );
   }
 
@@ -35,7 +40,7 @@ export function EnrollmentLiabilityFormsList({ rows }: Props) {
         <Link
           key={row.id}
           href={routeMatriculaTermo(row.id)}
-          className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
+          className="flex min-h-11 flex-col gap-2 rounded-lg border border-border/80 bg-muted/20 p-4 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="space-y-1">
             <p className="font-medium">
@@ -65,7 +70,7 @@ export function EnrollmentLiabilityFormsList({ rows }: Props) {
               (() => {
                 const label = pendingDaysChip(row.updated_at);
                 return label ? (
-                  <Badge variant="outline" className="text-amber-700">
+                  <Badge variant="outline" className="text-[hsl(var(--status-pending-foreground))]">
                     {label}
                   </Badge>
                 ) : null;

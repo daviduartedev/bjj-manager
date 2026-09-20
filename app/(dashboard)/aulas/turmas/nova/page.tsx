@@ -18,7 +18,7 @@ export default async function NovaTurmaPage() {
   if (!ctx || ctx.profile.role !== "professor") redirect(ROUTES.painel);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Aulas"
         intro={<DashboardBackLink href={ROUTES.aulasTurmas}>Turmas</DashboardBackLink>}

@@ -47,7 +47,7 @@ export default async function TurmaDetailPage({ params }: Props) {
   if (!classDetail) notFound();
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Aulas"
         intro={<DashboardBackLink href={ROUTES.aulasTurmas}>Turmas</DashboardBackLink>}

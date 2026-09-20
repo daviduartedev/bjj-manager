@@ -5,10 +5,10 @@ import { BookOpen, FileDown } from "lucide-react";
 
 import { PlanStatusSwitcher } from "@/components/lesson-plans/plan-status-switcher";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { EmptyState } from "@/components/layout/empty-state";
 import { loadLessonPlanDetail } from "@/lib/data/lesson-plans-page";
 import { formatDateTimeBR } from "@/lib/documents/formatters";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
@@ -32,7 +32,7 @@ export default async function PlanoDetailPage({ params }: PageProps) {
   const content = plan.current_revision?.content_json ?? { topics: [], summary: null };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Pedagógico"
         intro={<DashboardBackLink href={ROUTES.pedagogicoPlanos}>Planos</DashboardBackLink>}
@@ -72,24 +72,30 @@ export default async function PlanoDetailPage({ params }: PageProps) {
 
         <div className="mt-6 space-y-4">
           {content.topics.length === 0 ? (
-            <p className="text-crm-sm text-muted-foreground">Plano ainda sem tópicos.</p>
+            <EmptyState
+              icon={BookOpen}
+              title="Plano ainda sem tópicos"
+              description="Edite o plano para acrescentar tópicos e itens."
+              className="rounded-none border-0 bg-transparent shadow-none"
+            />
           ) : (
             content.topics.map((topic) => (
-              <Card key={topic.id} className="border-border bg-card shadow-sm">
-                <CardContent className="space-y-2 p-4">
-                  <h3 className="text-base font-semibold">{topic.title}</h3>
-                  {topic.summary ? (
-                    <p className="text-crm-sm text-muted-foreground">{topic.summary}</p>
-                  ) : null}
-                  {topic.items.length > 0 ? (
-                    <ul className="ml-5 list-disc space-y-1 text-crm-sm">
-                      {topic.items.map((it) => (
-                        <li key={it.id}>{it.text}</li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </CardContent>
-              </Card>
+              <div
+                key={topic.id}
+                className="space-y-2 rounded-lg border border-border/80 bg-muted/20 p-4"
+              >
+                <h3 className="type-card-heading">{topic.title}</h3>
+                {topic.summary ? (
+                  <p className="text-crm-sm text-muted-foreground">{topic.summary}</p>
+                ) : null}
+                {topic.items.length > 0 ? (
+                  <ul className="ml-5 list-disc space-y-1 text-crm-sm">
+                    {topic.items.map((it) => (
+                      <li key={it.id}>{it.text}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
             ))
           )}
         </div>
