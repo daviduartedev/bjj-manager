@@ -23,13 +23,10 @@ export function PageHeader({
       )}
       {...props}
     >
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <div className="flex flex-wrap items-end gap-3">
           <h1 className="type-page-title">{title}</h1>
-          <span
-            className="hidden h-1 w-16 shrink-0 rounded-full bg-gradient-to-r from-primary via-[hsl(var(--status-info))] to-[hsl(var(--status-paid))] sm:inline-block md:w-24"
-            aria-hidden
-          />
+          <span className="hidden h-0.5 w-14 shrink-0 bg-primary sm:inline-block md:w-20" aria-hidden />
         </div>
         {description ? <p className="type-lead max-w-2xl md:text-crm-base">{description}</p> : null}
       </div>
