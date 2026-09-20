@@ -4,6 +4,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { LpEnterLink, LpFooter, LpHeader } from "@/components/marketing/lp-chrome";
+import { LpSystemVideo } from "@/components/marketing/lp-system-video";
 import { cn } from "@/lib/utils";
 
 const faqItems = [
@@ -187,6 +188,8 @@ export function LandingPage() {
           A secretaria da escola vive no notebook, na beira do tatame, entre uma aula e outra. O Casca cabe nesse intervalo: ficha do aluno, faixa, vencimento e o que está atrasado hoje.
         </p>
       </SplitBlock>
+
+      <LpSystemVideo />
 
       <section className="border-y border-white/15 bg-[#0a0a0a]" aria-label="O que o Casca cobre">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4">

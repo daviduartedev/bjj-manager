@@ -31,6 +31,7 @@ const serverActionsAllowedOrigins =
 
 const nextConfig = {
   reactStrictMode: true,
+  transpilePackages: ["remotion", "@remotion/player"],
   serverExternalPackages: [
     "playwright",
     "puppeteer-core",
