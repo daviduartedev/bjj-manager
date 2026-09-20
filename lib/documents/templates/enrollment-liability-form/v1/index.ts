@@ -1,6 +1,5 @@
 import type { DocumentPayload } from "@/lib/documents/types";
 
-import { getAslamLogoDataUrl } from "../../shared/brand-assets";
 import { buildLayout } from "../../shared/layout";
 import { ASLAM_ADULT_CLAUSES, ASLAM_MINOR_CLAUSES } from "./clauses";
 import { renderAdultTemplate, renderMinorTemplate } from "./render";
@@ -25,7 +24,7 @@ export function renderEnrollmentLiabilityFormV1(payload: DocumentPayload): strin
   } = payload.data;
 
   const academyName = receiver.legalName ?? receiver.academyName;
-  const logoDataUrl = getAslamLogoDataUrl();
+  const logoDataUrl = payload.data.logoImageDataUrl ?? null;
 
   const body =
     variant === "minor"

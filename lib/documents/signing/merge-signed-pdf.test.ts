@@ -19,6 +19,7 @@ const basePayload: EnrollmentLiabilityFormPayload = {
     legalName: "Aslam BJJ LTDA",
     cnpj: null,
     signaturePath: null,
+    logoPath: null,
   },
   student: {
     fullName: "João Silva",

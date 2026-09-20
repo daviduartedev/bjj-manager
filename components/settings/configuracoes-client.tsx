@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CnpjInput } from "@/components/settings/cnpj-input";
+import { LogoUploader } from "@/components/settings/logo-uploader";
 import { SignatureUploader } from "@/components/settings/signature-uploader";
 import type { SettingsPlanRow, SettingsReceiverRow } from "@/lib/data/settings-page";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
@@ -186,7 +187,7 @@ function ReceiverPanel({
     <DashboardPanel
       icon={Receipt}
       title="Recebedor"
-      subtitle="Razão social, CNPJ e assinatura usados nos recibos e documentos"
+      subtitle="Razão social, CNPJ, logo e assinatura usados nos recibos e documentos"
     >
       {incomplete ? (
         <div
@@ -262,6 +263,14 @@ function ReceiverPanel({
           </div>
         </form>
       </Form>
+
+      <div className="mt-6">
+        <Label className="mb-2 block text-crm-sm font-medium">Logo da academia</Label>
+        <LogoUploader
+          initialPath={receiver.logo_path}
+          initialPreviewUrl={receiver.logo_preview_url}
+        />
+      </div>
 
       <div className="mt-6">
         <Label className="mb-2 block text-crm-sm font-medium">Assinatura digital</Label>

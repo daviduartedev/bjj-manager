@@ -14,6 +14,7 @@ import {
   buildDocumentPath,
   uploadDocumentArtifact,
 } from "./storage";
+import { attachResolvedLogo } from "./branding-image";
 import { resolveTemplate } from "./template-resolver";
 import type { DocumentPayload, DocumentType } from "./types";
 
@@ -181,7 +182,7 @@ export class DocumentGenerationService {
       reason: input.reissue?.reason ?? null,
     } as const;
 
-    const enriched: DocumentPayload = {
+    const enriched: DocumentPayload = await attachResolvedLogo(this.client, {
       ...input.payload,
       data: {
         ...input.payload.data,
@@ -189,7 +190,7 @@ export class DocumentGenerationService {
         issuedAt: issuedAt.toISOString(),
         reissue: reissueMeta,
       },
-    } as DocumentPayload;
+    } as DocumentPayload);
 
     if (existingRow) {
       const reset = await this.client

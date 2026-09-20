@@ -40,6 +40,7 @@ export type ReceiverInfo = {
   legalName: string | null;
   cnpj: string | null;
   signaturePath: string | null;
+  logoPath: string | null;
   academyName: string;
 };
 
@@ -64,6 +65,7 @@ export type PaymentReceiptPayload = {
     notes: string | null;
     description: string;
   };
+  logoImageDataUrl?: string | null;
 };
 
 export type EnrollmentProofPayload = {
@@ -138,6 +140,7 @@ export type EnrollmentLiabilityFormPayload = {
   };
   guardian: EnrollmentLiabilityGuardian | null;
   signatureImageDataUrl?: string | null;
+  logoImageDataUrl?: string | null;
 };
 
 export type ManualReceiptPayload = {

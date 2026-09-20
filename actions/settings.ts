@@ -5,6 +5,13 @@ import { revalidatePath } from "next/cache";
 import { mapBillingActionError } from "@/lib/billing/action-errors";
 import { ROUTES } from "@/lib/routes";
 import {
+  BRANDING_BUCKET,
+  persistBrandingUpload,
+  removeBrandingAsset,
+  type BrandingAccountColumn,
+  type BrandingKind,
+} from "@/lib/settings/branding-upload";
+import {
   updateAccountSchema,
   updateProfileSchema,
   updateReceiverSchema,
@@ -13,9 +20,120 @@ import { createClient } from "@/lib/supabase/server";
 
 export type SettingsActionResult = { ok: true } | { ok: false; error: string };
 
-const SIGNATURE_BUCKET = process.env.SUPABASE_BRANDING_BUCKET ?? "branding-dev";
-const SIGNATURE_MAX_BYTES = 256 * 1024;
-const SIGNATURE_ALLOWED_MIME = ["image/png", "image/svg+xml"] as const;
+async function requireSettingsAccount() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false as const, error: "Sessão inválida." };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("account_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!profile?.account_id) {
+    return { ok: false as const, error: "Conta não encontrada." };
+  }
+
+  return {
+    ok: true as const,
+    supabase,
+    accountId: profile.account_id as string,
+  };
+}
+
+function brandingStorageDeps(supabase: Awaited<ReturnType<typeof createClient>>) {
+  return {
+    upload: async (path: string, body: Uint8Array, contentType: string) => {
+      const { error } = await supabase.storage.from(BRANDING_BUCKET).upload(path, body, {
+        cacheControl: "3600",
+        upsert: true,
+        contentType,
+      });
+      if (error) throw error;
+    },
+    remove: async (paths: string[]) => {
+      await supabase.storage.from(BRANDING_BUCKET).remove(paths);
+    },
+    readPath: async (accountId: string, column: BrandingAccountColumn) => {
+      const { data, error } = await supabase
+        .from("accounts")
+        .select("signature_url, logo_url")
+        .eq("id", accountId)
+        .maybeSingle();
+      if (error) throw error;
+      const value = data?.[column];
+      return typeof value === "string" ? value : null;
+    },
+    writePath: async (
+      accountId: string,
+      column: BrandingAccountColumn,
+      value: string | null,
+    ) => {
+      const { error } = await supabase
+        .from("accounts")
+        .update({
+          [column]: value,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", accountId);
+      if (error) throw error;
+    },
+  };
+}
+
+async function uploadAccountBranding(
+  formData: FormData,
+  kind: BrandingKind,
+): Promise<SettingsActionResult> {
+  try {
+    const file = formData.get("file");
+    if (!(file instanceof File)) {
+      return { ok: false, error: "Selecione um ficheiro." };
+    }
+
+    const ctx = await requireSettingsAccount();
+    if (!ctx.ok) return ctx;
+
+    const deps = brandingStorageDeps(ctx.supabase);
+    const result = await persistBrandingUpload({
+      accountId: ctx.accountId,
+      kind,
+      file,
+      upload: deps.upload,
+      writePath: deps.writePath,
+    });
+    if (!result.ok) return result;
+
+    revalidatePath(ROUTES.configuracoes);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
+
+async function removeAccountBranding(kind: BrandingKind): Promise<SettingsActionResult> {
+  try {
+    const ctx = await requireSettingsAccount();
+    if (!ctx.ok) return ctx;
+
+    const deps = brandingStorageDeps(ctx.supabase);
+    await removeBrandingAsset({
+      accountId: ctx.accountId,
+      kind,
+      readPath: deps.readPath,
+      remove: deps.remove,
+      writePath: deps.writePath,
+    });
+
+    revalidatePath(ROUTES.configuracoes);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
 
 export async function updateAccount(input: unknown): Promise<SettingsActionResult> {
   try {
@@ -110,107 +228,21 @@ export async function updateReceiver(input: unknown): Promise<SettingsActionResu
 export async function uploadAccountSignature(
   formData: FormData,
 ): Promise<SettingsActionResult> {
-  try {
-    const file = formData.get("file");
-    if (!(file instanceof File)) {
-      return { ok: false, error: "Selecione um ficheiro." };
-    }
-    if (file.size === 0) {
-      return { ok: false, error: "Ficheiro vazio." };
-    }
-    if (file.size > SIGNATURE_MAX_BYTES) {
-      return { ok: false, error: "Ficheiro maior que 256 KB." };
-    }
-    if (!SIGNATURE_ALLOWED_MIME.includes(file.type as (typeof SIGNATURE_ALLOWED_MIME)[number])) {
-      return { ok: false, error: "Use PNG ou SVG." };
-    }
-
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return { ok: false, error: "Sessão inválida." };
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("account_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (!profile?.account_id) {
-      return { ok: false, error: "Conta não encontrada." };
-    }
-
-    const ext = file.type === "image/png" ? "png" : "svg";
-    const path = `${profile.account_id}/signature.${ext}`;
-    const arrayBuffer = await file.arrayBuffer();
-
-    const { error: uploadErr } = await supabase.storage
-      .from(SIGNATURE_BUCKET)
-      .upload(path, new Uint8Array(arrayBuffer), {
-        cacheControl: "3600",
-        upsert: true,
-        contentType: file.type,
-      });
-    if (uploadErr) throw uploadErr;
-
-    const { error: updErr } = await supabase
-      .from("accounts")
-      .update({
-        signature_url: path,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", profile.account_id);
-    if (updErr) throw updErr;
-
-    revalidatePath(ROUTES.configuracoes);
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: mapBillingActionError(e) };
-  }
+  return uploadAccountBranding(formData, "signature");
 }
 
 export async function removeAccountSignature(): Promise<SettingsActionResult> {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return { ok: false, error: "Sessão inválida." };
+  return removeAccountBranding("signature");
+}
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("account_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
+export async function uploadAccountLogo(
+  formData: FormData,
+): Promise<SettingsActionResult> {
+  return uploadAccountBranding(formData, "logo");
+}
 
-    if (!profile?.account_id) {
-      return { ok: false, error: "Conta não encontrada." };
-    }
-
-    const { data: account } = await supabase
-      .from("accounts")
-      .select("signature_url")
-      .eq("id", profile.account_id)
-      .maybeSingle();
-
-    if (account?.signature_url) {
-      await supabase.storage
-        .from(SIGNATURE_BUCKET)
-        .remove([account.signature_url]);
-    }
-
-    const { error } = await supabase
-      .from("accounts")
-      .update({ signature_url: null, updated_at: new Date().toISOString() })
-      .eq("id", profile.account_id);
-    if (error) throw error;
-
-    revalidatePath(ROUTES.configuracoes);
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: mapBillingActionError(e) };
-  }
+export async function removeAccountLogo(): Promise<SettingsActionResult> {
+  return removeAccountBranding("logo");
 }
 
 export async function updateProfile(input: unknown): Promise<SettingsActionResult> {

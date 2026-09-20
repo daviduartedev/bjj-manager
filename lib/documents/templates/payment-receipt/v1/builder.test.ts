@@ -16,6 +16,7 @@ function basePayload(): DocumentPayload {
         legalName: "Aslam BJJ Ltda",
         cnpj: "12345678000123",
         signaturePath: null,
+        logoPath: null,
       },
       payer: { fullName: "Aluno Teste", document: "12345678900" },
       payment: {
@@ -72,5 +73,22 @@ describe("renderPaymentReceiptV1", () => {
         data: {} as never,
       } as DocumentPayload),
     ).toThrow();
+  });
+
+  it("embute a logo da academia no cabeçalho quando há data URL", () => {
+    const payload = basePayload();
+    const logo = "data:image/png;base64,RECEIPTLOGO";
+    if (payload.type === "payment_receipt") {
+      payload.data.logoImageDataUrl = logo;
+    }
+    const html = renderPaymentReceiptV1(payload);
+    expect(html).toContain(logo);
+    expect(html).toContain('alt="Aslam BJJ Ltda"');
+  });
+
+  it("omite a imagem da logo quando não há data URL", () => {
+    const html = renderPaymentReceiptV1(basePayload());
+    expect(html).not.toContain("<img");
+    expect(html).not.toContain("Logo.png");
   });
 });

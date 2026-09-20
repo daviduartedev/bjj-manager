@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentAccount } from "@/lib/auth";
+import { BRANDING_BUCKET } from "@/lib/settings/branding-upload";
 import type { PlanKind } from "@/lib/students/plan-kind";
 
-const SIGNATURE_BUCKET = process.env.SUPABASE_BRANDING_BUCKET ?? "branding-dev";
-const SIGNATURE_SIGN_TTL_SECONDS = 60 * 60;
+const BRANDING_SIGN_TTL_SECONDS = 60 * 60;
 
 export type SettingsPlanRow = {
   id: string;
@@ -18,6 +18,8 @@ export type SettingsReceiverRow = {
   cnpj: string | null;
   signature_path: string | null;
   signature_preview_url: string | null;
+  logo_path: string | null;
+  logo_preview_url: string | null;
 };
 
 const PLAN_KIND_ORDER: Record<PlanKind, number> = {
@@ -45,6 +47,8 @@ export async function loadSettingsPageData(): Promise<
     cnpj: null,
     signature_path: null,
     signature_preview_url: null,
+    logo_path: null,
+    logo_preview_url: null,
   };
   const ctx = await getCurrentAccount();
   if (!ctx) return { ctx: null, plans: [], receiver: emptyReceiver };
@@ -62,9 +66,17 @@ export async function loadSettingsPageData(): Promise<
   let signaturePreview: string | null = null;
   if (ctx.account.signature_url) {
     const { data: signed } = await supabase.storage
-      .from(SIGNATURE_BUCKET)
-      .createSignedUrl(ctx.account.signature_url, SIGNATURE_SIGN_TTL_SECONDS);
+      .from(BRANDING_BUCKET)
+      .createSignedUrl(ctx.account.signature_url, BRANDING_SIGN_TTL_SECONDS);
     signaturePreview = signed?.signedUrl ?? null;
+  }
+
+  let logoPreview: string | null = null;
+  if (ctx.account.logo_url) {
+    const { data: signed } = await supabase.storage
+      .from(BRANDING_BUCKET)
+      .createSignedUrl(ctx.account.logo_url, BRANDING_SIGN_TTL_SECONDS);
+    logoPreview = signed?.signedUrl ?? null;
   }
 
   const receiver: SettingsReceiverRow = {
@@ -72,6 +84,8 @@ export async function loadSettingsPageData(): Promise<
     cnpj: ctx.account.cnpj,
     signature_path: ctx.account.signature_url,
     signature_preview_url: signaturePreview,
+    logo_path: ctx.account.logo_url,
+    logo_preview_url: logoPreview,
   };
 
   return { ctx, plans, receiver };

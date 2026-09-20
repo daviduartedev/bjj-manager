@@ -12,7 +12,8 @@ const BASE_STYLE = `
   body{margin:0;font-family:'Inter','Helvetica Neue',Arial,sans-serif;color:#0F172A;background:#fff;font-size:11pt;line-height:1.45}
   .page{padding:0;}
   .header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E2E8F0;padding-bottom:12px;margin-bottom:20px}
-  .brand{font-size:9pt;letter-spacing:.04em;text-transform:uppercase;color:#475569}
+  .brand{font-size:9pt;letter-spacing:.04em;text-transform:uppercase;color:#475569;display:flex;align-items:center;gap:12px}
+  .brand-logo{max-height:48px;max-width:72px;object-fit:contain;flex-shrink:0}
   .doc-number{font-size:9pt;color:#475569}
   .title{font-size:18pt;font-weight:700;margin:0 0 6px;letter-spacing:.01em}
   .subtitle{font-size:10pt;color:#475569;margin:0 0 18px}
