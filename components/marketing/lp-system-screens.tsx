@@ -18,17 +18,28 @@ export function SystemScreensComposition() {
     <AbsoluteFill style={{ backgroundColor: "#000000" }}>
       {LP_SYSTEM_SCREEN_SRCS.map((src, index) => {
         const start = index * LP_SYSTEM_SCREEN_HOLD;
-        const opacity = interpolate(
-          frame,
-          [
-            start,
-            start + LP_SYSTEM_CROSSFADE,
-            start + LP_SYSTEM_SCREEN_HOLD,
-            start + LP_SYSTEM_SCREEN_HOLD + LP_SYSTEM_CROSSFADE,
-          ],
-          [0, 1, 1, 0],
-          { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-        );
+        // Primeira tela começa visível (opacity 1 no frame 0): garante imagem para
+        // quem tem prefers-reduced-motion (player pausado no frame 0) e evita
+        // flash preto na primeira pintura. Demais telas mantêm o fade cruzado.
+        const opacity =
+          index === 0
+            ? interpolate(
+                frame,
+                [start + LP_SYSTEM_SCREEN_HOLD, start + LP_SYSTEM_SCREEN_HOLD + LP_SYSTEM_CROSSFADE],
+                [1, 0],
+                { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+              )
+            : interpolate(
+                frame,
+                [
+                  start,
+                  start + LP_SYSTEM_CROSSFADE,
+                  start + LP_SYSTEM_SCREEN_HOLD,
+                  start + LP_SYSTEM_SCREEN_HOLD + LP_SYSTEM_CROSSFADE,
+                ],
+                [0, 1, 1, 0],
+                { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+              );
 
         return (
           <AbsoluteFill key={src} style={{ opacity }}>
