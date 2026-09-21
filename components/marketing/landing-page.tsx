@@ -8,7 +8,18 @@ import { LpSystemVideo } from "@/components/marketing/lp-system-video";
 
 export function LandingPage() {
   return (
-    <main className="bg-black text-white">
+    <main
+      className="bg-[#070707] text-white"
+      style={{
+        backgroundImage: [
+          "radial-gradient(ellipse 90% 55% at 50% -8%, rgba(191,30,39,0.10), transparent)",
+          "radial-gradient(ellipse 55% 40% at 88% 42%, rgba(255,255,255,0.035), transparent)",
+          "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)",
+          "linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+        ].join(", "),
+        backgroundSize: "100% 100%, 100% 100%, 56px 56px, 56px 56px",
+      }}
+    >
       <LpHeader />
       <h1 className="sr-only">
         Casca. Alunos, faixa e mensalidade na mesma ficha, para academias de jiu-jitsu.

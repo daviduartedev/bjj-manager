@@ -50,7 +50,7 @@ export function LpProblem() {
   return (
     <LpSection
       id="problema"
-      className="bg-[#0a0a0a] border-y border-white/10"
+      className="border-y border-white/10 bg-white/[0.03]"
     >
       {/* Section header */}
       <LpReveal>

@@ -51,7 +51,7 @@ const modules = [
 
 export function LpProductFlow() {
   return (
-    <LpSection id="funcionalidades" className="bg-black">
+    <LpSection id="funcionalidades">
       {/* Header */}
       <LpReveal>
         <LpEyebrow>O sistema</LpEyebrow>

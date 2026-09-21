@@ -42,7 +42,7 @@ const faqItems = [
 
 export function LpFaq() {
   return (
-    <LpSection id="faq" className="bg-black">
+    <LpSection id="faq">
       <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20">
         {/* Left column — sticky on desktop */}
         <LpReveal>

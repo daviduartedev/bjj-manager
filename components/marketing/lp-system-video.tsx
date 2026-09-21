@@ -82,7 +82,7 @@ export function LpSystemVideo() {
     <section
       data-testid="lp-system-video"
       aria-label="O sistema em uso"
-      className="relative bg-[#0a0a0a] border-y border-white/10 px-5 py-20 sm:px-10 sm:py-28 lg:px-14"
+      className="relative border-y border-white/10 bg-white/[0.03] px-5 py-20 sm:px-10 sm:py-28 lg:px-14"
     >
       <div className="mx-auto w-full max-w-6xl">
         {/* Header */}
