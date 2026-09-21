@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { CascaNavLogo } from "@/components/marketing/casca-nav-logo";
-import { ProductFooter } from "@/components/layout/product-footer";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -68,7 +67,7 @@ export function LpHeader({ solid = false }: { solid?: boolean }) {
 
 export function LpFooter() {
   return (
-    <footer className="border-t border-white/10 bg-black px-5 py-10 text-white sm:px-10 lg:px-14">
+    <footer className="border-t border-white/10 px-5 py-10 text-white sm:px-10 lg:px-14">
       <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
         <CascaNavLogo asLink={false} imgClassName="sm:h-9" />
         <div className="flex flex-col gap-4 text-sm text-white/60 sm:items-end sm:text-right">
@@ -84,7 +83,6 @@ export function LpFooter() {
               Política de Privacidade
             </Link>
           </nav>
-          <ProductFooter surface="dark" />
         </div>
       </div>
     </footer>
