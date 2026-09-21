@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { ProductsClient } from "@/components/products/products-client";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { loadProductLedgerPageData } from "@/lib/data/product-ledger-page";
 import { loadProductsPageData } from "@/lib/data/products-page";
 import { Package } from "lucide-react";
 
@@ -23,7 +24,7 @@ export default async function ProdutosPage() {
           <DashboardPageHero
             badge="Gestão operacional"
             title="Produtos"
-            description="Cadastro de produtos, tamanhos e estoque manual da academia. Sem venda nem checkout nesta etapa."
+            description="Cadastro de produtos, caderno de vendas e estoque manual da academia."
           />
         </div>
 
@@ -98,17 +99,28 @@ export default async function ProdutosPage() {
     );
   }
 
+  const ledger = await loadProductLedgerPageData().catch(() => ({
+    notes: [],
+    students: [],
+    available: false,
+  }));
+
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div data-tour="page-produtos">
         <DashboardPageHero
           badge="Gestão operacional"
           title="Produtos"
-          description="Cadastro de produtos, tamanhos e estoque manual da academia. Sem venda nem checkout nesta etapa."
-        />
-      </div>
+            description="Cadastro de produtos, caderno de vendas e estoque manual da academia."
+          />
+        </div>
 
-      <ProductsClient products={products} />
+      <ProductsClient
+        products={products}
+        ledgerNotes={ledger.notes}
+        ledgerStudents={ledger.students}
+        ledgerAvailable={ledger.available}
+      />
     </div>
   );
 }

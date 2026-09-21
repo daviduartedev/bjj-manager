@@ -791,3 +791,30 @@ CREATE POLICY attendances_student_select ON public.attendances FOR SELECT TO aut
   public.current_profile_role () = 'student'::public.profile_role
   AND student_id = public.current_student_id ()
 );
+
+-- ---------- product ledger (caderno de vendas — só professor) ----------
+ALTER TABLE public.product_ledger_notes ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.product_ledger_installments ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS product_ledger_notes_operational_all ON public.product_ledger_notes;
+
+CREATE POLICY product_ledger_notes_operational_all ON public.product_ledger_notes FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+)
+WITH CHECK (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+);
+
+DROP POLICY IF EXISTS product_ledger_installments_operational_all ON public.product_ledger_installments;
+
+CREATE POLICY product_ledger_installments_operational_all ON public.product_ledger_installments FOR ALL TO authenticated USING (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+)
+WITH CHECK (
+  public.current_profile_role () = 'professor'::public.profile_role
+  AND account_id = public.current_account_id ()
+);
