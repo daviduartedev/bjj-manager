@@ -10,6 +10,15 @@ import {
   LP_SYSTEM_VIDEO_WIDTH,
   SystemScreensComposition,
 } from "@/components/marketing/lp-system-screens";
+import {
+  LpDisplay,
+  LpEyebrow,
+  LpReveal,
+} from "@/components/marketing/lp-primitives";
+
+// ---------------------------------------------------------------------------
+// Accessibility hook
+// ---------------------------------------------------------------------------
 
 function usePrefersReducedMotion() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(true);
@@ -24,6 +33,37 @@ function usePrefersReducedMotion() {
 
   return prefersReducedMotion;
 }
+
+// ---------------------------------------------------------------------------
+// Copy items (verbatim from spec)
+// ---------------------------------------------------------------------------
+
+const ITEMS = [
+  {
+    title: "Alunos",
+    body: "Cadastro, lista e ficha. Adulto ou kids, com faixa, grau e a situação do mês no mesmo lugar.",
+  },
+  {
+    title: "Graduação",
+    body: "Histórico com data. Promoção de grau ou faixa; pulo de ordem pede justificativa.",
+  },
+  {
+    title: "Mensalidades",
+    body: "Mês de referência com status explícito. O pagamento é confirmado na operação da escola.",
+  },
+  {
+    title: "Painel",
+    body: "Alunos ativos, atrasos, aniversariantes e o que precisa de atenção hoje.",
+  },
+  {
+    title: "Documentos",
+    body: "Certificados, termos, comprovantes de matrícula e recibos, com envio por WhatsApp.",
+  },
+] as const;
+
+// ---------------------------------------------------------------------------
+// LpSystemVideo
+// ---------------------------------------------------------------------------
 
 export function LpSystemVideo() {
   const playerRef = useRef<PlayerRef>(null);
@@ -42,64 +82,65 @@ export function LpSystemVideo() {
     <section
       data-testid="lp-system-video"
       aria-label="O sistema em uso"
-      className="grid bg-black lg:h-[100svh] lg:grid-cols-2"
+      className="relative bg-[#0a0a0a] border-y border-white/10 px-5 py-20 sm:px-10 sm:py-28 lg:px-14"
     >
-      <div className="flex items-center justify-center border-b border-white/15 px-5 py-10 sm:px-10 lg:sticky lg:top-0 lg:h-[100svh] lg:border-b-0 lg:border-r lg:px-10">
-        <div
-          data-testid="lp-system-video-card"
-          className="aspect-[16/10] w-full overflow-hidden border border-white/15 bg-black"
-        >
-          <Player
-            ref={playerRef}
-            component={SystemScreensComposition}
-            durationInFrames={LP_SYSTEM_VIDEO_DURATION}
-            compositionWidth={LP_SYSTEM_VIDEO_WIDTH}
-            compositionHeight={LP_SYSTEM_VIDEO_HEIGHT}
-            fps={LP_SYSTEM_VIDEO_FPS}
-            autoPlay={!prefersReducedMotion}
-            loop={!prefersReducedMotion}
-            acknowledgeRemotionLicense
-            controls={false}
-            clickToPlay={!prefersReducedMotion}
-            style={{ width: "100%", height: "100%" }}
-          />
-        </div>
-      </div>
-      <div
-        data-testid="lp-system-video-copy"
-        className="space-y-12 px-5 py-14 sm:px-10 lg:h-[100svh] lg:min-h-0 lg:overflow-y-auto lg:px-14 lg:py-16"
-      >
-        {(
-          [
-            {
-              title: "Alunos",
-              body: "Cadastro, lista e ficha. Adulto ou kids, com faixa, grau e a situação do mês no mesmo lugar.",
-            },
-            {
-              title: "Graduação",
-              body: "Histórico com data. Promoção de grau ou faixa; pulo de ordem pede justificativa.",
-            },
-            {
-              title: "Mensalidades",
-              body: "Mês de referência com status explícito. O pagamento é confirmado na operação da escola.",
-            },
-            {
-              title: "Painel",
-              body: "Alunos ativos, atrasos, aniversariantes e o que precisa de atenção hoje.",
-            },
-            {
-              title: "Documentos",
-              body: "Certificados, termos, comprovantes de matrícula e recibos, com envio por WhatsApp.",
-            },
-          ] as const
-        ).map((item) => (
-          <article key={item.title} className="max-w-[42ch]">
-            <p className="font-lp text-[clamp(2rem,4vw,3.25rem)] font-extrabold uppercase !leading-[1.08] tracking-[-0.02em]">
-              {item.title}
-            </p>
-            <p className="mt-4 text-base leading-relaxed text-white/70 sm:text-lg">{item.body}</p>
-          </article>
-        ))}
+      <div className="mx-auto w-full max-w-6xl">
+        {/* Header */}
+        <LpReveal>
+          <LpEyebrow>Em uso</LpEyebrow>
+          <LpDisplay className="mt-6 text-[clamp(2.25rem,5vw,4rem)]">O sistema rodando</LpDisplay>
+          <p className="mt-6 max-w-[52ch] text-white/60 leading-relaxed">
+            Seis telas reais, em sequência: do login ao painel do dia.
+          </p>
+        </LpReveal>
+
+        {/* Grid */}
+        <LpReveal className="mt-14 grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start">
+          {/* Left — player inside manual browser frame */}
+          <div
+            data-testid="lp-system-video-card"
+            className="overflow-hidden rounded-xl border border-white/10 bg-[#0d0d0d] shadow-[0_20px_60px_-15px_rgb(0_0_0/0.8)]"
+          >
+            {/* Browser bar */}
+            <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-white/15" aria-hidden />
+              <span className="h-2.5 w-2.5 rounded-full bg-white/15" aria-hidden />
+              <span className="h-2.5 w-2.5 rounded-full bg-white/15" aria-hidden />
+              <span className="ml-2 rounded-md bg-white/5 px-3 py-1 text-[11px] text-white/40">
+                casca.app
+              </span>
+            </div>
+            {/* Live player */}
+            <div className="relative aspect-[16/10]">
+              <Player
+                ref={playerRef}
+                component={SystemScreensComposition}
+                durationInFrames={LP_SYSTEM_VIDEO_DURATION}
+                compositionWidth={LP_SYSTEM_VIDEO_WIDTH}
+                compositionHeight={LP_SYSTEM_VIDEO_HEIGHT}
+                fps={LP_SYSTEM_VIDEO_FPS}
+                autoPlay={!prefersReducedMotion}
+                loop={!prefersReducedMotion}
+                acknowledgeRemotionLicense
+                controls={false}
+                clickToPlay={!prefersReducedMotion}
+                style={{ width: "100%", height: "100%" }}
+              />
+            </div>
+          </div>
+
+          {/* Right — copy list */}
+          <ul data-testid="lp-system-video-copy" className="flex flex-col">
+            {ITEMS.map((item) => (
+              <li key={item.title} className="border-l-2 border-white/10 pl-5 py-1">
+                <p className="font-lp text-xl sm:text-2xl font-extrabold uppercase">{item.title}</p>
+                <p className="mt-1.5 text-sm sm:text-base text-white/60 leading-relaxed">
+                  {item.body}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </LpReveal>
       </div>
     </section>
   );
