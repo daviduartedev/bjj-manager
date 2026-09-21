@@ -35,18 +35,18 @@ export function LpHeader({ solid = false }: { solid?: boolean }) {
         className="hidden items-center gap-8 text-sm text-white/70 md:flex"
         aria-label="Secções da página"
       >
-        <a href="/#funcionalidades" className="hover:text-white">
+        <Link href="/#funcionalidades" className="hover:text-white">
           Sistema
-        </a>
-        <a href="/#faq" className="hover:text-white">
+        </Link>
+        <Link href="/#faq" className="hover:text-white">
           Perguntas
-        </a>
-        <a href="/termos" className="hover:text-white">
+        </Link>
+        <Link href="/termos" className="hover:text-white">
           Termos
-        </a>
-        <a href="/privacidade" className="hover:text-white">
+        </Link>
+        <Link href="/privacidade" className="hover:text-white">
           Privacidade
-        </a>
+        </Link>
       </nav>
       <LpEnterLink />
     </header>
