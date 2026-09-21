@@ -27,7 +27,7 @@ function CapabilityItem({ kicker, label }: { kicker: string; label: string }) {
 export function LpHero() {
   return (
     <LpSection
-      className="relative overflow-hidden pt-28 sm:pt-36 bg-black"
+      className="relative isolate overflow-hidden pt-28 sm:pt-36 bg-black"
     >
       {/* Glow blob behind the browser frame */}
       <div

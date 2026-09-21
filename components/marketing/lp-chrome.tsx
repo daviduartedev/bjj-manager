@@ -77,10 +77,10 @@ export function LpFooter() {
             no mesmo sistema.
           </p>
           <nav className="flex flex-wrap gap-x-6 gap-y-2" aria-label="Documentos legais">
-            <Link href="/termos" className="text-white hover:text-white">
+            <Link href="/termos" className="text-white/60 hover:text-white">
               Termos de Uso
             </Link>
-            <Link href="/privacidade" className="text-white hover:text-white">
+            <Link href="/privacidade" className="text-white/60 hover:text-white">
               Política de Privacidade
             </Link>
           </nav>
