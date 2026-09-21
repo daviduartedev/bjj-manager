@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, ExternalLink, MessageCircle, Repeat2 } from "lucide-react";
+import { Download, ExternalLink, FileText, MessageCircle, Repeat2 } from "lucide-react";
 import Link from "next/link";
 import { useTransition } from "react";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import {
   getWhatsAppShareLink,
 } from "@/actions/documents";
 import { DocumentStatusBadge } from "@/components/documents/document-status-badge";
+import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -56,9 +57,12 @@ export function DocumentList({ rows, onReissue }: Props) {
 
   if (rows.length === 0) {
     return (
-      <p className="rounded-md border bg-card/50 p-6 text-center text-crm-sm text-muted-foreground">
-        Sem documentos para os filtros atuais.
-      </p>
+      <EmptyState
+        icon={FileText}
+        title="Sem documentos para os filtros atuais"
+        description="Ajuste o tipo ou o estado. Os mesmos atalhos por linha continuam disponíveis quando houver resultados."
+        className="rounded-none border-0 bg-transparent shadow-none"
+      />
     );
   }
 
@@ -103,6 +107,7 @@ export function DocumentList({ rows, onReissue }: Props) {
                     type="button"
                     size="sm"
                     variant="ghost"
+                    className="min-h-11 min-w-11"
                     disabled={pending || row.status !== "ready"}
                     onClick={() =>
                       withSignedUrl(row.id, (url) => {
@@ -120,6 +125,7 @@ export function DocumentList({ rows, onReissue }: Props) {
                     type="button"
                     size="sm"
                     variant="ghost"
+                    className="min-h-11 min-w-11"
                     disabled={pending || row.status !== "ready"}
                     onClick={() =>
                       withSignedUrl(row.id, (url) =>
@@ -133,6 +139,7 @@ export function DocumentList({ rows, onReissue }: Props) {
                     type="button"
                     size="sm"
                     variant="ghost"
+                    className="min-h-11 min-w-11"
                     disabled={pending || row.status !== "ready" || !row.student_id}
                     onClick={() => whatsapp(row.id)}
                   >
@@ -142,6 +149,7 @@ export function DocumentList({ rows, onReissue }: Props) {
                     type="button"
                     size="sm"
                     variant="ghost"
+                    className="min-h-11 min-w-11"
                     disabled={pending || row.status !== "ready"}
                     onClick={() => onReissue(row.id)}
                   >

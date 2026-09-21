@@ -70,17 +70,17 @@
     /* --font-sans é injectado por next/font no <html> (IBM Plex Sans). */
 
     /*
-     * App shell , SaaS claro unificado (sidebar = topo = canvas; sem bloco escuro ao lado do conteúdo).
-     * Acento só em estado activo / CTAs (primary).
+     * App shell — sidebar/drawer/bottom nav em identidade preta (SHELL-7.1, DS-1.12).
+     * O canvas e a top bar da coluna de conteúdo ficam no tema claro.
      */
-    --shell-chrome: 36 21% 95%;
+    --shell-chrome: 0 0% 2%;
     --shell-chrome-top: 36 21% 95%;
-    --shell-chrome-bottom: 36 21% 95%;
-    --shell-chrome-foreground: 0 0% 23%;
-    --shell-chrome-border: 38 14% 87%;
+    --shell-chrome-bottom: 0 0% 3%;
+    --shell-chrome-foreground: 0 0% 96%;
+    --shell-chrome-border: 0 0% 14%;
     --shell-active: 357 73% 43%;
-    --shell-nav-hover-bg: 36 18% 92%;
-    --shell-nav-active-bg: 357 73% 96%;
+    --shell-nav-hover-bg: 0 0% 12%;
+    --shell-nav-active-bg: 357 42% 14%;
     --shell-edge-glow: 357 73% 43%;
     --content-wash-start: 36 21% 95%;
     --content-wash-mid: 36 21% 96%;
@@ -155,22 +155,28 @@
     font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   }
 
-  /* Área autenticada: lavagem suave + acento BJJ (**DS-1.12**, **BUI-8**) */
+  /* Área autenticada: lavagem contínua + acento BJJ (**DS-1.12**, **BUI-8**) */
   .dashboard-main-surface {
     background: linear-gradient(
       180deg,
       hsl(var(--content-wash-start)) 0%,
-      hsl(var(--content-wash-mid) / 0.75) 32%,
-      hsl(var(--content-wash-accent) / 0.035) 52%,
-      hsl(var(--content-wash-mid) / 0.55) 72%,
+      hsl(var(--content-wash-mid)) 28%,
+      hsl(var(--content-wash-accent) / 0.04) 58%,
       hsl(var(--background)) 100%
     );
   }
 
-  /** Vidro do topo — sensação premium sem segunda cor sólida */
+  /** Top bar da coluna de conteúdo — canvas claro, acento vermelho discreto */
   .dashboard-top-bar {
-    @apply border-b border-border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/75;
-    box-shadow: 0 1px 0 0 hsl(var(--primary) / 0.06);
+    @apply border-b border-border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/80;
+    box-shadow: inset 0 -1px 0 0 hsl(var(--primary) / 0.12);
+  }
+
+  /** Sidebar / drawer / bottom nav — preto de identidade (**SHELL-7.1**) */
+  .dashboard-ink-chrome {
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    border-color: hsl(var(--shell-chrome-border));
   }
   h1,
   h2,
@@ -241,18 +247,19 @@
 
   /** Badge de secção no hero — acento primary tokenizado */
   .dashboard-hero-badge {
-    @apply inline-flex w-fit items-center rounded-md border px-2.5 py-0.5 text-crm-xs font-medium shadow-sm;
-    border-color: hsl(var(--primary) / 0.22);
-    background-color: hsl(var(--primary) / 0.07);
+    @apply inline-flex w-fit items-center rounded-sm border px-2.5 py-1 text-crm-xs font-semibold uppercase tracking-wide;
+    border-color: hsl(var(--primary) / 0.28);
+    background-color: hsl(var(--primary) / 0.08);
     color: hsl(var(--primary));
   }
 
   /** Cartão KPI / métrica com lavagem de status */
   .dashboard-kpi-card {
-    @apply flex min-h-[5.5rem] flex-col justify-between rounded-xl border p-4 shadow-sm transition-colors;
+    @apply flex min-h-[5.5rem] flex-col justify-between rounded-lg border p-4 shadow-sm transition-colors;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
   .dashboard-kpi-card--default {
-    @apply border-border bg-card hover:border-primary/30;
+    @apply border-border bg-card hover:border-primary/35;
   }
   .dashboard-kpi-card--paid {
     border-color: hsl(var(--status-paid) / 0.28);
@@ -299,14 +306,15 @@
     border-color: hsl(var(--status-info) / 0.4);
   }
 
-  /** Empty state com acento informativo */
+  /** Empty state operacional — acento informativo, pouco ruído */
   .dashboard-empty-state {
-    @apply flex flex-col items-center justify-center rounded-xl border border-dashed px-6 py-12 text-center;
-    border-color: hsl(var(--status-info) / 0.22);
+    @apply flex flex-col items-center justify-center rounded-lg border border-dashed px-6 py-14 text-center;
+    border-color: hsl(var(--border));
     background: linear-gradient(
       180deg,
-      hsl(var(--status-info) / 0.04) 0%,
-      hsl(var(--muted) / 0.25) 100%
+      hsl(var(--muted) / 0.35) 0%,
+      hsl(var(--card) / 0.4) 100%
     );
+    box-shadow: inset 0 2px 0 0 hsl(var(--primary) / 0.12);
   }
 }

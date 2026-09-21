@@ -11,6 +11,7 @@ import {
   Wallet,
 } from "lucide-react";
 
+import { isShellNavActive } from "@/lib/layout/shell-nav";
 import { ROUTES } from "@/lib/routes";
 
 export type MainNavItem = {
@@ -37,3 +38,27 @@ export const MAIN_NAV_ITEMS: MainNavItem[] = [
   { href: ROUTES.produtos, label: "Produtos", icon: Package, dataTour: "tour-produtos" },
   { href: ROUTES.configuracoes, label: "Configurações", icon: Settings, dataTour: "tour-configuracoes" },
 ];
+
+/** Bottom nav: subset principal; o resto fica em «Mais» (**SHELL-3.1**, toque ≥ 44px). */
+export const BOTTOM_NAV_PRIMARY_HREFS: readonly string[] = [
+  ROUTES.painel,
+  ROUTES.alunos,
+  ROUTES.mensalidades,
+  ROUTES.aulas,
+  ROUTES.pedagogicoPlanos,
+];
+
+export function getBottomNavPrimary(items: readonly MainNavItem[] = MAIN_NAV_ITEMS): MainNavItem[] {
+  return items.filter((item) => BOTTOM_NAV_PRIMARY_HREFS.includes(item.href));
+}
+
+export function getBottomNavMore(items: readonly MainNavItem[] = MAIN_NAV_ITEMS): MainNavItem[] {
+  return items.filter((item) => !BOTTOM_NAV_PRIMARY_HREFS.includes(item.href));
+}
+
+export function isBottomNavMoreActive(
+  pathname: string,
+  items: readonly MainNavItem[] = MAIN_NAV_ITEMS,
+): boolean {
+  return getBottomNavMore(items).some((item) => isShellNavActive(pathname, item.href));
+}

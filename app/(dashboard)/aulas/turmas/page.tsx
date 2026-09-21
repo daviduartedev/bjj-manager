@@ -4,6 +4,7 @@ import { CalendarDays, Plus, Users } from "lucide-react";
 
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listClasses } from "@/lib/data/classes-page";
@@ -18,13 +19,13 @@ export default async function TurmasPage() {
   const classes = await listClasses();
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Aulas"
         title="Turmas"
         description="Gerencie turmas, horários recorrentes e inscrições de alunos."
         aside={
-          <Button asChild className="shrink-0">
+          <Button asChild className="min-h-11 shrink-0 shadow-md shadow-primary/20">
             <Link href={ROUTES.aulasTurmasNova}>
               <Plus className="mr-2 size-4" aria-hidden />
               Nova turma
@@ -35,20 +36,23 @@ export default async function TurmasPage() {
 
       <DashboardPanel icon={CalendarDays} title="Turmas cadastradas">
         {classes.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            Nenhuma turma cadastrada.{" "}
-            <Link href={ROUTES.aulasTurmasNova} className="underline underline-offset-4">
-              Crie a primeira turma
-            </Link>
-            .
-          </p>
+          <EmptyState
+            icon={CalendarDays}
+            title="Nenhuma turma cadastrada"
+            description="Crie a primeira turma para gerar horários e sessões."
+            className="rounded-none border-0 bg-transparent shadow-none"
+          >
+            <Button asChild className="min-h-11">
+              <Link href={ROUTES.aulasTurmasNova}>Nova turma</Link>
+            </Button>
+          </EmptyState>
         ) : (
           <ul className="divide-y">
             {classes.map((c) => (
               <li key={c.id}>
                 <Link
                   href={routeAulasTurma(c.id)}
-                  className="flex items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-muted/50"
+                  className="flex min-h-11 items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-muted/50"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium">{c.name}</p>

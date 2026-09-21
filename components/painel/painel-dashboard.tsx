@@ -5,6 +5,7 @@ import {
   CalendarClock,
   CreditCard,
   LayoutDashboard,
+  MessageCircle,
   Sparkles,
   TrendingUp,
   UserPlus,
@@ -14,10 +15,12 @@ import {
 
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { PaymentReminderList } from "@/components/painel/payment-reminder-list";
 import type {
   PainelAttentionRow,
   PainelDistributionSlice,
 } from "@/lib/data/painel-page";
+import type { PaymentReminderRow } from "@/lib/painel/payment-reminders";
 import {
   ROUTES,
   routeAlunoPerfil,
@@ -37,6 +40,7 @@ type Props = {
   birthdayToday: PainelAttentionRow[];
   dueToday: PainelAttentionRow[];
   overdue14: PainelAttentionRow[];
+  paymentReminders: PaymentReminderRow[];
   graduationAlerts: PainelAttentionRow[];
   distributionAdult: PainelDistributionSlice[];
   distributionKids: PainelDistributionSlice[];
@@ -60,7 +64,7 @@ function KpiLinkCard(props: {
   return (
     <Link href={href} className={cn(tone)}>
       <div className="flex items-start justify-between gap-2">
-        <span className="text-crm-xs font-medium text-muted-foreground">{label}</span>
+        <span className="type-meta-label">{label}</span>
         <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
       </div>
       <span className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">
@@ -103,9 +107,7 @@ function DistributionBlock(props: {
   }
   return (
     <div className="space-y-3">
-      <p className="text-crm-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {props.title}
-      </p>
+      <p className="type-meta-label">{props.title}</p>
       <ul className="space-y-2.5">
         {props.slices.map((s) => (
           <li key={s.beltId} className="space-y-1">
@@ -140,26 +142,27 @@ export function PainelDashboard(props: Props) {
     birthdayToday,
     dueToday,
     overdue14,
+    paymentReminders,
     graduationAlerts,
     distributionAdult,
     distributionKids,
   } = props;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="space-y-6" data-tour="page-painel">
+    <div className="mx-auto max-w-6xl space-y-8">
+      <div className="space-y-7" data-tour="page-painel">
         <DashboardPageHero
           badge="Visão geral"
           title={`Olá, ${displayName}`}
           description={`${accountName}, resumo do dia e atalhos.`}
           aside={
-            <div className="flex max-w-xs items-center gap-3 rounded-lg border border-primary/20 bg-gradient-to-br from-primary/[0.06] to-card px-4 py-3 shadow-sm">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-md border border-primary/20 bg-primary/[0.08] text-primary">
+            <div className="flex max-w-xs items-center gap-3 rounded-lg border border-primary/25 bg-gradient-to-br from-primary/[0.07] to-card px-4 py-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-md border border-primary/25 bg-primary/[0.08] text-primary">
                 <Sparkles className="size-5" aria-hidden />
               </span>
               <div>
-                <p className="text-crm-xs font-medium text-muted-foreground">Hoje</p>
-                <p className="text-crm-sm font-semibold text-foreground">Indicadores rápidos</p>
+                <p className="type-meta-label">Hoje</p>
+                <p className="type-card-heading mt-0.5 text-crm-sm">Indicadores rápidos</p>
               </div>
             </div>
           }
@@ -200,6 +203,19 @@ export function PainelDashboard(props: Props) {
         </section>
       </div>
 
+      <section data-testid="payment-reminders" aria-labelledby="payment-reminders-heading">
+        <h2 id="payment-reminders-heading" className="sr-only">
+          Lembrete de pagamento
+        </h2>
+        <DashboardPanel
+          icon={MessageCircle}
+          title="Lembrete de pagamento"
+          subtitle="Um clique por aluno, WhatsApp com mensagem pronta"
+        >
+          <PaymentReminderList rows={paymentReminders} />
+        </DashboardPanel>
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <DashboardPanel
           icon={AlertTriangle}
@@ -208,30 +224,22 @@ export function PainelDashboard(props: Props) {
         >
           <div className="space-y-6">
             <div>
-              <p className="mb-2 text-crm-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Aniversariantes do dia
-              </p>
+              <p className="type-meta-label mb-2">Aniversariantes do dia</p>
               <AttentionList empty="Nenhum aniversariante hoje." rows={birthdayToday} />
             </div>
             <div>
-              <p className="mb-2 text-crm-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Vencimentos hoje
-              </p>
+              <p className="type-meta-label mb-2">Vencimentos hoje</p>
               <AttentionList empty="Nenhum vencimento para hoje." rows={dueToday} />
             </div>
             <div>
-              <p className="mb-2 text-crm-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Atraso há mais de 14 dias
-              </p>
+              <p className="type-meta-label mb-2">Atraso há mais de 14 dias</p>
               <AttentionList
                 empty="Nenhum aluno com atraso prolongado."
                 rows={overdue14}
               />
             </div>
             <div>
-              <p className="mb-2 text-crm-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Tempo elevado na faixa ou no grau
-              </p>
+              <p className="type-meta-label mb-2">Tempo elevado na faixa ou no grau</p>
               <AttentionList
                 empty="Nenhum alerta de graduação por tempo."
                 rows={graduationAlerts}
@@ -268,14 +276,14 @@ export function PainelDashboard(props: Props) {
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href={ROUTES.alunosNovo}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 font-medium shadow-sm transition-colors hover:border-primary/40 hover:bg-muted/50"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 font-medium transition-colors hover:border-primary/40 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <UserPlus className="size-4" aria-hidden />
             Cadastrar aluno
           </Link>
           <Link
             href={routeMensalidadesComFiltro("pendente")}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-primary/25 bg-primary/10 px-4 font-medium text-primary shadow-sm transition-colors hover:bg-primary/15"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-primary/25 bg-primary/10 px-4 font-medium text-primary transition-colors hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <CreditCard className="size-4" aria-hidden />
             Registrar pagamento

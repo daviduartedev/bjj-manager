@@ -26,25 +26,20 @@ export function DashboardPanel({
   return (
     <Card
       className={cn(
-        "overflow-hidden border-border/80 bg-card shadow-sm ring-1 ring-border/40",
-        "border-l-[3px] border-l-primary/30",
+        "overflow-hidden rounded-lg border-border/80 bg-card shadow-sm",
+        "border-l-[3px] border-l-primary",
         className,
       )}
     >
-      <div
-        className={cn(
-          "flex items-center gap-3 border-b border-border/80 px-5 py-4",
-          "bg-gradient-to-r from-[hsl(var(--content-wash-mid)/0.55)] via-muted/35 to-transparent",
-        )}
-      >
+      <div className="flex items-center gap-3 border-b border-border/70 bg-muted/30 px-5 py-4">
         {Icon ? (
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-primary/20 bg-primary/[0.07] text-primary">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-primary/25 bg-primary/[0.08] text-primary">
             <Icon className="size-4" aria-hidden />
           </span>
         ) : null}
         <div className="min-w-0">
-          <p className="text-crm-sm font-semibold text-foreground">{title}</p>
-          {subtitle ? <p className="text-crm-xs text-muted-foreground">{subtitle}</p> : null}
+          <p className="type-card-heading">{title}</p>
+          {subtitle ? <p className="type-lead mt-0.5 text-crm-xs">{subtitle}</p> : null}
         </div>
       </div>
       <CardContent className={cn("p-5 sm:p-6", contentClassName)}>{children}</CardContent>

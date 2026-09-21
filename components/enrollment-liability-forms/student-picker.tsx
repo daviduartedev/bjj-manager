@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 
+import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
-import { routeMatriculaTermoNovo } from "@/lib/routes";
+import { ROUTES, routeMatriculaTermoNovo } from "@/lib/routes";
+import { Users } from "lucide-react";
 
 type Student = {
   id: string;
@@ -14,13 +16,16 @@ type Student = {
 export function StudentPicker({ students }: { students: Student[] }) {
   if (students.length === 0) {
     return (
-      <p className="text-crm-sm text-muted-foreground">
-        Nenhum aluno encontrado.{" "}
-        <Link href="/alunos/novo" className="text-primary underline-offset-4 hover:underline">
-          Cadastre um aluno
-        </Link>{" "}
-        primeiro.
-      </p>
+      <EmptyState
+        icon={Users}
+        title="Nenhum aluno encontrado"
+        description="Cadastre um aluno primeiro para iniciar a matrícula/termo."
+        className="rounded-none border-0 bg-transparent shadow-none"
+      >
+        <Button asChild className="min-h-11">
+          <Link href={ROUTES.alunosNovo}>Cadastrar aluno</Link>
+        </Button>
+      </EmptyState>
     );
   }
 

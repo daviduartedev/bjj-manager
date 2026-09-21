@@ -22,6 +22,7 @@ type AccountForReceiver = {
   legal_name: string | null;
   cnpj: string | null;
   signature_url: string | null;
+  logo_url: string | null;
 };
 
 type StudentRow = {
@@ -64,6 +65,7 @@ function buildReceiver(account: AccountForReceiver): ReceiverInfo {
     legalName: account.legal_name,
     cnpj: account.cnpj,
     signaturePath: account.signature_url,
+    logoPath: account.logo_url,
   };
 }
 
@@ -73,7 +75,7 @@ async function getAccount(
 ): Promise<AccountForReceiver> {
   const { data, error } = await client
     .from("accounts")
-    .select("id, name, legal_name, cnpj, signature_url")
+    .select("id, name, legal_name, cnpj, signature_url, logo_url")
     .eq("id", accountId)
     .maybeSingle();
   if (error) throw error;

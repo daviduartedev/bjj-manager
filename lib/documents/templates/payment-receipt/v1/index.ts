@@ -13,13 +13,18 @@ export function renderPaymentReceiptV1(payload: DocumentPayload): string {
   if (payload.type !== "payment_receipt") {
     throw new Error("Template payment-receipt/v1 espera payload do tipo payment_receipt.");
   }
-  const { documentNumber, issuedAt, receiver, payer, payment, reissue } = payload.data;
+  const { documentNumber, issuedAt, receiver, payer, payment, reissue, logoImageDataUrl } =
+    payload.data;
 
+  const academy = receiver.legalName ?? receiver.academyName;
   const headerLine = receiver.legalName
     ? `${escapeHtml(receiver.legalName)}${
         receiver.cnpj ? ` · CNPJ ${escapeHtml(formatCnpjMask(receiver.cnpj))}` : ""
       }`
     : escapeHtml(receiver.academyName);
+  const logoImg = logoImageDataUrl
+    ? `<img class="brand-logo" src="${logoImageDataUrl}" alt="${escapeHtml(academy)}" />`
+    : "";
 
   const signatureBlock = `
     <div class="signature">
@@ -29,7 +34,7 @@ export function renderPaymentReceiptV1(payload: DocumentPayload): string {
 
   const body = `
     <div class="header">
-      <div class="brand">${headerLine}</div>
+      <div class="brand">${logoImg}${headerLine}</div>
       <div class="doc-number">Recibo nº ${escapeHtml(documentNumber)}</div>
     </div>
 

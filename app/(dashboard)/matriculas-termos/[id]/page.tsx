@@ -36,7 +36,7 @@ export default async function MatriculaTermoDetalhePage({ params }: PageProps) {
   const isDraft = detail.status === "pending" && !detail.pdf_path;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Matrícula/Termo"
         intro={
@@ -88,7 +88,7 @@ export default async function MatriculaTermoDetalhePage({ params }: PageProps) {
       </DashboardPanel>
 
       {isDraft && detail.draft ? (
-        <DashboardPanel title="Editar rascunho" subtitle="Actualize os campos antes de gerar o PDF">
+        <DashboardPanel icon={FileSignature} title="Editar rascunho" subtitle="Actualize os campos antes de gerar o PDF">
           <EnrollmentLiabilityFormEditor
             studentId={student.id}
             studentName={student.full_name}
@@ -101,6 +101,7 @@ export default async function MatriculaTermoDetalhePage({ params }: PageProps) {
 
       {!isDraft && detail.pdf_path ? (
         <DashboardPanel
+          icon={FileSignature}
           title="PDF gerado"
           subtitle="Envie por WhatsApp ou registe assinatura manualmente"
         >

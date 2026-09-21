@@ -13,9 +13,8 @@ export type DashboardStatTileProps = {
 };
 
 const accentClasses: Record<DashboardStatTileAccent, string> = {
-  default: "border-border bg-card hover:border-primary/25",
-  primary:
-    "border-primary/25 bg-gradient-to-br from-primary/[0.08] to-card hover:border-primary/40",
+  default: "dashboard-kpi-card--default",
+  primary: "border-primary/25 bg-gradient-to-br from-primary/[0.08] to-card hover:border-primary/40",
   paid: "dashboard-kpi-card--paid",
   pending: "dashboard-kpi-card--pending",
   overdue: "dashboard-kpi-card--overdue",
@@ -39,17 +38,9 @@ export function DashboardStatTile({
   accent = "default",
   className,
 }: DashboardStatTileProps) {
-  const isKpiVariant = accent === "paid" || accent === "pending" || accent === "overdue" || accent === "info";
-
   return (
-    <div
-      className={cn(
-        isKpiVariant ? "dashboard-kpi-card" : "flex min-w-[8.5rem] flex-col justify-center rounded-lg border px-4 py-3 shadow-sm transition-colors",
-        accentClasses[accent],
-        className,
-      )}
-    >
-      <span className="mb-1 block text-crm-xs font-medium text-muted-foreground">{label}</span>
+    <div className={cn("dashboard-kpi-card min-w-[8.5rem]", accentClasses[accent], className)}>
+      <span className="type-meta-label mb-1 block">{label}</span>
       <span className="flex items-baseline gap-2">
         {Icon ? (
           <Icon className={cn("size-5 shrink-0", iconAccentClasses[accent])} aria-hidden />

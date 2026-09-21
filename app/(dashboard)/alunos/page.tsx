@@ -36,7 +36,7 @@ export default async function AlunosPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Gestão operacional"
         title="Alunos"

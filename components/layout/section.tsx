@@ -15,15 +15,11 @@ export function Section({
   ...props
 }: SectionProps) {
   return (
-    <section className={cn("space-y-4", className)} {...props}>
+    <section className={cn("space-y-5", className)} {...props}>
       {(title ?? description) ? (
-        <div className="space-y-1">
-          {title ? (
-            <h2 className="type-section-title">{title}</h2>
-          ) : null}
-          {description ? (
-            <p className="type-lead">{description}</p>
-          ) : null}
+        <div className="space-y-1.5">
+          {title ? <h2 className="type-section-title">{title}</h2> : null}
+          {description ? <p className="type-lead">{description}</p> : null}
         </div>
       ) : null}
       {children}

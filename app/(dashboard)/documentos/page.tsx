@@ -43,7 +43,7 @@ export default async function DocumentosPage({
   const { rows } = await loadDocumentsPageData({ type, status });
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6" data-tour="page-documentos">
+    <div className="mx-auto max-w-6xl space-y-8" data-tour="page-documentos">
       <DashboardPageHero
         badge="Documentos"
         title="Histórico de documentos"

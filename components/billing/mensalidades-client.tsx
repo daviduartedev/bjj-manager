@@ -10,6 +10,7 @@ import { ReceiptViewerDialog } from "@/components/billing/receipt-viewer-dialog"
 import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -78,7 +79,7 @@ function matchesPlanFilter(
 
 /** Filtros: mesma altura e tipografia em todos os controlos */
 const filterControl =
-  "h-9 min-h-9 w-full rounded-md border border-input bg-background px-3 py-0 text-xs shadow-sm";
+  "min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm";
 
 function formatReferenceMonthCaption(isoFirstDay: string): string {
   const d = new Date(`${isoFirstDay.slice(0, 10)}T12:00:00`);
@@ -181,12 +182,11 @@ export function MensalidadesClient({
   const monthCaption = formatReferenceMonthCaption(referenceMonth);
 
   return (
-    <div className="w-full max-w-[min(100%,112rem)] space-y-5">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Financeiro"
         title="Mensalidades"
         description="Fechamento mensal: filtre, selecione e registre pagamentos."
-        className="pb-4"
       />
 
       <div data-tour="mensalidades-resumo-mes">
@@ -204,7 +204,7 @@ export function MensalidadesClient({
             <div className="flex min-w-0 flex-col gap-1.5">
               <Label
                 htmlFor="mes-ref"
-                className="text-xs font-medium text-muted-foreground"
+                className="type-field-label"
               >
                 Mês
               </Label>
@@ -230,7 +230,7 @@ export function MensalidadesClient({
             <div className="flex min-w-0 flex-col gap-1.5">
               <Label
                 htmlFor="filtro-estado"
-                className="text-xs font-medium text-muted-foreground"
+                className="type-field-label"
               >
                 Estado
               </Label>
@@ -260,7 +260,7 @@ export function MensalidadesClient({
             <div className="flex min-w-0 flex-col gap-1.5">
               <Label
                 htmlFor="filtro-plano"
-                className="text-xs font-medium text-muted-foreground"
+                className="type-field-label"
               >
                 Plano
               </Label>
@@ -290,7 +290,7 @@ export function MensalidadesClient({
             <div className="flex min-w-0 flex-col gap-1.5">
               <Label
                 htmlFor="busca-nome"
-                className="text-xs font-medium text-muted-foreground"
+                className="type-field-label"
               >
                 Buscar nome
               </Label>
@@ -311,20 +311,18 @@ export function MensalidadesClient({
             <Button
               type="button"
               variant="outline"
-              size="sm"
-              className="h-8 px-2.5 text-xs"
+              className="min-h-11"
               onClick={() => toggleSelectAllFiltered(!allFilteredSelected)}
             >
               {allFilteredSelected ? "Limpar" : "Seleccionar todos"}
             </Button>
-            <span className="text-[11px] text-muted-foreground tabular-nums">
+            <span className="text-crm-xs text-muted-foreground tabular-nums">
               {selectedVisibleRows.length} sel.
             </span>
           </div>
           <Button
             type="button"
-            size="sm"
-            className="h-8 px-3 text-xs font-semibold"
+            className="min-h-11 font-semibold"
             disabled={bulkEligibleIds.length === 0}
             onClick={() => setBulkOpen(true)}
           >
@@ -373,11 +371,13 @@ export function MensalidadesClient({
               <TableBody>
                 {filteredRows.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="min-h-0 py-10 text-center text-xs text-muted-foreground"
-                    >
-                      Nenhum aluno corresponde aos filtros.
+                    <TableCell colSpan={7} className="p-0">
+                      <EmptyState
+                        icon={Wallet}
+                        title="Nenhum aluno corresponde aos filtros"
+                        description="Ajuste o mês, o estado, o plano ou a pesquisa. Os mesmos filtros e o mês de referência continuam a aplicar-se."
+                        className="rounded-none border-0 bg-transparent shadow-none"
+                      />
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -462,9 +462,12 @@ export function MensalidadesClient({
 
         <div className="mt-4 space-y-2 md:hidden">
           {filteredRows.length === 0 ? (
-            <p className="py-8 text-center text-xs text-muted-foreground">
-              Nenhum aluno corresponde aos filtros.
-            </p>
+            <EmptyState
+              icon={Wallet}
+              title="Nenhum aluno corresponde aos filtros"
+              description="Ajuste o mês, o estado, o plano ou a pesquisa. Os mesmos filtros e o mês de referência continuam a aplicar-se."
+              className="rounded-none border-0 bg-transparent shadow-none"
+            />
           ) : (
             filteredRows.map((row) => (
               <div
@@ -512,8 +515,7 @@ export function MensalidadesClient({
                 <div className="flex flex-col gap-1.5">
                   <Button
                     type="button"
-                    size="sm"
-                    className="h-9 w-full text-xs"
+                    className="min-h-11 w-full"
                     disabled={row.amountCentsExpected == null}
                     onClick={() => setPayStudent(row)}
                   >
@@ -523,8 +525,7 @@ export function MensalidadesClient({
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
-                      className="h-9 w-full text-xs"
+                      className="min-h-11 w-full"
                       onClick={() => setReceiptStudent(row)}
                     >
                       <Receipt className="mr-1.5 size-3.5" />

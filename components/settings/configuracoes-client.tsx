@@ -11,6 +11,7 @@ import { updateAccount, updateReceiver } from "@/actions/settings";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { EmptyState } from "@/components/layout/empty-state";
 import {
   Form,
   FormControl,
@@ -22,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CnpjInput } from "@/components/settings/cnpj-input";
+import { LogoUploader } from "@/components/settings/logo-uploader";
 import { SignatureUploader } from "@/components/settings/signature-uploader";
 import type { SettingsPlanRow, SettingsReceiverRow } from "@/lib/data/settings-page";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
@@ -130,9 +132,12 @@ export function ConfiguracoesClient(props: Props) {
             ))}
           </ul>
           {props.plans.length === 0 ? (
-            <p className="text-crm-sm text-muted-foreground" role="status">
-              Nenhum plano encontrado. Saia e entre de novo para gerar os planos padrão da conta.
-            </p>
+            <EmptyState
+              icon={Layers}
+              title="Nenhum plano encontrado"
+              description="Saia e entre de novo para gerar os planos padrão da conta."
+              className="rounded-none border-0 bg-transparent shadow-none"
+            />
           ) : null}
         </div>
       </DashboardPanel>
@@ -186,12 +191,12 @@ function ReceiverPanel({
     <DashboardPanel
       icon={Receipt}
       title="Recebedor"
-      subtitle="Razão social, CNPJ e assinatura usados nos recibos e documentos"
+      subtitle="Razão social, CNPJ, logo e assinatura usados nos recibos e documentos"
     >
       {incomplete ? (
         <div
           role="alert"
-          className="mb-4 flex items-start gap-3 rounded-md border border-amber-300/60 bg-amber-50 p-3 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/40 dark:text-amber-200"
+          className="mb-4 flex items-start gap-3 rounded-md border border-[hsl(var(--status-pending)/0.35)] bg-[hsl(var(--status-pending)/0.08)] p-3 text-[hsl(var(--status-pending-foreground))]"
         >
           <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden />
           <div className="text-crm-sm">
@@ -262,6 +267,14 @@ function ReceiverPanel({
           </div>
         </form>
       </Form>
+
+      <div className="mt-6">
+        <Label className="mb-2 block text-crm-sm font-medium">Logo da academia</Label>
+        <LogoUploader
+          initialPath={receiver.logo_path}
+          initialPreviewUrl={receiver.logo_preview_url}
+        />
+      </div>
 
       <div className="mt-6">
         <Label className="mb-2 block text-crm-sm font-medium">Assinatura digital</Label>

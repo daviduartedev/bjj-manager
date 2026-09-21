@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, RefreshCw, UserMinus, UserPlus } from "lucide-react";
+import { CalendarDays, Loader2, RefreshCw, UserMinus, UserPlus, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import {
   recordManualAttendance,
   removeSessionAttendance,
 } from "@/actions/attendances";
+import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -240,9 +241,12 @@ export function SessionCheckInsPanel({
         </div>
 
         {checkIns.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Nenhum aluno fez check-in nesta sessão ainda.
-          </p>
+          <EmptyState
+            icon={Users}
+            title="Nenhum check-in ainda"
+            description="Nenhum aluno fez check-in nesta sessão ainda."
+            className="rounded-none border-0 bg-transparent shadow-none"
+          />
         ) : (
           <ul className="divide-y divide-border/80 overflow-hidden rounded-lg border border-border/80 border-l-[3px] border-l-primary/25 bg-card shadow-sm">
             {pendingCheckIns.length > 0 ? (
@@ -306,9 +310,12 @@ export function SessionCheckInsPanel({
         </div>
 
         {attendances.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Nenhuma presença oficial registada ainda.
-          </p>
+          <EmptyState
+            icon={CalendarDays}
+            title="Nenhuma presença oficial"
+            description="Nenhuma presença oficial registada ainda."
+            className="rounded-none border-0 bg-transparent shadow-none"
+          />
         ) : (
           <ul className="divide-y divide-border/80 overflow-hidden rounded-lg border border-border/80 border-l-[3px] border-l-[hsl(var(--status-paid)/0.45)] bg-card shadow-sm">
             {attendances.map((att) => {
@@ -364,9 +371,12 @@ export function SessionCheckInsPanel({
         </div>
 
         {manualEligible.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Nenhum aluno elegível para presença manual nesta sessão.
-          </p>
+          <EmptyState
+            icon={UserPlus}
+            title="Nenhum elegível para presença manual"
+            description="Nenhum aluno elegível para presença manual nesta sessão."
+            className="rounded-none border-0 bg-transparent shadow-none"
+          />
         ) : (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="min-w-0 flex-1 space-y-2">

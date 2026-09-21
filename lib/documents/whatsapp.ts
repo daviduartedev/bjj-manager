@@ -39,6 +39,37 @@ export function composeDocumentWhatsAppMessage(args: {
   ].join("\n");
 }
 
+export function composePaymentReminderWhatsAppMessage(args: {
+  studentFirstName?: string | null;
+  academyName: string;
+  referenceMonthLabel: string;
+}): string {
+  const greeting = args.studentFirstName ? `Olá, ${args.studentFirstName}!` : "Olá!";
+  return [
+    greeting,
+    `Lembrete de pagamento da mensalidade (${args.referenceMonthLabel}) da ${args.academyName}.`,
+    "Qualquer dúvida, fale com a gente.",
+  ].join("\n");
+}
+
+export function paymentReminderWhatsAppHref(args: {
+  phone: string | null | undefined;
+  studentFirstName?: string | null;
+  academyName: string;
+  referenceMonthLabel: string;
+}): string | null {
+  const phoneE164 = normalizePhoneE164(args.phone);
+  if (!phoneE164) return null;
+  return buildWhatsAppShareUrl({
+    phoneE164,
+    message: composePaymentReminderWhatsAppMessage({
+      studentFirstName: args.studentFirstName,
+      academyName: args.academyName,
+      referenceMonthLabel: args.referenceMonthLabel,
+    }),
+  });
+}
+
 export function composeEnrollmentLiabilityWhatsAppMessage(args: {
   documentNumber: string;
   academyName: string;

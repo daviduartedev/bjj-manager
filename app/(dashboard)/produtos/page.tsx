@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import { ProductsClient } from "@/components/products/products-client";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { loadProductLedgerPageData } from "@/lib/data/product-ledger-page";
 import { loadProductsPageData } from "@/lib/data/products-page";
+import { Package } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Produtos",
@@ -17,20 +19,16 @@ export default async function ProdutosPage() {
     console.error("[produtos] loadProductsPageData failed", err);
 
     return (
-      <div className="mx-auto max-w-7xl space-y-6">
+      <div className="mx-auto max-w-6xl space-y-8">
         <div data-tour="page-produtos">
           <DashboardPageHero
-            className="-mx-4 rounded-b-3xl border-b border-primary/15 bg-gradient-to-br from-primary/[0.08] via-background to-bjj-blue/[0.09] px-4 pb-10 pt-2 ring-1 ring-primary/10 sm:-mx-6 sm:px-6"
-            badge="Controle interno"
+            badge="Gestão operacional"
             title="Produtos"
-            description="Cadastro de produtos, tamanhos e estoque manual da academia. Sem venda nem checkout nesta etapa."
+            description="Cadastro de produtos, caderno de vendas e estoque manual da academia."
           />
         </div>
 
-        <DashboardPanel
-          className="border-l-[5px] border-l-bjj-yellow ring-1 ring-bjj-yellow/20"
-          title="Não foi possível carregar produtos"
-        >
+        <DashboardPanel icon={Package} title="Não foi possível carregar produtos">
           <div className="space-y-4 text-sm text-muted-foreground">
             <p>
               O servidor não conseguiu consultar produtos no Supabase ligado a este deploy
@@ -101,18 +99,28 @@ export default async function ProdutosPage() {
     );
   }
 
+  const ledger = await loadProductLedgerPageData().catch(() => ({
+    notes: [],
+    students: [],
+    available: false,
+  }));
+
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <div data-tour="page-produtos">
         <DashboardPageHero
-          className="-mx-4 rounded-b-3xl border-b border-primary/15 bg-gradient-to-br from-primary/[0.08] via-background to-bjj-blue/[0.09] px-4 pb-10 pt-2 ring-1 ring-primary/10 sm:-mx-6 sm:px-6"
-          badge="Controle interno"
+          badge="Gestão operacional"
           title="Produtos"
-          description="Cadastro de produtos, tamanhos e estoque manual da academia. Sem venda nem checkout nesta etapa."
-        />
-      </div>
+            description="Cadastro de produtos, caderno de vendas e estoque manual da academia."
+          />
+        </div>
 
-      <ProductsClient products={products} />
+      <ProductsClient
+        products={products}
+        ledgerNotes={ledger.notes}
+        ledgerStudents={ledger.students}
+        ledgerAvailable={ledger.available}
+      />
     </div>
   );
 }

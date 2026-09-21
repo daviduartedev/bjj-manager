@@ -88,6 +88,12 @@ const config: Config = {
           "system-ui",
           "sans-serif",
         ],
+        lp: [
+          "var(--font-lp-display)",
+          '"Arial Narrow"',
+          "Impact",
+          "sans-serif",
+        ],
       },
       fontSize: {
         /* Escala operacional (base 15px): alinhada a dashboards / CRM */

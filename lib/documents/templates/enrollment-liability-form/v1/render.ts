@@ -68,7 +68,7 @@ function signatureImageHtml(dataUrl?: string | null): string {
 }
 
 function renderHeader(args: {
-  logoDataUrl: string;
+  logoDataUrl?: string | null;
   receiver: ReceiverInfo;
   documentNumber: string;
   issuedAt: string;
@@ -78,9 +78,13 @@ function renderHeader(args: {
     ? `CNPJ ${escapeHtml(formatCnpjMask(args.receiver.cnpj))}`
     : "Associação de Lutas e Artes Marciais — ASLAM";
 
+  const logoImg = args.logoDataUrl
+    ? `<img class="aslam-logo" src="${args.logoDataUrl}" alt="${escapeHtml(academy)}" />`
+    : "";
+
   return `
     <header class="aslam-header">
-      <img class="aslam-logo" src="${args.logoDataUrl}" alt="ASLAM" />
+      ${logoImg}
       <div class="aslam-header-meta">
         <p class="aslam-academy">${escapeHtml(academy)}</p>
         <p class="aslam-sub">${cnpj}</p>
@@ -106,7 +110,7 @@ function renderNumberedClauses(clauses: string): string {
 
 export type MinorTemplateData = {
   receiver: ReceiverInfo;
-  logoDataUrl: string;
+  logoDataUrl?: string | null;
   academyName: string;
   documentNumber: string;
   issuedAt: string;
@@ -209,7 +213,7 @@ export function renderMinorTemplate(data: MinorTemplateData): string {
 
 export type AdultTemplateData = {
   receiver: ReceiverInfo;
-  logoDataUrl: string;
+  logoDataUrl?: string | null;
   academyName: string;
   documentNumber: string;
   issuedAt: string;

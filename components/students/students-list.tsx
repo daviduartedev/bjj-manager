@@ -13,6 +13,8 @@ import {
   undoRemoveStudentRecord,
   unarchiveStudent,
 } from "@/actions/students";
+import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { EmptyState } from "@/components/layout/empty-state";
 import { QuickEditDialog } from "@/components/students/quick-edit-dialog";
 import { BeltIllustration } from "@/components/graduation/belt-illustration";
 import { StudentAgeLabel } from "@/components/students/student-age";
@@ -312,28 +314,22 @@ export function StudentsList({
     "text-crm-xs font-semibold uppercase tracking-wider text-muted-foreground";
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border/80 bg-card shadow-sm ring-1 ring-border/40 border-l-[3px] border-l-primary/30" data-tour="page-alunos">
-      <div className="border-b border-border/80 bg-gradient-to-r from-[hsl(var(--content-wash-mid)/0.55)] via-muted/35 to-transparent">
-        <div className="flex items-center gap-2 px-4 py-3.5 sm:px-5">
-          <span className="flex size-9 items-center justify-center rounded-md border border-primary/20 bg-primary/[0.07] text-primary">
-            <ListFilter className="size-4" aria-hidden />
-          </span>
-          <div>
-            <p className="text-crm-sm font-semibold text-foreground">Filtros e pesquisa</p>
-            <p className="text-crm-xs text-muted-foreground">
-              Refine a lista por nome, plano e situação. Use as vistas para alunos arquivados ou removidos.
-            </p>
-          </div>
-        </div>
+    <div data-tour="page-alunos">
+      <DashboardPanel
+        icon={ListFilter}
+        title="Filtros e pesquisa"
+        subtitle="Refine a lista por nome, plano e situação. Use as vistas para alunos arquivados ou removidos."
+        contentClassName="p-0"
+      >
         <div
-          className="flex flex-wrap gap-2 border-t border-border/60 px-4 py-4 sm:px-5"
+          className="flex flex-wrap gap-2 border-b border-border/60 px-4 py-4 sm:px-5"
           data-tour="alunos-vistas-tabs"
         >
           <Button
             type="button"
             size="sm"
             variant={urlState.lista === "principal" ? "default" : "outline"}
-            className="min-h-10"
+            className="min-h-11"
             onClick={() =>
               pushUrl({ ...urlState, lista: "principal", page: 1 })
             }
@@ -344,7 +340,7 @@ export function StudentsList({
             type="button"
             size="sm"
             variant={urlState.lista === "arquivados" ? "default" : "outline"}
-            className="min-h-10"
+            className="min-h-11"
             onClick={() =>
               pushUrl({ ...urlState, lista: "arquivados", page: 1 })
             }
@@ -355,7 +351,7 @@ export function StudentsList({
             type="button"
             size="sm"
             variant={urlState.lista === "removidos" ? "default" : "outline"}
-            className="min-h-10"
+            className="min-h-11"
             onClick={() =>
               pushUrl({ ...urlState, lista: "removidos", page: 1 })
             }
@@ -363,7 +359,7 @@ export function StudentsList({
             Removidos
           </Button>
         </div>
-        <div className="space-y-5 border-t border-border/60 px-4 pb-5 pt-4 sm:px-5">
+        <div className="space-y-5 border-b border-border/60 px-4 pb-5 pt-4 sm:px-5">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
             <div className="space-y-2 sm:col-span-2 lg:col-span-4">
               <label className="type-field-label block" htmlFor="student-search">
@@ -509,46 +505,41 @@ export function StudentsList({
               </div>
           </div>
         </div>
-      </div>
 
       {emptyNoFilters ? (
-        <div className="border-t border-border px-6 py-14 text-center">
-          <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-lg border border-dashed border-border bg-muted/40 text-muted-foreground">
-            <Users className="size-7" aria-hidden />
-          </div>
-          <p className="type-card-heading">Ainda não há alunos</p>
-          <p className="type-lead mx-auto mt-2 max-w-md">
-            Cadastre o primeiro aluno para começar a usar o sistema.
-          </p>
-          <Button className="mt-8 min-h-11" asChild>
+        <EmptyState
+          icon={Users}
+          title="Ainda não há alunos"
+          description="Cadastre o primeiro aluno para começar a usar o sistema."
+          className="rounded-none border-0 bg-transparent shadow-none"
+        >
+          <Button className="min-h-11" asChild>
             <Link href={ROUTES.alunosNovo}>Cadastrar primeiro aluno</Link>
           </Button>
-        </div>
+        </EmptyState>
       ) : rows.length === 0 ? (
-        <div className="border-t border-border px-6 py-12 text-center">
-          <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground">
-            <FilterX className="size-6" aria-hidden />
-          </div>
-          <p className="type-card-heading">
-            {urlState.lista === "arquivados"
+        <EmptyState
+          icon={FilterX}
+          title={
+            urlState.lista === "arquivados"
               ? "Nenhum aluno arquivado"
               : urlState.lista === "removidos"
                 ? "Nenhuma remoção soft"
-                : "Nenhum resultado"}
-          </p>
-          <p className="type-lead mx-auto mt-2 max-w-sm">
-            {urlState.lista === "principal"
+                : "Nenhum resultado"
+          }
+          description={
+            urlState.lista === "principal"
               ? "Nenhum aluno corresponde aos filtros atuais. Ajuste a pesquisa ou limpe os filtros."
               : urlState.lista === "arquivados"
                 ? "Ainda não há alunos arquivados nesta conta."
-                : "Ainda não há cadastros com remoção soft nesta vista."}
-          </p>
-          <div className="mt-6">
-            <Button variant="outline" className="min-h-11" asChild>
-              <Link href={ROUTES.alunos}>Limpar filtros</Link>
-            </Button>
-          </div>
-        </div>
+                : "Ainda não há cadastros com remoção soft nesta vista."
+          }
+          className="rounded-none border-0 bg-transparent shadow-none"
+        >
+          <Button variant="outline" className="min-h-11" asChild>
+            <Link href={ROUTES.alunos}>Limpar filtros</Link>
+          </Button>
+        </EmptyState>
       ) : (
         <>
           <div className="flex flex-col gap-3 border-t border-border bg-muted/25 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
@@ -705,6 +696,7 @@ export function StudentsList({
           ) : null}
         </>
       )}
+      </DashboardPanel>
 
       <QuickEditDialog
         student={quickStudent}

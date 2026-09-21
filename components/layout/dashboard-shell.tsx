@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { Menu, Sparkles, UserRound } from "lucide-react";
+import { Menu, MoreHorizontal, Sparkles, UserRound } from "lucide-react";
 
 import { signOut } from "@/app/(dashboard)/actions";
 import { Button } from "@/components/ui/button";
@@ -17,9 +18,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Skeleton } from "@/components/ui/skeleton";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { GuidedTour, useGuidedTourAutoStart } from "@/components/onboarding/guided-tour";
-import { MAIN_NAV_ITEMS } from "@/components/layout/dashboard-nav-config";
+import {
+  getBottomNavMore,
+  getBottomNavPrimary,
+  isBottomNavMoreActive,
+  MAIN_NAV_ITEMS,
+} from "@/components/layout/dashboard-nav-config";
 import { ProductFooter } from "@/components/layout/product-footer";
 import { ShellNavLink } from "@/components/layout/shell-nav-link";
+import { isShellNavActive } from "@/lib/layout/shell-nav";
 import { APP_NAME } from "@/lib/branding";
 import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -30,6 +37,9 @@ type DashboardShellProps = {
   children: React.ReactNode;
 };
 
+const BOTTOM_NAV_PRIMARY = getBottomNavPrimary();
+const BOTTOM_NAV_MORE = getBottomNavMore();
+
 function ShellChromeSkeleton() {
   return (
     <div
@@ -38,7 +48,7 @@ function ShellChromeSkeleton() {
     >
       <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
         <Skeleton className="size-11 shrink-0 rounded-md bg-muted lg:hidden" />
-        <Skeleton className="h-5 flex-1 max-w-[200px] rounded bg-muted" />
+        <Skeleton className="h-5 max-w-[200px] flex-1 rounded bg-muted" />
         <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
       </div>
     </div>
@@ -49,7 +59,7 @@ function SidebarSkeletonNav() {
   return (
     <>
       {MAIN_NAV_ITEMS.map((item) => (
-        <Skeleton key={item.href} className="h-11 w-full rounded-md bg-muted" aria-hidden />
+        <Skeleton key={item.href} className="h-11 w-full rounded-md bg-white/10" aria-hidden />
       ))}
     </>
   );
@@ -58,16 +68,67 @@ function SidebarSkeletonNav() {
 function BottomNavSkeleton() {
   return (
     <div
-      className="flex h-16 items-stretch justify-around gap-1 border-t border-border bg-background px-2 pt-1 lg:hidden"
+      className="dashboard-ink-chrome flex h-16 items-stretch justify-around gap-1 border-t px-2 pt-1 lg:hidden"
       aria-hidden
     >
-      {MAIN_NAV_ITEMS.map((item) => (
+      {[...BOTTOM_NAV_PRIMARY, { href: "__more__" }].map((item) => (
         <div key={item.href} className="flex flex-1 flex-col items-center justify-center gap-1 py-1">
-          <Skeleton className="size-5 rounded bg-muted" />
-          <Skeleton className="h-2.5 w-12 rounded bg-muted/80" />
+          <Skeleton className="size-5 rounded bg-white/15" />
+          <Skeleton className="h-2.5 w-12 rounded bg-white/10" />
         </div>
       ))}
     </div>
+  );
+}
+
+function BottomNavMoreMenu() {
+  const pathname = usePathname();
+  const moreActive = isBottomNavMoreActive(pathname);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex min-h-[44px] min-w-[44px] flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-1 text-[10px] font-medium leading-tight transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--secondary))] sm:text-xs",
+            moreActive
+              ? "bg-[hsl(var(--shell-nav-active-bg))] font-semibold text-primary shadow-[inset_0_-2px_0_0_hsl(var(--primary))]"
+              : "text-secondary-foreground/70 hover:text-secondary-foreground",
+          )}
+          aria-label="Mais destinos"
+          aria-current={moreActive ? "true" : undefined}
+        >
+          <MoreHorizontal
+            className={cn("size-5 shrink-0", moreActive ? "text-primary" : "text-secondary-foreground/45")}
+            aria-hidden
+          />
+          <span>Mais</span>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="top" align="end" className="mb-2 min-w-52">
+        {BOTTOM_NAV_MORE.map((item) => {
+          const Icon = item.icon;
+          const active = isShellNavActive(pathname, item.href);
+          return (
+            <DropdownMenuItem key={item.href} asChild>
+              <Link
+                href={item.href}
+                data-tour={item.dataTour}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex min-h-11 items-center gap-2",
+                  active && "font-semibold text-primary",
+                )}
+              >
+                <Icon className="size-4 shrink-0" aria-hidden />
+                {item.label}
+              </Link>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -89,7 +150,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
   const brandMarkSidebar = (
     <LogoMark
       height={22}
-      className="size-9 shrink-0 rounded-lg border border-white/15 bg-white/[0.06] p-1 shadow-sm"
+      className="size-9 shrink-0 rounded-md border border-white/15 bg-white/[0.06] p-1"
       imgClassName="max-h-[22px] max-w-[4.5rem]"
     />
   );
@@ -97,7 +158,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
   const brandMark = (
     <LogoMark
       height={22}
-      className="size-9 shrink-0 rounded-lg border border-border/80 bg-card p-1 shadow-sm"
+      className="size-9 shrink-0 rounded-md border border-border/80 bg-card p-1"
       imgClassName="max-h-[22px] max-w-[4.5rem]"
     />
   );
@@ -105,15 +166,15 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
   const brandBlock = (
     <Link
       href={ROUTES.painel}
-      className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-md text-foreground ring-offset-background transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 lg:flex-none"
+      className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-md text-foreground ring-offset-background transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 lg:flex-none"
     >
       {brandMark}
       <span className="flex min-w-0 flex-col leading-tight">
         <span className="font-display text-sm font-semibold tracking-tight">{APP_NAME}</span>
         {academyName ? (
-          <span className="truncate text-xs font-normal opacity-90">{academyName}</span>
+          <span className="truncate text-xs font-normal text-muted-foreground">{academyName}</span>
         ) : (
-          <span className="truncate text-xs font-normal opacity-70">Área operacional</span>
+          <span className="truncate text-xs font-normal text-muted-foreground">Área operacional</span>
         )}
       </span>
     </Link>
@@ -122,21 +183,21 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
   const sidebarBrand = (
     <Link
       href={ROUTES.painel}
-      className="group mb-8 flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 shadow-sm ring-1 ring-white/[0.06] transition-colors hover:border-white/18 hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(0_0%_2%)]"
+      className="mb-6 flex items-start gap-3 rounded-md px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--secondary))]"
     >
-      <div className="flex items-center gap-3">
-        {brandMarkSidebar}
-        <span className="font-display text-sm font-semibold tracking-tight text-zinc-100">
+      {brandMarkSidebar}
+      <span className="min-w-0 pt-0.5">
+        <span className="block font-display text-sm font-semibold tracking-tight text-secondary-foreground">
           {APP_NAME}
         </span>
-      </div>
-      {academyName ? (
-        <p className="line-clamp-2 pl-[3.25rem] text-xs leading-snug text-zinc-400">
-          {academyName}
-        </p>
-      ) : (
-        <p className="pl-[3.25rem] text-xs text-zinc-500">Área operacional</p>
-      )}
+        {academyName ? (
+          <span className="mt-0.5 line-clamp-2 block text-xs leading-snug text-secondary-foreground/55">
+            {academyName}
+          </span>
+        ) : (
+          <span className="mt-0.5 block text-xs text-secondary-foreground/45">Área operacional</span>
+        )}
+      </span>
     </Link>
   );
 
@@ -181,11 +242,9 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
       <GuidedTour run={tourRun} onRunChange={setTourRun} sessionKey={tourSessionKey} />
       <aside
         data-tour="shell-sidebar"
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 hidden w-[15.5rem] flex-col border-r border-zinc-800/90 bg-[hsl(0_0%_2%)] text-zinc-100 shadow-[2px_0_24px_-12px_hsl(0_0%_0%/0.45)] lg:flex",
-        )}
+        className="dashboard-ink-chrome fixed inset-y-0 left-0 z-40 hidden w-[15.5rem] flex-col border-r shadow-[2px_0_28px_-16px_hsl(var(--secondary)/0.55)] lg:flex"
       >
-        <div className="relative flex flex-1 flex-col p-3 pt-7">
+        <div className="relative flex flex-1 flex-col px-3 pb-4 pt-6">
           {!mounted ? (
             <div className="flex flex-col gap-1" aria-hidden>
               <SidebarSkeletonNav />
@@ -193,10 +252,8 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
           ) : (
             <>
               {sidebarBrand}
-              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400">
-                Menu
-              </p>
-              <nav className="flex flex-col gap-1" aria-label="Principal">
+              <p className="type-meta-label mb-2 px-3 text-secondary-foreground/40">Operação</p>
+              <nav className="flex flex-col gap-0.5" aria-label="Principal">
                 {MAIN_NAV_ITEMS.map((item) => (
                   <ShellNavLink
                     key={item.href}
@@ -214,7 +271,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
       </aside>
 
       <div className="flex min-h-screen flex-col lg:pl-[15.5rem]">
-        <header className="dashboard-top-bar sticky top-0 z-30 shrink-0 text-foreground shadow-[0_1px_2px_-1px_hsl(0_0%_0%/0.06)]">
+        <header className="dashboard-top-bar sticky top-0 z-30 shrink-0 text-foreground">
           {!mounted ? (
             <ShellChromeSkeleton />
           ) : (
@@ -233,13 +290,13 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                 </SheetTrigger>
                 <SheetContent
                   side="left"
-                  className="w-[min(100%,20rem)] border-zinc-800 bg-[hsl(0_0%_2%)] p-0 text-zinc-100"
+                  className="dashboard-ink-chrome w-[min(100%,20rem)] p-0"
                 >
-                  <SheetHeader className="border-b border-white/10 bg-white/[0.03] px-6 py-4 text-left">
-                    <SheetTitle className="font-display text-zinc-100">Navegação</SheetTitle>
+                  <SheetHeader className="border-b border-white/10 px-6 py-4 text-left">
+                    <SheetTitle className="font-display text-secondary-foreground">Navegação</SheetTitle>
                   </SheetHeader>
-                  <div className="p-4">{sidebarBrand}</div>
-                  <nav className="flex flex-col gap-1 px-4 pb-6" aria-label="Principal">
+                  <div className="px-4 pt-5">{sidebarBrand}</div>
+                  <nav className="flex flex-col gap-0.5 px-4 pb-6" aria-label="Principal">
                     {MAIN_NAV_ITEMS.map((item) => (
                       <ShellNavLink
                         key={item.href}
@@ -257,12 +314,12 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
 
               {brandBlock}
 
-              <div className="ml-auto flex shrink-0 items-center gap-2">
+              <div className="ml-auto flex shrink-0 items-center gap-1">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="hidden h-9 gap-1.5 px-3 font-medium sm:inline-flex"
+                  className="hidden h-11 gap-1.5 px-3 font-medium sm:inline-flex"
                   data-tour="shell-wizard-trigger"
                   onClick={() => {
                     setTourSessionKey((k) => k + 1);
@@ -292,9 +349,9 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
           )}
         </header>
 
-        <main className="dashboard-main-surface container flex flex-1 flex-col py-5 pb-24 lg:py-6 lg:pb-8">
+        <main className="dashboard-main-surface container flex flex-1 flex-col py-6 pb-24 lg:py-8 lg:pb-10">
           <div className="flex-1">{children}</div>
-          <ProductFooter className="mt-10 shrink-0 border-t border-border/50 pt-6" />
+          <ProductFooter className="mt-12 shrink-0 border-t border-border/50 pt-6" />
         </main>
 
         <div className="fixed bottom-0 left-0 right-0 z-30 lg:hidden">
@@ -303,10 +360,10 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
           ) : (
             <nav
               data-tour="shell-bottom-nav"
-              className="flex h-16 items-stretch justify-around gap-0 border-t border-zinc-800 bg-[hsl(0_0%_3%)] px-1 pb-[env(safe-area-inset-bottom)] pt-1 text-zinc-100 shadow-[0_-8px_32px_-16px_hsl(0_0%_0%/0.55)] backdrop-blur-md supports-[backdrop-filter]:bg-[hsl(0_0%_3%/0.92)] lg:hidden"
+              className="dashboard-ink-chrome flex h-16 items-stretch justify-around gap-0 border-t px-1 pb-[env(safe-area-inset-bottom)] pt-1 shadow-[0_-10px_28px_-18px_hsl(var(--secondary)/0.65)] backdrop-blur-md supports-[backdrop-filter]:bg-[hsl(var(--secondary)/0.94)] lg:hidden"
               aria-label="Navegação inferior"
             >
-              {MAIN_NAV_ITEMS.map((item) => (
+              {BOTTOM_NAV_PRIMARY.map((item) => (
                 <ShellNavLink
                   key={item.href}
                   href={item.href}
@@ -317,6 +374,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                   dataTour={item.dataTour}
                 />
               ))}
+              <BottomNavMoreMenu />
             </nav>
           )}
         </div>

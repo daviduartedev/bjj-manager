@@ -38,13 +38,13 @@ export default async function MatriculasTermosPage({
   });
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Documentos"
         title="Matrículas e Termos ASLAM"
         description="Formulários legais de matrícula e termo de responsabilidade com envio e assinatura digital."
         aside={
-          <Button asChild className="min-h-11">
+          <Button asChild className="min-h-11 shadow-md shadow-primary/20">
             <Link href={`${ROUTES.matriculasTermos}/novo`}>
               <Plus className="mr-2 size-4" />
               Nova matrícula/termo

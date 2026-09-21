@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function NovoPlanoPage() {
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8">
       <DashboardPageHero
         badge="Pedagógico"
         intro={<DashboardBackLink href={ROUTES.pedagogicoPlanos}>Planos</DashboardBackLink>}
