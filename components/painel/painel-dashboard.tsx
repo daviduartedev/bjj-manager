@@ -5,6 +5,7 @@ import {
   CalendarClock,
   CreditCard,
   LayoutDashboard,
+  MessageCircle,
   Sparkles,
   TrendingUp,
   UserPlus,
@@ -14,10 +15,12 @@ import {
 
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { PaymentReminderList } from "@/components/painel/payment-reminder-list";
 import type {
   PainelAttentionRow,
   PainelDistributionSlice,
 } from "@/lib/data/painel-page";
+import type { PaymentReminderRow } from "@/lib/painel/payment-reminders";
 import {
   ROUTES,
   routeAlunoPerfil,
@@ -37,6 +40,7 @@ type Props = {
   birthdayToday: PainelAttentionRow[];
   dueToday: PainelAttentionRow[];
   overdue14: PainelAttentionRow[];
+  paymentReminders: PaymentReminderRow[];
   graduationAlerts: PainelAttentionRow[];
   distributionAdult: PainelDistributionSlice[];
   distributionKids: PainelDistributionSlice[];
@@ -138,6 +142,7 @@ export function PainelDashboard(props: Props) {
     birthdayToday,
     dueToday,
     overdue14,
+    paymentReminders,
     graduationAlerts,
     distributionAdult,
     distributionKids,
@@ -197,6 +202,19 @@ export function PainelDashboard(props: Props) {
           </div>
         </section>
       </div>
+
+      <section data-testid="payment-reminders" aria-labelledby="payment-reminders-heading">
+        <h2 id="payment-reminders-heading" className="sr-only">
+          Lembrete de pagamento
+        </h2>
+        <DashboardPanel
+          icon={MessageCircle}
+          title="Lembrete de pagamento"
+          subtitle="Um clique por aluno, WhatsApp com mensagem pronta"
+        >
+          <PaymentReminderList rows={paymentReminders} />
+        </DashboardPanel>
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <DashboardPanel

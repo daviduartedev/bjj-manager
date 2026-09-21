@@ -4,7 +4,9 @@ import {
   buildWhatsAppShareUrl,
   composeDocumentWhatsAppMessage,
   composeEnrollmentLiabilityWhatsAppMessage,
+  composePaymentReminderWhatsAppMessage,
   normalizePhoneE164,
+  paymentReminderWhatsAppHref,
 } from "./whatsapp";
 
 describe("normalizePhoneE164", () => {
@@ -51,6 +53,43 @@ describe("composeDocumentWhatsAppMessage", () => {
     expect(msg).toContain("Olá, João!");
     expect(msg).toContain("REC-2026-0001");
     expect(msg).toContain("https://x.test/r");
+  });
+});
+
+describe("composePaymentReminderWhatsAppMessage", () => {
+  it("monta lembrete com nome, mês e academia", () => {
+    const msg = composePaymentReminderWhatsAppMessage({
+      studentFirstName: "João",
+      academyName: "Aslam BJJ",
+      referenceMonthLabel: "setembro de 2026",
+    });
+    expect(msg).toContain("Olá, João!");
+    expect(msg).toContain("Lembrete de pagamento da mensalidade");
+    expect(msg).toContain("setembro de 2026");
+    expect(msg).toContain("Aslam BJJ");
+  });
+});
+
+describe("paymentReminderWhatsAppHref", () => {
+  it("abre wa.me quando o telefone é válido", () => {
+    const href = paymentReminderWhatsAppHref({
+      phone: "11999991234",
+      studentFirstName: "João",
+      academyName: "Aslam BJJ",
+      referenceMonthLabel: "setembro de 2026",
+    });
+    expect(href).toMatch(/^https:\/\/wa\.me\/5511999991234\?text=/);
+    expect(href).toContain("Lembrete");
+  });
+
+  it("não gera URL sem telefone válido", () => {
+    expect(
+      paymentReminderWhatsAppHref({
+        phone: null,
+        academyName: "Aslam BJJ",
+        referenceMonthLabel: "setembro de 2026",
+      }),
+    ).toBeNull();
   });
 });
 

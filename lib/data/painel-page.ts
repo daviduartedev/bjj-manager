@@ -10,6 +10,10 @@ import {
   type GraduationRecordInput,
 } from "@/lib/students/graduation-reference";
 import { beltLabelPt } from "@/lib/students/belt-labels";
+import {
+  buildPaymentReminderRows,
+  type PaymentReminderRow,
+} from "@/lib/painel/payment-reminders";
 
 export type PainelAttentionRow = {
   studentId: string;
@@ -35,6 +39,7 @@ type BeltEmbed = {
 type StudentPainelRow = {
   id: string;
   full_name: string;
+  phone: string | null;
   kind: "adult" | "kids";
   birth_date: string | null;
   academy_start_date: string | null;
@@ -80,7 +85,7 @@ function buildDistribution(
   return slices;
 }
 
-export async function loadPainelPageData(): Promise<{
+export async function loadPainelPageData(academyName: string): Promise<{
   todayYmd: string;
   referenceMonth: string;
   activeStudentCount: number;
@@ -90,6 +95,7 @@ export async function loadPainelPageData(): Promise<{
   birthdayToday: PainelAttentionRow[];
   dueToday: PainelAttentionRow[];
   overdue14: PainelAttentionRow[];
+  paymentReminders: PaymentReminderRow[];
   graduationAlerts: PainelAttentionRow[];
   distributionAdult: PainelDistributionSlice[];
   distributionKids: PainelDistributionSlice[];
@@ -104,6 +110,7 @@ export async function loadPainelPageData(): Promise<{
         `
         id,
         full_name,
+        phone,
         kind,
         birth_date,
         academy_start_date,
@@ -190,6 +197,20 @@ export async function loadPainelPageData(): Promise<{
     birthdayToday,
     dueToday,
     overdue14,
+    paymentReminders: buildPaymentReminderRows(
+      billRows
+        .filter((r) => r.indicator === "overdue" && activeIds.has(r.studentId))
+        .map((r) => {
+          const student = students.find((s) => s.id === r.studentId);
+          return {
+            studentId: r.studentId,
+            fullName: nameById.get(r.studentId) ?? "",
+            phone: student?.phone ?? null,
+          };
+        }),
+      academyName,
+      referenceMonth,
+    ),
     graduationAlerts,
     distributionAdult: buildDistribution(students, "adult"),
     distributionKids: buildDistribution(students, "kids"),
