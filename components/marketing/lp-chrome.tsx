@@ -47,9 +47,6 @@ export function LpHeader({ solid = false }: { solid?: boolean }) {
           <Link href="/#funcionalidades" className="hover:text-white">
             Sistema
           </Link>
-          <Link href="/#problema" className="hover:text-white">
-            Problema
-          </Link>
           <Link href="/#faq" className="hover:text-white">
             FAQ
           </Link>

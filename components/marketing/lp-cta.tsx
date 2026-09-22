@@ -9,13 +9,7 @@ import { LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 export function LpCta() {
   return (
-    <LpSection className="relative isolate overflow-hidden text-center">
-      {/* Radial red glow — same pattern as hero */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[480px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-bjj-red/15 blur-[120px]"
-      />
-
+    <LpSection className="text-center">
       <LpReveal>
         <Image
           src="/uf.png"

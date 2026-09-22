@@ -1,5 +1,4 @@
 import {
-  LpBrowserFrame,
   LpDisplay,
   LpEyebrow,
   LpReveal,
@@ -26,22 +25,14 @@ function CapabilityItem({ kicker, label }: { kicker: string; label: string }) {
 
 export function LpHero() {
   return (
-    <LpSection
-      className="relative isolate overflow-hidden pt-28 sm:pt-36"
-    >
-      {/* Glow blob behind the browser frame */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[480px] w-[800px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-bjj-red/15 blur-[120px]"
-      />
-
+    <LpSection className="pt-28 sm:pt-36">
       {/* Centered copy block */}
       <LpReveal>
         <div className="text-center mx-auto max-w-3xl">
           <LpEyebrow>Gestão para academias de jiu-jitsu</LpEyebrow>
 
           <LpDisplay className="text-[clamp(2.75rem,7vw,5.5rem)] mt-6">
-            Alunos, faixas e mensalidades na mesma ficha.
+            Alunos, faixas e mensalidades no mesmo lugar.
           </LpDisplay>
         </div>
       </LpReveal>
@@ -66,18 +57,8 @@ export function LpHero() {
         </div>
       </LpReveal>
 
-      {/* Browser frame */}
-      <LpReveal className="mt-14 sm:mt-16 mx-auto max-w-5xl" delay={0.15}>
-        <LpBrowserFrame
-          src="/marketing/lp-real-painel.png"
-          alt="Painel do Casca com o resumo operacional do dia"
-          url="casca.app/painel"
-          priority
-        />
-      </LpReveal>
-
       {/* Capability strip */}
-      <div className="mt-16 border-t border-white/10 pt-10 grid grid-cols-2 lg:grid-cols-4 gap-8 text-left">
+      <div className="mt-20 border-t border-white/10 pt-10 grid grid-cols-2 lg:grid-cols-4 gap-8 text-left">
         <CapabilityItem
           kicker="Adulto e kids"
           label="O mesmo cadastro cobre as duas linhas da escola."
