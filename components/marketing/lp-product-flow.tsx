@@ -1,5 +1,6 @@
+import { Award, LayoutDashboard, Users, Wallet } from "lucide-react";
+
 import {
-  LpBrowserFrame,
   LpDisplay,
   LpEyebrow,
   LpReveal,
@@ -14,33 +15,25 @@ const modules = [
   {
     number: "01",
     title: "Alunos",
-    src: "/marketing/lp-real-alunos.png",
-    alt: "Lista de alunos no Casca",
-    url: "casca.app/alunos",
+    icon: Users,
     body: "Lista e ficha completa. Tipo adulto ou kids, contato, status, observações. Cada aluno carrega faixa atual, grau, histórico e a situação financeira do mês.",
   },
   {
     number: "02",
     title: "Graduação",
-    src: "/marketing/lp-real-graduacao.png",
-    alt: "Histórico de graduação no Casca",
-    url: "casca.app/alunos",
+    icon: Award,
     body: "Promoção de grau ou faixa com data e histórico. Se houver pulo de ordem, o sistema pede justificativa antes de concluir.",
   },
   {
     number: "03",
     title: "Mensalidades",
-    src: "/marketing/lp-real-mensalidades.png",
-    alt: "Resumo de mensalidades no Casca",
-    url: "casca.app/mensalidades",
+    icon: Wallet,
     body: "Preço efetivo e dia de vencimento por aluno. Status explícito. Você confirma o pagamento quando ele acontece na vida real.",
   },
   {
     number: "04",
     title: "Painel",
-    src: "/marketing/lp-real-painel.png",
-    alt: "Painel do Casca com indicadores do dia",
-    url: "casca.app/painel",
+    icon: LayoutDashboard,
     body: "Alunos ativos, mensalidades em atraso, aniversariantes do mês, distribuição por faixa. Atalhos para agir no mesmo dia.",
   },
 ] as const;
@@ -66,30 +59,24 @@ export function LpProductFlow() {
         </p>
       </LpReveal>
 
-      {/* Modules */}
-      <div className="mt-16 space-y-16 sm:space-y-24">
-        {modules.map((mod, i) => {
-          const isOdd = i % 2 !== 0;
-          return (
-            <LpReveal key={mod.number}>
-              <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
-                {/* Screenshot */}
-                <div className={isOdd ? "lg:order-2" : undefined}>
-                  <LpBrowserFrame src={mod.src} alt={mod.alt} url={mod.url} />
-                </div>
-
-                {/* Copy */}
-                <div>
-                  <p className="font-lp text-sm font-bold text-bjj-red tracking-[0.2em]">
-                    {mod.number}
-                  </p>
-                  <LpDisplay className="text-[clamp(2rem,4vw,3.25rem)] mt-3">{mod.title}</LpDisplay>
-                  <p className="mt-4 max-w-[46ch] text-white/65 leading-relaxed">{mod.body}</p>
-                </div>
+      {/* Module cards */}
+      <div className="mt-16 grid gap-5 sm:grid-cols-2">
+        {modules.map((mod, i) => (
+          <LpReveal key={mod.number} delay={i * 0.08}>
+            <div className="group h-full rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-colors hover:border-white/25 sm:p-8">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/80">
+                  <mod.icon className="h-5 w-5" aria-hidden />
+                </span>
+                <span className="font-lp text-sm font-bold tracking-[0.2em] text-bjj-red">
+                  {mod.number}
+                </span>
               </div>
-            </LpReveal>
-          );
-        })}
+              <LpDisplay className="mt-6 text-[clamp(1.75rem,3vw,2.5rem)]">{mod.title}</LpDisplay>
+              <p className="mt-3 max-w-[46ch] text-white/65 leading-relaxed">{mod.body}</p>
+            </div>
+          </LpReveal>
+        ))}
       </div>
     </LpSection>
   );

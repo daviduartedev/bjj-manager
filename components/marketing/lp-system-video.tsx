@@ -90,7 +90,7 @@ export function LpSystemVideo() {
           <LpEyebrow>Em uso</LpEyebrow>
           <LpDisplay className="mt-6 text-[clamp(2.25rem,5vw,4rem)]">O sistema rodando</LpDisplay>
           <p className="mt-6 max-w-[52ch] text-white/60 leading-relaxed">
-            Seis telas reais, em sequência: do login ao painel do dia.
+            Cinco telas reais, em sequência: do painel do dia às aulas.
           </p>
         </LpReveal>
 
