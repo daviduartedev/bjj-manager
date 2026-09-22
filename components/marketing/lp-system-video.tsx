@@ -75,6 +75,11 @@ export function LpSystemVideo() {
     if (prefersReducedMotion) {
       player.pause();
       player.seekTo(0);
+    } else {
+      // A prop autoPlay só é lida na montagem — como o estado inicial de
+      // prefersReducedMotion é true, o player montaria pausado. Por isso a
+      // reprodução é disparada explicitamente aqui.
+      player.play();
     }
   }, [prefersReducedMotion]);
 
@@ -119,8 +124,8 @@ export function LpSystemVideo() {
                 compositionWidth={LP_SYSTEM_VIDEO_WIDTH}
                 compositionHeight={LP_SYSTEM_VIDEO_HEIGHT}
                 fps={LP_SYSTEM_VIDEO_FPS}
-                autoPlay={!prefersReducedMotion}
-                loop={!prefersReducedMotion}
+                loop
+                initiallyMuted
                 acknowledgeRemotionLicense
                 controls={false}
                 clickToPlay={!prefersReducedMotion}
