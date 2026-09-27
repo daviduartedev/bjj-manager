@@ -94,7 +94,13 @@ export function StudentsList({
 
   const pushUrl = useCallback(
     (next: AlunosUrlState) => {
-      router.replace(`${ROUTES.alunos}${stringifyAlunosSearchParams(next)}`);
+      const params = new URLSearchParams(stringifyAlunosSearchParams(next).replace(/^\?/, ""));
+      const variant = new URLSearchParams(window.location.search).get("variant");
+      if (variant === "A" || variant === "B" || variant === "C") {
+        params.set("variant", variant);
+      }
+      const query = params.toString();
+      router.replace(query ? `${ROUTES.alunos}?${query}` : ROUTES.alunos);
     },
     [router],
   );
