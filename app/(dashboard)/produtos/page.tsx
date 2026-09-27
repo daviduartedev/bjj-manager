@@ -20,8 +20,9 @@ export default async function ProdutosPage() {
 
     return (
       <PageFrame
-        title="Produtos"
-        context="Cadastro de produtos, caderno de vendas e estoque manual da academia."
+        title="A loja da academia"
+        icon={Package}
+        tone="orange"
       >
         <div className="space-y-8" data-tour="page-produtos">
           <DashboardPanel icon={Package} title="Não foi possível carregar produtos">
@@ -104,8 +105,9 @@ export default async function ProdutosPage() {
 
   return (
     <PageFrame
-      title="Produtos"
-      context="Cadastro de produtos, caderno de vendas e estoque manual da academia."
+      title="A loja da academia"
+      icon={Package}
+      tone="orange"
     >
       <div data-tour="page-produtos">
         <ProductsClient

@@ -20,8 +20,9 @@ export default async function TurmasPage() {
 
   return (
     <PageFrame
-      title="Turmas"
-      context="Gerencie turmas, horários recorrentes e inscrições de alunos."
+      title="As turmas da academia"
+      icon={Users}
+      tone="violet"
       primary={{
         label: "Nova turma",
         href: ROUTES.aulasTurmasNova,

@@ -248,7 +248,7 @@ export function SessionCheckInsPanel({
             className="rounded-none border-0 bg-transparent shadow-none"
           />
         ) : (
-          <ul className="divide-y divide-border/80 overflow-hidden rounded-lg border border-border/80 border-l-[3px] border-l-primary/25 bg-card shadow-sm">
+          <ul className="divide-y divide-border overflow-hidden rounded-[20px] border border-black/[0.04] bg-white shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)] dark:border-border dark:bg-card">
             {pendingCheckIns.length > 0 ? (
               <li className="flex items-center gap-3 border-b border-border/60 bg-muted/20 px-3 py-2 sm:px-4">
                 <Checkbox
@@ -317,7 +317,7 @@ export function SessionCheckInsPanel({
             className="rounded-none border-0 bg-transparent shadow-none"
           />
         ) : (
-          <ul className="divide-y divide-border/80 overflow-hidden rounded-lg border border-border/80 border-l-[3px] border-l-[hsl(var(--status-paid)/0.45)] bg-card shadow-sm">
+          <ul className="divide-y divide-border overflow-hidden rounded-[20px] border border-black/[0.04] bg-white shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)] dark:border-border dark:bg-card">
             {attendances.map((att) => {
               const badge = BILLING_BADGE[att.billingIndicator] ?? BILLING_BADGE.pending;
               const removing = removingId === att.studentId;

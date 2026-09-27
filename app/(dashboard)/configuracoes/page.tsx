@@ -18,8 +18,9 @@ export default async function ConfiguracoesPage() {
   if (!data.ctx) {
     return (
       <PageFrame
-        title="Configurações"
-        context="Complete o vínculo da conta para gerir academia e planos."
+        title="Ajustes da academia"
+        icon={Settings}
+        tone="violet"
       >
         <div data-tour="page-configuracoes">
           <DashboardPanel icon={Settings} title="Conta incompleta" subtitle="Provisionamento pendente">
@@ -34,8 +35,9 @@ export default async function ConfiguracoesPage() {
 
   return (
     <PageFrame
-      title="Configurações"
-      context="Academia e planos (Kids 1, Kids 2, Adulto). Contato e nome de exibição em Perfil."
+      title="Ajustes da academia"
+      icon={Settings}
+      tone="violet"
     >
       <div className="space-y-8" data-tour="page-configuracoes">
         <p className="type-lead">

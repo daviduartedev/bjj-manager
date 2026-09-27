@@ -13,9 +13,9 @@ export const metadata: Metadata = {
   title: "Aulas",
 };
 
-function AulasFrame({ context, children }: { context: string; children: ReactNode }) {
+function AulasFrame({ children }: { children: ReactNode }) {
   return (
-    <PageFrame title="Minhas aulas" context={context}>
+    <PageFrame title="Suas próximas aulas" icon={CalendarDays} tone="sky">
       {children}
     </PageFrame>
   );
@@ -24,7 +24,7 @@ function AulasFrame({ context, children }: { context: string; children: ReactNod
 export default async function PortalAulasPage() {
   if (!isStudentPortalClassesCheckinEnabled()) {
     return (
-      <AulasFrame context="Check-in e horários.">
+      <AulasFrame>
         <EmptyState
           icon={CalendarDays}
           title="Check-in indisponível"
@@ -37,7 +37,7 @@ export default async function PortalAulasPage() {
   const access = await getStudentPortalAccessState();
   if (access.kind !== "ready") {
     return (
-      <AulasFrame context="Check-in e horários.">
+      <AulasFrame>
         <EmptyState
           icon={CalendarDays}
           title="Complete o acesso ao portal"
@@ -50,7 +50,7 @@ export default async function PortalAulasPage() {
   const result = await listStudentClassSessions();
 
   return (
-    <AulasFrame context="Próximos 7 dias — confirme presença quando a janela abrir.">
+    <AulasFrame>
       <ClassSessionList
         sessions={result.ok ? result.sessions : []}
         error={result.ok ? null : result.error}

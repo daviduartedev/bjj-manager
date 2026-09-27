@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Hand } from "lucide-react";
 
 import { PageFrame } from "@/components/prototype/page-frame";
 import { getStudentForCurrentUser } from "@/lib/auth/student-context";
@@ -14,7 +15,8 @@ export default async function PortalHomePage() {
   return (
     <PageFrame
       title={`Olá, ${firstName}`}
-      context="Acompanhe aulas, loja e pagamentos da sua academia."
+      icon={Hand}
+      tone="amber"
     >
       {null}
     </PageFrame>

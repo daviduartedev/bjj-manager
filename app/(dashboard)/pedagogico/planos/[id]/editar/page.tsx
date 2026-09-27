@@ -22,8 +22,9 @@ export default async function EditarPlanoPage({ params }: PageProps) {
 
   return (
     <PageFrame
-      title="Editar plano"
-      context="Salvar cria uma nova revisão, mantendo o histórico."
+      title="Revisar o plano"
+      icon={BookOpen}
+      tone="amber"
     >
       <div className="space-y-8">
         <DashboardBackLink href={routePedagogicoPlano(plan.id)}>{plan.title}</DashboardBackLink>

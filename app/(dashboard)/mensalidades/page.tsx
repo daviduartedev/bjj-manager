@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Wallet } from "lucide-react";
 
 import { MensalidadesClient } from "@/components/billing/mensalidades-client";
 import { PageFrame } from "@/components/prototype/page-frame";
@@ -27,8 +28,9 @@ export default async function MensalidadesPage({ searchParams }: PageProps) {
 
   return (
     <PageFrame
-      title="Mensalidades"
-      context="Fechamento mensal: filtre, selecione e registre pagamentos."
+      title="O caixa deste mês"
+      icon={Wallet}
+      tone="emerald"
     >
       <MensalidadesClient
         initialRows={data.rows}

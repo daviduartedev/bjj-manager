@@ -1,9 +1,11 @@
+import { CalendarDays } from "lucide-react";
+
 import { PageFrame } from "@/components/prototype/page-frame";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PortalAulasLoading() {
   return (
-    <PageFrame title="Minhas aulas" context="Check-in e horários.">
+    <PageFrame title="Suas próximas aulas" icon={CalendarDays} tone="sky">
       <ul className="space-y-4" aria-busy="true" aria-label="A carregar aulas">
         {Array.from({ length: 3 }).map((_, i) => (
           <li key={i}>

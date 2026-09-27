@@ -35,8 +35,9 @@ export default async function NovaMatriculaTermoPage({
     const { students } = await loadActiveStudentsForPicker();
     return (
       <PageFrame
-        title="Escolher aluno"
-        context="Seleccione o aluno para iniciar o formulário ASLAM."
+        title="Escolher o aluno"
+        icon={Users}
+        tone="sky"
       >
         <div className="space-y-8">
           <DashboardBackLink href={ROUTES.matriculasTermos}>
@@ -55,8 +56,9 @@ export default async function NovaMatriculaTermoPage({
 
   return (
     <PageFrame
-      title="Matrícula e Termo de Responsabilidade"
-      context="Preencha os campos complementares. O PDF seguirá o modelo ASLAM."
+      title="Preencher o termo"
+      icon={FileSignature}
+      tone="rose"
     >
       <div className="space-y-8">
         <DashboardBackLink href={ROUTES.matriculasTermos}>

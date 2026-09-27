@@ -42,7 +42,7 @@ export function ProductsClient({
 
   return (
     <Tabs value={mainTab} onValueChange={setMainTab} className="w-full space-y-8">
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Resumo do estoque">
+      <section className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-4" aria-label="Resumo do estoque">
         <DashboardStatTile label="Produtos" value={products.length} icon={Package} accent="primary" />
         <DashboardStatTile label="Ativos" value={metrics.active} icon={Sparkles} accent="paid" />
         <DashboardStatTile label="Tamanhos" value={metrics.variants} icon={Layers} accent="info" />
@@ -109,7 +109,6 @@ export function ProductsClient({
           <DashboardPanel
             icon={Package}
             title="Catálogo"
-            subtitle="Cadastro e estoque manual. Sem checkout nesta etapa."
           >
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="type-lead max-w-xl">
@@ -171,7 +170,6 @@ export function ProductsClient({
           <DashboardPanel
             icon={Ruler}
             title="Guia de kimonos"
-            subtitle="Referência para etiquetas de tamanho. Volte ao catálogo para editar stock."
           >
             <div className="mb-6">
               <Button

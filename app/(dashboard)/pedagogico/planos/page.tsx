@@ -34,14 +34,14 @@ export default async function PlanosPage({
 
   return (
     <PageFrame
-      title="Planos pedagógicos"
-      context="Crie planos mensais por categoria, publique e exporte em PDF."
+      title="O plano de aula"
+      icon={BookOpen}
+      tone="violet"
     >
       <div data-tour="page-pedagogico-planos">
         <DashboardPanel
           icon={BookOpen}
           title="Planos"
-          subtitle="Filtros por tipo e estado"
         >
           <PlansList rows={rows} />
         </DashboardPanel>

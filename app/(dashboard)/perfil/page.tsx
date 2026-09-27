@@ -16,8 +16,9 @@ export default async function PerfilPage() {
 
   return (
     <PageFrame
-      title="Perfil"
-      context="Nome e contato exibidos na sessão. Academia e planos em Configurações."
+      title="Sua conta"
+      icon={UserRound}
+      tone="sky"
     >
       <div data-tour="page-perfil">
         {ctx ? (

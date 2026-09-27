@@ -1,10 +1,10 @@
 "use client";
 
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { DashboardStatTile } from "@/components/layout/dashboard-stat-tile";
 import type { MonthFinanceSummary } from "@/lib/data/mensalidades-month-summary";
 import { formatMoneyBrFromCents } from "@/lib/students/payment-ui";
-import { cn } from "@/lib/utils";
-import { PieChart } from "lucide-react";
+import { PieChart, Receipt, Users, Wallet } from "lucide-react";
 
 type Props = {
   summary: MonthFinanceSummary;
@@ -12,7 +12,7 @@ type Props = {
 };
 
 export function MensalidadesMonthFinancePanel(props: Props) {
-  const { summary, monthCaption } = props;
+  const { summary } = props;
   const maxPlan =
     summary.paidByPlanLabel.length === 0
       ? 1
@@ -22,45 +22,17 @@ export function MensalidadesMonthFinancePanel(props: Props) {
     <DashboardPanel
       icon={PieChart}
       title="Resumo financeiro do mês"
-      subtitle={`Pagamentos «Pago» registrados, ${monthCaption}`}
       contentClassName="p-4 sm:p-5"
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-[hsl(var(--status-paid)/0.28)] bg-gradient-to-br from-[hsl(var(--status-paid)/0.08)] to-card px-4 py-3">
-          <p className="text-crm-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Total em pagamentos (Pago)
-          </p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-[hsl(var(--status-paid-foreground))]">
-            {formatMoneyBrFromCents(summary.totalPaidReceivedCents)}
-          </p>
-          <p className="mt-1 text-crm-xs text-muted-foreground">
-            {summary.paidCount} lançamento{summary.paidCount === 1 ? "" : "s"}
-          </p>
-        </div>
-        <div className="rounded-lg border border-border/80 bg-card px-4 py-3">
-          <p className="text-crm-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Bolsistas (isenção)
-          </p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
-            {summary.scholarshipCount}
-          </p>
-          <p className="mt-1 text-crm-xs text-muted-foreground">aluno(s) no mês</p>
-        </div>
-        <div className="rounded-lg border border-border/80 bg-card px-4 py-3">
-          <p className="text-crm-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Outro status
-          </p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
-            {summary.otherCount}
-          </p>
-          <p className="mt-1 text-crm-xs text-muted-foreground">lançamento(s)</p>
-        </div>
-        <div className="rounded-lg border border-border border-dashed bg-muted/20 px-4 py-3 sm:col-span-2 lg:col-span-1">
-          <p className="text-crm-xs leading-snug text-muted-foreground">
-            Montantes conforme plano vigente ao registrar{" "}
-            <strong className="font-medium text-foreground">Pago</strong>. O resumo usa o mês selecionado na lista.
-          </p>
-        </div>
+      <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-4">
+        <DashboardStatTile
+          label="Recebido"
+          value={formatMoneyBrFromCents(summary.totalPaidReceivedCents)}
+          icon={Wallet}
+          accent="paid"
+        />
+        <DashboardStatTile label="Bolsistas" value={summary.scholarshipCount} icon={Users} accent="info" />
+        <DashboardStatTile label="Outro status" value={summary.otherCount} icon={Receipt} accent="pending" />
       </div>
 
       {summary.paidByPlanLabel.length > 0 ? (
@@ -77,11 +49,9 @@ export function MensalidadesMonthFinancePanel(props: Props) {
                     {formatMoneyBrFromCents(row.totalCents)}
                   </span>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
                   <div
-                    className={cn(
-                      "h-full rounded-full bg-primary/75 transition-[width]",
-                    )}
+                    className="h-full rounded-full bg-emerald-500"
                     style={{
                       width: `${Math.round((row.totalCents / maxPlan) * 100)}%`,
                     }}

@@ -26,9 +26,9 @@ function variantQuery(raw: string | string[] | undefined): Record<string, string
   return undefined;
 }
 
-function PresencaFrame({ context, children }: { context: string; children: ReactNode }) {
+function PresencaFrame({ children }: { children: ReactNode }) {
   return (
-    <PageFrame title="Minhas presenças" context={context}>
+    <PageFrame title="Seu histórico no tatame" icon={ClipboardList} tone="emerald">
       {children}
     </PageFrame>
   );
@@ -41,7 +41,7 @@ export default async function PortalPresencaPage({ searchParams }: Props) {
 
   if (!isStudentPortalEnabled()) {
     return (
-      <PresencaFrame context="O portal do aluno ainda não está activo.">
+      <PresencaFrame>
         <EmptyState
           icon={ClipboardList}
           title="Portal indisponível"
@@ -53,7 +53,7 @@ export default async function PortalPresencaPage({ searchParams }: Props) {
 
   if (!isStudentPortalClassesCheckinEnabled()) {
     return (
-      <PresencaFrame context="O histórico de presença ficará disponível quando as aulas estiverem activas.">
+      <PresencaFrame>
         <EmptyState
           icon={ClipboardList}
           title="Histórico indisponível"
@@ -66,7 +66,7 @@ export default async function PortalPresencaPage({ searchParams }: Props) {
   const access = await getStudentPortalAccessState();
   if (access.kind !== "ready") {
     return (
-      <PresencaFrame context="Conclua o onboarding para ver o histórico de presença.">
+      <PresencaFrame>
         <EmptyState
           icon={ClipboardList}
           title="Complete o acesso ao portal"
@@ -79,7 +79,7 @@ export default async function PortalPresencaPage({ searchParams }: Props) {
   const result = await listStudentAttendancesForPortal(page);
 
   return (
-    <PresencaFrame context="Aulas em que o professor confirmou a sua presença oficial.">
+    <PresencaFrame>
       <StudentAttendanceList
         data={
           result.ok

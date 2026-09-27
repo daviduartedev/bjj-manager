@@ -37,8 +37,9 @@ export default async function MatriculasTermosPage({
 
   return (
     <PageFrame
-      title="Matrículas e Termos ASLAM"
-      context="Formulários legais de matrícula e termo de responsabilidade com envio e assinatura digital."
+      title="Contratos para assinar"
+      icon={FileSignature}
+      tone="rose"
       primary={{
         label: "Nova matrícula/termo",
         href: `${ROUTES.matriculasTermos}/novo`,
@@ -48,7 +49,6 @@ export default async function MatriculasTermosPage({
       <DashboardPanel
         icon={FileSignature}
         title="Registos"
-        subtitle="Rascunhos, PDFs gerados e documentos aguardando assinatura"
       >
         {error ? (
           <p className="text-crm-sm text-destructive">{error}</p>

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { PainelDashboard } from "@/components/painel/painel-dashboard";
-import { LayoutDashboard } from "lucide-react";
+import { PageFrame } from "@/components/prototype/page-frame";
+import { Hand } from "lucide-react";
 
 import { loadPainelPageData } from "@/lib/data/painel-page";
 import { getCurrentAccount } from "@/lib/auth";
@@ -17,17 +17,15 @@ export default async function PainelPage() {
 
   if (!ctx) {
     return (
-      <div className="mx-auto max-w-6xl space-y-6">
-        <DashboardPageHero
-          badge="Conta"
-          title="Painel"
-          description="Associe a conta à academia para ver o resumo operacional."
-        />
+      <PageFrame
+        title="Bem-vindo de volta"
+        icon={Hand}
+        tone="amber"
+      >
         <DashboardPanel
-          icon={LayoutDashboard}
+          icon={Hand}
           title="Provisionamento pendente"
           subtitle="Vínculo com a base de dados"
-          contentClassName="border-t border-[hsl(var(--status-pending)/0.25)] bg-[hsl(var(--status-pending)/0.06)]"
         >
           <p className="font-medium text-foreground">Conta não configurada</p>
           <p className="type-lead mt-2">
@@ -36,7 +34,7 @@ export default async function PainelPage() {
             <code className="rounded bg-muted px-1 py-0.5 text-crm-xs">docs/security/rls.md</code>.
           </p>
         </DashboardPanel>
-      </div>
+      </PageFrame>
     );
   }
 

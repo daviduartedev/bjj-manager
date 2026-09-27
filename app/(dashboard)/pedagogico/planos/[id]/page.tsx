@@ -34,6 +34,8 @@ export default async function PlanoDetailPage({ params }: PageProps) {
   return (
     <PageFrame
       title={plan.title}
+      icon={BookOpen}
+      tone="violet"
       context={`${planKindLabels[plan.plan_kind]} · ${plan.reference_month}`}
     >
       <div className="space-y-8">

@@ -195,10 +195,9 @@ export function MensalidadesClient({
       <DashboardPanel
         icon={Wallet}
         title="Lista do mês"
-        subtitle="Filtros e lista densa"
         contentClassName="p-3 sm:p-4"
       >
-        <div className="rounded-xl border border-border/60 bg-muted/15 p-4" data-tour="page-mensalidades">
+        <div className="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-900" data-tour="page-mensalidades">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-5">
             <div className="flex min-w-0 flex-col gap-1.5">
               <Label

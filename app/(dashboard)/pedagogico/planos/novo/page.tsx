@@ -14,8 +14,9 @@ export const metadata: Metadata = {
 export default function NovoPlanoPage() {
   return (
     <PageFrame
-      title="Novo plano pedagógico"
-      context="Comece pelo título e tipo. Os tópicos podem ser ajustados depois."
+      title="Começar um plano"
+      icon={BookOpen}
+      tone="emerald"
     >
       <div className="space-y-8">
         <DashboardBackLink href={ROUTES.pedagogicoPlanos}>Planos</DashboardBackLink>

@@ -125,7 +125,9 @@ export function StudentProfileClient({
 
   return (
     <PageFrame
-      title={profile.full_name}
+      title={`A ficha de ${profile.full_name}`}
+      icon={UserRound}
+      tone="rose"
       context={`${beltTitle}, ${studentKindLabels[profile.kind]}, ${ageDisplay}`}
     >
     <div className="space-y-6">

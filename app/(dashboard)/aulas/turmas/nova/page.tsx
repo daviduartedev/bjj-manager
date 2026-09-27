@@ -19,8 +19,9 @@ export default async function NovaTurmaPage() {
 
   return (
     <PageFrame
-      title="Nova turma"
-      context="Preencha o nome e a modalidade. Adicione horários recorrentes depois de criar."
+      title="Abrir uma turma"
+      icon={CalendarDays}
+      tone="emerald"
     >
       <div className="space-y-8">
         <DashboardBackLink href={ROUTES.aulasTurmas}>Turmas</DashboardBackLink>

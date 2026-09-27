@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Pencil, Plus } from "lucide-react";
+import { Award, Pencil, Plus } from "lucide-react";
 
 import { GraduationEventDialog } from "@/components/graduation/graduation-event-dialog";
 import { BeltIllustration } from "@/components/graduation/belt-illustration";
@@ -75,7 +75,7 @@ export function GraduationsPageClient({ payload }: Props) {
     : null;
 
   return (
-    <PageFrame title="Histórico completo" context={beltTitle}>
+    <PageFrame title="A faixa e o grau" icon={Award} tone="violet" context={beltTitle}>
     <div className="space-y-6">
       <DashboardBackLink href={routeAlunoPerfil(payload.studentId)}>
         {payload.full_name}

@@ -48,7 +48,9 @@ export default async function TurmaDetailPage({ params }: Props) {
 
   return (
     <PageFrame
-      title={classDetail.name}
+      title={`Turma ${classDetail.name}`}
+      icon={Users}
+      tone="sky"
       context={`Instrutor: ${classDetail.instructorName}`}
     >
       <div className="space-y-8">

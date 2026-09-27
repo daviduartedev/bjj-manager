@@ -11,8 +11,9 @@ export const metadata: Metadata = {
 export default function PortalBloqueadoPage() {
   return (
     <PageFrame
-      title="Acesso bloqueado"
-      context="O seu cadastro está arquivado ou removido."
+      title="Acesso pausado"
+      icon={ShieldAlert}
+      tone="rose"
     >
       <EmptyState
         icon={ShieldAlert}

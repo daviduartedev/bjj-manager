@@ -6,16 +6,18 @@ import {
   Award,
   Banknote,
   CalendarDays,
+  Hand,
   UserPlus,
   Users,
   Wallet,
 } from "lucide-react";
+
+import { RouteHeader } from "@/components/layout/route-header";
 import { useState, type ReactNode } from "react";
 
 import { formatPainelDate, formatPainelMonth, moneyLabel } from "@/components/painel/painel-blocks";
 import type { PainelDashboardProps } from "@/components/painel/painel-types";
 import { MIX_META, attentionItems, mixTotal, shareLabel } from "@/components/painel/painel-attention";
-import { Button } from "@/components/ui/button";
 import { studentKindLabels } from "@/lib/i18n/domain-enums";
 import { ROUTES, routeAlunosActivos, routeAulasSessao, routeMensalidadesComFiltro } from "@/lib/routes";
 import { beltDistributionBarColor } from "@/lib/students/belt-chart-colors";
@@ -25,11 +27,11 @@ const card =
   "rounded-[20px] border border-black/[0.04] bg-white shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)] dark:border-border dark:bg-card";
 
 const pillTone = {
-  rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
-  amber: "bg-amber-50 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200",
-  violet: "bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-200",
-  sky: "bg-sky-50 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200",
-  emerald: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
+  rose: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100",
+  amber: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-100",
+  violet: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-100",
+  sky: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-100",
+  emerald: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-100",
 };
 
 export function PainelDashboard(props: PainelDashboardProps) {
@@ -43,41 +45,31 @@ export function PainelDashboard(props: PainelDashboardProps) {
 
   return (
     <div
-      className="min-h-[calc(100dvh-3rem)] bg-[#f3f4f6] p-3 pb-8 text-foreground dark:bg-zinc-950 sm:p-4 lg:min-h-dvh lg:p-6"
+      className="min-h-[calc(100dvh-3rem)] bg-[#f3f4f6] px-3 pb-8 pt-0 text-foreground dark:bg-zinc-950 sm:px-4 lg:min-h-dvh lg:px-6"
       data-tour="page-painel"
     >
-      <header className="mb-4 flex flex-col gap-4 lg:mb-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-balance sm:text-[1.65rem]">
-            Bem-vindo de volta, {props.accountName} <span aria-hidden>👋</span>
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{formatPainelDate(props.todayYmd)}</p>
-        </div>
-        <div className="grid grid-cols-1 gap-2 min-[480px]:grid-cols-2 lg:flex lg:justify-end">
-          <Button className="h-12 w-full rounded-xl px-4 text-sm shadow-[0_12px_28px_-16px_hsl(var(--primary))] sm:px-5 sm:text-base lg:w-auto" asChild>
-            <Link href={routeMensalidadesComFiltro("pendente")}>
-              <Banknote className="size-5" aria-hidden />
-              Registrar pagamento
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-12 w-full rounded-xl border-2 border-zinc-950 bg-white px-4 text-sm text-zinc-950 hover:bg-zinc-950 hover:text-white dark:border-white dark:bg-card dark:text-foreground sm:px-5 sm:text-base lg:w-auto"
-            asChild
-          >
-            <Link href={ROUTES.alunosNovo}>
-              <UserPlus className="size-5" aria-hidden />
-              Cadastrar aluno
-            </Link>
-          </Button>
-        </div>
-      </header>
+      <RouteHeader
+        title={`Bem-vindo de volta, ${props.accountName}`}
+        context={formatPainelDate(props.todayYmd)}
+        icon={Hand}
+        tone="amber"
+        primary={{
+          label: "Registrar pagamento",
+          href: routeMensalidadesComFiltro("pendente"),
+          icon: <Banknote className="size-4" aria-hidden />,
+        }}
+        secondary={{
+          label: "Cadastrar aluno",
+          href: ROUTES.alunosNovo,
+          icon: <UserPlus className="size-4" aria-hidden />,
+        }}
+      />
 
       <section aria-label="Indicadores" className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 xl:grid-cols-4">
         <KpiCard
           href={routeMensalidadesComFiltro("atrasado")}
           icon={<AlertTriangle className="size-4" aria-hidden />}
-          iconClass="bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300"
+          iconClass="bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100"
           label="Atrasados"
           value={String(props.overdueCount)}
           chip={shareLabel(props.overdueCount, total)}
@@ -88,7 +80,7 @@ export function PainelDashboard(props: PainelDashboardProps) {
         <KpiCard
           href={routeAlunosActivos()}
           icon={<Users className="size-4" aria-hidden />}
-          iconClass="bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-300"
+          iconClass="bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-100"
           label="Alunos ativos"
           value={String(props.activeStudentCount)}
           chip={`${props.distributionAdult.length + props.distributionKids.length} faixas`}
@@ -102,7 +94,7 @@ export function PainelDashboard(props: PainelDashboardProps) {
         <KpiCard
           href={ROUTES.mensalidades}
           icon={<Wallet className="size-4" aria-hidden />}
-          iconClass="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
+          iconClass="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-100"
           label="Recebido"
           value={moneyLabel(props.monthFinance.totalPaidReceivedCents)}
           chip={props.monthFinance.paidCount === 1 ? "1 pago" : `${props.monthFinance.paidCount} pagos`}
@@ -116,7 +108,7 @@ export function PainelDashboard(props: PainelDashboardProps) {
         <KpiCard
           href={routeAlunosActivos()}
           icon={<Award className="size-4" aria-hidden />}
-          iconClass="bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200"
+          iconClass="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-100"
           label="Alertas de graduação"
           value={String(props.graduationAlertCount)}
           chip={

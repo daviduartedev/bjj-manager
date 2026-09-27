@@ -41,15 +41,16 @@ export default async function AulasPage() {
 
   return (
     <PageFrame
-      title="Aulas"
-      context="Sessões dos próximos 7 dias. Clique numa sessão para ver os check-ins."
+      title="A agenda da semana"
+      icon={CalendarDays}
+      tone="sky"
       secondary={{
         label: "Gerenciar turmas",
         href: ROUTES.aulasTurmas,
         icon: <CalendarDays className="size-5" aria-hidden />,
       }}
     >
-      <DashboardPanel icon={CalendarDays} title="Próximas sessões" subtitle="7 dias à frente">
+      <DashboardPanel icon={CalendarDays} title="Próximas sessões">
         {sessions.length === 0 ? (
           <EmptyState
             icon={CalendarDays}

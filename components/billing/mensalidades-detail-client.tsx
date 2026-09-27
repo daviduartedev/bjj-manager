@@ -85,8 +85,9 @@ export function MensalidadesDetailClient({
 
   return (
     <PageFrame
-      title={payload.fullName}
-      context="Pagamentos e registro no mês selecionado."
+      title={`A conta de ${payload.fullName}`}
+      icon={Receipt}
+      tone="sky"
       secondary={{
         label: "Ver perfil do aluno",
         href: routeAlunoPerfil(payload.studentId),

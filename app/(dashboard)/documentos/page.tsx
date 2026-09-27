@@ -44,14 +44,14 @@ export default async function DocumentosPage({
 
   return (
     <PageFrame
-      title="Histórico de documentos"
-      context="Recibos, comprovantes, certificados e termos emitidos pela academia."
+      title="Os arquivos da academia"
+      icon={FileText}
+      tone="amber"
     >
       <div data-tour="page-documentos">
         <DashboardPanel
           icon={FileText}
           title="Documentos emitidos"
-          subtitle="Filtros por tipo e estado. Atalhos rápidos por linha"
         >
           <DocumentsPageClient rows={rows} />
         </DashboardPanel>

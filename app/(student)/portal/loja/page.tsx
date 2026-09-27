@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PortalLojaPage() {
   return (
-    <PageFrame title="Loja da academia" context="Produtos e reservas.">
+    <PageFrame title="A loja da academia" icon={ShoppingBag} tone="orange">
       <EmptyState
         icon={ShoppingBag}
         title="Em breve"

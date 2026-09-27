@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Sparkles } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
@@ -32,8 +33,9 @@ export default async function PortalOnboardingPage() {
 
   return (
     <PageFrame
-      title="Bem-vindo ao portal"
-      context="Confirme os termos para aceder às aulas e serviços da academia."
+      title="Vamos começar"
+      icon={Sparkles}
+      tone="amber"
     >
       <DashboardPanel title="Primeiros passos" subtitle="Termos e contacto do responsável">
         <StudentOnboardingForm

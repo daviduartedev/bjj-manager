@@ -1,11 +1,14 @@
+import { ClipboardList } from "lucide-react";
+
 import { PageFrame } from "@/components/prototype/page-frame";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PortalPresencaLoading() {
   return (
     <PageFrame
-      title="Minhas presenças"
-      context="Aulas em que o professor confirmou a sua presença oficial."
+      title="Seu histórico no tatame"
+      icon={ClipboardList}
+      tone="emerald"
     >
       <div className="space-y-3" aria-busy="true">
         <Skeleton className="min-h-[5rem] rounded-lg border border-border/60" />

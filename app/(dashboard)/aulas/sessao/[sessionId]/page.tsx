@@ -50,7 +50,9 @@ export default async function SessionCheckInsPage({ params }: Props) {
 
   return (
     <PageFrame
-      title={session.className}
+      title={`A chamada de ${session.className}`}
+      icon={CalendarDays}
+      tone="emerald"
       context={`${dateLabel} · ${session.startTime} – ${session.endTime}`}
     >
       <div className="space-y-8">
@@ -59,7 +61,6 @@ export default async function SessionCheckInsPage({ params }: Props) {
       <DashboardPanel
         icon={CalendarDays}
         title="Check-ins e presença"
-        subtitle="Atualização automática a cada 30 segundos"
       >
         <SessionCheckInsPanel
           sessionId={sessionId}
@@ -72,16 +73,11 @@ export default async function SessionCheckInsPage({ params }: Props) {
       <DashboardPanel
         icon={Users}
         title="Resumo"
-        subtitle="Contagem rápida desta sessão"
       >
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-4">
           <DashboardStatTile label="Check-ins" value={checkIns.length} />
           <DashboardStatTile label="Presença confirmada" value={attendances.length} accent="paid" />
-          <DashboardStatTile
-            label="Elegíveis manual"
-            value={manualEligible.length}
-            className="col-span-2 sm:col-span-1"
-          />
+          <DashboardStatTile label="Elegíveis manual" value={manualEligible.length} accent="info" />
         </div>
       </DashboardPanel>
       </div>

@@ -324,7 +324,6 @@ export function StudentsList({
       <DashboardPanel
         icon={ListFilter}
         title="Filtros e pesquisa"
-        subtitle="Refine a lista por nome, plano e situação. Use as vistas para alunos arquivados ou removidos."
         contentClassName="p-0"
       >
         <div
@@ -562,7 +561,6 @@ export function StudentsList({
                     </span>
                   ) : null}
                 </p>
-                <p className="text-crm-xs text-muted-foreground">Toque na linha ou cartão para ver o perfil.</p>
               </div>
             </div>
             {hasFilters ? (

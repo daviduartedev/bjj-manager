@@ -11,8 +11,9 @@ export const metadata: Metadata = {
 export default function PortalIndisponivelPage() {
   return (
     <PageFrame
-      title="Indisponível no momento"
-      context="Esta área ainda não está activa para a sua academia."
+      title="Portal em pausa"
+      icon={Ban}
+      tone="orange"
     >
       <EmptyState
         icon={Ban}

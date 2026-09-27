@@ -35,8 +35,9 @@ export default async function AlunosPage({ searchParams }: PageProps) {
 
   return (
     <PageFrame
-      title="Alunos"
-      context="Cadastro e filtros. Abra uma linha para o perfil ou use a edição rápida."
+      title="Quem treina aqui"
+      icon={Users}
+      tone="sky"
       primary={{
         label: "Novo aluno",
         href: ROUTES.alunosNovo,
@@ -44,13 +45,14 @@ export default async function AlunosPage({ searchParams }: PageProps) {
       }}
     >
       <div className="space-y-4">
-        <DashboardStatTile
-          label="Total na conta"
-          value={list.total}
-          icon={Users}
-          accent="primary"
-          className="max-w-xs"
-        />
+        <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-4">
+          <DashboardStatTile
+            label="Total na conta"
+            value={list.total}
+            icon={Users}
+            accent="primary"
+          />
+        </div>
         <StudentsList
           rows={list.rows}
           total={list.total}

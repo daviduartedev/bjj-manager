@@ -19,8 +19,9 @@ export default async function NovoAlunoPage() {
 
   return (
     <PageFrame
-      title="Novo aluno"
-      context="Campos obrigatórios marcados; os demais facilitam busca e contato."
+      title="Cadastrar um aluno"
+      icon={UserPlus}
+      tone="emerald"
     >
       <div className="space-y-6">
       <DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>

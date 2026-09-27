@@ -37,7 +37,9 @@ export default async function MatriculaTermoDetalhePage({ params }: PageProps) {
 
   return (
     <PageFrame
-      title={detail.number ?? "Rascunho"}
+      title={detail.number ? `O termo ${detail.number}` : "O termo em rascunho"}
+      icon={FileSignature}
+      tone="rose"
       context={`Criado em ${formatDateTimeBR(detail.created_at)}`}
     >
       <div className="space-y-8">
