@@ -24,7 +24,6 @@ import {
   isBottomNavMoreActive,
   MAIN_NAV_ITEMS,
 } from "@/components/layout/dashboard-nav-config";
-import { ProductFooter } from "@/components/layout/product-footer";
 import { ShellNavLink } from "@/components/layout/shell-nav-link";
 import { isShellNavActive } from "@/lib/layout/shell-nav";
 import { APP_NAME } from "@/lib/branding";
@@ -43,13 +42,15 @@ const BOTTOM_NAV_MORE = getBottomNavMore();
 function ShellChromeSkeleton() {
   return (
     <div
-      className="pointer-events-none animate-pulse border-b border-border bg-background"
+      className="pointer-events-none animate-pulse"
       aria-hidden
     >
-      <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
-        <Skeleton className="size-11 shrink-0 rounded-md bg-muted lg:hidden" />
-        <Skeleton className="h-5 max-w-[200px] flex-1 rounded bg-muted" />
+      <div className="flex h-12 items-center justify-between px-2">
         <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
+        <div className="flex gap-1">
+          <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
+          <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
+        </div>
       </div>
     </div>
   );
@@ -133,6 +134,8 @@ function BottomNavMoreMenu() {
 }
 
 export function DashboardShell({ academyName, userLabel, children }: DashboardShellProps) {
+  const pathname = usePathname();
+  const fullBleedHome = pathname === ROUTES.painel;
   const [mounted, setMounted] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingSignOut, startSignOut] = useTransition();
@@ -153,31 +156,6 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
       className="size-9 shrink-0 rounded-md border border-white/15 bg-white/[0.06] p-1"
       imgClassName="max-h-[22px] max-w-[4.5rem]"
     />
-  );
-
-  const brandMark = (
-    <LogoMark
-      height={22}
-      className="size-9 shrink-0 rounded-md border border-border/80 bg-card p-1"
-      imgClassName="max-h-[22px] max-w-[4.5rem]"
-    />
-  );
-
-  const brandBlock = (
-    <Link
-      href={ROUTES.painel}
-      className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-md text-foreground ring-offset-background transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 lg:flex-none"
-    >
-      {brandMark}
-      <span className="flex min-w-0 flex-col leading-tight">
-        <span className="font-display text-sm font-semibold tracking-tight">{APP_NAME}</span>
-        {academyName ? (
-          <span className="truncate text-xs font-normal text-muted-foreground">{academyName}</span>
-        ) : (
-          <span className="truncate text-xs font-normal text-muted-foreground">Área operacional</span>
-        )}
-      </span>
-    </Link>
   );
 
   const sidebarBrand = (
@@ -201,14 +179,17 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
     </Link>
   );
 
-  const userMenu = (
+  const userMenu = (triggerClassName: string) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="shrink-0 text-foreground hover:bg-muted focus-visible:ring-primary focus-visible:ring-offset-background"
+          className={cn(
+            "shrink-0 focus-visible:ring-primary",
+            triggerClassName,
+          )}
           aria-label="Menu do utilizador"
           data-tour="shell-user-menu"
         >
@@ -265,24 +246,42 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                   />
                 ))}
               </nav>
+              <div className="mt-auto flex items-center justify-between gap-2 border-t border-white/10 pt-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-11 gap-1.5 px-2 text-secondary-foreground hover:bg-white/10 hover:text-secondary-foreground"
+                  data-tour="shell-wizard-trigger"
+                  onClick={() => {
+                    setTourSessionKey((k) => k + 1);
+                    setTourRun(true);
+                  }}
+                >
+                  <Sparkles className="size-4 shrink-0 text-primary" aria-hidden />
+                  Wizard
+                </Button>
+                {userMenu(
+                  "text-secondary-foreground hover:bg-white/10 hover:text-secondary-foreground focus-visible:ring-offset-[hsl(var(--secondary))]",
+                )}
+              </div>
             </>
           )}
         </div>
       </aside>
 
       <div className="flex min-h-screen flex-col lg:pl-[15.5rem]">
-        <header className="dashboard-top-bar sticky top-0 z-30 shrink-0 text-foreground">
+        <header className="sticky top-0 z-30 shrink-0 bg-[#f3f4f6]/90 backdrop-blur-md lg:hidden dark:bg-zinc-950/90">
           {!mounted ? (
             <ShellChromeSkeleton />
           ) : (
-            <div className="flex h-14 items-center gap-2 px-4 lg:px-6">
+            <div className="flex h-12 items-center justify-between px-2">
               <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
                 <SheetTrigger asChild>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="shrink-0 text-foreground hover:bg-muted lg:hidden"
+                    className="shrink-0 text-foreground hover:bg-muted"
                     aria-label="Abrir menu de navegação"
                   >
                     <Menu className="size-5" />
@@ -312,28 +311,11 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                 </SheetContent>
               </Sheet>
 
-              {brandBlock}
-
-              <div className="ml-auto flex shrink-0 items-center gap-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="hidden h-11 gap-1.5 px-3 font-medium sm:inline-flex"
-                  data-tour="shell-wizard-trigger"
-                  onClick={() => {
-                    setTourSessionKey((k) => k + 1);
-                    setTourRun(true);
-                  }}
-                >
-                  <Sparkles className="size-4 shrink-0 text-primary" aria-hidden />
-                  Wizard
-                </Button>
+              <div className="flex shrink-0 items-center">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="sm:hidden"
                   aria-label="Abrir tour guiado"
                   data-tour="shell-wizard-trigger"
                   onClick={() => {
@@ -343,15 +325,21 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                 >
                   <Sparkles className="size-5 text-primary" aria-hidden />
                 </Button>
-                {userMenu}
+                {userMenu("text-foreground hover:bg-muted focus-visible:ring-offset-background")}
               </div>
             </div>
           )}
         </header>
 
-        <main className="dashboard-main-surface container flex flex-1 flex-col py-6 pb-24 lg:py-8 lg:pb-10">
+        <main
+          className={cn(
+            "dashboard-main-surface flex flex-1 flex-col",
+            fullBleedHome
+              ? "w-full max-w-none px-0 pb-24 pt-0 lg:pb-0"
+              : "container py-6 pb-24 lg:py-8 lg:pb-10",
+          )}
+        >
           <div className="flex-1">{children}</div>
-          <ProductFooter className="mt-12 shrink-0 border-t border-border/50 pt-6" />
         </main>
 
         <div className="fixed bottom-0 left-0 right-0 z-30 lg:hidden">

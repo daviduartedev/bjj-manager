@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
-import { PainelDashboard } from "@/components/painel/painel-dashboard";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
+import { PainelDashboard } from "@/components/painel/painel-dashboard";
 import { LayoutDashboard } from "lucide-react";
 
 import { loadPainelPageData } from "@/lib/data/painel-page";
@@ -53,10 +53,15 @@ export default async function PainelPage() {
       birthdayToday={data.birthdayToday}
       dueToday={data.dueToday}
       overdue14={data.overdue14}
-      paymentReminders={data.paymentReminders}
       graduationAlerts={data.graduationAlerts}
       distributionAdult={data.distributionAdult}
       distributionKids={data.distributionKids}
+      todayYmd={data.todayYmd}
+      referenceMonth={data.referenceMonth}
+      monthFinance={data.monthFinance}
+      billingMix={data.billingMix}
+      todaySessions={data.todaySessions}
+      nextSession={data.nextSession}
     />
   );
 }
