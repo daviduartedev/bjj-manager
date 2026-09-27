@@ -7,12 +7,14 @@ import { NotebookPen } from "lucide-react";
 
 import {
   createLedgerNote,
+  deleteLedgerNote,
   issueLedgerReceipt,
   markLedgerInstallmentPaid,
+  updateLedgerNote,
 } from "@/actions/product-ledger";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
-import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
+import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -67,10 +69,31 @@ export function ProductLedgerNotebook({
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"todos" | "a_receber" | "a_pagar" | "quitado">("todos");
 
   const selectedProduct = products.find((p) => p.id === productId);
   const variants = selectedProduct?.variants ?? [];
+  const editingRow = notes.find((row) => row.id === editingId) ?? null;
+  const moneyLocked = Boolean(editingRow && editingRow.receivedCents > 0);
+
+  function reaisFromCents(cents: number) {
+    return (cents / 100).toFixed(2).replace(".", ",");
+  }
+
+  function resetForm() {
+    setEditingId(null);
+    setKind("sale");
+    setStudentId("");
+    setProductId("");
+    setVariantId("");
+    setQuantity("1");
+    setTotal("");
+    setInstallments("1");
+    setMethod("pix");
+    setTitle("");
+    setNote("");
+  }
 
   const visible = useMemo(() => {
     if (filter === "todos") return notes;
@@ -115,19 +138,46 @@ export function ProductLedgerNotebook({
               paymentMethod: method,
               note: note || null,
             };
-      const r = await createLedgerNote(payload);
+      const r = editingId
+        ? await updateLedgerNote({ ...payload, noteId: editingId })
+        : await createLedgerNote(payload);
       if (!r.ok) {
         toast.error(r.error);
         return;
       }
-      toast.success(kind === "sale" ? "Venda anotada." : "Saída anotada.");
-      setTotal("");
-      setNote("");
-      setTitle("");
+      toast.success(editingId ? "Anotação atualizada." : kind === "sale" ? "Venda anotada." : "Saída anotada.");
+      resetForm();
       router.refresh();
     } finally {
       setSaving(false);
     }
+  }
+
+  function onEdit(row: LedgerNoteRow) {
+    setEditingId(row.id);
+    setKind(row.kind);
+    setStudentId(row.studentId ?? "");
+    setProductId(row.productId ?? "");
+    setVariantId(row.productVariantId ?? "");
+    setQuantity(String(row.quantity));
+    setTotal(reaisFromCents(row.totalCents));
+    setInstallments(String(row.installmentCount));
+    setMethod(row.paymentMethod);
+    setTitle(row.kind === "outlay" ? row.title : "");
+    setNote(row.note ?? "");
+    document.getElementById("ledger-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function onDelete(noteId: string) {
+    if (!window.confirm("Excluir esta anotação do caderno?")) return;
+    const r = await deleteLedgerNote({ noteId });
+    if (!r.ok) {
+      toast.error(r.error);
+      return;
+    }
+    if (editingId === noteId) resetForm();
+    toast.success("Anotação excluída.");
+    router.refresh();
   }
 
   async function onPay(installmentId: string) {
@@ -164,18 +214,24 @@ export function ProductLedgerNotebook({
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
       <form
+        id="ledger-form"
         onSubmit={onCreate}
         className="rounded-lg border border-border/80 bg-[hsl(42_33%_97%)] p-5 shadow-sm dark:bg-card"
       >
-        <p className="font-display text-lg font-semibold tracking-tight">Nova anotação</p>
+        <p className="font-display text-lg font-semibold tracking-tight">
+          {editingId ? "Editar anotação" : "Nova anotação"}
+        </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Bloco de lembretes: venda a um aluno ou conta a pagar da academia.
+          {moneyLocked
+            ? "Parcela já paga: altere o lembrete e o pagamento, ou exclua o registro."
+            : "Bloco de lembretes: venda a um aluno ou conta a pagar da academia."}
         </p>
         <div className="mt-5 space-y-4">
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
               variant={kind === "sale" ? "default" : "outline"}
+              disabled={moneyLocked}
               onClick={() => setKind("sale")}
             >
               Venda
@@ -183,6 +239,7 @@ export function ProductLedgerNotebook({
             <Button
               type="button"
               variant={kind === "outlay" ? "default" : "outline"}
+              disabled={moneyLocked}
               onClick={() => setKind("outlay")}
             >
               A pagar
@@ -193,7 +250,7 @@ export function ProductLedgerNotebook({
             <>
               <div className="space-y-2">
                 <Label>Aluno</Label>
-                <Select value={studentId} onValueChange={setStudentId}>
+                <Select value={studentId} onValueChange={setStudentId} disabled={moneyLocked}>
                   <SelectTrigger>
                     <SelectValue placeholder="Quem comprou" />
                   </SelectTrigger>
@@ -210,6 +267,7 @@ export function ProductLedgerNotebook({
                 <Label>Produto</Label>
                 <Select
                   value={productId}
+                  disabled={moneyLocked}
                   onValueChange={(value) => {
                     setProductId(value);
                     setVariantId("");
@@ -230,7 +288,7 @@ export function ProductLedgerNotebook({
               {variants.length > 0 ? (
                 <div className="space-y-2">
                   <Label>Tamanho</Label>
-                  <Select value={variantId} onValueChange={setVariantId}>
+                  <Select value={variantId} onValueChange={setVariantId} disabled={moneyLocked}>
                     <SelectTrigger>
                       <SelectValue placeholder="Opcional" />
                     </SelectTrigger>
@@ -250,6 +308,7 @@ export function ProductLedgerNotebook({
                   id="ledger-qty"
                   inputMode="numeric"
                   value={quantity}
+                  disabled={moneyLocked}
                   onChange={(e) => setQuantity(e.target.value)}
                 />
               </div>
@@ -272,6 +331,7 @@ export function ProductLedgerNotebook({
               <Input
                 id="ledger-total"
                 value={total}
+                disabled={moneyLocked}
                 onChange={(e) => setTotal(e.target.value)}
                 placeholder="350,00"
               />
@@ -282,6 +342,7 @@ export function ProductLedgerNotebook({
                 id="ledger-x"
                 inputMode="numeric"
                 value={installments}
+                disabled={moneyLocked}
                 onChange={(e) => setInstallments(e.target.value)}
               />
             </div>
@@ -314,9 +375,14 @@ export function ProductLedgerNotebook({
           </div>
 
           <div className={formActionsClass}>
-          <Button type="submit" className={primaryActionClass} disabled={saving}>
-            {saving ? "Anotando…" : "Anotar no caderno"}
-          </Button>
+            {editingId ? (
+              <Button type="button" className={secondaryActionClass} disabled={saving} onClick={resetForm}>
+                Cancelar
+              </Button>
+            ) : null}
+            <Button type="submit" className={primaryActionClass} disabled={saving}>
+              {saving ? "Salvando…" : editingId ? "Salvar" : "Anotar no caderno"}
+            </Button>
           </div>
         </div>
       </form>
@@ -416,16 +482,28 @@ export function ProductLedgerNotebook({
                     </li>
                   ))}
                 </ol>
-                {row.canIssueReceipt ? (
+                <div className={`mt-4 ${formActionsClass}`}>
+                  {row.canIssueReceipt ? (
+                    <Button
+                      type="button"
+                      className={secondaryActionClass}
+                      onClick={() => onReceipt(row.id)}
+                    >
+                      {row.receiptDocumentId ? "Abrir recibo" : "Emitir recibo"}
+                    </Button>
+                  ) : null}
+                  <Button type="button" className={secondaryActionClass} onClick={() => onEdit(row)}>
+                    Editar
+                  </Button>
                   <Button
                     type="button"
-                    className={`mt-4 ${primaryActionClass}`}
-                    variant="outline"
-                    onClick={() => onReceipt(row.id)}
+                    variant="destructive"
+                    className={primaryActionClass}
+                    onClick={() => onDelete(row.id)}
                   >
-                    {row.receiptDocumentId ? "Abrir recibo" : "Emitir recibo"}
+                    Excluir
                   </Button>
-                ) : null}
+                </div>
               </li>
             ))}
           </ul>
