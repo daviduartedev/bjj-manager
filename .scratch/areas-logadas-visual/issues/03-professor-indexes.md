@@ -4,9 +4,9 @@
 
 **Blocked by:** 02: Três modelos de cabeçalho, provados em Alunos
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Each index above renders inside the shared frame for A, B, and C
-- [ ] Existing primary and secondary actions survive, capped at one of each
-- [ ] Configurações and Perfil do not gain a fake call to action
-- [ ] Lists, filters, and empty copy still behave as before
+- [x] Each index above renders inside the shared frame for A, B, and C
+- [x] Existing primary and secondary actions survive, capped at one of each
+- [x] Configurações and Perfil do not gain a fake call to action
+- [x] Lists, filters, and empty copy still behave as before

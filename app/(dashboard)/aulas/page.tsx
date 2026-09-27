@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarDays, ChevronRight, Users } from "lucide-react";
 
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,21 +40,15 @@ export default async function AulasPage() {
   const sessions = await listUpcomingSessions();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Gestão operacional"
-        title="Aulas"
-        description="Sessões dos próximos 7 dias. Clique numa sessão para ver os check-ins."
-        aside={
-          <Button asChild variant="secondary" className="min-h-11">
-            <Link href={ROUTES.aulasTurmas}>
-              <CalendarDays className="mr-2 size-4" aria-hidden />
-              Gerenciar turmas
-            </Link>
-          </Button>
-        }
-      />
-
+    <PageFrame
+      title="Aulas"
+      context="Sessões dos próximos 7 dias. Clique numa sessão para ver os check-ins."
+      secondary={{
+        label: "Gerenciar turmas",
+        href: ROUTES.aulasTurmas,
+        icon: <CalendarDays className="size-5" aria-hidden />,
+      }}
+    >
       <DashboardPanel icon={CalendarDays} title="Próximas sessões" subtitle="7 dias à frente">
         {sessions.length === 0 ? (
           <EmptyState
@@ -95,6 +89,6 @@ export default async function AulasPage() {
           </ul>
         )}
       </DashboardPanel>
-    </div>
+    </PageFrame>
   );
 }

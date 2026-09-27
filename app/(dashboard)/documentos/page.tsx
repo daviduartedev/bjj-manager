@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { FileText } from "lucide-react";
 
 import { DocumentsPageClient } from "@/components/documents/documents-page-client";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { loadDocumentsPageData } from "@/lib/data/documents-page";
 import type { DocumentType } from "@/lib/documents/types";
 
@@ -43,19 +43,19 @@ export default async function DocumentosPage({
   const { rows } = await loadDocumentsPageData({ type, status });
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8" data-tour="page-documentos">
-      <DashboardPageHero
-        badge="Documentos"
-        title="Histórico de documentos"
-        description="Recibos, comprovantes, certificados e termos emitidos pela academia."
-      />
-      <DashboardPanel
-        icon={FileText}
-        title="Documentos emitidos"
-        subtitle="Filtros por tipo e estado. Atalhos rápidos por linha"
-      >
-        <DocumentsPageClient rows={rows} />
-      </DashboardPanel>
-    </div>
+    <PageFrame
+      title="Histórico de documentos"
+      context="Recibos, comprovantes, certificados e termos emitidos pela academia."
+    >
+      <div data-tour="page-documentos">
+        <DashboardPanel
+          icon={FileText}
+          title="Documentos emitidos"
+          subtitle="Filtros por tipo e estado. Atalhos rápidos por linha"
+        >
+          <DocumentsPageClient rows={rows} />
+        </DashboardPanel>
+      </div>
+    </PageFrame>
   );
 }

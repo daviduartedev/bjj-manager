@@ -8,7 +8,6 @@ import { BillingIndicatorBadge } from "@/components/billing/billing-indicator-ba
 import { BulkPayDialog } from "@/components/billing/bulk-pay-dialog";
 import { ReceiptViewerDialog } from "@/components/billing/receipt-viewer-dialog";
 import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
@@ -130,13 +129,19 @@ export function MensalidadesClient({
     filtro?: FilterKey;
     tipo?: MensalidadesPlanFilterKey;
   }) {
-    router.replace(
-      `${ROUTES.mensalidades}${buildMensalidadesListSearchParams({
+    const params = new URLSearchParams(
+      buildMensalidadesListSearchParams({
         mes: opts.mes ?? referenceMonth,
         filtro: opts.filtro ?? filter,
         tipo: opts.tipo ?? planFilter,
-      })}`,
+      }).replace(/^\?/, ""),
     );
+    const variant = new URLSearchParams(window.location.search).get("variant");
+    if (variant === "A" || variant === "B" || variant === "C") {
+      params.set("variant", variant);
+    }
+    const query = params.toString();
+    router.replace(query ? `${ROUTES.mensalidades}?${query}` : ROUTES.mensalidades);
   }
 
   const allFilteredSelected =
@@ -182,13 +187,7 @@ export function MensalidadesClient({
   const monthCaption = formatReferenceMonthCaption(referenceMonth);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Financeiro"
-        title="Mensalidades"
-        description="Fechamento mensal: filtre, selecione e registre pagamentos."
-      />
-
+    <div className="space-y-8">
       <div data-tour="mensalidades-resumo-mes">
         <MensalidadesMonthFinancePanel summary={monthFinance} monthCaption={monthCaption} />
       </div>

@@ -49,7 +49,12 @@ export function DocumentsPageClient({ rows }: { rows: DocumentListRow[] }) {
     } else {
       next.set(key, value);
     }
-    router.push(`/documentos${next.toString() ? `?${next.toString()}` : ""}`);
+    const variant = new URLSearchParams(window.location.search).get("variant");
+    if (variant === "A" || variant === "B" || variant === "C") {
+      next.set("variant", variant);
+    }
+    const query = next.toString();
+    router.push(query ? `/documentos?${query}` : "/documentos");
   }
 
   return (

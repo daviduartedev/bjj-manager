@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 import { ProductsClient } from "@/components/products/products-client";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { loadProductLedgerPageData } from "@/lib/data/product-ledger-page";
 import { loadProductsPageData } from "@/lib/data/products-page";
 import { Package } from "lucide-react";
@@ -19,16 +19,12 @@ export default async function ProdutosPage() {
     console.error("[produtos] loadProductsPageData failed", err);
 
     return (
-      <div className="mx-auto max-w-6xl space-y-8">
-        <div data-tour="page-produtos">
-          <DashboardPageHero
-            badge="Gestão operacional"
-            title="Produtos"
-            description="Cadastro de produtos, caderno de vendas e estoque manual da academia."
-          />
-        </div>
-
-        <DashboardPanel icon={Package} title="Não foi possível carregar produtos">
+      <PageFrame
+        title="Produtos"
+        context="Cadastro de produtos, caderno de vendas e estoque manual da academia."
+      >
+        <div className="space-y-8" data-tour="page-produtos">
+          <DashboardPanel icon={Package} title="Não foi possível carregar produtos">
           <div className="space-y-4 text-sm text-muted-foreground">
             <p>
               O servidor não conseguiu consultar produtos no Supabase ligado a este deploy
@@ -94,8 +90,9 @@ export default async function ProdutosPage() {
               ).
             </p>
           </div>
-        </DashboardPanel>
-      </div>
+          </DashboardPanel>
+        </div>
+      </PageFrame>
     );
   }
 
@@ -106,21 +103,18 @@ export default async function ProdutosPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <PageFrame
+      title="Produtos"
+      context="Cadastro de produtos, caderno de vendas e estoque manual da academia."
+    >
       <div data-tour="page-produtos">
-        <DashboardPageHero
-          badge="Gestão operacional"
-          title="Produtos"
-            description="Cadastro de produtos, caderno de vendas e estoque manual da academia."
-          />
-        </div>
-
-      <ProductsClient
-        products={products}
-        ledgerNotes={ledger.notes}
-        ledgerStudents={ledger.students}
-        ledgerAvailable={ledger.available}
-      />
-    </div>
+        <ProductsClient
+          products={products}
+          ledgerNotes={ledger.notes}
+          ledgerStudents={ledger.students}
+          ledgerAvailable={ledger.available}
+        />
+      </div>
+    </PageFrame>
   );
 }
