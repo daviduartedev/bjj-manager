@@ -1,9 +1,10 @@
+import { getCurrentAccount } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { ledgerClient } from "@/lib/products/ledger-client";
 import {
   canIssueSaleReceipt,
-  ledgerBucket,
-  receivedCents,
-  remainingCents,
+  classifyLedgerNote,
+  type LedgerBucket,
   type LedgerKind,
   type LedgerPaymentMethod,
 } from "@/lib/products/ledger";
@@ -33,7 +34,7 @@ export type LedgerNoteRow = {
   installments: LedgerInstallmentRow[];
   receivedCents: number;
   remainingCents: number;
-  bucket: ReturnType<typeof ledgerBucket>;
+  bucket: LedgerBucket;
   canIssueReceipt: boolean;
   receiptDocumentId: string | null;
 };
@@ -46,13 +47,18 @@ export type ProductLedgerPageData = {
 
 export async function loadProductLedgerPageData(): Promise<ProductLedgerPageData> {
   const supabase = await createClient();
+  const ctx = await getCurrentAccount();
 
-  const { data: notes, error } = await supabase
-    .from("product_ledger_notes")
-    .select(
-      "id, kind, title, student_id, product_name, size_label, quantity, total_cents, installment_count, payment_method, note, created_at, students(full_name), product_ledger_installments(id, sequence, amount_cents, paid_at)",
-    )
-    .order("created_at", { ascending: false });
+  const { data: notes, error } =
+    ctx?.profile.role === "professor"
+      ? await ledgerClient(supabase)
+        .from("product_ledger_notes")
+        .select(
+          "id, kind, title, student_id, product_name, size_label, quantity, total_cents, installment_count, payment_method, note, created_at, students(full_name), product_ledger_installments(id, sequence, amount_cents, paid_at)",
+        )
+        .eq("account_id", ctx.account.id)
+        .order("created_at", { ascending: false })
+    : { data: [], error: null };
 
   if (error) {
     if (error.code === "42P01" || /product_ledger/i.test(error.message)) {
@@ -106,8 +112,8 @@ export async function loadProductLedgerPageData(): Promise<ProductLedgerPageData
           amountCents: item.amount_cents,
           paidAt: item.paid_at,
         }));
-      const remaining = remainingCents(installments);
       const kind = row.kind as LedgerKind;
+      const classified = classifyLedgerNote(kind, Number(row.total_cents), installments);
       const student = row.students as { full_name: string } | { full_name: string }[] | null;
       const studentName = Array.isArray(student)
         ? student[0]?.full_name ?? null
@@ -126,10 +132,10 @@ export async function loadProductLedgerPageData(): Promise<ProductLedgerPageData
         note: (row.note as string | null) ?? null,
         createdAt: row.created_at as string,
         installments,
-        receivedCents: receivedCents(installments),
-        remainingCents: remaining,
-        bucket: ledgerBucket(kind, remaining),
-        canIssueReceipt: canIssueSaleReceipt(kind, remaining),
+        receivedCents: classified.receivedCents,
+        remainingCents: classified.remainingCents,
+        bucket: classified.bucket,
+        canIssueReceipt: canIssueSaleReceipt(kind, classified.remainingCents),
         receiptDocumentId: receiptByNote.get(row.id as string) ?? null,
       };
     }),

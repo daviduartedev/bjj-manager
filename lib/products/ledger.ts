@@ -56,6 +56,25 @@ export function ledgerBucket(kind: LedgerKind, remaining: number): LedgerBucket 
   return kind === "sale" ? "a_receber" : "a_pagar";
 }
 
+/**
+ * Sem parcelas carregadas, o saldo em aberto é o total.
+ * Tratar isso como quitado escondia a venda de A receber e de A pagar.
+ */
+export function classifyLedgerNote(
+  kind: LedgerKind,
+  totalCents: number,
+  installments: ReadonlyArray<{ amountCents: number; paidAt: string | null }>,
+): { receivedCents: number; remainingCents: number; bucket: LedgerBucket } {
+  const received = receivedCents(installments);
+  const remaining =
+    installments.length === 0 ? Math.max(totalCents, 0) : remainingCents(installments);
+  return {
+    receivedCents: received,
+    remainingCents: remaining,
+    bucket: ledgerBucket(kind, remaining),
+  };
+}
+
 export function canIssueSaleReceipt(kind: LedgerKind, remaining: number): boolean {
   return kind === "sale" && remaining <= 0;
 }

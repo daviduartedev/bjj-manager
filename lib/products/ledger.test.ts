@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   canIssueSaleReceipt,
+  classifyLedgerNote,
   ledgerBucket,
   receivedCents,
   remainingCents,
@@ -42,6 +43,34 @@ describe("ledger remaining and bucket", () => {
   it("marks zero remaining as quitado", () => {
     expect(ledgerBucket("sale", 0)).toBe("quitado");
     expect(ledgerBucket("outlay", 0)).toBe("quitado");
+  });
+});
+
+describe("classifyLedgerNote", () => {
+  it("puts a freshly annotated sale in a receber", () => {
+    expect(
+      classifyLedgerNote("sale", 35000, [{ amountCents: 35000, paidAt: null }]),
+    ).toMatchObject({ remainingCents: 35000, bucket: "a_receber" });
+  });
+
+  it("keeps a sale without loaded parcels in a receber", () => {
+    expect(classifyLedgerNote("sale", 35000, [])).toMatchObject({
+      remainingCents: 35000,
+      bucket: "a_receber",
+    });
+  });
+
+  it("puts an open outlay in a pagar", () => {
+    expect(classifyLedgerNote("outlay", 8000, [])).toMatchObject({
+      remainingCents: 8000,
+      bucket: "a_pagar",
+    });
+  });
+
+  it("moves a fully paid sale to quitado", () => {
+    expect(
+      classifyLedgerNote("sale", 35000, [{ amountCents: 35000, paidAt: "2026-09-27" }]),
+    ).toMatchObject({ remainingCents: 0, bucket: "quitado" });
   });
 });
 

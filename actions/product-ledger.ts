@@ -6,17 +6,17 @@ import { getDocumentDownloadUrl } from "@/actions/documents";
 import { getCurrentAccount } from "@/lib/auth";
 import { buildManualReceiptPayload } from "@/lib/documents/payload-builder";
 import { DocumentGenerationService } from "@/lib/documents/service";
-import { isDatabasePrivilegeError, mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";
 import {
   LEDGER_PAYMENT_METHOD_LABELS,
   canIssueSaleReceipt,
+  classifyLedgerNote,
   ledgerNoteIdempotencyKey,
-  remainingCents,
   saleReceiptDescription,
   splitInstallments,
   type LedgerKind,
 } from "@/lib/products/ledger";
+import { ledgerClient } from "@/lib/products/ledger-client";
 import { ROUTES } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -58,42 +58,24 @@ type ParcelInsert = {
   amount_cents: number;
 };
 
-async function withPrivilegeFallback<T>(
-  run: (client: SupabaseClient) => Promise<T>,
-  userClient: SupabaseClient,
-): Promise<T> {
-  try {
-    return await run(userClient);
-  } catch (error) {
-    if (!isDatabasePrivilegeError(error)) throw error;
-    const admin = createAdminClient();
-    if (!admin) throw error;
-    return run(admin);
-  }
-}
-
 async function insertNote(userClient: SupabaseClient, row: NoteInsert): Promise<string> {
-  return withPrivilegeFallback(async (client) => {
-    const { data, error } = await client
-      .from("product_ledger_notes")
-      .insert(row)
-      .select("id")
-      .single();
-    if (error) throw error;
-    return data.id as string;
-  }, userClient);
+  const { data, error } = await ledgerClient(userClient)
+    .from("product_ledger_notes")
+    .insert(row)
+    .select("id")
+    .single();
+  if (error) throw error;
+  return data.id as string;
 }
 
 async function insertParcels(userClient: SupabaseClient, rows: ParcelInsert[]): Promise<void> {
-  await withPrivilegeFallback(async (client) => {
-    const { error } = await client.from("product_ledger_installments").insert(rows);
-    if (error) throw error;
-  }, userClient);
+  const { error } = await ledgerClient(userClient).from("product_ledger_installments").insert(rows);
+  if (error) throw error;
 }
 
 async function requireProfessor() {
   const ctx = await getCurrentAccount();
-  if (!ctx) {
+  if (!ctx || ctx.profile.role !== "professor") {
     return {
       ok: false as const,
       error: "Conta da academia indisponível. Volte a iniciar sessão.",
@@ -206,19 +188,22 @@ export async function markLedgerInstallmentPaid(input: unknown): Promise<LedgerA
 
   try {
     const supabase = await createClient();
-    const { data: row, error } = await supabase
+    const ledger = ledgerClient(supabase);
+    const { data: row, error } = await ledger
       .from("product_ledger_installments")
       .select("id, paid_at")
       .eq("id", parsed.data.installmentId)
+      .eq("account_id", auth.ctx.account.id)
       .maybeSingle();
     if (error) throw error;
     if (!row) return { ok: false, error: "Parcela não encontrada." };
     if (row.paid_at) return { ok: true };
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await ledger
       .from("product_ledger_installments")
       .update({ paid_at: new Date().toISOString() })
-      .eq("id", parsed.data.installmentId);
+      .eq("id", parsed.data.installmentId)
+      .eq("account_id", auth.ctx.account.id);
     if (updateError) throw updateError;
 
     revalidatePath(ROUTES.produtos);
@@ -237,12 +222,13 @@ export async function issueLedgerReceipt(input: unknown): Promise<LedgerActionRe
 
   try {
     const supabase = await createClient();
-    const { data: note, error } = await supabase
+    const { data: note, error } = await ledgerClient(supabase)
       .from("product_ledger_notes")
       .select(
         "id, kind, student_id, product_name, size_label, quantity, installment_count, payment_method, total_cents, product_ledger_installments(amount_cents, paid_at)",
       )
       .eq("id", parsed.data.noteId)
+      .eq("account_id", auth.ctx.account.id)
       .maybeSingle();
     if (error) throw error;
     if (!note) return { ok: false, error: "Anotação não encontrada." };
@@ -253,7 +239,11 @@ export async function issueLedgerReceipt(input: unknown): Promise<LedgerActionRe
         paid_at: string | null;
       }>) ?? []
     ).map((row) => ({ amountCents: row.amount_cents, paidAt: row.paid_at }));
-    const remaining = remainingCents(installments);
+    const remaining = classifyLedgerNote(
+      note.kind as LedgerKind,
+      Number(note.total_cents),
+      installments,
+    ).remainingCents;
     if (!canIssueSaleReceipt(note.kind as LedgerKind, remaining) || !note.student_id) {
       return { ok: false, error: "O recibo só sai quando a venda estiver quitada." };
     }
