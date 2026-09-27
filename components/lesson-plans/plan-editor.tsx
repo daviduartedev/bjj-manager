@@ -23,6 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
 import { routePedagogicoPlano } from "@/lib/routes";
+import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import type {
   LessonPlanContent,
   LessonPlanItem,
@@ -213,7 +214,7 @@ export function PlanEditor({ mode, initial }: Props) {
             value={planKind}
             onValueChange={(v) => setPlanKind(v as "adult" | "kids_1" | "kids_2")}
           >
-            <SelectTrigger className="min-h-11">
+            <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -230,7 +231,6 @@ export function PlanEditor({ mode, initial }: Props) {
             type="month"
             value={referenceMonth.slice(0, 7)}
             onChange={(e) => setReferenceMonth(`${e.target.value}-01`)}
-            className="min-h-11"
           />
         </div>
         <div className="space-y-2 sm:col-span-1">
@@ -240,7 +240,6 @@ export function PlanEditor({ mode, initial }: Props) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={160}
-            className="min-h-11"
           />
         </div>
       </section>
@@ -266,12 +265,11 @@ export function PlanEditor({ mode, initial }: Props) {
 
         <div className="space-y-3">
           {topics.map((topic, idx) => (
-            <div key={topic.id} className="rounded-md border bg-card/40 p-3">
+            <div key={topic.id} className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Input
                   value={topic.title}
                   onChange={(e) => updateTopic(idx, { title: e.target.value })}
-                  className="min-h-11"
                   maxLength={160}
                   placeholder="Título do tópico"
                 />
@@ -281,7 +279,7 @@ export function PlanEditor({ mode, initial }: Props) {
                     updateTopic(idx, { kind: v as LessonPlanTopic["kind"] })
                   }
                 >
-                  <SelectTrigger className="min-h-11 sm:w-44">
+                  <SelectTrigger className="sm:w-44">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -338,7 +336,6 @@ export function PlanEditor({ mode, initial }: Props) {
                         onChange={(e) => setTopicItem(idx, j, e.target.value)}
                         placeholder={`Item ${j + 1}`}
                         maxLength={500}
-                        className="min-h-11"
                       />
                       <Button
                         type="button"
@@ -384,26 +381,25 @@ export function PlanEditor({ mode, initial }: Props) {
             value={changeSummary}
             onChange={(e) => setChangeSummary(e.target.value)}
             maxLength={500}
-            className="min-h-11"
           />
         </section>
       ) : null}
 
-      <div className="flex flex-wrap gap-2 pt-2">
-        <Button type="button" onClick={onSave} disabled={pending} className="min-h-11">
-          {pending ? "Salvando…" : "Salvar"}
-        </Button>
+      <div className={formActionsClass}>
         {mode.kind === "edit" && mode.canPublish ? (
           <Button
             type="button"
             variant="outline"
             onClick={onPublish}
             disabled={pending}
-            className="min-h-11"
+            className={secondaryActionClass}
           >
             Publicar
           </Button>
         ) : null}
+        <Button type="button" onClick={onSave} disabled={pending} className={primaryActionClass}>
+          {pending ? "Salvando…" : "Salvar"}
+        </Button>
       </div>
     </div>
   );

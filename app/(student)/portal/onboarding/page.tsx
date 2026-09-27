@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { Sparkles } from "lucide-react";
 import { redirect } from "next/navigation";
 
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { StudentOnboardingForm } from "@/components/student/onboarding-form";
 import {
   getStudentForCurrentUser,
@@ -31,18 +32,18 @@ export default async function PortalOnboardingPage() {
   });
 
   return (
-    <div className="mx-auto max-w-lg space-y-6">
-      <DashboardPageHero
-        badge="Portal do aluno"
-        title="Bem-vindo ao portal"
-        description="Confirme os termos para aceder às aulas e serviços da academia."
-      />
+    <PageFrame
+      title="Cadastro"
+      emoji="📝"
+      icon={Sparkles}
+      tone="amber"
+    >
       <DashboardPanel title="Primeiros passos" subtitle="Termos e contacto do responsável">
         <StudentOnboardingForm
           studentName={student.full_name}
           requiresGuardianEmail={requiresGuardianEmail}
         />
       </DashboardPanel>
-    </div>
+    </PageFrame>
   );
 }

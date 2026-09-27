@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { primaryActionClass } from "@/lib/ui/form-chrome";
 
 type Props = {
   open: boolean;
@@ -54,7 +55,7 @@ export function ProductDialog({ open, onOpenChange }: Props) {
         onOpenChange(next);
       }}
     >
-      <DialogContent className="overflow-hidden border-t-4 border-t-primary border-primary/20 bg-gradient-to-b from-primary/[0.04] to-card pt-6 sm:max-w-md">
+      <DialogContent className="sm:max-w-md">
         <form onSubmit={onSubmit}>
           <DialogHeader>
             <DialogTitle>Novo produto</DialogTitle>
@@ -66,7 +67,6 @@ export function ProductDialog({ open, onOpenChange }: Props) {
             <Label htmlFor="new-product-name">Nome</Label>
             <Input
               id="new-product-name"
-              className="min-h-11"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex.: Faixa branca"
@@ -76,7 +76,7 @@ export function ProductDialog({ open, onOpenChange }: Props) {
             />
           </div>
           <DialogFooter>
-            <Button type="submit" className="min-h-11 w-full sm:w-auto" disabled={loading}>
+            <Button type="submit" className={primaryActionClass} disabled={loading}>
               {loading ? "Criando…" : "Criar produto"}
             </Button>
           </DialogFooter>

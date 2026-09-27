@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { FileSignature, Plus } from "lucide-react";
 
 import { EnrollmentLiabilityFormsList } from "@/components/enrollment-liability-forms/enrollment-liability-forms-list";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
-import { Button } from "@/components/ui/button";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { loadEnrollmentLiabilityList } from "@/lib/data/enrollment-liability-page";
 import { ROUTES } from "@/lib/routes";
 
@@ -38,25 +36,20 @@ export default async function MatriculasTermosPage({
   });
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Documentos"
-        title="Matrículas e Termos ASLAM"
-        description="Formulários legais de matrícula e termo de responsabilidade com envio e assinatura digital."
-        aside={
-          <Button asChild className="min-h-11 shadow-md shadow-primary/20">
-            <Link href={`${ROUTES.matriculasTermos}/novo`}>
-              <Plus className="mr-2 size-4" />
-              Nova matrícula/termo
-            </Link>
-          </Button>
-        }
-      />
-
+    <PageFrame
+      title="Matrículas"
+      emoji="✍️"
+      icon={FileSignature}
+      tone="rose"
+      primary={{
+        label: "Nova matrícula/termo",
+        href: `${ROUTES.matriculasTermos}/novo`,
+        icon: <Plus className="size-5" aria-hidden />,
+      }}
+    >
       <DashboardPanel
         icon={FileSignature}
         title="Registos"
-        subtitle="Rascunhos, PDFs gerados e documentos aguardando assinatura"
       >
         {error ? (
           <p className="text-crm-sm text-destructive">{error}</p>
@@ -64,6 +57,6 @@ export default async function MatriculasTermosPage({
           <EnrollmentLiabilityFormsList rows={rows} />
         )}
       </DashboardPanel>
-    </div>
+    </PageFrame>
   );
 }

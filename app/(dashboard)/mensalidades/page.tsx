@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Wallet } from "lucide-react";
 
 import { MensalidadesClient } from "@/components/billing/mensalidades-client";
+import { PageFrame } from "@/components/prototype/page-frame";
 import {
   parseMensalidadesFiltroQuery,
   parseMensalidadesPlanQuery,
@@ -25,12 +27,19 @@ export default async function MensalidadesPage({ searchParams }: PageProps) {
   const data = await loadMensalidadesRows(mes);
 
   return (
-    <MensalidadesClient
-      initialRows={data.rows}
-      referenceMonth={data.referenceMonth}
-      initialFilter={initialFilter}
-      initialPlanFilter={initialPlanFilter}
-      monthFinance={data.monthFinance}
-    />
+    <PageFrame
+      title="Mensalidades"
+      emoji="💰"
+      icon={Wallet}
+      tone="emerald"
+    >
+      <MensalidadesClient
+        initialRows={data.rows}
+        referenceMonth={data.referenceMonth}
+        initialFilter={initialFilter}
+        initialPlanFilter={initialPlanFilter}
+        monthFinance={data.monthFinance}
+      />
+    </PageFrame>
   );
 }

@@ -63,15 +63,24 @@ export function PlansList({ rows }: { rows: LessonPlanListRow[] }) {
   const hasAnyFilter =
     currentMonth !== "" || currentKind !== "all" || currentStatus !== "all";
 
+  function pushPlanos(params: URLSearchParams) {
+    const variant = new URLSearchParams(window.location.search).get("variant");
+    if (variant === "A" || variant === "B" || variant === "C") {
+      params.set("variant", variant);
+    }
+    const query = params.toString();
+    router.push(query ? `${ROUTES.pedagogicoPlanos}?${query}` : ROUTES.pedagogicoPlanos);
+  }
+
   function setParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams.toString());
     if (value === "" || value === "all") next.delete(key);
     else next.set(key, value);
-    router.push(`${ROUTES.pedagogicoPlanos}${next.toString() ? `?${next.toString()}` : ""}`);
+    pushPlanos(next);
   }
 
   function clearFilters() {
-    router.push(ROUTES.pedagogicoPlanos);
+    pushPlanos(new URLSearchParams());
   }
 
   return (

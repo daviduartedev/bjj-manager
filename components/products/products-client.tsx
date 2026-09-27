@@ -12,6 +12,7 @@ import type { LedgerNoteRow, LedgerStudentOption } from "@/lib/data/product-ledg
 import { ProductDialog } from "@/components/products/product-dialog";
 import { ProductEditorCard } from "@/components/products/product-editor-card";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ProductRow } from "@/lib/data/products-page";
 
@@ -42,7 +43,7 @@ export function ProductsClient({
 
   return (
     <Tabs value={mainTab} onValueChange={setMainTab} className="w-full space-y-8">
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Resumo do estoque">
+      <section className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-4" aria-label="Resumo do estoque">
         <DashboardStatTile label="Produtos" value={products.length} icon={Package} accent="primary" />
         <DashboardStatTile label="Ativos" value={metrics.active} icon={Sparkles} accent="paid" />
         <DashboardStatTile label="Tamanhos" value={metrics.variants} icon={Layers} accent="info" />
@@ -109,28 +110,27 @@ export function ProductsClient({
           <DashboardPanel
             icon={Package}
             title="Catálogo"
-            subtitle="Cadastro e estoque manual. Sem checkout nesta etapa."
           >
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="type-lead max-w-xl">
                 Organize por produto; cada cartão tem a sua própria lista de tamanhos.
               </p>
-              <div className="flex flex-col gap-2 sm:shrink-0 sm:items-end">
+              <div className={formActionsClass}>
                 <Button
                   type="button"
-                  className="min-h-11 w-full gap-2 shadow-md shadow-primary/20 sm:w-auto"
+                  variant="outline"
+                  className={secondaryActionClass}
+                  onClick={() => setMainTab("guia")}
+                >
+                  Guia de kimonos
+                </Button>
+                <Button
+                  type="button"
+                  className={primaryActionClass}
                   onClick={() => setDialogOpen(true)}
                 >
                   <PackagePlus className="size-4" aria-hidden />
                   Novo produto
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="min-h-11 text-muted-foreground"
-                  onClick={() => setMainTab("guia")}
-                >
-                  Consultar guia de kimonos (A0–A5, M00–M4)
                 </Button>
               </div>
             </div>
@@ -171,13 +171,12 @@ export function ProductsClient({
           <DashboardPanel
             icon={Ruler}
             title="Guia de kimonos"
-            subtitle="Referência para etiquetas de tamanho. Volte ao catálogo para editar stock."
           >
-            <div className="mb-6">
+            <div className={`mb-6 ${formActionsClass}`}>
               <Button
                 type="button"
-                variant="secondary"
-                className="min-h-11 w-full shrink-0 sm:w-auto"
+                variant="outline"
+                className={secondaryActionClass}
                 onClick={() => setMainTab("catalogo")}
               >
                 Voltar ao catálogo

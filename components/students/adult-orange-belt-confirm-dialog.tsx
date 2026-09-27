@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import {
   Dialog,
   DialogContent,
@@ -46,18 +47,18 @@ export function AdultOrangeBeltConfirmDialog({
             </div>
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
-            className="min-h-11 w-full sm:w-auto"
+            className={secondaryActionClass}
             onClick={() => onOpenChange(false)}
           >
             Cancelar
           </Button>
           <Button
             type="button"
-            className="min-h-11 w-full sm:w-auto"
+            className={primaryActionClass}
             onClick={() => {
               onConfirm();
               onOpenChange(false);

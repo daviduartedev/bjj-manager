@@ -9,7 +9,7 @@ import { STUDENT_ATTENDANCE_PAGE_SIZE } from "@/lib/constants/classes";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string; page?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string; variant?: string }>;
 };
 
 export async function generateMetadata({
@@ -24,7 +24,7 @@ export async function generateMetadata({
 
 export default async function AlunoPerfilPage({ params, searchParams }: PageProps) {
   const { id } = await params;
-  const { tab, page: pageParam } = await searchParams;
+  const { tab, page: pageParam, variant } = await searchParams;
   const profile = await getStudentProfileById(id);
   if (!profile) notFound();
 
@@ -50,6 +50,7 @@ export default async function AlunoPerfilPage({ params, searchParams }: PageProp
             }
       }
       attendanceError={attendanceResult.ok ? null : attendanceResult.error}
+      frameVariant={variant === "A" || variant === "B" || variant === "C" ? variant : undefined}
     />
   );
 }

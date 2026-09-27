@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { BookOpen } from "lucide-react";
 
 import { PlansList } from "@/components/lesson-plans/plans-list";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { loadLessonPlansList } from "@/lib/data/lesson-plans-page";
 
 export const metadata: Metadata = {
@@ -33,19 +33,20 @@ export default async function PlanosPage({
   const { rows } = await loadLessonPlansList({ planKind, status, referenceMonth });
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8" data-tour="page-pedagogico-planos">
-      <DashboardPageHero
-        badge="Pedagógico"
-        title="Planos pedagógicos"
-        description="Crie planos mensais por categoria, publique e exporte em PDF."
-      />
-      <DashboardPanel
-        icon={BookOpen}
-        title="Planos"
-        subtitle="Filtros por tipo e estado"
-      >
-        <PlansList rows={rows} />
-      </DashboardPanel>
-    </div>
+    <PageFrame
+      title="Planos de aula"
+      emoji="📖"
+      icon={BookOpen}
+      tone="violet"
+    >
+      <div data-tour="page-pedagogico-planos">
+        <DashboardPanel
+          icon={BookOpen}
+          title="Planos"
+        >
+          <PlansList rows={rows} />
+        </DashboardPanel>
+      </div>
+    </PageFrame>
   );
 }

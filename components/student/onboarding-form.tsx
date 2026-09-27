@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { completeStudentOnboarding } from "@/actions/student-portal/onboarding";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -114,7 +115,6 @@ export function StudentOnboardingForm({ requiresGuardianEmail, studentName }: Pr
                     type="email"
                     autoComplete="email"
                     disabled={loading}
-                    className="min-h-11"
                     placeholder="responsavel@email.com"
                     {...field}
                   />
@@ -125,9 +125,11 @@ export function StudentOnboardingForm({ requiresGuardianEmail, studentName }: Pr
           />
         ) : null}
 
-        <Button type="submit" className="min-h-11 w-full" disabled={loading}>
+        <div className={formActionsClass}>
+        <Button type="submit" className={primaryActionClass} disabled={loading}>
           {loading ? "Salvando…" : "Continuar para o portal"}
         </Button>
+        </div>
       </form>
     </Form>
   );

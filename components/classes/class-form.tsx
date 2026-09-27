@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { studentKindLabels } from "@/lib/i18n/domain-enums";
 import { routeAulasTurma, ROUTES } from "@/lib/routes";
+import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
 
 type Mode =
   | { kind: "create" }
@@ -115,7 +116,8 @@ export function ClassForm({ mode, instructorProfileId, initial }: Props) {
         </p>
       )}
 
-      <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+      <div className={formActionsClass}>
+      <Button type="submit" disabled={isPending} className={primaryActionClass}>
         {isPending
           ? mode.kind === "create"
             ? "Criando…"
@@ -124,6 +126,7 @@ export function ClassForm({ mode, instructorProfileId, initial }: Props) {
             ? "Criar turma"
             : "Salvar alterações"}
       </Button>
+      </div>
     </form>
   );
 }
