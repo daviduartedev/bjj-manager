@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { CalendarDays } from "lucide-react";
 
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { EmptyState } from "@/components/layout/empty-state";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { ClassSessionList } from "@/components/student/class-session-list";
 import { getStudentPortalAccessState } from "@/lib/auth/student-context";
 import { listStudentClassSessions } from "@/lib/data/student-class-sessions";
@@ -12,47 +13,48 @@ export const metadata: Metadata = {
   title: "Aulas",
 };
 
+function AulasFrame({ context, children }: { context: string; children: ReactNode }) {
+  return (
+    <PageFrame title="Minhas aulas" context={context}>
+      {children}
+    </PageFrame>
+  );
+}
+
 export default async function PortalAulasPage() {
   if (!isStudentPortalClassesCheckinEnabled()) {
     return (
-      <div className="mx-auto max-w-4xl space-y-6 px-1 sm:space-y-8 sm:px-0">
-        <DashboardPageHero badge="Aulas" title="Minhas aulas" description="Check-in e horários." />
+      <AulasFrame context="Check-in e horários.">
         <EmptyState
           icon={CalendarDays}
           title="Check-in indisponível"
           description="A listagem de aulas e check-in ainda não está activa. Contacte a recepção se precisar de ajuda."
         />
-      </div>
+      </AulasFrame>
     );
   }
 
   const access = await getStudentPortalAccessState();
   if (access.kind !== "ready") {
     return (
-      <div className="mx-auto max-w-4xl space-y-6 px-1 sm:space-y-8 sm:px-0">
-        <DashboardPageHero badge="Aulas" title="Minhas aulas" description="Check-in e horários." />
+      <AulasFrame context="Check-in e horários.">
         <EmptyState
           icon={CalendarDays}
           title="Complete o acesso ao portal"
           description="Conclua o onboarding para ver suas aulas."
         />
-      </div>
+      </AulasFrame>
     );
   }
 
   const result = await listStudentClassSessions();
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-1 sm:space-y-8 sm:px-0">
-      <DashboardPageHero
-        badge="Aulas"
-        title="Minhas aulas"
-        description="Próximos 7 dias — confirme presença quando a janela abrir."
-      />
+    <AulasFrame context="Próximos 7 dias — confirme presença quando a janela abrir.">
       <ClassSessionList
         sessions={result.ok ? result.sessions : []}
         error={result.ok ? null : result.error}
       />
-    </div>
+    </AulasFrame>
   );
 }

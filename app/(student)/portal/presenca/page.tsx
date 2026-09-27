@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { ClipboardList } from "lucide-react";
 
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { EmptyState } from "@/components/layout/empty-state";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { StudentAttendanceList } from "@/components/student/student-attendance-list";
 import { getStudentPortalAccessState } from "@/lib/auth/student-context";
 import { listStudentAttendancesForPortal } from "@/lib/data/student-attendances";
@@ -16,62 +17,69 @@ export const metadata: Metadata = {
 };
 
 type Props = {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+function variantQuery(raw: string | string[] | undefined): Record<string, string> | undefined {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (value === "A" || value === "B" || value === "C") return { variant: value };
+  return undefined;
+}
+
+function PresencaFrame({ context, children }: { context: string; children: ReactNode }) {
+  return (
+    <PageFrame title="Minhas presenças" context={context}>
+      {children}
+    </PageFrame>
+  );
+}
+
 export default async function PortalPresencaPage({ searchParams }: Props) {
-  const { page: pageParam } = await searchParams;
+  const raw = await searchParams;
+  const pageParam = Array.isArray(raw.page) ? raw.page[0] : raw.page;
   const page = Math.max(1, Number(pageParam) || 1);
 
   if (!isStudentPortalEnabled()) {
     return (
-      <div className="mx-auto max-w-4xl space-y-6 px-1 sm:space-y-8 sm:px-0">
-        <DashboardPageHero badge="Presença" title="Minhas presenças" />
+      <PresencaFrame context="O portal do aluno ainda não está activo.">
         <EmptyState
           icon={ClipboardList}
           title="Portal indisponível"
           description="O portal do aluno ainda não está activo."
         />
-      </div>
+      </PresencaFrame>
     );
   }
 
   if (!isStudentPortalClassesCheckinEnabled()) {
     return (
-      <div className="mx-auto max-w-4xl space-y-6 px-1 sm:space-y-8 sm:px-0">
-        <DashboardPageHero badge="Presença" title="Minhas presenças" />
+      <PresencaFrame context="O histórico de presença ficará disponível quando as aulas estiverem activas.">
         <EmptyState
           icon={ClipboardList}
           title="Histórico indisponível"
           description="O histórico de presença ficará disponível quando as aulas estiverem activas."
         />
-      </div>
+      </PresencaFrame>
     );
   }
 
   const access = await getStudentPortalAccessState();
   if (access.kind !== "ready") {
     return (
-      <div className="mx-auto max-w-4xl space-y-6 px-1 sm:space-y-8 sm:px-0">
-        <DashboardPageHero badge="Presença" title="Minhas presenças" />
+      <PresencaFrame context="Conclua o onboarding para ver o histórico de presença.">
         <EmptyState
           icon={ClipboardList}
           title="Complete o acesso ao portal"
           description="Conclua o onboarding para ver o histórico de presença."
         />
-      </div>
+      </PresencaFrame>
     );
   }
 
   const result = await listStudentAttendancesForPortal(page);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-1 sm:space-y-8 sm:px-0">
-      <DashboardPageHero
-        badge="Presença"
-        title="Minhas presenças"
-        description="Aulas em que o professor confirmou a sua presença oficial."
-      />
+    <PresencaFrame context="Aulas em que o professor confirmou a sua presença oficial.">
       <StudentAttendanceList
         data={
           result.ok
@@ -79,7 +87,8 @@ export default async function PortalPresencaPage({ searchParams }: Props) {
             : { rows: [], total: 0, page: 1, pageSize: 20, totalPages: 1 }
         }
         error={result.ok ? null : result.error}
+        paginationQuery={variantQuery(raw.variant)}
       />
-    </div>
+    </PresencaFrame>
   );
 }

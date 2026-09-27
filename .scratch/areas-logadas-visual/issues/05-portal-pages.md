@@ -4,9 +4,9 @@
 
 **Blocked by:** 01: Chrome do portal do aluno; 02: Três modelos de cabeçalho, provados em Alunos
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Each portal screen above uses the shared frame for A, B, and C
-- [ ] The old portal hero treatment is gone where it existed
-- [ ] Shop, attendance, classes, and billing still show the student's own data
-- [ ] Edge states (onboarding, blocked, unavailable) sit on the same canvas
+- [x] Each portal screen above uses the shared frame for A, B, and C
+- [x] The old portal hero treatment is gone where it existed
+- [x] Shop, attendance, classes, and billing still show the student's own data
+- [x] Edge states (onboarding, blocked, unavailable) sit on the same canvas

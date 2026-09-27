@@ -219,7 +219,7 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
           )}
         </header>
 
-        <main className="dashboard-main-surface container flex flex-1 flex-col py-5 pb-24 lg:py-6 lg:pb-8">
+        <main className="dashboard-main-surface flex w-full max-w-none flex-1 flex-col px-0 pb-24 pt-0 lg:pb-0">
           <div className="flex-1">{children}</div>
         </main>
 
