@@ -49,8 +49,9 @@ export function PainelDashboard(props: PainelDashboardProps) {
       data-tour="page-painel"
     >
       <RouteHeader
-        title={`Bem-vindo de volta, ${props.accountName}`}
-        context={formatPainelDate(props.todayYmd)}
+        title="Painel"
+        emoji="📊"
+        context={`${props.accountName} · ${formatPainelDate(props.todayYmd)}`}
         icon={Hand}
         tone="amber"
         primary={{

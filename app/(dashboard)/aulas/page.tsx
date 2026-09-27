@@ -41,7 +41,8 @@ export default async function AulasPage() {
 
   return (
     <PageFrame
-      title="A agenda da semana"
+      title="Aulas"
+      emoji="📅"
       icon={CalendarDays}
       tone="sky"
       secondary={{

@@ -14,7 +14,8 @@ export const metadata: Metadata = {
 export default function NovoPlanoPage() {
   return (
     <PageFrame
-      title="Começar um plano"
+      title="Novo plano"
+      emoji="📝"
       icon={BookOpen}
       tone="emerald"
     >

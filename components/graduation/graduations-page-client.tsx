@@ -75,7 +75,7 @@ export function GraduationsPageClient({ payload }: Props) {
     : null;
 
   return (
-    <PageFrame title="A faixa e o grau" icon={Award} tone="violet" context={beltTitle}>
+    <PageFrame title="Graduação" emoji="🥋" icon={Award} tone="violet" context={beltTitle}>
     <div className="space-y-6">
       <DashboardBackLink href={routeAlunoPerfil(payload.studentId)}>
         {payload.full_name}

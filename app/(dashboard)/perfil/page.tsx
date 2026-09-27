@@ -16,7 +16,8 @@ export default async function PerfilPage() {
 
   return (
     <PageFrame
-      title="Sua conta"
+      title="Perfil"
+      emoji="👤"
       icon={UserRound}
       tone="sky"
     >

@@ -18,7 +18,8 @@ export default async function PainelPage() {
   if (!ctx) {
     return (
       <PageFrame
-        title="Bem-vindo de volta"
+        title="Painel"
+        emoji="📊"
         icon={Hand}
         tone="amber"
       >

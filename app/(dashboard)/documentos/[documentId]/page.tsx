@@ -32,6 +32,7 @@ export default async function DocumentoDetalhePage({ params }: PageProps) {
   return (
     <PageFrame
       title={`${DOCUMENT_TYPE_LABELS[doc.type]} ${doc.number ?? ""}`.trim()}
+      emoji="📄"
       icon={FileText}
       tone="amber"
       context={`Emitido em ${formatDateTimeBR(issuedAt)}`}

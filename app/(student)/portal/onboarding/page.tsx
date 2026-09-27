@@ -33,7 +33,8 @@ export default async function PortalOnboardingPage() {
 
   return (
     <PageFrame
-      title="Vamos começar"
+      title="Cadastro"
+      emoji="📝"
       icon={Sparkles}
       tone="amber"
     >

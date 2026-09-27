@@ -37,7 +37,8 @@ export default async function MatriculasTermosPage({
 
   return (
     <PageFrame
-      title="Contratos para assinar"
+      title="Matrículas"
+      emoji="✍️"
       icon={FileSignature}
       tone="rose"
       primary={{

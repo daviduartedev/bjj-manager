@@ -28,7 +28,7 @@ function variantQuery(raw: string | string[] | undefined): Record<string, string
 
 function PresencaFrame({ children }: { children: ReactNode }) {
   return (
-    <PageFrame title="Seu histórico no tatame" icon={ClipboardList} tone="emerald">
+    <PageFrame title="Presença" emoji="✅" icon={ClipboardList} tone="emerald">
       {children}
     </PageFrame>
   );

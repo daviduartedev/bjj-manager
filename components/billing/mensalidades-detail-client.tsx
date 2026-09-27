@@ -85,7 +85,8 @@ export function MensalidadesDetailClient({
 
   return (
     <PageFrame
-      title={`A conta de ${payload.fullName}`}
+      title={`Mensalidade · ${payload.fullName}`}
+      emoji="🧾"
       icon={Receipt}
       tone="sky"
       secondary={{

@@ -125,7 +125,8 @@ export function StudentProfileClient({
 
   return (
     <PageFrame
-      title={`A ficha de ${profile.full_name}`}
+      title={profile.full_name}
+      emoji="👤"
       icon={UserRound}
       tone="rose"
       context={`${beltTitle}, ${studentKindLabels[profile.kind]}, ${ageDisplay}`}

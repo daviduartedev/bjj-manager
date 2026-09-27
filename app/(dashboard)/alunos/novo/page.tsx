@@ -19,7 +19,8 @@ export default async function NovoAlunoPage() {
 
   return (
     <PageFrame
-      title="Cadastrar um aluno"
+      title="Novo aluno"
+      emoji="➕"
       icon={UserPlus}
       tone="emerald"
     >

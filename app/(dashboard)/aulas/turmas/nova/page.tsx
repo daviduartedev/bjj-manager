@@ -19,7 +19,8 @@ export default async function NovaTurmaPage() {
 
   return (
     <PageFrame
-      title="Abrir uma turma"
+      title="Nova turma"
+      emoji="📅"
       icon={CalendarDays}
       tone="emerald"
     >

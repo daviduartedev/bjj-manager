@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 export default function PortalIndisponivelPage() {
   return (
     <PageFrame
-      title="Portal em pausa"
+      title="Indisponível"
+      emoji="⏸️"
       icon={Ban}
       tone="orange"
     >

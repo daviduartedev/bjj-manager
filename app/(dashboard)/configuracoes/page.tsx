@@ -18,7 +18,8 @@ export default async function ConfiguracoesPage() {
   if (!data.ctx) {
     return (
       <PageFrame
-        title="Ajustes da academia"
+        title="Configurações"
+        emoji="⚙️"
         icon={Settings}
         tone="violet"
       >
@@ -35,7 +36,8 @@ export default async function ConfiguracoesPage() {
 
   return (
     <PageFrame
-      title="Ajustes da academia"
+      title="Configurações"
+      emoji="⚙️"
       icon={Settings}
       tone="violet"
     >

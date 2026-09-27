@@ -35,7 +35,8 @@ export default async function NovaMatriculaTermoPage({
     const { students } = await loadActiveStudentsForPicker();
     return (
       <PageFrame
-        title="Escolher o aluno"
+        title="Escolher aluno"
+        emoji="👤"
         icon={Users}
         tone="sky"
       >
@@ -56,7 +57,8 @@ export default async function NovaMatriculaTermoPage({
 
   return (
     <PageFrame
-      title="Preencher o termo"
+      title="Novo termo"
+      emoji="✍️"
       icon={FileSignature}
       tone="rose"
     >

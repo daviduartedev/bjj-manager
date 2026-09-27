@@ -22,7 +22,8 @@ export default async function EditarPlanoPage({ params }: PageProps) {
 
   return (
     <PageFrame
-      title="Revisar o plano"
+      title="Editar plano"
+      emoji="✏️"
       icon={BookOpen}
       tone="amber"
     >

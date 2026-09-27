@@ -34,7 +34,8 @@ export default async function PlanosPage({
 
   return (
     <PageFrame
-      title="O plano de aula"
+      title="Planos de aula"
+      emoji="📖"
       icon={BookOpen}
       tone="violet"
     >

@@ -5,7 +5,7 @@ import { CalendarDays } from "lucide-react";
 
 export default function SessionPresenceLoading() {
   return (
-    <PageFrame title="Abrindo a chamada" icon={CalendarDays} tone="emerald" context="Check-ins e presença">
+    <PageFrame title="Chamada" emoji="📋" icon={CalendarDays} tone="emerald">
       <DashboardPanel icon={CalendarDays} title="Check-ins e presença">
         <div className="space-y-4" aria-busy="true">
           <Skeleton className="min-h-[4rem] rounded-lg border border-border/60" />

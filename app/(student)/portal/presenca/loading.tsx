@@ -6,7 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function PortalPresencaLoading() {
   return (
     <PageFrame
-      title="Seu histórico no tatame"
+      title="Presença"
+      emoji="✅"
       icon={ClipboardList}
       tone="emerald"
     >

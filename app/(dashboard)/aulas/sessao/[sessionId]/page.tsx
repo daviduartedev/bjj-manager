@@ -50,7 +50,8 @@ export default async function SessionCheckInsPage({ params }: Props) {
 
   return (
     <PageFrame
-      title={`A chamada de ${session.className}`}
+      title={`Chamada · ${session.className}`}
+      emoji="📋"
       icon={CalendarDays}
       tone="emerald"
       context={`${dateLabel} · ${session.startTime} – ${session.endTime}`}

@@ -35,7 +35,8 @@ export default async function AlunosPage({ searchParams }: PageProps) {
 
   return (
     <PageFrame
-      title="Quem treina aqui"
+      title="Alunos"
+      emoji="👥"
       icon={Users}
       tone="sky"
       primary={{

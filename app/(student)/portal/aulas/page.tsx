@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 function AulasFrame({ children }: { children: ReactNode }) {
   return (
-    <PageFrame title="Suas próximas aulas" icon={CalendarDays} tone="sky">
+    <PageFrame title="Aulas" emoji="📅" icon={CalendarDays} tone="sky">
       {children}
     </PageFrame>
   );

@@ -44,7 +44,8 @@ export default async function DocumentosPage({
 
   return (
     <PageFrame
-      title="Os arquivos da academia"
+      title="Documentos"
+      emoji="📄"
       icon={FileText}
       tone="amber"
     >

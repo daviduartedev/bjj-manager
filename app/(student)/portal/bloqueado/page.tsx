@@ -12,6 +12,7 @@ export default function PortalBloqueadoPage() {
   return (
     <PageFrame
       title="Acesso pausado"
+      emoji="⛔"
       icon={ShieldAlert}
       tone="rose"
     >

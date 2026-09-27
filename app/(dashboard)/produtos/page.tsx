@@ -20,7 +20,8 @@ export default async function ProdutosPage() {
 
     return (
       <PageFrame
-        title="A loja da academia"
+        title="Produtos"
+        emoji="📦"
         icon={Package}
         tone="orange"
       >
@@ -105,7 +106,8 @@ export default async function ProdutosPage() {
 
   return (
     <PageFrame
-      title="A loja da academia"
+      title="Produtos"
+      emoji="📦"
       icon={Package}
       tone="orange"
     >

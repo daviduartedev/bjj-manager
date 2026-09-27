@@ -28,7 +28,8 @@ export default async function MensalidadesPage({ searchParams }: PageProps) {
 
   return (
     <PageFrame
-      title="O caixa deste mês"
+      title="Mensalidades"
+      emoji="💰"
       icon={Wallet}
       tone="emerald"
     >

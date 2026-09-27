@@ -56,7 +56,7 @@ export default async function EditarAlunoPage({ params }: PageProps) {
   };
 
   return (
-    <PageFrame title="Atualizar o cadastro" icon={FilePenLine} tone="amber" context={student.full_name}>
+    <PageFrame title="Editar aluno" emoji="✏️" icon={FilePenLine} tone="amber" context={student.full_name}>
       <div className="space-y-6">
       <DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>
       {!student.plan_id ? (

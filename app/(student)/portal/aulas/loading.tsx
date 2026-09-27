@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PortalAulasLoading() {
   return (
-    <PageFrame title="Suas próximas aulas" icon={CalendarDays} tone="sky">
+    <PageFrame title="Aulas" emoji="📅" icon={CalendarDays} tone="sky">
       <ul className="space-y-4" aria-busy="true" aria-label="A carregar aulas">
         {Array.from({ length: 3 }).map((_, i) => (
           <li key={i}>

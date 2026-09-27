@@ -20,7 +20,8 @@ export default async function TurmasPage() {
 
   return (
     <PageFrame
-      title="As turmas da academia"
+      title="Turmas"
+      emoji="🏫"
       icon={Users}
       tone="violet"
       primary={{

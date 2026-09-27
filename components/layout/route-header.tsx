@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import type { PageHeaderAction } from "@/lib/painel/page-frame";
 import { resolvePageHeader } from "@/lib/painel/page-frame";
-import { cn } from "@/lib/utils";
 
 export const routeTones = {
   rose: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100",
@@ -26,6 +25,7 @@ type ActionSlot = RouteHeaderLink | readonly RouteHeaderLink[] | null | undefine
 
 type RouteHeaderProps = {
   title: string;
+  emoji: string;
   context?: string;
   icon: LucideIcon;
   tone?: RouteTone;
@@ -39,8 +39,6 @@ const secondaryClass =
   "h-10 w-auto shrink-0 rounded-xl border-2 border-zinc-950 bg-white px-3.5 text-sm text-zinc-950 hover:bg-zinc-950 hover:text-white dark:border-zinc-100 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-100 dark:hover:text-zinc-950";
 
 export function RouteHeader(props: RouteHeaderProps) {
-  const Icon = props.icon;
-  const tone = routeTones[props.tone ?? "sky"];
   const actions = resolvePageHeader({ primary: props.primary, secondary: props.secondary });
   const primaryIcon = iconFor(actions.primary, props.primary);
   const secondaryIcon = iconFor(actions.secondary, props.secondary);
@@ -49,16 +47,11 @@ export function RouteHeader(props: RouteHeaderProps) {
     <header className="sticky top-0 z-20 -mx-3 mb-3 border-b border-zinc-200 bg-[#f3f4f6] px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:-mx-4 sm:px-4 lg:-mx-6 lg:mb-5 lg:px-6 lg:pt-4 dark:border-zinc-800 dark:bg-zinc-950">
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
-          <h1 className="flex min-w-0 items-center gap-2 font-display text-lg font-semibold tracking-tight lg:text-2xl">
-            <span className={cn("inline-flex size-8 shrink-0 items-center justify-center rounded-full lg:size-9", tone)}>
-              <Icon className="size-4" aria-hidden />
-            </span>
-            <span className="min-w-0 truncate">
-              {props.title} <span aria-hidden>👏</span>
-            </span>
+          <h1 className="truncate font-display text-lg font-semibold tracking-tight lg:text-2xl">
+            {props.title} <span aria-hidden>{props.emoji}</span>
           </h1>
           {props.context ? (
-            <p className="mt-0.5 truncate pl-10 text-xs text-muted-foreground lg:pl-11">{props.context}</p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{props.context}</p>
           ) : null}
         </div>
         {actions.primary || actions.secondary ? (

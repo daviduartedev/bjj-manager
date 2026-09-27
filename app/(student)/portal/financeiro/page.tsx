@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PortalFinanceiroPage() {
   return (
-    <PageFrame title="Seus pagamentos" icon={Wallet} tone="emerald">
+    <PageFrame title="Financeiro" emoji="💳" icon={Wallet} tone="emerald">
       <PixPlaceholder />
     </PageFrame>
   );
