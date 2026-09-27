@@ -13,6 +13,7 @@ import {
 } from "@/actions/products";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -226,7 +227,6 @@ export function ProductEditorCard({ product }: Props) {
                   <Label htmlFor={`prod-name-${product.id}`}>Nome do produto</Label>
                   <Input
                     id={`prod-name-${product.id}`}
-                    className="min-h-11"
                     value={nameDraft}
                     onChange={(e) => setNameDraft(e.target.value)}
                     maxLength={120}
@@ -244,7 +244,6 @@ export function ProductEditorCard({ product }: Props) {
                   >
                     <SelectTrigger
                       id={`prod-audience-${product.id}`}
-                      className="min-h-11"
                     >
                       <SelectValue />
                     </SelectTrigger>
@@ -272,10 +271,11 @@ export function ProductEditorCard({ product }: Props) {
                 </div>
               </div>
 
+              <div className={formActionsClass}>
               <Button
                 type="button"
                 variant="secondary"
-                className="min-h-11 w-full sm:w-auto"
+                className={primaryActionClass}
                 disabled={
                   savingProduct ||
                   (nameDraft.trim() === product.name.trim() &&
@@ -285,6 +285,7 @@ export function ProductEditorCard({ product }: Props) {
               >
                 {savingProduct ? "Salvando…" : "Salvar identificação"}
               </Button>
+              </div>
               </div>
             </div>
             </header>
@@ -346,7 +347,6 @@ export function ProductEditorCard({ product }: Props) {
                 <Label htmlFor={`size-search-${product.id}`}>Buscar tamanho</Label>
                 <Input
                   id={`size-search-${product.id}`}
-                  className="min-h-11"
                   placeholder="Ex.: A2, M, GG…"
                   value={sizeQuery}
                   onChange={(e) => {
@@ -427,7 +427,6 @@ export function ProductEditorCard({ product }: Props) {
                     <Label htmlFor={`new-size-${product.id}`}>Tamanho</Label>
                     <Input
                       id={`new-size-${product.id}`}
-                      className="min-h-11"
                       value={newSize}
                       onChange={(e) => setNewSize(e.target.value)}
                       placeholder="Ex.: A2 ou M1"
@@ -444,7 +443,6 @@ export function ProductEditorCard({ product }: Props) {
                       >
                         <SelectTrigger
                           id={`new-line-${product.id}`}
-                          className="min-h-11"
                         >
                           <SelectValue />
                         </SelectTrigger>
@@ -461,16 +459,15 @@ export function ProductEditorCard({ product }: Props) {
                       id={`new-stock-${product.id}`}
                       type="number"
                       min={0}
-                      className="min-h-11"
                       value={newStock}
                       onChange={(e) => setNewStock(Number(e.target.value))}
                       disabled={addingVariant}
                     />
                   </div>
-                  <div className="sm:col-span-2">
+                  <div className={`sm:col-span-2 ${formActionsClass}`}>
                     <Button
                       type="button"
-                      className="min-h-11 w-full"
+                      className={primaryActionClass}
                       disabled={addingVariant || newSize.trim() === ""}
                       onClick={async () => {
                         setAddingVariant(true);

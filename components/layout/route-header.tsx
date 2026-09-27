@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import type { PageHeaderAction } from "@/lib/painel/page-frame";
 import { resolvePageHeader } from "@/lib/painel/page-frame";
+import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 
 export const routeTones = {
   rose: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100",
@@ -33,11 +34,6 @@ type RouteHeaderProps = {
   secondary?: ActionSlot;
 };
 
-const primaryClass = "h-10 w-auto shrink-0 rounded-xl px-3.5 text-sm";
-
-const secondaryClass =
-  "h-10 w-auto shrink-0 rounded-xl border-2 border-zinc-950 bg-white px-3.5 text-sm text-zinc-950 hover:bg-zinc-950 hover:text-white dark:border-zinc-100 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-100 dark:hover:text-zinc-950";
-
 export function RouteHeader(props: RouteHeaderProps) {
   const actions = resolvePageHeader({ primary: props.primary, secondary: props.secondary });
   const primaryIcon = iconFor(actions.primary, props.primary);
@@ -57,7 +53,7 @@ export function RouteHeader(props: RouteHeaderProps) {
         {actions.primary || actions.secondary ? (
           <div className="flex shrink-0 items-center justify-end gap-2">
             {actions.primary ? (
-              <Button className={primaryClass} asChild>
+              <Button className={primaryActionClass} asChild>
                 <Link href={actions.primary.href}>
                   {primaryIcon}
                   {actions.primary.label}
@@ -65,7 +61,7 @@ export function RouteHeader(props: RouteHeaderProps) {
               </Button>
             ) : null}
             {actions.secondary ? (
-              <Button variant="outline" className={secondaryClass} asChild>
+              <Button variant="outline" className={secondaryActionClass} asChild>
                 <Link href={actions.secondary.href}>
                   {secondaryIcon}
                   {actions.secondary.label}

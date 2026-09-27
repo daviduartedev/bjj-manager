@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ROUTES } from "@/lib/routes";
+import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { formatMoneyBrFromCents } from "@/lib/students/payment-ui";
 
 export type RecordPaymentDialogProps = {
@@ -148,7 +149,7 @@ export function RecordPaymentDialog({
           <DialogFooter>
             <Button
               type="button"
-              className="min-h-11 w-full sm:w-auto"
+              className={primaryActionClass}
               onClick={() => onOpenChange(false)}
             >
               Concluir
@@ -257,11 +258,11 @@ export function RecordPaymentDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
-            className="min-h-11 w-full sm:w-auto"
+            className={secondaryActionClass}
             onClick={() => onOpenChange(false)}
           >
             Cancelar
@@ -269,7 +270,7 @@ export function RecordPaymentDialog({
           <Button
             type="button"
             variant="secondary"
-            className="min-h-11 w-full sm:w-auto"
+            className={secondaryActionClass}
             disabled={pending || !canSubmit}
             onClick={() => submit("scholarship")}
           >
@@ -279,7 +280,7 @@ export function RecordPaymentDialog({
           </Button>
           <Button
             type="button"
-            className="min-h-11 w-full sm:w-auto"
+            className={primaryActionClass}
             disabled={pending || !canSubmit}
             onClick={() => submit("paid")}
           >

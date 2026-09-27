@@ -11,6 +11,7 @@ import { updateProfile } from "@/actions/settings";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
 import {
   Form,
   FormControl,
@@ -103,7 +104,6 @@ export function PerfilClient(props: Props) {
                     <FormControl>
                       <Input
                         autoComplete="name"
-                        className="min-h-11 touch-manipulation"
                         maxLength={120}
                         aria-required
                         {...field}
@@ -124,7 +124,6 @@ export function PerfilClient(props: Props) {
                         inputMode="tel"
                         autoComplete="tel"
                         placeholder="(00) 00000-0000"
-                        className="min-h-11 touch-manipulation"
                         maxLength={40}
                         value={field.value}
                         onChange={(e) => field.onChange(maskPhoneBrInput(e.target.value))}
@@ -144,19 +143,21 @@ export function PerfilClient(props: Props) {
                   value={props.email ?? ""}
                   readOnly
                   tabIndex={-1}
-                  className="min-h-11 bg-muted/50"
+                  className="bg-zinc-100 dark:bg-zinc-900"
                 />
                 <p className="text-crm-xs text-muted-foreground">
                   E-mail de login definido no Supabase Auth.
                 </p>
               </div>
+              <div className={formActionsClass}>
               <Button
                 type="submit"
-                className="min-h-11 w-full touch-manipulation sm:w-auto"
+                className={primaryActionClass}
                 disabled={form.formState.isSubmitting}
               >
                 {form.formState.isSubmitting ? "Salvando…" : "Salvar perfil"}
               </Button>
+              </div>
             </form>
           </Form>
         </div>

@@ -11,6 +11,7 @@ import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog"
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,7 +79,7 @@ function matchesPlanFilter(
 
 /** Filtros: mesma altura e tipografia em todos os controlos */
 const filterControl =
-  "min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm";
+  "h-10 w-full rounded-xl border border-input bg-background px-3 text-sm";
 
 function formatReferenceMonthCaption(isoFirstDay: string): string {
   const d = new Date(`${isoFirstDay.slice(0, 10)}T12:00:00`);
@@ -309,7 +310,7 @@ export function MensalidadesClient({
             <Button
               type="button"
               variant="outline"
-              className="min-h-11"
+              className={secondaryActionClass}
               onClick={() => toggleSelectAllFiltered(!allFilteredSelected)}
             >
               {allFilteredSelected ? "Limpar" : "Seleccionar todos"}
@@ -320,7 +321,7 @@ export function MensalidadesClient({
           </div>
           <Button
             type="button"
-            className="min-h-11 font-semibold"
+            className={primaryActionClass}
             disabled={bulkEligibleIds.length === 0}
             onClick={() => setBulkOpen(true)}
           >
@@ -510,26 +511,26 @@ export function MensalidadesClient({
                     </span>
                   </span>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <Button
-                    type="button"
-                    className="min-h-11 w-full"
-                    disabled={row.amountCentsExpected == null}
-                    onClick={() => setPayStudent(row)}
-                  >
-                    Registrar pagamento
-                  </Button>
+                <div className={formActionsClass}>
                   {row.indicator === "paid" && row.paymentId ? (
                     <Button
                       type="button"
                       variant="outline"
-                      className="min-h-11 w-full"
+                      className={secondaryActionClass}
                       onClick={() => setReceiptStudent(row)}
                     >
                       <Receipt className="mr-1.5 size-3.5" />
                       Ver comprovante
                     </Button>
                   ) : null}
+                  <Button
+                    type="button"
+                    className={primaryActionClass}
+                    disabled={row.amountCentsExpected == null}
+                    onClick={() => setPayStudent(row)}
+                  >
+                    Registrar pagamento
+                  </Button>
                 </div>
               </div>
             ))

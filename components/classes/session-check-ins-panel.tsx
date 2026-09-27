@@ -13,6 +13,7 @@ import {
 import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
@@ -212,11 +213,11 @@ export function SessionCheckInsPanel({
             </p>
           </div>
           {pendingCheckIns.length > 0 ? (
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <div className={formActionsClass}>
               <Button
                 type="button"
                 variant="outline"
-                className="min-h-11 w-full sm:w-auto"
+                className={secondaryActionClass}
                 disabled={converting || selectedStudentIds.size === 0}
                 onClick={() => handleConvert([...selectedStudentIds])}
               >
@@ -227,7 +228,7 @@ export function SessionCheckInsPanel({
               </Button>
               <Button
                 type="button"
-                className="min-h-11 w-full sm:w-auto"
+                className={primaryActionClass}
                 disabled={converting}
                 onClick={() => handleConvert()}
               >
@@ -382,7 +383,7 @@ export function SessionCheckInsPanel({
             <div className="min-w-0 flex-1 space-y-2">
               <Label htmlFor="manual-student">Aluno inscrito</Label>
               <Select value={manualStudentId} onValueChange={setManualStudentId}>
-                <SelectTrigger id="manual-student" className="min-h-11 w-full">
+                <SelectTrigger id="manual-student">
                   <SelectValue placeholder="Seleccionar aluno…" />
                 </SelectTrigger>
                 <SelectContent>
@@ -396,7 +397,7 @@ export function SessionCheckInsPanel({
             </div>
             <Button
               type="button"
-              className="min-h-11 w-full shrink-0 sm:w-auto"
+              className={primaryActionClass}
               disabled={manualLoading || !manualStudentId}
               onClick={handleManual}
             >
@@ -431,8 +432,8 @@ function RefreshButton({
   }).format(lastRefresh);
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-      <Button variant="outline" className="min-h-11 w-full sm:w-auto" onClick={onRefresh}>
+    <div className={formActionsClass}>
+      <Button variant="outline" className={secondaryActionClass} onClick={onRefresh}>
         <RefreshCw className="mr-2 size-4" aria-hidden />
         Atualizar
       </Button>

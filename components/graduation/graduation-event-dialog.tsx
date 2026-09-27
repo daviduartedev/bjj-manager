@@ -11,6 +11,7 @@ import {
   updateGraduation,
 } from "@/actions/graduations";
 import { Button } from "@/components/ui/button";
+import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -269,7 +270,7 @@ export function GraduationEventDialog({
                     }}
                   >
                     <FormControl>
-                      <SelectTrigger className="min-h-11">
+                      <SelectTrigger>
                         <SelectValue placeholder="Escolha a faixa" />
                       </SelectTrigger>
                     </FormControl>
@@ -312,7 +313,7 @@ export function GraduationEventDialog({
                     onValueChange={(v) => field.onChange(Number(v))}
                   >
                     <FormControl>
-                      <SelectTrigger className="min-h-11">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
@@ -336,7 +337,7 @@ export function GraduationEventDialog({
                 <FormItem>
                   <FormLabel>Data da graduação</FormLabel>
                   <FormControl>
-                    <Input type="date" className="min-h-11" {...field} />
+                    <Input type="date" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -356,7 +357,6 @@ export function GraduationEventDialog({
                       min={20}
                       max={250}
                       placeholder="Ex.: 72,5"
-                      className="min-h-11"
                       value={field.value ?? ""}
                       onChange={(e) => field.onChange(e.target.value)}
                     />
@@ -416,17 +416,17 @@ export function GraduationEventDialog({
               </>
             ) : null}
 
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
-                className="min-h-11"
+                className={secondaryActionClass}
                 onClick={() => onOpenChange(false)}
                 disabled={loading}
               >
                 Cancelar
               </Button>
-              <Button type="submit" className="min-h-11" disabled={loading}>
+              <Button type="submit" className={primaryActionClass} disabled={loading}>
                 {loading ? "A guardar…" : "Guardar"}
               </Button>
             </DialogFooter>

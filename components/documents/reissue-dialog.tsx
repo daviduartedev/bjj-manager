@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { reissueDocument } from "@/actions/documents";
 import { Button } from "@/components/ui/button";
+import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import {
   Dialog,
   DialogContent,
@@ -70,14 +71,13 @@ export function ReissueDialog({ documentId, open, onOpenChange, onReissued }: Pr
             onChange={(e) => setReason(e.target.value)}
             placeholder="Ex.: erro de digitação no nome"
             maxLength={500}
-            className="min-h-11"
           />
         </div>
-        <DialogFooter className="flex flex-col gap-2 sm:flex-row">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
-            className="min-h-11 w-full sm:w-auto"
+            className={secondaryActionClass}
             onClick={() => onOpenChange(false)}
             disabled={pending}
           >
@@ -85,7 +85,7 @@ export function ReissueDialog({ documentId, open, onOpenChange, onReissued }: Pr
           </Button>
           <Button
             type="button"
-            className="min-h-11 w-full sm:w-auto"
+            className={primaryActionClass}
             onClick={submit}
             disabled={pending || reason.trim().length < 3}
           >

@@ -30,7 +30,6 @@ export default async function NovoAlunoPage() {
         icon={UserPlus}
         title="Ficha do aluno"
         subtitle="Tipo, faixa, plano e dados pessoais"
-        contentClassName="flex justify-center"
       >
         <StudentForm belts={belts} plans={plans} mode="create" defaultValues={defaults} />
       </DashboardPanel>

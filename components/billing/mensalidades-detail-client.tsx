@@ -13,6 +13,7 @@ import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -113,7 +114,7 @@ export function MensalidadesDetailClient({
               id="det-mes"
               type="month"
               value={monthInputValue}
-              className="min-h-11 w-full max-w-[14rem]"
+              className="w-full"
               onChange={(e) => navigateMonth(e.target.value)}
             />
           </div>
@@ -145,10 +146,10 @@ export function MensalidadesDetailClient({
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className={`mt-6 ${formActionsClass}`}>
           <Button
             type="button"
-            className="min-h-11"
+            className={primaryActionClass}
             disabled={payload.amountCentsExpected == null}
             onClick={() => setPayOpen(true)}
           >

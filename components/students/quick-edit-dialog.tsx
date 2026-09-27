@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { toast } from "sonner";
 
+import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
+
 import { quickUpdateStudent } from "@/actions/students";
 import { AdultOrangeBeltConfirmDialog } from "@/components/students/adult-orange-belt-confirm-dialog";
 import { Button } from "@/components/ui/button";
@@ -237,7 +239,7 @@ export function QuickEditDialog({
                         onValueChange={field.onChange}
                       >
                         <FormControl>
-                          <SelectTrigger className="min-h-11">
+                          <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -257,7 +259,7 @@ export function QuickEditDialog({
                 control={form.control}
                 name="is_exempt"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start gap-3 rounded-lg border border-border/60 bg-muted/15 p-3">
+                  <FormItem className="flex flex-row items-start gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
@@ -288,7 +290,7 @@ export function QuickEditDialog({
                       onValueChange={field.onChange}
                     >
                       <FormControl>
-                        <SelectTrigger className="min-h-11">
+                        <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
@@ -317,7 +319,7 @@ export function QuickEditDialog({
                         min={1}
                         max={28}
                         disabled={loading}
-                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                       />
@@ -360,7 +362,7 @@ export function QuickEditDialog({
                         }}
                       >
                         <FormControl>
-                          <SelectTrigger className="min-h-11">
+                          <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -416,7 +418,7 @@ export function QuickEditDialog({
                         onValueChange={(v) => field.onChange(Number(v))}
                       >
                         <FormControl>
-                          <SelectTrigger className="min-h-11">
+                          <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -447,7 +449,6 @@ export function QuickEditDialog({
                         min={20}
                         max={250}
                         placeholder="Ex.: 72,5"
-                        className="min-h-11"
                         disabled={loading}
                         value={field.value ?? ""}
                         onChange={(e) => field.onChange(e.target.value)}
@@ -461,14 +462,14 @@ export function QuickEditDialog({
                 )}
               />
 
-              <DialogFooter className="flex-col gap-2 sm:flex-col">
-                <Button type="submit" className="min-h-11 w-full" disabled={loading}>
-                  {loading ? "Salvando…" : "Salvar"}
-                </Button>
-                <Button variant="outline" className="min-h-11 w-full" asChild>
+              <DialogFooter>
+                <Button variant="outline" className={secondaryActionClass} asChild>
                   <Link href={routeAlunoEditar(student.id)} onClick={() => onOpenChange(false)}>
                     Editar ficha completa
                   </Link>
+                </Button>
+                <Button type="submit" className={primaryActionClass} disabled={loading}>
+                  {loading ? "Salvando…" : "Salvar"}
                 </Button>
               </DialogFooter>
 

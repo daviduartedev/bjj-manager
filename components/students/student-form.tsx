@@ -32,6 +32,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
 import { ROUTES } from "@/lib/routes";
+import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { mapStudentServerError } from "@/lib/students/action-errors";
 import { beltLabelPt } from "@/lib/students/belt-labels";
 import { isWhiteBeltSlug } from "@/lib/students/belt-kind";
@@ -213,7 +214,7 @@ export function StudentForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="mx-auto flex max-w-xl flex-col gap-6"
+        className="flex w-full flex-col gap-6"
       >
         <FormField
           control={form.control}
@@ -313,7 +314,7 @@ export function StudentForm({
                 }}
               >
                 <FormControl>
-                  <SelectTrigger className="min-h-11">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                 </FormControl>
@@ -363,7 +364,7 @@ export function StudentForm({
                   }}
                 >
                   <FormControl>
-                    <SelectTrigger className="min-h-11">
+                    <SelectTrigger>
                       <SelectValue placeholder="Escolha" />
                     </SelectTrigger>
                   </FormControl>
@@ -420,7 +421,7 @@ export function StudentForm({
                     onValueChange={(v) => field.onChange(Number(v))}
                   >
                     <FormControl>
-                      <SelectTrigger className="min-h-11">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
@@ -453,7 +454,6 @@ export function StudentForm({
                     min={20}
                     max={250}
                     placeholder="Ex.: 72,5"
-                    className="min-h-11"
                     disabled={loading}
                     value={field.value ?? ""}
                     onChange={(e) => field.onChange(e.target.value)}
@@ -513,7 +513,7 @@ export function StudentForm({
                   onValueChange={field.onChange}
                 >
                   <FormControl>
-                    <SelectTrigger className="min-h-11">
+                    <SelectTrigger>
                       <SelectValue placeholder="Escolha" />
                     </SelectTrigger>
                   </FormControl>
@@ -664,17 +664,17 @@ export function StudentForm({
           )}
         />
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <div className={formActionsClass}>
           <Button
             type="button"
             variant="outline"
-            className="min-h-11"
+            className={secondaryActionClass}
             disabled={loading}
             onClick={() => router.push(ROUTES.alunos)}
           >
             Cancelar
           </Button>
-          <Button type="submit" className="min-h-11" disabled={loading}>
+          <Button type="submit" className={primaryActionClass} disabled={loading}>
             {loading ? "Salvando…" : mode === "create" ? "Registar aluno" : "Salvar"}
           </Button>
         </div>

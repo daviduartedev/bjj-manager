@@ -4,6 +4,7 @@ import { CalendarCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import type { StudentAttendancesPage, StudentAttendanceRow } from "@/lib/data/student-attendances";
 import { cn } from "@/lib/utils";
 
@@ -115,29 +116,29 @@ export function AttendanceHistoryPanel({
           <p className="text-sm text-muted-foreground">
             Página {page} de {totalPages}
           </p>
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className={formActionsClass}>
             {prevHref ? (
-              <Button variant="outline" className="min-h-11 w-full sm:w-auto" asChild>
+              <Button variant="outline" className={secondaryActionClass} asChild>
                 <Link href={prevHref}>
                   <ChevronLeft className="size-4" aria-hidden />
                   Anterior
                 </Link>
               </Button>
             ) : (
-              <Button variant="outline" className="min-h-11 w-full sm:w-auto" disabled>
+              <Button variant="outline" className={secondaryActionClass} disabled>
                 <ChevronLeft className="size-4" aria-hidden />
                 Anterior
               </Button>
             )}
             {nextHref ? (
-              <Button variant="outline" className="min-h-11 w-full sm:w-auto" asChild>
+              <Button variant="outline" className={secondaryActionClass} asChild>
                 <Link href={nextHref}>
                   Próxima
                   <ChevronRight className="size-4" aria-hidden />
                 </Link>
               </Button>
             ) : (
-              <Button variant="outline" className="min-h-11 w-full sm:w-auto" disabled>
+              <Button variant="outline" className={secondaryActionClass} disabled>
                 Próxima
                 <ChevronRight className="size-4" aria-hidden />
               </Button>

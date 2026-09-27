@@ -72,7 +72,6 @@ export default async function EditarAlunoPage({ params }: PageProps) {
         icon={FilePenLine}
         title="Ficha completa"
         subtitle="Atualize dados pessoais, faixa e vínculo de plano"
-        contentClassName="flex justify-center"
       >
         <StudentForm
           belts={belts}

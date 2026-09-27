@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { cancelCheckIn, createCheckIn } from "@/actions/student-portal/check-in";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import {
   getCheckinWindowState,
   type CheckinWindowState,
@@ -95,11 +96,11 @@ export function ClassSessionCard({ session }: ClassSessionCardProps) {
         </Badge>
       </div>
 
-      <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:flex-wrap">
+      <div className={`mt-3 sm:mt-4 ${formActionsClass}`}>
         {!hasCheckIn && windowState === "open" ? (
           <Button
             type="button"
-            className="min-h-11 w-full sm:w-auto"
+            className={primaryActionClass}
             disabled={loading}
             onClick={handleCheckIn}
           >
@@ -116,7 +117,7 @@ export function ClassSessionCard({ session }: ClassSessionCardProps) {
           <Button
             type="button"
             variant="outline"
-            className="min-h-11 w-full sm:w-auto"
+            className={secondaryActionClass}
             disabled={loading}
             onClick={handleCancel}
           >

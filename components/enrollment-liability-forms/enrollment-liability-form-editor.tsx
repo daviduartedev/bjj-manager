@@ -10,6 +10,7 @@ import {
   updateEnrollmentLiabilityDraft,
 } from "@/actions/enrollment-liability-forms";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -336,12 +337,12 @@ export function EnrollmentLiabilityFormEditor({
         </section>
       ) : null}
 
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className={formActionsClass}>
         <Button
           type="button"
           variant="outline"
           disabled={pending}
-          className="min-h-11"
+          className={secondaryActionClass}
           onClick={() => saveDraft(false)}
         >
           Guardar rascunho
@@ -349,7 +350,7 @@ export function EnrollmentLiabilityFormEditor({
         <Button
           type="button"
           disabled={pending}
-          className="min-h-11"
+          className={primaryActionClass}
           onClick={() => saveDraft(true)}
         >
           Gerar PDF
@@ -372,7 +373,7 @@ function BoolSelect({
     <div className="space-y-2">
       <Label>{label}</Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="min-h-11">
+        <SelectTrigger>
           <SelectValue placeholder="Selecione" />
         </SelectTrigger>
         <SelectContent>

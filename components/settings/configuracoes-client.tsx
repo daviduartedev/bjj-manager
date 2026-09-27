@@ -11,6 +11,7 @@ import { updateAccount, updateReceiver } from "@/actions/settings";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
 import { EmptyState } from "@/components/layout/empty-state";
 import {
   Form,
@@ -98,7 +99,6 @@ export function ConfiguracoesClient(props: Props) {
                   <FormControl>
                     <Input
                       autoComplete="organization"
-                      className="min-h-11 touch-manipulation"
                       maxLength={200}
                       aria-required
                       {...field}
@@ -108,13 +108,15 @@ export function ConfiguracoesClient(props: Props) {
                 </FormItem>
               )}
             />
+            <div className={formActionsClass}>
             <Button
               type="submit"
-              className="min-h-11 w-full touch-manipulation sm:w-auto"
+              className={primaryActionClass}
               disabled={accountForm.formState.isSubmitting}
             >
               {accountForm.formState.isSubmitting ? "Salvando…" : "Salvar academia"}
             </Button>
+            </div>
           </form>
         </Form>
       </DashboardPanel>
@@ -211,7 +213,7 @@ function ReceiverPanel({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(submit)}
-          className="grid gap-4 md:max-w-2xl md:grid-cols-2"
+          className="grid gap-4 md:grid-cols-2"
         >
           <FormField
             control={form.control}
@@ -225,7 +227,6 @@ function ReceiverPanel({
                 <FormControl>
                   <Input
                     autoComplete="organization"
-                    className="min-h-11 touch-manipulation"
                     maxLength={200}
                     {...field}
                   />
@@ -249,17 +250,17 @@ function ReceiverPanel({
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     name={field.name}
-                    className="min-h-11 touch-manipulation tabular-nums"
+                    className="tabular-nums"
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <div className="md:col-span-2">
+          <div className={`md:col-span-2 ${formActionsClass}`}>
             <Button
               type="submit"
-              className="min-h-11 w-full touch-manipulation sm:w-auto"
+              className={primaryActionClass}
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? "Salvando…" : "Salvar recebedor"}
@@ -369,7 +370,7 @@ function PlanEditorRow(props: {
         </div>
       </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(submitPlan)} className="grid gap-4 md:max-w-2xl md:grid-cols-2">
+        <form onSubmit={form.handleSubmit(submitPlan)} className="grid gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="name"
@@ -382,7 +383,6 @@ function PlanEditorRow(props: {
                 <FormControl>
                   <Input
                     id={`name-${plan.id}`}
-                    className="min-h-11 touch-manipulation"
                     maxLength={120}
                     aria-required
                     {...field}
@@ -405,7 +405,7 @@ function PlanEditorRow(props: {
                   <Input
                     id={`price-${plan.id}`}
                     inputMode="decimal"
-                    className="min-h-11 touch-manipulation tabular-nums"
+                    className="tabular-nums"
                     placeholder="0,00"
                     aria-required
                     {...field}
@@ -415,10 +415,10 @@ function PlanEditorRow(props: {
               </FormItem>
             )}
           />
-          <div className="flex items-end">
+          <div className={`md:col-span-2 ${formActionsClass}`}>
             <Button
               type="submit"
-              className="min-h-11 w-full touch-manipulation"
+              className={primaryActionClass}
               disabled={pendingSave || pendingToggle || form.formState.isSubmitting}
             >
               {pendingSave ? "Salvando…" : "Salvar plano"}
