@@ -30,13 +30,9 @@ type StudentShellProps = {
 
 function ShellChromeSkeleton() {
   return (
-    <div
-      className="pointer-events-none animate-pulse border-b border-border bg-background"
-      aria-hidden
-    >
-      <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
-        <Skeleton className="size-11 shrink-0 rounded-md bg-muted lg:hidden" />
-        <Skeleton className="h-5 max-w-[200px] flex-1 rounded bg-muted" />
+    <div className="pointer-events-none animate-pulse" aria-hidden>
+      <div className="flex h-12 items-center justify-between px-2">
+        <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
         <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
       </div>
     </div>
@@ -88,31 +84,6 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
     />
   );
 
-  const brandMark = (
-    <LogoMark
-      height={22}
-      className="size-9 shrink-0 rounded-lg border border-border/80 bg-card p-1 shadow-sm"
-      imgClassName="max-h-[22px] max-w-[4.5rem]"
-    />
-  );
-
-  const brandBlock = (
-    <Link
-      href={ROUTES.portal}
-      className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-md text-foreground ring-offset-background transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 lg:flex-none"
-    >
-      {brandMark}
-      <span className="flex min-w-0 flex-col leading-tight">
-        <span className="font-display text-sm font-semibold tracking-tight">{APP_NAME}</span>
-        {academyName ? (
-          <span className="truncate text-xs font-normal opacity-90">{academyName}</span>
-        ) : (
-          <span className="truncate text-xs font-normal opacity-70">Portal do aluno</span>
-        )}
-      </span>
-    </Link>
-  );
-
   const sidebarBrand = (
     <Link
       href={ROUTES.portal}
@@ -132,14 +103,14 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
     </Link>
   );
 
-  const userMenu = (
+  const userMenu = (triggerClassName: string) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="shrink-0 text-foreground hover:bg-muted focus-visible:ring-primary focus-visible:ring-offset-background"
+          className={cn("shrink-0 focus-visible:ring-primary", triggerClassName)}
           aria-label="Menu do utilizador"
         >
           <UserRound className="size-5" />
@@ -192,24 +163,29 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
                   />
                 ))}
               </nav>
+              <div className="mt-auto flex items-center justify-end border-t border-white/10 pt-3">
+                {userMenu(
+                  "text-zinc-100 hover:bg-white/10 hover:text-zinc-100 focus-visible:ring-offset-[hsl(0_0%_2%)]",
+                )}
+              </div>
             </>
           )}
         </div>
       </aside>
 
       <div className="flex min-h-screen flex-col lg:pl-[15.5rem]">
-        <header className="dashboard-top-bar sticky top-0 z-30 shrink-0 text-foreground shadow-[0_1px_2px_-1px_hsl(0_0%_0%/0.06)]">
+        <header className="sticky top-0 z-30 shrink-0 bg-[#f3f4f6]/90 backdrop-blur-md lg:hidden dark:bg-zinc-950/90">
           {!mounted ? (
             <ShellChromeSkeleton />
           ) : (
-            <div className="flex h-14 items-center gap-2 px-4 lg:px-6">
+            <div className="flex h-12 items-center justify-between px-2">
               <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
                 <SheetTrigger asChild>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="shrink-0 text-foreground hover:bg-muted lg:hidden"
+                    className="shrink-0 text-foreground hover:bg-muted"
                     aria-label="Abrir menu de navegação"
                   >
                     <Menu className="size-5" />
@@ -238,9 +214,7 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
                 </SheetContent>
               </Sheet>
 
-              {brandBlock}
-
-              <div className="ml-auto flex shrink-0 items-center gap-2">{userMenu}</div>
+              {userMenu("text-foreground hover:bg-muted focus-visible:ring-offset-background")}
             </div>
           )}
         </header>

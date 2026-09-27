@@ -4,10 +4,10 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Desktop portal has no sticky top bar with brand and account
-- [ ] Account control is at the bottom of the sidebar
-- [ ] Mobile keeps a short row with menu and account, plus the existing bottom nav
-- [ ] Portal destinations and sign-out still work
-- [ ] The professor shell is unchanged
+- [x] Desktop portal has no sticky top bar with brand and account
+- [x] Account control is at the bottom of the sidebar
+- [x] Mobile keeps a short row with menu and account, plus the existing bottom nav
+- [x] Portal destinations and sign-out still work
+- [x] The professor shell is unchanged
