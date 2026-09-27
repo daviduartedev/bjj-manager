@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -9,8 +8,8 @@ import { voidPayment } from "@/actions/billing";
 import { BillingIndicatorBadge } from "@/components/billing/billing-indicator-badge";
 import { ReceiptViewerDialog } from "@/components/billing/receipt-viewer-dialog";
 import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
@@ -36,8 +35,10 @@ import { Receipt, Wallet } from "lucide-react";
 
 export function MensalidadesDetailClient({
   payload,
+  frameVariant,
 }: {
   payload: MensalidadesDetailPayload;
+  frameVariant?: string;
 }) {
   const router = useRouter();
   const [payOpen, setPayOpen] = useState(false);
@@ -58,7 +59,13 @@ export function MensalidadesDetailClient({
   function navigateMonth(v: string) {
     if (!v) return;
     const mes = `${v}-01`;
-    router.replace(`${routeMensalidadesAluno(payload.studentId)}?mes=${encodeURIComponent(mes)}`);
+    const params = new URLSearchParams();
+    params.set("mes", mes);
+    const variant = new URLSearchParams(window.location.search).get("variant");
+    if (variant === "A" || variant === "B" || variant === "C") {
+      params.set("variant", variant);
+    }
+    router.replace(`${routeMensalidadesAluno(payload.studentId)}?${params.toString()}`);
   }
 
   function confirmVoid(paymentId: string) {
@@ -77,24 +84,24 @@ export function MensalidadesDetailClient({
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Financeiro"
-        intro={
-          <DashboardBackLink
-            href={`${ROUTES.mensalidades}?mes=${encodeURIComponent(payload.referenceMonth)}`}
-          >
-            Mensalidades
-          </DashboardBackLink>
+    <PageFrame
+      title={payload.fullName}
+      context="Pagamentos e registro no mês selecionado."
+      secondary={{
+        label: "Ver perfil do aluno",
+        href: routeAlunoPerfil(payload.studentId),
+      }}
+    >
+    <div className="space-y-8">
+      <DashboardBackLink
+        href={
+          frameVariant === "A" || frameVariant === "B" || frameVariant === "C"
+            ? `${ROUTES.mensalidades}?mes=${encodeURIComponent(payload.referenceMonth)}&variant=${frameVariant}`
+            : `${ROUTES.mensalidades}?mes=${encodeURIComponent(payload.referenceMonth)}`
         }
-        title={payload.fullName}
-        description="Pagamentos e registro no mês selecionado."
-        aside={
-          <Button className="min-h-11 shadow-md shadow-primary/15" asChild variant="outline">
-            <Link href={routeAlunoPerfil(payload.studentId)}>Ver perfil do aluno</Link>
-          </Button>
-        }
-      />
+      >
+        Mensalidades
+      </DashboardBackLink>
 
       <DashboardPanel icon={Wallet} title="Resumo" subtitle="Plano, valor e estado no mês">
         <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
@@ -244,5 +251,6 @@ export function MensalidadesDetailClient({
         />
       ) : null}
     </div>
+    </PageFrame>
   );
 }

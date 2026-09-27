@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarDays, Plus, Users } from "lucide-react";
 
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -19,21 +19,15 @@ export default async function TurmasPage() {
   const classes = await listClasses();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Aulas"
-        title="Turmas"
-        description="Gerencie turmas, horários recorrentes e inscrições de alunos."
-        aside={
-          <Button asChild className="min-h-11 shrink-0 shadow-md shadow-primary/20">
-            <Link href={ROUTES.aulasTurmasNova}>
-              <Plus className="mr-2 size-4" aria-hidden />
-              Nova turma
-            </Link>
-          </Button>
-        }
-      />
-
+    <PageFrame
+      title="Turmas"
+      context="Gerencie turmas, horários recorrentes e inscrições de alunos."
+      primary={{
+        label: "Nova turma",
+        href: ROUTES.aulasTurmasNova,
+        icon: <Plus className="size-5" aria-hidden />,
+      }}
+    >
       <DashboardPanel icon={CalendarDays} title="Turmas cadastradas">
         {classes.length === 0 ? (
           <EmptyState
@@ -71,6 +65,6 @@ export default async function TurmasPage() {
           </ul>
         )}
       </DashboardPanel>
-    </div>
+    </PageFrame>
   );
 }

@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { FileText } from "lucide-react";
 
 import { DocumentStatusBadge } from "@/components/documents/document-status-badge";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { loadDocumentById } from "@/lib/data/documents-page";
 import { DOCUMENT_TYPE_LABELS } from "@/lib/documents/types";
@@ -30,13 +30,12 @@ export default async function DocumentoDetalhePage({ params }: PageProps) {
   const issuedAt = (payload?.issuedAt as string | undefined) ?? doc.created_at;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Documento"
-        intro={<DashboardBackLink href={ROUTES.documentos}>Documentos</DashboardBackLink>}
-        title={`${DOCUMENT_TYPE_LABELS[doc.type]} ${doc.number ?? ""}`.trim()}
-        description={`Emitido em ${formatDateTimeBR(issuedAt)}`}
-      />
+    <PageFrame
+      title={`${DOCUMENT_TYPE_LABELS[doc.type]} ${doc.number ?? ""}`.trim()}
+      context={`Emitido em ${formatDateTimeBR(issuedAt)}`}
+    >
+      <div className="space-y-8">
+      <DashboardBackLink href={ROUTES.documentos}>Documentos</DashboardBackLink>
 
       <DashboardPanel icon={FileText} title="Detalhes" subtitle="Informações de emissão e estado">
         <dl className="grid gap-3 sm:grid-cols-2">
@@ -88,6 +87,7 @@ export default async function DocumentoDetalhePage({ params }: PageProps) {
           <DocumentDetailActions documentId={doc.id} status={doc.status} />
         </div>
       </DashboardPanel>
-    </div>
+      </div>
+    </PageFrame>
   );
 }

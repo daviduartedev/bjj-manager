@@ -6,9 +6,10 @@ type Props = {
   studentId: string;
   data: StudentAttendancesPage;
   error?: string | null;
+  frameVariant?: string;
 };
 
-export function StudentAttendanceTab({ studentId, data, error }: Props) {
+export function StudentAttendanceTab({ studentId, data, error, frameVariant }: Props) {
   if (error) {
     return (
       <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
@@ -21,7 +22,12 @@ export function StudentAttendanceTab({ studentId, data, error }: Props) {
     <AttendanceHistoryPanel
       data={data}
       paginationBasePath={routeAlunoPerfil(studentId)}
-      paginationQuery={{ tab: "presenca" }}
+      paginationQuery={{
+        tab: "presenca",
+        ...(frameVariant === "A" || frameVariant === "B" || frameVariant === "C"
+          ? { variant: frameVariant }
+          : {}),
+      }}
       emptyTitle="Ainda não há presenças registadas"
       emptyDescription="Quando o professor confirmar presença oficial nas aulas, o histórico aparecerá aqui."
     />

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { CalendarDays } from "lucide-react";
 
+import { PageFrame } from "@/components/prototype/page-frame";
 import { ClassForm } from "@/components/classes/class-form";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { getCurrentAccount } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -18,16 +18,16 @@ export default async function NovaTurmaPage() {
   if (!ctx || ctx.profile.role !== "professor") redirect(ROUTES.painel);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Aulas"
-        intro={<DashboardBackLink href={ROUTES.aulasTurmas}>Turmas</DashboardBackLink>}
-        title="Nova turma"
-        description="Preencha o nome e a modalidade. Adicione horários recorrentes depois de criar."
-      />
-      <DashboardPanel icon={CalendarDays} title="Dados da turma">
-        <ClassForm mode={{ kind: "create" }} instructorProfileId={ctx.profile.id} />
-      </DashboardPanel>
-    </div>
+    <PageFrame
+      title="Nova turma"
+      context="Preencha o nome e a modalidade. Adicione horários recorrentes depois de criar."
+    >
+      <div className="space-y-8">
+        <DashboardBackLink href={ROUTES.aulasTurmas}>Turmas</DashboardBackLink>
+        <DashboardPanel icon={CalendarDays} title="Dados da turma">
+          <ClassForm mode={{ kind: "create" }} instructorProfileId={ctx.profile.id} />
+        </DashboardPanel>
+      </div>
+    </PageFrame>
   );
 }

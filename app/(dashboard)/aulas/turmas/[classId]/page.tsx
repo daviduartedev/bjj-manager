@@ -5,8 +5,8 @@ import { CalendarDays, Users } from "lucide-react";
 import { ClassEnrollmentsPanel } from "@/components/classes/class-enrollments-panel";
 import { ClassForm } from "@/components/classes/class-form";
 import { ClassSchedulesPanel } from "@/components/classes/class-schedules-panel";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { getCurrentAccount } from "@/lib/auth";
 import { getClassDetail } from "@/lib/data/classes-page";
@@ -47,13 +47,12 @@ export default async function TurmaDetailPage({ params }: Props) {
   if (!classDetail) notFound();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Aulas"
-        intro={<DashboardBackLink href={ROUTES.aulasTurmas}>Turmas</DashboardBackLink>}
-        title={classDetail.name}
-        description={`Instrutor: ${classDetail.instructorName}`}
-      />
+    <PageFrame
+      title={classDetail.name}
+      context={`Instrutor: ${classDetail.instructorName}`}
+    >
+      <div className="space-y-8">
+      <DashboardBackLink href={ROUTES.aulasTurmas}>Turmas</DashboardBackLink>
 
       <DashboardPanel icon={CalendarDays} title="Dados da turma" subtitle="Nome e modalidade">
         <ClassForm
@@ -78,6 +77,7 @@ export default async function TurmaDetailPage({ params }: Props) {
           availableStudents={activeStudents}
         />
       </DashboardPanel>
-    </div>
+      </div>
+    </PageFrame>
   );
 }

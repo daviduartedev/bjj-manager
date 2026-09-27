@@ -13,7 +13,20 @@ type Student = {
   birth_date: string | null;
 };
 
-export function StudentPicker({ students }: { students: Student[] }) {
+export function StudentPicker({
+  students,
+  variant,
+}: {
+  students: Student[];
+  variant?: string;
+}) {
+  function hrefFor(id: string) {
+    const href = routeMatriculaTermoNovo(id);
+    if (variant === "A" || variant === "B" || variant === "C") {
+      return `${href}&variant=${encodeURIComponent(variant)}`;
+    }
+    return href;
+  }
   if (students.length === 0) {
     return (
       <EmptyState
@@ -38,7 +51,7 @@ export function StudentPicker({ students }: { students: Student[] }) {
             className="h-auto min-h-11 w-full justify-start rounded-none px-4 py-3"
             asChild
           >
-            <Link href={routeMatriculaTermoNovo(s.id)}>{s.full_name}</Link>
+            <Link href={hrefFor(s.id)}>{s.full_name}</Link>
           </Button>
         </li>
       ))}

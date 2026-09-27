@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { CalendarDays, Users } from "lucide-react";
 
 import { SessionCheckInsPanel } from "@/components/classes/session-check-ins-panel";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { DashboardStatTile } from "@/components/layout/dashboard-stat-tile";
 import { listSessionPresence } from "@/lib/data/class-session-check-ins";
@@ -49,13 +49,12 @@ export default async function SessionCheckInsPage({ params }: Props) {
   const dateLabel = formatSessionDate(session.sessionDate);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Aulas"
-        intro={<DashboardBackLink href={ROUTES.aulas}>Aulas</DashboardBackLink>}
-        title={session.className}
-        description={`${dateLabel} · ${session.startTime} – ${session.endTime}`}
-      />
+    <PageFrame
+      title={session.className}
+      context={`${dateLabel} · ${session.startTime} – ${session.endTime}`}
+    >
+      <div className="space-y-8">
+      <DashboardBackLink href={ROUTES.aulas}>Aulas</DashboardBackLink>
 
       <DashboardPanel
         icon={CalendarDays}
@@ -85,6 +84,7 @@ export default async function SessionCheckInsPage({ params }: Props) {
           />
         </div>
       </DashboardPanel>
-    </div>
+      </div>
+    </PageFrame>
   );
 }

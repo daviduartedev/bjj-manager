@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BookOpen } from "lucide-react";
 
+import { PageFrame } from "@/components/prototype/page-frame";
 import { PlanEditor } from "@/components/lesson-plans/plan-editor";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { loadLessonPlanDetail } from "@/lib/data/lesson-plans-page";
 import { routePedagogicoPlano } from "@/lib/routes";
@@ -21,16 +21,13 @@ export default async function EditarPlanoPage({ params }: PageProps) {
   if (!plan) notFound();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Pedagógico"
-        intro={
-          <DashboardBackLink href={routePedagogicoPlano(plan.id)}>{plan.title}</DashboardBackLink>
-        }
-        title="Editar plano"
-        description="Salvar cria uma nova revisão, mantendo o histórico."
-      />
-      <DashboardPanel icon={BookOpen} title="Editor" subtitle="Cabeçalho, resumo e tópicos do plano">
+    <PageFrame
+      title="Editar plano"
+      context="Salvar cria uma nova revisão, mantendo o histórico."
+    >
+      <div className="space-y-8">
+        <DashboardBackLink href={routePedagogicoPlano(plan.id)}>{plan.title}</DashboardBackLink>
+        <DashboardPanel icon={BookOpen} title="Editor" subtitle="Cabeçalho, resumo e tópicos do plano">
         <PlanEditor
           mode={{
             kind: "edit",
@@ -46,6 +43,7 @@ export default async function EditarPlanoPage({ params }: PageProps) {
           }}
         />
       </DashboardPanel>
-    </div>
+      </div>
+    </PageFrame>
   );
 }

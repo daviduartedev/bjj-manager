@@ -7,8 +7,8 @@ import { getEnrollmentLiabilityForm } from "@/actions/enrollment-liability-forms
 import { EnrollmentLiabilityDetailActions } from "@/components/enrollment-liability-forms/enrollment-liability-detail-actions";
 import { EnrollmentLiabilityFormEditor } from "@/components/enrollment-liability-forms/enrollment-liability-form-editor";
 import { EnrollmentLiabilityDocBadge } from "@/components/enrollment-liability-forms/signature-status-badge";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { formatDateTimeBR } from "@/lib/documents/formatters";
 import { loadStudentForEnrollmentForm } from "@/lib/data/enrollment-liability-page";
@@ -36,17 +36,14 @@ export default async function MatriculaTermoDetalhePage({ params }: PageProps) {
   const isDraft = detail.status === "pending" && !detail.pdf_path;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Matrícula/Termo"
-        intro={
-          <DashboardBackLink href={ROUTES.matriculasTermos}>
-            Matrículas e Termos
-          </DashboardBackLink>
-        }
-        title={detail.number ?? "Rascunho"}
-        description={`Criado em ${formatDateTimeBR(detail.created_at)}`}
-      />
+    <PageFrame
+      title={detail.number ?? "Rascunho"}
+      context={`Criado em ${formatDateTimeBR(detail.created_at)}`}
+    >
+      <div className="space-y-8">
+      <DashboardBackLink href={ROUTES.matriculasTermos}>
+        Matrículas e Termos
+      </DashboardBackLink>
 
       <DashboardPanel icon={FileSignature} title="Estado" subtitle="Metadados do registo">
         <dl className="grid gap-3 sm:grid-cols-2">
@@ -111,6 +108,7 @@ export default async function MatriculaTermoDetalhePage({ params }: PageProps) {
           </p>
         </DashboardPanel>
       ) : null}
-    </div>
+      </div>
+    </PageFrame>
   );
 }

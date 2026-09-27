@@ -4,8 +4,8 @@ import { FileSignature, Users } from "lucide-react";
 
 import { EnrollmentLiabilityFormEditor } from "@/components/enrollment-liability-forms/enrollment-liability-form-editor";
 import { StudentPicker } from "@/components/enrollment-liability-forms/student-picker";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import {
   loadActiveStudentsForPicker,
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "Nova matrícula/termo",
 };
 
-type SearchParams = Promise<{ studentId?: string }>;
+type SearchParams = Promise<{ studentId?: string; variant?: string }>;
 
 export default async function NovaMatriculaTermoPage({
   searchParams,
@@ -26,25 +26,27 @@ export default async function NovaMatriculaTermoPage({
 }) {
   const params = await searchParams;
   const studentId = params.studentId;
+  const frameVariant =
+    params.variant === "A" || params.variant === "B" || params.variant === "C"
+      ? params.variant
+      : undefined;
 
   if (!studentId) {
     const { students } = await loadActiveStudentsForPicker();
     return (
-      <div className="mx-auto max-w-6xl space-y-8">
-        <DashboardPageHero
-          badge="Nova"
-          intro={
-            <DashboardBackLink href={ROUTES.matriculasTermos}>
-              Matrículas e Termos
-            </DashboardBackLink>
-          }
-          title="Escolher aluno"
-          description="Seleccione o aluno para iniciar o formulário ASLAM."
-        />
-        <DashboardPanel icon={Users} title="Aluno" subtitle="Lista de alunos activos">
-          <StudentPicker students={students} />
-        </DashboardPanel>
-      </div>
+      <PageFrame
+        title="Escolher aluno"
+        context="Seleccione o aluno para iniciar o formulário ASLAM."
+      >
+        <div className="space-y-8">
+          <DashboardBackLink href={ROUTES.matriculasTermos}>
+            Matrículas e Termos
+          </DashboardBackLink>
+          <DashboardPanel icon={Users} title="Aluno" subtitle="Lista de alunos activos">
+            <StudentPicker students={students} variant={frameVariant} />
+          </DashboardPanel>
+        </div>
+      </PageFrame>
     );
   }
 
@@ -52,24 +54,22 @@ export default async function NovaMatriculaTermoPage({
   if (!student) notFound();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Nova"
-        intro={
-          <DashboardBackLink href={ROUTES.matriculasTermos}>
-            Matrículas e Termos
-          </DashboardBackLink>
-        }
-        title="Matrícula e Termo de Responsabilidade"
-        description="Preencha os campos complementares. O PDF seguirá o modelo ASLAM."
-      />
-      <DashboardPanel icon={FileSignature} title="Formulário" subtitle="Dados para o documento legal">
-        <EnrollmentLiabilityFormEditor
-          studentId={student.id}
-          studentName={student.full_name}
-          isMinor={student.isMinor}
-        />
-      </DashboardPanel>
-    </div>
+    <PageFrame
+      title="Matrícula e Termo de Responsabilidade"
+      context="Preencha os campos complementares. O PDF seguirá o modelo ASLAM."
+    >
+      <div className="space-y-8">
+        <DashboardBackLink href={ROUTES.matriculasTermos}>
+          Matrículas e Termos
+        </DashboardBackLink>
+        <DashboardPanel icon={FileSignature} title="Formulário" subtitle="Dados para o documento legal">
+          <EnrollmentLiabilityFormEditor
+            studentId={student.id}
+            studentName={student.full_name}
+            isMinor={student.isMinor}
+          />
+        </DashboardPanel>
+      </div>
+    </PageFrame>
   );
 }

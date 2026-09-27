@@ -36,8 +36,8 @@ import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog"
 import { StudentDocumentsTab } from "@/components/students/student-documents-tab";
 import { StudentAttendanceTab } from "@/components/students/student-attendance-tab";
 import { ProvisionPortalAccess } from "@/components/students/provision-portal-access";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { ROUTES, routeAlunoEditar, routeAlunoGraduacoes, routeMensalidadesAluno } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { beltWithDegreeLine } from "@/lib/students/belt-labels";
@@ -54,6 +54,7 @@ type Props = {
   defaultTab?: "dados" | "graduacao" | "financeiro" | "documentos" | "portal" | "presenca";
   attendance: StudentAttendancesPage;
   attendanceError?: string | null;
+  frameVariant?: string;
 };
 
 function formatWeightKg(w: number | null): string | null {
@@ -97,6 +98,7 @@ export function StudentProfileClient({
   defaultTab = "dados",
   attendance,
   attendanceError = null,
+  frameVariant,
 }: Props) {
   const router = useRouter();
   const [promoteOpen, setPromoteOpen] = useState(false);
@@ -122,13 +124,12 @@ export function StudentProfileClient({
     profile.ageYears === null ? "," : `${profile.ageYears} anos`;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <DashboardPageHero
-        badge="Perfil do aluno"
-        intro={<DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>}
-        title={profile.full_name}
-        description={`${beltTitle}, ${studentKindLabels[profile.kind]}, ${ageDisplay}`}
-      />
+    <PageFrame
+      title={profile.full_name}
+      context={`${beltTitle}, ${studentKindLabels[profile.kind]}, ${ageDisplay}`}
+    >
+    <div className="space-y-6">
+      <DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>
 
       <ProfileSurfaceCard>
         <CardContent className="flex flex-col gap-6 p-6 pt-6 sm:flex-row sm:items-start">
@@ -392,7 +393,7 @@ export function StudentProfileClient({
             <>
           <div className="rounded-lg border border-primary/15 bg-primary/[0.04] px-4 py-3 text-sm text-foreground shadow-sm">
             <Link
-              href={`${routeMensalidadesAluno(profile.id)}?mes=${encodeURIComponent(profile.currentMonthFirstDay)}`}
+              href={`${routeMensalidadesAluno(profile.id)}?mes=${encodeURIComponent(profile.currentMonthFirstDay)}${frameVariant === "A" || frameVariant === "B" || frameVariant === "C" ? `&variant=${frameVariant}` : ""}`}
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
               Ver mensalidades do mês
@@ -508,6 +509,7 @@ export function StudentProfileClient({
               studentId={profile.id}
               data={attendance}
               error={attendanceError}
+              frameVariant={frameVariant}
             />
           </Section>
         </TabsContent>
@@ -556,5 +558,6 @@ export function StudentProfileClient({
         amountCents={profile.billing?.effective_price_cents ?? null}
       />
     </div>
+    </PageFrame>
   );
 }

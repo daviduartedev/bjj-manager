@@ -7,8 +7,8 @@ import { Pencil, Plus } from "lucide-react";
 
 import { GraduationEventDialog } from "@/components/graduation/graduation-event-dialog";
 import { BeltIllustration } from "@/components/graduation/belt-illustration";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { Section } from "@/components/layout/section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -75,17 +75,11 @@ export function GraduationsPageClient({ payload }: Props) {
     : null;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <DashboardPageHero
-        badge="Graduações"
-        intro={
-          <DashboardBackLink href={routeAlunoPerfil(payload.studentId)}>
-            {payload.full_name}
-          </DashboardBackLink>
-        }
-        title="Histórico completo"
-        description={beltTitle}
-      />
+    <PageFrame title="Histórico completo" context={beltTitle}>
+    <div className="space-y-6">
+      <DashboardBackLink href={routeAlunoPerfil(payload.studentId)}>
+        {payload.full_name}
+      </DashboardBackLink>
 
       <Section title="Estado actual">
         <Card className="border-border shadow-sm">
@@ -220,5 +214,6 @@ export function GraduationsPageClient({ payload }: Props) {
         onSuccess={() => router.refresh()}
       />
     </div>
+    </PageFrame>
   );
 }

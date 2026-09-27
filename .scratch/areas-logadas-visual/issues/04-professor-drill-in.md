@@ -4,9 +4,9 @@
 
 **Blocked by:** 02: Três modelos de cabeçalho, provados em Alunos
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Each drill-in screen above uses the shared frame for A, B, and C
-- [ ] The old page hero is gone
-- [ ] Forms still submit and detail links still open
-- [ ] No new actions are invented
+- [x] Each drill-in screen above uses the shared frame for A, B, and C
+- [x] The old page hero is gone
+- [x] Forms still submit and detail links still open
+- [x] No new actions are invented
