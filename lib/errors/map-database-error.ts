@@ -43,3 +43,15 @@ export function mapDatabaseErrorToUserMessage(error: unknown): string | null {
 
   return null;
 }
+
+/** RLS ou GRANT negado. Não é coluna faltando nem conflito de chave. */
+export function isDatabasePrivilegeError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const o = error as { code?: string; message?: string };
+  const msg = (o.message ?? "").toLowerCase();
+  return (
+    o.code === "42501" ||
+    msg.includes("row-level security") ||
+    msg.includes("permission denied")
+  );
+}

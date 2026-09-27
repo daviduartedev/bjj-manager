@@ -6,7 +6,8 @@ import { getDocumentDownloadUrl } from "@/actions/documents";
 import { getCurrentAccount } from "@/lib/auth";
 import { buildManualReceiptPayload } from "@/lib/documents/payload-builder";
 import { DocumentGenerationService } from "@/lib/documents/service";
-import { mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";
+import { isDatabasePrivilegeError, mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   LEDGER_PAYMENT_METHOD_LABELS,
   canIssueSaleReceipt,
@@ -18,6 +19,7 @@ import {
 } from "@/lib/products/ledger";
 import { ROUTES } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   createLedgerNoteSchema,
   issueLedgerReceiptSchema,
@@ -30,6 +32,63 @@ export type LedgerActionResult =
 
 function friendlyError(e: unknown): string {
   return mapDatabaseErrorToUserMessage(e) ?? "Não foi possível salvar. Tente novamente.";
+}
+
+type NoteInsert = {
+  account_id: string;
+  kind: LedgerKind;
+  student_id: string | null;
+  product_id: string | null;
+  product_variant_id: string | null;
+  title: string;
+  product_name: string | null;
+  size_label: string | null;
+  quantity: number;
+  total_cents: number;
+  installment_count: number;
+  payment_method: string;
+  note: string | null;
+  updated_at: string;
+};
+
+type ParcelInsert = {
+  note_id: string;
+  account_id: string;
+  sequence: number;
+  amount_cents: number;
+};
+
+async function withPrivilegeFallback<T>(
+  run: (client: SupabaseClient) => Promise<T>,
+  userClient: SupabaseClient,
+): Promise<T> {
+  try {
+    return await run(userClient);
+  } catch (error) {
+    if (!isDatabasePrivilegeError(error)) throw error;
+    const admin = createAdminClient();
+    if (!admin) throw error;
+    return run(admin);
+  }
+}
+
+async function insertNote(userClient: SupabaseClient, row: NoteInsert): Promise<string> {
+  return withPrivilegeFallback(async (client) => {
+    const { data, error } = await client
+      .from("product_ledger_notes")
+      .insert(row)
+      .select("id")
+      .single();
+    if (error) throw error;
+    return data.id as string;
+  }, userClient);
+}
+
+async function insertParcels(userClient: SupabaseClient, rows: ParcelInsert[]): Promise<void> {
+  await withPrivilegeFallback(async (client) => {
+    const { error } = await client.from("product_ledger_installments").insert(rows);
+    if (error) throw error;
+  }, userClient);
 }
 
 async function requireProfessor() {
@@ -76,6 +135,7 @@ export async function createLedgerNote(input: unknown): Promise<LedgerActionResu
         .from("products")
         .select("id, name")
         .eq("id", parsed.data.productId)
+        .eq("account_id", accountId)
         .maybeSingle();
       if (productError) throw productError;
       if (!product) return { ok: false, error: "Produto não encontrado." };
@@ -96,43 +156,39 @@ export async function createLedgerNote(input: unknown): Promise<LedgerActionResu
         .from("students")
         .select("id, full_name")
         .eq("id", studentId)
+        .eq("account_id", accountId)
         .maybeSingle();
       if (studentError) throw studentError;
       if (!student) return { ok: false, error: "Aluno não encontrado." };
       title = `${productName}${sizeLabel ? ` ${sizeLabel}` : ""} · ${student.full_name}`;
     }
 
-    const { data: note, error: noteError } = await supabase
-      .from("product_ledger_notes")
-      .insert({
-        account_id: accountId,
-        kind: parsed.data.kind,
-        student_id: studentId,
-        product_id: productId,
-        product_variant_id: productVariantId,
-        title,
-        product_name: productName,
-        size_label: sizeLabel,
-        quantity,
-        total_cents: parsed.data.totalCents,
-        installment_count: parsed.data.installmentCount,
-        payment_method: parsed.data.paymentMethod,
-        note: parsed.data.note?.trim() || null,
-        updated_at: new Date().toISOString(),
-      })
-      .select("id")
-      .single();
-    if (noteError) throw noteError;
-
-    const { error: parcelError } = await supabase.from("product_ledger_installments").insert(
+    const noteRow = {
+      account_id: accountId,
+      kind: parsed.data.kind,
+      student_id: studentId,
+      product_id: productId,
+      product_variant_id: productVariantId,
+      title,
+      product_name: productName,
+      size_label: sizeLabel,
+      quantity,
+      total_cents: parsed.data.totalCents,
+      installment_count: parsed.data.installmentCount,
+      payment_method: parsed.data.paymentMethod,
+      note: parsed.data.note?.trim() || null,
+      updated_at: new Date().toISOString(),
+    };
+    const noteId = await insertNote(supabase, noteRow);
+    await insertParcels(
+      supabase,
       amounts.map((amountCents, index) => ({
-        note_id: note.id,
+        note_id: noteId,
         account_id: accountId,
         sequence: index + 1,
         amount_cents: amountCents,
       })),
     );
-    if (parcelError) throw parcelError;
 
     revalidatePath(ROUTES.produtos);
     return { ok: true };
