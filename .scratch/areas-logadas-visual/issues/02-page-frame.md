@@ -4,11 +4,11 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `?variant=A` shows Faixa, `B` shows Mesa, `C` shows Ficha, and a missing key shows Faixa
-- [ ] The header shows at most one primary and one secondary action
-- [ ] Alunos still lists real students and still links to cadastrar aluno
-- [ ] The switcher is hidden in production and does not steal arrow keys from a focused field
-- [ ] The home at Painel is unchanged
-- [ ] A unit test locks the variant key and the action cap, and fails before the decision exists
+- [x] `?variant=A` shows Faixa, `B` shows Mesa, `C` shows Ficha, and a missing key shows Faixa
+- [x] The header shows at most one primary and one secondary action
+- [x] Alunos still lists real students and still links to cadastrar aluno
+- [x] The switcher is hidden in production and does not steal arrow keys from a focused field
+- [x] The home at Painel is unchanged
+- [x] A unit test locks the variant key and the action cap, and fails before the decision exists

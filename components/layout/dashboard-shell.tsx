@@ -134,8 +134,6 @@ function BottomNavMoreMenu() {
 }
 
 export function DashboardShell({ academyName, userLabel, children }: DashboardShellProps) {
-  const pathname = usePathname();
-  const fullBleedHome = pathname === ROUTES.painel;
   const [mounted, setMounted] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingSignOut, startSignOut] = useTransition();
@@ -331,14 +329,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
           )}
         </header>
 
-        <main
-          className={cn(
-            "dashboard-main-surface flex flex-1 flex-col",
-            fullBleedHome
-              ? "w-full max-w-none px-0 pb-24 pt-0 lg:pb-0"
-              : "container py-6 pb-24 lg:py-8 lg:pb-10",
-          )}
-        >
+        <main className="dashboard-main-surface flex w-full max-w-none flex-1 flex-col px-0 pb-24 pt-0 lg:pb-0">
           <div className="flex-1">{children}</div>
         </main>
 
