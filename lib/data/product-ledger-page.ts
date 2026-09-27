@@ -22,6 +22,9 @@ export type LedgerNoteRow = {
   id: string;
   kind: LedgerKind;
   title: string;
+  studentId: string | null;
+  productId: string | null;
+  productVariantId: string | null;
   studentName: string | null;
   productName: string | null;
   sizeLabel: string | null;
@@ -54,7 +57,7 @@ export async function loadProductLedgerPageData(): Promise<ProductLedgerPageData
       ? await ledgerClient(supabase)
         .from("product_ledger_notes")
         .select(
-          "id, kind, title, student_id, product_name, size_label, quantity, total_cents, installment_count, payment_method, note, created_at, students(full_name), product_ledger_installments(id, sequence, amount_cents, paid_at)",
+          "id, kind, title, student_id, product_id, product_variant_id, product_name, size_label, quantity, total_cents, installment_count, payment_method, note, created_at, students(full_name), product_ledger_installments(id, sequence, amount_cents, paid_at)",
         )
         .eq("account_id", ctx.account.id)
         .order("created_at", { ascending: false })
@@ -122,6 +125,9 @@ export async function loadProductLedgerPageData(): Promise<ProductLedgerPageData
         id: row.id as string,
         kind,
         title: row.title as string,
+        studentId: (row.student_id as string | null) ?? null,
+        productId: (row.product_id as string | null) ?? null,
+        productVariantId: (row.product_variant_id as string | null) ?? null,
         studentName,
         productName: (row.product_name as string | null) ?? null,
         sizeLabel: (row.size_label as string | null) ?? null,
