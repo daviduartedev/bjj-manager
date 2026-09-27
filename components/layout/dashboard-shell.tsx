@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { Menu, MoreHorizontal, Sparkles, UserRound } from "lucide-react";
+import { MoreHorizontal, Sparkles, UserRound } from "lucide-react";
 
 import { signOut } from "@/app/(dashboard)/actions";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { GuidedTour, useGuidedTourAutoStart } from "@/components/onboarding/guided-tour";
@@ -38,23 +37,6 @@ type DashboardShellProps = {
 
 const BOTTOM_NAV_PRIMARY = getBottomNavPrimary();
 const BOTTOM_NAV_MORE = getBottomNavMore();
-
-function ShellChromeSkeleton() {
-  return (
-    <div
-      className="pointer-events-none animate-pulse"
-      aria-hidden
-    >
-      <div className="flex h-12 items-center justify-between px-2">
-        <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
-        <div className="flex gap-1">
-          <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
-          <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function SidebarSkeletonNav() {
   return (
@@ -82,7 +64,11 @@ function BottomNavSkeleton() {
   );
 }
 
-function BottomNavMoreMenu() {
+function BottomNavMoreMenu(props: {
+  onWizard: () => void;
+  pendingSignOut: boolean;
+  onSignOut: () => void;
+}) {
   const pathname = usePathname();
   const moreActive = isBottomNavMoreActive(pathname);
 
@@ -128,6 +114,20 @@ function BottomNavMoreMenu() {
             </DropdownMenuItem>
           );
         })}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="min-h-11 gap-2" onSelect={() => props.onWizard()}>
+          <Sparkles className="size-4 text-primary" aria-hidden />
+          Wizard
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href={ROUTES.perfil} className="min-h-11 gap-2">
+            <UserRound className="size-4" aria-hidden />
+            Perfil
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="min-h-11" disabled={props.pendingSignOut} onSelect={() => props.onSignOut()}>
+          {props.pendingSignOut ? "A sair…" : "Sair"}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -135,7 +135,6 @@ function BottomNavMoreMenu() {
 
 export function DashboardShell({ academyName, userLabel, children }: DashboardShellProps) {
   const [mounted, setMounted] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingSignOut, startSignOut] = useTransition();
   const [tourRun, setTourRun] = useState(false);
   const [tourSessionKey, setTourSessionKey] = useState(0);
@@ -145,8 +144,6 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
   }, []);
 
   useGuidedTourAutoStart(setTourRun);
-
-  const closeDrawer = () => setDrawerOpen(false);
 
   const brandMarkSidebar = (
     <LogoMark
@@ -268,67 +265,6 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
       </aside>
 
       <div className="flex min-h-screen flex-col lg:pl-[15.5rem]">
-        <header className="sticky top-0 z-30 shrink-0 bg-[#f3f4f6]/90 backdrop-blur-md lg:hidden dark:bg-zinc-950/90">
-          {!mounted ? (
-            <ShellChromeSkeleton />
-          ) : (
-            <div className="flex h-12 items-center justify-between px-2">
-              <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0 text-foreground hover:bg-muted"
-                    aria-label="Abrir menu de navegação"
-                  >
-                    <Menu className="size-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="left"
-                  className="dashboard-ink-chrome w-[min(100%,20rem)] p-0"
-                >
-                  <SheetHeader className="border-b border-white/10 px-6 py-4 text-left">
-                    <SheetTitle className="font-display text-secondary-foreground">Navegação</SheetTitle>
-                  </SheetHeader>
-                  <div className="px-4 pt-5">{sidebarBrand}</div>
-                  <nav className="flex flex-col gap-0.5 px-4 pb-6" aria-label="Principal">
-                    {MAIN_NAV_ITEMS.map((item) => (
-                      <ShellNavLink
-                        key={item.href}
-                        href={item.href}
-                        label={item.label}
-                        icon={item.icon}
-                        surface="ink"
-                        dataTour={item.dataTour}
-                        onNavigate={closeDrawer}
-                      />
-                    ))}
-                  </nav>
-                </SheetContent>
-              </Sheet>
-
-              <div className="flex shrink-0 items-center">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Abrir tour guiado"
-                  data-tour="shell-wizard-trigger"
-                  onClick={() => {
-                    setTourSessionKey((k) => k + 1);
-                    setTourRun(true);
-                  }}
-                >
-                  <Sparkles className="size-5 text-primary" aria-hidden />
-                </Button>
-                {userMenu("text-foreground hover:bg-muted focus-visible:ring-offset-background")}
-              </div>
-            </div>
-          )}
-        </header>
-
         <main className="dashboard-main-surface flex w-full max-w-none flex-1 flex-col px-0 pb-24 pt-0 lg:pb-0">
           <div className="flex-1">{children}</div>
         </main>
@@ -353,7 +289,18 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
                   dataTour={item.dataTour}
                 />
               ))}
-              <BottomNavMoreMenu />
+              <BottomNavMoreMenu
+                onWizard={() => {
+                  setTourSessionKey((k) => k + 1);
+                  setTourRun(true);
+                }}
+                pendingSignOut={pendingSignOut}
+                onSignOut={() => {
+                  startSignOut(() => {
+                    void signOut();
+                  });
+                }}
+              />
             </nav>
           )}
         </div>

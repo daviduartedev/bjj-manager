@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
-import { Menu, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 
 import { signOut } from "@/app/(dashboard)/actions";
 import { LogoMark } from "@/components/brand/logo-mark";
@@ -16,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { APP_NAME } from "@/lib/branding";
 import { ROUTES } from "@/lib/routes";
@@ -27,17 +26,6 @@ type StudentShellProps = {
   userLabel: string;
   children: React.ReactNode;
 };
-
-function ShellChromeSkeleton() {
-  return (
-    <div className="pointer-events-none animate-pulse" aria-hidden>
-      <div className="flex h-12 items-center justify-between px-2">
-        <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
-        <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
-      </div>
-    </div>
-  );
-}
 
 function SidebarSkeletonNav() {
   return (
@@ -67,14 +55,11 @@ function BottomNavSkeleton() {
 
 export function StudentShell({ academyName, userLabel, children }: StudentShellProps) {
   const [mounted, setMounted] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingSignOut, startSignOut] = useTransition();
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const closeDrawer = () => setDrawerOpen(false);
 
   const brandMarkSidebar = (
     <LogoMark
@@ -174,51 +159,6 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
       </aside>
 
       <div className="flex min-h-screen flex-col lg:pl-[15.5rem]">
-        <header className="sticky top-0 z-30 shrink-0 bg-[#f3f4f6]/90 backdrop-blur-md lg:hidden dark:bg-zinc-950/90">
-          {!mounted ? (
-            <ShellChromeSkeleton />
-          ) : (
-            <div className="flex h-12 items-center justify-between px-2">
-              <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0 text-foreground hover:bg-muted"
-                    aria-label="Abrir menu de navegação"
-                  >
-                    <Menu className="size-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="left"
-                  className="w-[min(100%,20rem)] border-zinc-800 bg-[hsl(0_0%_2%)] p-0 text-zinc-100"
-                >
-                  <SheetHeader className="border-b border-white/10 bg-white/[0.03] px-6 py-4 text-left">
-                    <SheetTitle className="font-display text-zinc-100">Navegação</SheetTitle>
-                  </SheetHeader>
-                  <div className="p-4">{sidebarBrand}</div>
-                  <nav className="flex flex-col gap-1 px-4 pb-6" aria-label="Principal">
-                    {STUDENT_NAV_ITEMS.map((item) => (
-                      <ShellNavLink
-                        key={item.href}
-                        href={item.href}
-                        label={item.label}
-                        icon={item.icon}
-                        surface="ink"
-                        onNavigate={closeDrawer}
-                      />
-                    ))}
-                  </nav>
-                </SheetContent>
-              </Sheet>
-
-              {userMenu("text-foreground hover:bg-muted focus-visible:ring-offset-background")}
-            </div>
-          )}
-        </header>
-
         <main className="dashboard-main-surface flex w-full max-w-none flex-1 flex-col px-0 pb-24 pt-0 lg:pb-0">
           <div className="flex-1">{children}</div>
         </main>
@@ -241,6 +181,9 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
                   surface="ink"
                 />
               ))}
+              <div className="flex flex-1 items-center justify-center">
+                {userMenu("text-zinc-100 hover:bg-white/10 hover:text-zinc-100")}
+              </div>
             </nav>
           )}
         </div>
