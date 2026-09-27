@@ -5,8 +5,8 @@ import { BookOpen, FileDown } from "lucide-react";
 
 import { PlanStatusSwitcher } from "@/components/lesson-plans/plan-status-switcher";
 import { Button } from "@/components/ui/button";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { EmptyState } from "@/components/layout/empty-state";
 import { loadLessonPlanDetail } from "@/lib/data/lesson-plans-page";
@@ -32,13 +32,15 @@ export default async function PlanoDetailPage({ params }: PageProps) {
   const content = plan.current_revision?.content_json ?? { topics: [], summary: null };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Pedagógico"
-        intro={<DashboardBackLink href={ROUTES.pedagogicoPlanos}>Planos</DashboardBackLink>}
-        title={plan.title}
-        description={`${planKindLabels[plan.plan_kind]} · ${plan.reference_month}`}
-      />
+    <PageFrame
+      title={plan.title}
+      emoji="📖"
+      icon={BookOpen}
+      tone="violet"
+      context={`${planKindLabels[plan.plan_kind]} · ${plan.reference_month}`}
+    >
+      <div className="space-y-8">
+      <DashboardBackLink href={ROUTES.pedagogicoPlanos}>Planos</DashboardBackLink>
 
       <DashboardPanel
         icon={BookOpen}
@@ -121,6 +123,7 @@ export default async function PlanoDetailPage({ params }: PageProps) {
           ))}
         </div>
       </DashboardPanel>
-    </div>
+      </div>
+    </PageFrame>
   );
 }

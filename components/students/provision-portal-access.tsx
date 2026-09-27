@@ -12,6 +12,7 @@ import {
   type ProvisionPortalSuccessOutcome,
 } from "@/actions/student-portal/provision-access";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
 import {
   Form,
   FormControl,
@@ -207,7 +208,7 @@ export function ProvisionPortalAccess({
       <div className="space-y-2">
         <Label htmlFor="provision-mode">Modo de provisionamento</Label>
         <Select value={mode} onValueChange={(v) => handleModeChange(v as ProvisionMode)}>
-          <SelectTrigger id="provision-mode" className="min-h-11 w-full">
+          <SelectTrigger id="provision-mode">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -285,7 +286,8 @@ export function ProvisionPortalAccess({
                 : "Será criada uma conta com senha temporária de 12 caracteres, mostrada uma única vez."}
           </p>
 
-          <Button type="submit" className="min-h-11 w-full sm:w-auto" disabled={loading}>
+          <div className={formActionsClass}>
+          <Button type="submit" className={primaryActionClass} disabled={loading}>
             {loading
               ? "A processar…"
               : mode === "link_existing"
@@ -294,6 +296,7 @@ export function ProvisionPortalAccess({
                   ? "Enviar convite"
                   : "Criar utilizador"}
           </Button>
+          </div>
         </form>
       </Form>
     </div>

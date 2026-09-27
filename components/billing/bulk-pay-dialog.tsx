@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { recordPaymentsBulk } from "@/actions/billing";
 import { Button } from "@/components/ui/button";
+import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import {
   Dialog,
   DialogContent,
@@ -126,18 +127,18 @@ export function BulkPayDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
-            className="min-h-11"
+            className={secondaryActionClass}
             onClick={() => onOpenChange(false)}
           >
             Cancelar
           </Button>
           <Button
             type="button"
-            className="min-h-11"
+            className={primaryActionClass}
             disabled={pending || studentIds.length === 0}
             onClick={() => submit()}
           >

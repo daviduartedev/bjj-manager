@@ -1,7 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { dueDateInReferenceMonth } from "@/lib/billing/reference-month";
+import { listUpcomingSessions, type UpcomingSessionRow } from "@/lib/data/classes-page";
 import { loadMensalidadesRows } from "@/lib/data/mensalidades-page";
+import type { MonthFinanceSummary } from "@/lib/data/mensalidades-month-summary";
 import { isBirthdayThisCalendarMonth, isBirthdayToday } from "@/lib/painel/birthday-utils";
+import { countBillingMix, type PainelBillingMix } from "@/lib/painel/billing-mix";
 import {
   calendarDaysBetween,
   meetsGraduationAttentionThreshold,
@@ -99,10 +102,14 @@ export async function loadPainelPageData(academyName: string): Promise<{
   graduationAlerts: PainelAttentionRow[];
   distributionAdult: PainelDistributionSlice[];
   distributionKids: PainelDistributionSlice[];
+  monthFinance: MonthFinanceSummary;
+  billingMix: PainelBillingMix;
+  todaySessions: UpcomingSessionRow[];
+  nextSession: UpcomingSessionRow | null;
 }> {
   const supabase = await createClient();
 
-  const [mensalidades, studentsResult] = await Promise.all([
+  const [mensalidades, studentsResult, sessions] = await Promise.all([
     loadMensalidadesRows(null),
     supabase
       .from("students")
@@ -125,6 +132,7 @@ export async function loadPainelPageData(academyName: string): Promise<{
       .is("archived_at", null)
       .is("removed_at", null)
       .order("full_name", { ascending: true }),
+    listUpcomingSessions(),
   ]);
 
   if (studentsResult.error) throw studentsResult.error;
@@ -132,7 +140,8 @@ export async function loadPainelPageData(academyName: string): Promise<{
   const students = (studentsResult.data ?? []) as unknown as StudentPainelRow[];
   const activeIds = new Set(students.map((s) => s.id));
 
-  const { referenceMonth, actualTodayYmd: todayYmd, rows: billRows } = mensalidades;
+  const { referenceMonth, actualTodayYmd: todayYmd, rows: billRows, monthFinance } =
+    mensalidades;
 
   const overdueCount = billRows.filter(
     (r) => r.indicator === "overdue" && activeIds.has(r.studentId),
@@ -214,5 +223,13 @@ export async function loadPainelPageData(academyName: string): Promise<{
     graduationAlerts,
     distributionAdult: buildDistribution(students, "adult"),
     distributionKids: buildDistribution(students, "kids"),
+    monthFinance,
+    billingMix: countBillingMix(
+      billRows
+        .filter((row) => activeIds.has(row.studentId))
+        .map((row) => row.indicator),
+    ),
+    todaySessions: sessions.filter((session) => session.sessionDate === todayYmd),
+    nextSession: sessions.find((session) => session.sessionDate > todayYmd) ?? null,
   };
 }

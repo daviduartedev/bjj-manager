@@ -11,6 +11,7 @@ import {
 } from "@/actions/billing";
 import { PostPaymentSummary } from "@/components/billing/post-payment-summary";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import {
   Dialog,
   DialogContent,
@@ -138,11 +139,12 @@ export function ReceiptViewerDialog({
               Ainda não há comprovante gerado para este pagamento. Pode gerar
               agora — o número será emitido na sequência da academia.
             </p>
+            <div className={formActionsClass}>
             <Button
               type="button"
               onClick={onGenerate}
               disabled={pending}
-              className="min-h-11 w-full sm:w-auto"
+              className={primaryActionClass}
             >
               {pending ? (
                 <>
@@ -152,6 +154,7 @@ export function ReceiptViewerDialog({
                 "Gerar comprovante"
               )}
             </Button>
+            </div>
           </div>
         ) : null}
 
@@ -160,13 +163,13 @@ export function ReceiptViewerDialog({
             <p className="text-crm-sm text-amber-900 dark:text-amber-200">
               A última tentativa falhou: {state.error}
             </p>
+            <div className={formActionsClass}>
             <Button
               type="button"
               variant="outline"
-              size="sm"
               onClick={onGenerate}
               disabled={pending}
-              className="min-h-11 touch-manipulation"
+              className={secondaryActionClass}
             >
               {pending ? (
                 <>
@@ -178,6 +181,7 @@ export function ReceiptViewerDialog({
                 </>
               )}
             </Button>
+            </div>
           </div>
         ) : null}
 

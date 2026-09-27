@@ -94,7 +94,13 @@ export function StudentsList({
 
   const pushUrl = useCallback(
     (next: AlunosUrlState) => {
-      router.replace(`${ROUTES.alunos}${stringifyAlunosSearchParams(next)}`);
+      const params = new URLSearchParams(stringifyAlunosSearchParams(next).replace(/^\?/, ""));
+      const variant = new URLSearchParams(window.location.search).get("variant");
+      if (variant === "A" || variant === "B" || variant === "C") {
+        params.set("variant", variant);
+      }
+      const query = params.toString();
+      router.replace(query ? `${ROUTES.alunos}?${query}` : ROUTES.alunos);
     },
     [router],
   );
@@ -318,7 +324,6 @@ export function StudentsList({
       <DashboardPanel
         icon={ListFilter}
         title="Filtros e pesquisa"
-        subtitle="Refine a lista por nome, plano e situação. Use as vistas para alunos arquivados ou removidos."
         contentClassName="p-0"
       >
         <div
@@ -375,7 +380,7 @@ export function StudentsList({
                   value={localQ}
                   onChange={(e) => setLocalQ(e.target.value)}
                   placeholder="Nome do aluno…"
-                  className="h-11 border-border/80 bg-background/80 pl-9 shadow-inner"
+                  className="bg-white pl-9 dark:bg-zinc-950"
                 />
               </div>
             </div>
@@ -391,7 +396,7 @@ export function StudentsList({
                   })
                 }
               >
-                <SelectTrigger className="h-11 w-full border-border/80 bg-background/80">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -415,7 +420,7 @@ export function StudentsList({
                   })
                 }
               >
-                <SelectTrigger className="h-11 w-full border-border/80 bg-background/80">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -438,7 +443,7 @@ export function StudentsList({
                   })
                 }
               >
-                <SelectTrigger className="h-11 w-full border-border/80 bg-background/80">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -556,7 +561,6 @@ export function StudentsList({
                     </span>
                   ) : null}
                 </p>
-                <p className="text-crm-xs text-muted-foreground">Toque na linha ou cartão para ver o perfil.</p>
               </div>
             </div>
             {hasFilters ? (

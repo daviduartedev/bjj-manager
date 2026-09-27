@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { UserPlus } from "lucide-react";
 
+import { PageFrame } from "@/components/prototype/page-frame";
 import { StudentForm } from "@/components/students/student-form";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { getStudentCatalog } from "@/lib/data/students-catalog";
 import { defaultCreateStudentValues } from "@/lib/students/default-form-values";
@@ -18,22 +18,22 @@ export default async function NovoAlunoPage() {
   const defaults = defaultCreateStudentValues(belts, plans);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <DashboardPageHero
-        badge="Cadastro"
-        intro={<DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>}
-        title="Novo aluno"
-        description="Campos obrigatórios marcados; os demais facilitam busca e contato."
-      />
-
+    <PageFrame
+      title="Novo aluno"
+      emoji="➕"
+      icon={UserPlus}
+      tone="emerald"
+    >
+      <div className="space-y-6">
+      <DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>
       <DashboardPanel
         icon={UserPlus}
         title="Ficha do aluno"
         subtitle="Tipo, faixa, plano e dados pessoais"
-        contentClassName="flex justify-center"
       >
         <StudentForm belts={belts} plans={plans} mode="create" defaultValues={defaults} />
       </DashboardPanel>
-    </div>
+      </div>
+    </PageFrame>
   );
 }

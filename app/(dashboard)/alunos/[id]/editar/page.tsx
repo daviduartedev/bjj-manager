@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { FilePenLine } from "lucide-react";
 import { notFound } from "next/navigation";
 
+import { PageFrame } from "@/components/prototype/page-frame";
 import { StudentForm } from "@/components/students/student-form";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { getStudentByIdForEdit } from "@/lib/data/students-detail";
 import { getStudentCatalog } from "@/lib/data/students-catalog";
@@ -56,28 +56,22 @@ export default async function EditarAlunoPage({ params }: PageProps) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <DashboardPageHero
-        badge="Edição"
-        intro={<DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>}
-        title="Editar aluno"
-        description={student.full_name}
-      >
-        {!student.plan_id ? (
-          <p
-            className="mt-4 rounded-lg border border-[hsl(var(--status-pending)/0.35)] bg-[hsl(var(--status-pending)/0.08)] px-4 py-3 text-crm-sm text-foreground"
-            role="status"
-          >
-            Este aluno não tem plano ativo associado. Escolha um plano compatível e salve.
-          </p>
-        ) : null}
-      </DashboardPageHero>
+    <PageFrame title="Editar aluno" emoji="✏️" icon={FilePenLine} tone="amber" context={student.full_name}>
+      <div className="space-y-6">
+      <DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>
+      {!student.plan_id ? (
+        <p
+          className="rounded-lg border border-[hsl(var(--status-pending)/0.35)] bg-[hsl(var(--status-pending)/0.08)] px-4 py-3 text-crm-sm text-foreground"
+          role="status"
+        >
+          Este aluno não tem plano ativo associado. Escolha um plano compatível e salve.
+        </p>
+      ) : null}
 
       <DashboardPanel
         icon={FilePenLine}
         title="Ficha completa"
         subtitle="Atualize dados pessoais, faixa e vínculo de plano"
-        contentClassName="flex justify-center"
       >
         <StudentForm
           belts={belts}
@@ -88,6 +82,7 @@ export default async function EditarAlunoPage({ params }: PageProps) {
           graduationEventId={student.graduationEventId}
         />
       </DashboardPanel>
-    </div>
+      </div>
+    </PageFrame>
   );
 }

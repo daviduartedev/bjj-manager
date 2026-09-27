@@ -12,6 +12,7 @@ import {
 } from "@/actions/product-ledger";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -175,7 +176,6 @@ export function ProductLedgerNotebook({
             <Button
               type="button"
               variant={kind === "sale" ? "default" : "outline"}
-              className="min-h-11"
               onClick={() => setKind("sale")}
             >
               Venda
@@ -183,7 +183,6 @@ export function ProductLedgerNotebook({
             <Button
               type="button"
               variant={kind === "outlay" ? "default" : "outline"}
-              className="min-h-11"
               onClick={() => setKind("outlay")}
             >
               A pagar
@@ -195,7 +194,7 @@ export function ProductLedgerNotebook({
               <div className="space-y-2">
                 <Label>Aluno</Label>
                 <Select value={studentId} onValueChange={setStudentId}>
-                  <SelectTrigger className="min-h-11">
+                  <SelectTrigger>
                     <SelectValue placeholder="Quem comprou" />
                   </SelectTrigger>
                   <SelectContent>
@@ -216,7 +215,7 @@ export function ProductLedgerNotebook({
                     setVariantId("");
                   }}
                 >
-                  <SelectTrigger className="min-h-11">
+                  <SelectTrigger>
                     <SelectValue placeholder="Quimono, rash guard…" />
                   </SelectTrigger>
                   <SelectContent>
@@ -232,7 +231,7 @@ export function ProductLedgerNotebook({
                 <div className="space-y-2">
                   <Label>Tamanho</Label>
                   <Select value={variantId} onValueChange={setVariantId}>
-                    <SelectTrigger className="min-h-11">
+                    <SelectTrigger>
                       <SelectValue placeholder="Opcional" />
                     </SelectTrigger>
                     <SelectContent>
@@ -249,7 +248,6 @@ export function ProductLedgerNotebook({
                 <Label htmlFor="ledger-qty">Quantidade</Label>
                 <Input
                   id="ledger-qty"
-                  className="min-h-11"
                   inputMode="numeric"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
@@ -261,7 +259,6 @@ export function ProductLedgerNotebook({
               <Label htmlFor="ledger-title">O que a academia tem a pagar</Label>
               <Input
                 id="ledger-title"
-                className="min-h-11"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Fornecedor, reposição de estoque…"
@@ -274,7 +271,6 @@ export function ProductLedgerNotebook({
               <Label htmlFor="ledger-total">Valor</Label>
               <Input
                 id="ledger-total"
-                className="min-h-11"
                 value={total}
                 onChange={(e) => setTotal(e.target.value)}
                 placeholder="350,00"
@@ -284,7 +280,6 @@ export function ProductLedgerNotebook({
               <Label htmlFor="ledger-x">Vezes</Label>
               <Input
                 id="ledger-x"
-                className="min-h-11"
                 inputMode="numeric"
                 value={installments}
                 onChange={(e) => setInstallments(e.target.value)}
@@ -295,7 +290,7 @@ export function ProductLedgerNotebook({
           <div className="space-y-2">
             <Label>Pagamento</Label>
             <Select value={method} onValueChange={(value) => setMethod(value as LedgerPaymentMethod)}>
-              <SelectTrigger className="min-h-11">
+              <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -312,16 +307,17 @@ export function ProductLedgerNotebook({
             <Label htmlFor="ledger-note">Lembrete</Label>
             <Input
               id="ledger-note"
-              className="min-h-11"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Entregar na quinta, deixar na secretaria…"
             />
           </div>
 
-          <Button type="submit" className="min-h-11 w-full" disabled={saving}>
+          <div className={formActionsClass}>
+          <Button type="submit" className={primaryActionClass} disabled={saving}>
             {saving ? "Anotando…" : "Anotar no caderno"}
           </Button>
+          </div>
         </div>
       </form>
 
@@ -355,7 +351,6 @@ export function ProductLedgerNotebook({
               type="button"
               size="sm"
               variant={filter === value ? "default" : "outline"}
-              className="min-h-11"
               onClick={() => setFilter(value)}
             >
               {label}
@@ -413,7 +408,6 @@ export function ProductLedgerNotebook({
                           type="button"
                           size="sm"
                           variant="outline"
-                          className="min-h-11"
                           onClick={() => onPay(parcel.id)}
                         >
                           Marcar paga
@@ -425,7 +419,7 @@ export function ProductLedgerNotebook({
                 {row.canIssueReceipt ? (
                   <Button
                     type="button"
-                    className="mt-4 min-h-11"
+                    className={`mt-4 ${primaryActionClass}`}
                     variant="outline"
                     onClick={() => onReceipt(row.id)}
                   >

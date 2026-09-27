@@ -1,10 +1,11 @@
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
+import { CalendarDays } from "lucide-react";
+
+import { PageFrame } from "@/components/prototype/page-frame";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PortalAulasLoading() {
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <DashboardPageHero badge="Aulas" title="Minhas aulas" description="Check-in e horários." />
+    <PageFrame title="Aulas" emoji="📅" icon={CalendarDays} tone="sky">
       <ul className="space-y-4" aria-busy="true" aria-label="A carregar aulas">
         {Array.from({ length: 3 }).map((_, i) => (
           <li key={i}>
@@ -12,6 +13,6 @@ export default function PortalAulasLoading() {
           </li>
         ))}
       </ul>
-    </div>
+    </PageFrame>
   );
 }

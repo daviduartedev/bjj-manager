@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { ShoppingBag } from "lucide-react";
 
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { EmptyState } from "@/components/layout/empty-state";
+import { PageFrame } from "@/components/prototype/page-frame";
 
 export const metadata: Metadata = {
   title: "Loja",
@@ -10,13 +10,12 @@ export const metadata: Metadata = {
 
 export default function PortalLojaPage() {
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <DashboardPageHero badge="Loja" title="Loja da academia" description="Produtos e reservas." />
+    <PageFrame title="Loja" emoji="🛍️" icon={ShoppingBag} tone="orange">
       <EmptyState
         icon={ShoppingBag}
         title="Em breve"
         description="A vitrine e reservas estarão disponíveis na Fase 3 do portal."
       />
-    </div>
+    </PageFrame>
   );
 }

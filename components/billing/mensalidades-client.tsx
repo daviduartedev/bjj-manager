@@ -8,10 +8,10 @@ import { BillingIndicatorBadge } from "@/components/billing/billing-indicator-ba
 import { BulkPayDialog } from "@/components/billing/bulk-pay-dialog";
 import { ReceiptViewerDialog } from "@/components/billing/receipt-viewer-dialog";
 import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Button } from "@/components/ui/button";
+import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -79,7 +79,7 @@ function matchesPlanFilter(
 
 /** Filtros: mesma altura e tipografia em todos os controlos */
 const filterControl =
-  "min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm";
+  "h-10 w-full rounded-xl border border-input bg-background px-3 text-sm";
 
 function formatReferenceMonthCaption(isoFirstDay: string): string {
   const d = new Date(`${isoFirstDay.slice(0, 10)}T12:00:00`);
@@ -130,13 +130,19 @@ export function MensalidadesClient({
     filtro?: FilterKey;
     tipo?: MensalidadesPlanFilterKey;
   }) {
-    router.replace(
-      `${ROUTES.mensalidades}${buildMensalidadesListSearchParams({
+    const params = new URLSearchParams(
+      buildMensalidadesListSearchParams({
         mes: opts.mes ?? referenceMonth,
         filtro: opts.filtro ?? filter,
         tipo: opts.tipo ?? planFilter,
-      })}`,
+      }).replace(/^\?/, ""),
     );
+    const variant = new URLSearchParams(window.location.search).get("variant");
+    if (variant === "A" || variant === "B" || variant === "C") {
+      params.set("variant", variant);
+    }
+    const query = params.toString();
+    router.replace(query ? `${ROUTES.mensalidades}?${query}` : ROUTES.mensalidades);
   }
 
   const allFilteredSelected =
@@ -182,13 +188,7 @@ export function MensalidadesClient({
   const monthCaption = formatReferenceMonthCaption(referenceMonth);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Financeiro"
-        title="Mensalidades"
-        description="Fechamento mensal: filtre, selecione e registre pagamentos."
-      />
-
+    <div className="space-y-8">
       <div data-tour="mensalidades-resumo-mes">
         <MensalidadesMonthFinancePanel summary={monthFinance} monthCaption={monthCaption} />
       </div>
@@ -196,10 +196,9 @@ export function MensalidadesClient({
       <DashboardPanel
         icon={Wallet}
         title="Lista do mês"
-        subtitle="Filtros e lista densa"
         contentClassName="p-3 sm:p-4"
       >
-        <div className="rounded-xl border border-border/60 bg-muted/15 p-4" data-tour="page-mensalidades">
+        <div className="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-900" data-tour="page-mensalidades">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-5">
             <div className="flex min-w-0 flex-col gap-1.5">
               <Label
@@ -311,7 +310,7 @@ export function MensalidadesClient({
             <Button
               type="button"
               variant="outline"
-              className="min-h-11"
+              className={secondaryActionClass}
               onClick={() => toggleSelectAllFiltered(!allFilteredSelected)}
             >
               {allFilteredSelected ? "Limpar" : "Seleccionar todos"}
@@ -322,7 +321,7 @@ export function MensalidadesClient({
           </div>
           <Button
             type="button"
-            className="min-h-11 font-semibold"
+            className={primaryActionClass}
             disabled={bulkEligibleIds.length === 0}
             onClick={() => setBulkOpen(true)}
           >
@@ -512,26 +511,26 @@ export function MensalidadesClient({
                     </span>
                   </span>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <Button
-                    type="button"
-                    className="min-h-11 w-full"
-                    disabled={row.amountCentsExpected == null}
-                    onClick={() => setPayStudent(row)}
-                  >
-                    Registrar pagamento
-                  </Button>
+                <div className={formActionsClass}>
                   {row.indicator === "paid" && row.paymentId ? (
                     <Button
                       type="button"
                       variant="outline"
-                      className="min-h-11 w-full"
+                      className={secondaryActionClass}
                       onClick={() => setReceiptStudent(row)}
                     >
                       <Receipt className="mr-1.5 size-3.5" />
                       Ver comprovante
                     </Button>
                   ) : null}
+                  <Button
+                    type="button"
+                    className={primaryActionClass}
+                    disabled={row.amountCentsExpected == null}
+                    onClick={() => setPayStudent(row)}
+                  >
+                    Registrar pagamento
+                  </Button>
                 </div>
               </div>
             ))

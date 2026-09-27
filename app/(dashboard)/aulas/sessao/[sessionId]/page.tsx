@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { CalendarDays, Users } from "lucide-react";
 
 import { SessionCheckInsPanel } from "@/components/classes/session-check-ins-panel";
+import { PageFrame } from "@/components/prototype/page-frame";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { DashboardStatTile } from "@/components/layout/dashboard-stat-tile";
 import { listSessionPresence } from "@/lib/data/class-session-check-ins";
@@ -49,18 +49,19 @@ export default async function SessionCheckInsPage({ params }: Props) {
   const dateLabel = formatSessionDate(session.sessionDate);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <DashboardPageHero
-        badge="Aulas"
-        intro={<DashboardBackLink href={ROUTES.aulas}>Aulas</DashboardBackLink>}
-        title={session.className}
-        description={`${dateLabel} · ${session.startTime} – ${session.endTime}`}
-      />
+    <PageFrame
+      title={`Chamada · ${session.className}`}
+      emoji="📋"
+      icon={CalendarDays}
+      tone="emerald"
+      context={`${dateLabel} · ${session.startTime} – ${session.endTime}`}
+    >
+      <div className="space-y-8">
+      <DashboardBackLink href={ROUTES.aulas}>Aulas</DashboardBackLink>
 
       <DashboardPanel
         icon={CalendarDays}
         title="Check-ins e presença"
-        subtitle="Atualização automática a cada 30 segundos"
       >
         <SessionCheckInsPanel
           sessionId={sessionId}
@@ -73,18 +74,14 @@ export default async function SessionCheckInsPage({ params }: Props) {
       <DashboardPanel
         icon={Users}
         title="Resumo"
-        subtitle="Contagem rápida desta sessão"
       >
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-4">
           <DashboardStatTile label="Check-ins" value={checkIns.length} />
           <DashboardStatTile label="Presença confirmada" value={attendances.length} accent="paid" />
-          <DashboardStatTile
-            label="Elegíveis manual"
-            value={manualEligible.length}
-            className="col-span-2 sm:col-span-1"
-          />
+          <DashboardStatTile label="Elegíveis manual" value={manualEligible.length} accent="info" />
         </div>
       </DashboardPanel>
-    </div>
+      </div>
+    </PageFrame>
   );
 }

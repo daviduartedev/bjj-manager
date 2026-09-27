@@ -1,23 +1,21 @@
 import type { Metadata } from "next";
+import { Hand } from "lucide-react";
 
-import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
-import { getStudentForCurrentUser } from "@/lib/auth/student-context";
+import { PageFrame } from "@/components/prototype/page-frame";
 
 export const metadata: Metadata = {
   title: "Portal do aluno",
 };
 
-export default async function PortalHomePage() {
-  const student = await getStudentForCurrentUser();
-  const firstName = student?.full_name?.split(/\s+/)[0] ?? "Aluno";
-
+export default function PortalHomePage() {
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <DashboardPageHero
-        badge="Portal do aluno"
-        title={`Olá, ${firstName}`}
-        description="Acompanhe aulas, loja e pagamentos da sua academia."
-      />
-    </div>
+    <PageFrame
+      title="Início"
+      emoji="🏠"
+      icon={Hand}
+      tone="amber"
+    >
+      {null}
+    </PageFrame>
   );
 }

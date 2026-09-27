@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
-import { Menu, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 
 import { signOut } from "@/app/(dashboard)/actions";
 import { LogoMark } from "@/components/brand/logo-mark";
-import { ProductFooter } from "@/components/layout/product-footer";
 import { ShellNavLink } from "@/components/layout/shell-nav-link";
 import { STUDENT_NAV_ITEMS } from "@/components/student/student-nav";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { APP_NAME } from "@/lib/branding";
 import { ROUTES } from "@/lib/routes";
@@ -28,21 +26,6 @@ type StudentShellProps = {
   userLabel: string;
   children: React.ReactNode;
 };
-
-function ShellChromeSkeleton() {
-  return (
-    <div
-      className="pointer-events-none animate-pulse border-b border-border bg-background"
-      aria-hidden
-    >
-      <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
-        <Skeleton className="size-11 shrink-0 rounded-md bg-muted lg:hidden" />
-        <Skeleton className="h-5 max-w-[200px] flex-1 rounded bg-muted" />
-        <Skeleton className="size-11 shrink-0 rounded-md bg-muted" />
-      </div>
-    </div>
-  );
-}
 
 function SidebarSkeletonNav() {
   return (
@@ -72,14 +55,11 @@ function BottomNavSkeleton() {
 
 export function StudentShell({ academyName, userLabel, children }: StudentShellProps) {
   const [mounted, setMounted] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingSignOut, startSignOut] = useTransition();
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const closeDrawer = () => setDrawerOpen(false);
 
   const brandMarkSidebar = (
     <LogoMark
@@ -87,31 +67,6 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
       className="size-9 shrink-0 rounded-lg border border-white/15 bg-white/[0.06] p-1 shadow-sm"
       imgClassName="max-h-[22px] max-w-[4.5rem]"
     />
-  );
-
-  const brandMark = (
-    <LogoMark
-      height={22}
-      className="size-9 shrink-0 rounded-lg border border-border/80 bg-card p-1 shadow-sm"
-      imgClassName="max-h-[22px] max-w-[4.5rem]"
-    />
-  );
-
-  const brandBlock = (
-    <Link
-      href={ROUTES.portal}
-      className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-md text-foreground ring-offset-background transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 lg:flex-none"
-    >
-      {brandMark}
-      <span className="flex min-w-0 flex-col leading-tight">
-        <span className="font-display text-sm font-semibold tracking-tight">{APP_NAME}</span>
-        {academyName ? (
-          <span className="truncate text-xs font-normal opacity-90">{academyName}</span>
-        ) : (
-          <span className="truncate text-xs font-normal opacity-70">Portal do aluno</span>
-        )}
-      </span>
-    </Link>
   );
 
   const sidebarBrand = (
@@ -133,14 +88,14 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
     </Link>
   );
 
-  const userMenu = (
+  const userMenu = (triggerClassName: string) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="shrink-0 text-foreground hover:bg-muted focus-visible:ring-primary focus-visible:ring-offset-background"
+          className={cn("shrink-0 focus-visible:ring-primary", triggerClassName)}
           aria-label="Menu do utilizador"
         >
           <UserRound className="size-5" />
@@ -193,62 +148,19 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
                   />
                 ))}
               </nav>
+              <div className="mt-auto flex items-center justify-end border-t border-white/10 pt-3">
+                {userMenu(
+                  "text-zinc-100 hover:bg-white/10 hover:text-zinc-100 focus-visible:ring-offset-[hsl(0_0%_2%)]",
+                )}
+              </div>
             </>
           )}
         </div>
       </aside>
 
       <div className="flex min-h-screen flex-col lg:pl-[15.5rem]">
-        <header className="dashboard-top-bar sticky top-0 z-30 shrink-0 text-foreground shadow-[0_1px_2px_-1px_hsl(0_0%_0%/0.06)]">
-          {!mounted ? (
-            <ShellChromeSkeleton />
-          ) : (
-            <div className="flex h-14 items-center gap-2 px-4 lg:px-6">
-              <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0 text-foreground hover:bg-muted lg:hidden"
-                    aria-label="Abrir menu de navegação"
-                  >
-                    <Menu className="size-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="left"
-                  className="w-[min(100%,20rem)] border-zinc-800 bg-[hsl(0_0%_2%)] p-0 text-zinc-100"
-                >
-                  <SheetHeader className="border-b border-white/10 bg-white/[0.03] px-6 py-4 text-left">
-                    <SheetTitle className="font-display text-zinc-100">Navegação</SheetTitle>
-                  </SheetHeader>
-                  <div className="p-4">{sidebarBrand}</div>
-                  <nav className="flex flex-col gap-1 px-4 pb-6" aria-label="Principal">
-                    {STUDENT_NAV_ITEMS.map((item) => (
-                      <ShellNavLink
-                        key={item.href}
-                        href={item.href}
-                        label={item.label}
-                        icon={item.icon}
-                        surface="ink"
-                        onNavigate={closeDrawer}
-                      />
-                    ))}
-                  </nav>
-                </SheetContent>
-              </Sheet>
-
-              {brandBlock}
-
-              <div className="ml-auto flex shrink-0 items-center gap-2">{userMenu}</div>
-            </div>
-          )}
-        </header>
-
-        <main className="dashboard-main-surface container flex flex-1 flex-col py-5 pb-24 lg:py-6 lg:pb-8">
+        <main className="dashboard-main-surface flex w-full max-w-none flex-1 flex-col px-0 pb-24 pt-0 lg:pb-0">
           <div className="flex-1">{children}</div>
-          <ProductFooter className="mt-10 shrink-0 border-t border-border/50 pt-6" />
         </main>
 
         <div className="fixed bottom-0 left-0 right-0 z-30 lg:hidden">
@@ -269,6 +181,9 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
                   surface="ink"
                 />
               ))}
+              <div className="flex flex-1 items-center justify-center">
+                {userMenu("text-zinc-100 hover:bg-white/10 hover:text-zinc-100")}
+              </div>
             </nav>
           )}
         </div>

@@ -1,0 +1,82 @@
+import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
+
+import { Button } from "@/components/ui/button";
+import type { PageHeaderAction } from "@/lib/painel/page-frame";
+import { resolvePageHeader } from "@/lib/painel/page-frame";
+import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
+
+export const routeTones = {
+  rose: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100",
+  sky: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-100",
+  emerald: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-100",
+  amber: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-100",
+  violet: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-100",
+  orange: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-100",
+} as const;
+
+export type RouteTone = keyof typeof routeTones;
+
+export type RouteHeaderLink = PageHeaderAction & {
+  icon?: ReactNode;
+};
+
+type ActionSlot = RouteHeaderLink | readonly RouteHeaderLink[] | null | undefined;
+
+type RouteHeaderProps = {
+  title: string;
+  emoji: string;
+  context?: string;
+  icon: LucideIcon;
+  tone?: RouteTone;
+  primary?: ActionSlot;
+  secondary?: ActionSlot;
+};
+
+export function RouteHeader(props: RouteHeaderProps) {
+  const actions = resolvePageHeader({ primary: props.primary, secondary: props.secondary });
+  const primaryIcon = iconFor(actions.primary, props.primary);
+  const secondaryIcon = iconFor(actions.secondary, props.secondary);
+
+  return (
+    <header className="sticky top-0 z-20 -mx-3 mb-3 border-b border-zinc-200 bg-[#f3f4f6] px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:-mx-4 sm:px-4 lg:-mx-6 lg:mb-5 lg:px-6 lg:pt-4 dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate font-display text-lg font-semibold tracking-tight lg:text-2xl">
+            {props.title} <span aria-hidden>{props.emoji}</span>
+          </h1>
+          {props.context ? (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{props.context}</p>
+          ) : null}
+        </div>
+        {actions.primary || actions.secondary ? (
+          <div className="flex shrink-0 items-center justify-end gap-2">
+            {actions.primary ? (
+              <Button className={primaryActionClass} asChild>
+                <Link href={actions.primary.href}>
+                  {primaryIcon}
+                  {actions.primary.label}
+                </Link>
+              </Button>
+            ) : null}
+            {actions.secondary ? (
+              <Button variant="outline" className={secondaryActionClass} asChild>
+                <Link href={actions.secondary.href}>
+                  {secondaryIcon}
+                  {actions.secondary.label}
+                </Link>
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </header>
+  );
+}
+
+function iconFor(action: PageHeaderAction | null, slot: ActionSlot): ReactNode {
+  if (!action || slot == null) return null;
+  const list = Array.isArray(slot) ? slot : [slot];
+  return list.find((item) => item.label === action.label && item.href === action.href)?.icon ?? null;
+}
