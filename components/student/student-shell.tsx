@@ -6,7 +6,6 @@ import { Menu, UserRound } from "lucide-react";
 
 import { signOut } from "@/app/(dashboard)/actions";
 import { LogoMark } from "@/components/brand/logo-mark";
-import { ProductFooter } from "@/components/layout/product-footer";
 import { ShellNavLink } from "@/components/layout/shell-nav-link";
 import { STUDENT_NAV_ITEMS } from "@/components/student/student-nav";
 import { Button } from "@/components/ui/button";
@@ -248,7 +247,6 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
 
         <main className="dashboard-main-surface container flex flex-1 flex-col py-5 pb-24 lg:py-6 lg:pb-8">
           <div className="flex-1">{children}</div>
-          <ProductFooter className="mt-10 shrink-0 border-t border-border/50 pt-6" />
         </main>
 
         <div className="fixed bottom-0 left-0 right-0 z-30 lg:hidden">
