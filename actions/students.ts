@@ -268,7 +268,11 @@ export async function updateStudent(
     return { ok: true };
   } catch (e) {
     if (e instanceof GraduationWeightError) {
-      return { ok: false, error: e.message, fieldErrors: { weight_kg: [e.message] } };
+      return {
+        ok: false,
+        error: e.message,
+        fieldErrors: { [e.field]: [e.message] },
+      };
     }
     if (e instanceof BillingDomainError) {
       return { ok: false, error: mapBillingActionError(e) };
@@ -358,7 +362,11 @@ export async function quickUpdateStudent(
     return { ok: true };
   } catch (e) {
     if (e instanceof GraduationWeightError) {
-      return { ok: false, error: e.message, fieldErrors: { weight_kg: [e.message] } };
+      return {
+        ok: false,
+        error: e.message,
+        fieldErrors: { [e.field]: [e.message] },
+      };
     }
     if (e instanceof BillingDomainError) {
       return { ok: false, error: mapBillingActionError(e) };

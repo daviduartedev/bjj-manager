@@ -1,4 +1,5 @@
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
+import { todayCalendarDateStringInAppTZ } from "@/lib/dates";
 import type { StudentFullFormValues } from "@/lib/validations/students";
 
 /** Valores iniciais para novo aluno (primeiro adulto/plano adulto do catálogo). */
@@ -6,7 +7,7 @@ export function defaultCreateStudentValues(
   belts: BeltCatalogRow[],
   plans: PlanCatalogRow[],
 ): StudentFullFormValues {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayCalendarDateStringInAppTZ();
   const adultBelt = belts.find((b) => b.kind === "adult");
   const adultPlan = plans.find((p) => p.kind === "adult");
   return {

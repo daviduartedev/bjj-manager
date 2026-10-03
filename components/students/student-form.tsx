@@ -35,6 +35,7 @@ import { ROUTES } from "@/lib/routes";
 import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { mapStudentServerError } from "@/lib/students/action-errors";
 import { beltLabelPt } from "@/lib/students/belt-labels";
+import { academyStartStored } from "@/lib/students/academy-start";
 import { isWhiteBeltSlug } from "@/lib/students/belt-kind";
 import { degreeOptionsForBelt } from "@/lib/students/degree";
 import { maskCpfInput, maskPhoneBrInput } from "@/lib/students/input-masks";
@@ -140,6 +141,17 @@ export function StudentForm({
   }, [isWhiteBelt, form]);
 
   useEffect(() => {
+    if (!isWhiteBelt) return;
+    const current = form.getValues("academy_start_date");
+    if (!current || current.length < 4) return;
+    const year = current.slice(0, 4);
+    const next = academyStartStored(true, year, current);
+    if (next !== current) {
+      form.setValue("academy_start_date", next);
+    }
+  }, [isWhiteBelt, form]);
+
+  useEffect(() => {
     const currentPlanId = form.getValues("plan_id");
     if (plansForKind.some((p) => p.id === currentPlanId)) return;
     const fallback = pickDefaultPlanForStudentContext(
@@ -190,6 +202,10 @@ export function StudentForm({
               message: msgs[0],
             });
           }
+          const alreadyOnField = Object.values(result.fieldErrors)
+            .flat()
+            .includes(result.error);
+          if (alreadyOnField) return;
         }
         toast.error(result.error);
         return;
@@ -271,10 +287,9 @@ export function StudentForm({
                       onChange={(e) => {
                         const raw = e.target.value.replace(/\D/g, "").slice(0, 4);
                         if (raw.length === 4) {
-                          const y = parseInt(raw, 10);
-                          if (y >= 1990 && y <= 2100) {
-                            field.onChange(`${raw}-01-01`);
-                          }
+                          field.onChange(
+                            academyStartStored(true, raw, field.value),
+                          );
                         } else if (raw.length === 0) {
                           field.onChange("");
                         }

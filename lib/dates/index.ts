@@ -8,6 +8,7 @@ export { humanizeDuration } from "./humanize-duration";
 export {
   parseCalendarDate,
   toCalendarDateStringInAppTZ,
+  todayCalendarDateStringInAppTZ,
   type CalendarDateInput,
 } from "./parse-calendar-date";
 export {

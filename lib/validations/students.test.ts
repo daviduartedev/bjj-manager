@@ -20,6 +20,11 @@ const beltKidsOrange = {
   slug: "orange",
   kind: "kids" as const,
 };
+const beltAdultBlue = {
+  id: "10000000-0000-4000-8000-000000000005",
+  slug: "blue",
+  kind: "adult" as const,
+};
 const planAdult = {
   id: "20000000-0000-4000-8000-000000000001",
   kind: "adult" as const,
@@ -47,7 +52,7 @@ const baseInput = {
 describe("buildStudentFullFormSchema", () => {
   const plansTriple = [planAdult, planKids, planKids2];
   const schema = buildStudentFullFormSchema(
-    [beltAdult, beltKids, beltKidsOrange],
+    [beltAdult, beltKids, beltKidsOrange, beltAdultBlue],
     plansTriple,
   );
 
@@ -130,6 +135,45 @@ describe("buildStudentFullFormSchema", () => {
       status: "inactive",
     });
     expect(r.success).toBe(false);
+  });
+
+  it("grava o ano de entrada da faixa branca como 1 de janeiro", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      academy_start_date: "2024-06-15",
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.academy_start_date).toBe("2024-01-01");
+    }
+  });
+
+  it("rejeita ano de entrada posterior ao ano civil no campo da faixa branca", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      academy_start_date: "2099-01-01",
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.flatten().fieldErrors.academy_start_date).toEqual([
+        "O ano de entrada não pode ser no futuro.",
+      ]);
+    }
+  });
+
+  it("rejeita data de entrada futura na faixa colorida", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      current_belt_id: beltAdultBlue.id,
+      current_degree: 0,
+      academy_start_date: "2099-06-15",
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.flatten().fieldErrors.academy_start_date).toEqual([
+        "A data de entrada não pode ser no futuro.",
+      ]);
+    }
   });
 });
 
