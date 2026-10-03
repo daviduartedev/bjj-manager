@@ -55,10 +55,7 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
   if (!user) return null;
 
   const supabase = await createClient();
-  const { data: row, error } = await supabase
-    .from("profiles")
-    .select(
-      `
+  const fullSelect = `
       id,
       user_id,
       account_id,
@@ -80,10 +77,44 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
         created_at,
         updated_at
       )
-    `,
-    )
+    `;
+
+  const legacySelect = `
+      id,
+      user_id,
+      account_id,
+      display_name,
+      phone,
+      role,
+      created_at,
+      updated_at,
+      accounts (
+        id,
+        name,
+        legal_name,
+        cnpj,
+        signature_url,
+        logo_url,
+        created_at,
+        updated_at
+      )
+    `;
+
+  let { data: row, error } = await supabase
+    .from("profiles")
+    .select(fullSelect)
     .eq("user_id", user.id)
     .maybeSingle();
+
+  if (error) {
+    const retry = await supabase
+      .from("profiles")
+      .select(legacySelect)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    row = retry.data as typeof row;
+    error = retry.error;
+  }
 
   if (error || !row) return null;
 
