@@ -47,7 +47,6 @@ export default async function PainelPage() {
       accountName={ctx.account.name}
       activeStudentCount={data.activeStudentCount}
       overdueCount={data.overdueCount}
-      birthdayMonthCount={data.birthdayMonthCount}
       graduationAlertCount={data.graduationAlertCount}
       birthdayToday={data.birthdayToday}
       dueToday={data.dueToday}

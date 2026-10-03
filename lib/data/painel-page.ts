@@ -3,7 +3,7 @@ import { dueDateInReferenceMonth } from "@/lib/billing/reference-month";
 import { listUpcomingSessions, type UpcomingSessionRow } from "@/lib/data/classes-page";
 import { loadMensalidadesRows } from "@/lib/data/mensalidades-page";
 import type { MonthFinanceSummary } from "@/lib/data/mensalidades-month-summary";
-import { isBirthdayThisCalendarMonth, isBirthdayToday } from "@/lib/painel/birthday-utils";
+import { isBirthdayToday } from "@/lib/painel/birthday-utils";
 import { countBillingMix, type PainelBillingMix } from "@/lib/painel/billing-mix";
 import {
   calendarDaysBetween,
@@ -93,7 +93,6 @@ export async function loadPainelPageData(academyName: string): Promise<{
   referenceMonth: string;
   activeStudentCount: number;
   overdueCount: number;
-  birthdayMonthCount: number;
   graduationAlertCount: number;
   birthdayToday: PainelAttentionRow[];
   dueToday: PainelAttentionRow[];
@@ -128,7 +127,6 @@ export async function loadPainelPageData(academyName: string): Promise<{
       `,
       )
       .eq("status", "active")
-      .eq("is_exempt", false)
       .is("archived_at", null)
       .is("removed_at", null)
       .order("full_name", { ascending: true }),
@@ -145,10 +143,6 @@ export async function loadPainelPageData(academyName: string): Promise<{
 
   const overdueCount = billRows.filter(
     (r) => r.indicator === "overdue" && activeIds.has(r.studentId),
-  ).length;
-
-  const birthdayMonthCount = students.filter(
-    (s) => isBirthdayThisCalendarMonth(s.birth_date, todayYmd),
   ).length;
 
   const nameById = new Map(students.map((s) => [s.id, s.full_name] as const));
@@ -201,7 +195,6 @@ export async function loadPainelPageData(academyName: string): Promise<{
     referenceMonth,
     activeStudentCount: students.length,
     overdueCount,
-    birthdayMonthCount,
     graduationAlertCount: graduationAlerts.length,
     birthdayToday,
     dueToday,

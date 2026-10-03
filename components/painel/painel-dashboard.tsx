@@ -112,13 +112,6 @@ export function PainelDashboard(props: PainelDashboardProps) {
           iconClass="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-100"
           label="Alertas de graduação"
           value={String(props.graduationAlertCount)}
-          chip={
-            props.birthdayMonthCount === 1
-              ? "1 aniversário"
-              : `${props.birthdayMonthCount} aniversários`
-          }
-          chipHint="neste mês"
-          chipClass={pillTone.amber}
           bars={[
             { value: props.dueToday.length, color: "#f59e0b" },
             { value: props.overdue14.length, color: "#e11d48" },
@@ -150,9 +143,9 @@ function KpiCard(props: {
   iconClass: string;
   label: string;
   value: string;
-  chip: string;
-  chipHint: string;
-  chipClass: string;
+  chip?: string;
+  chipHint?: string;
+  chipClass?: string;
   bars: { value: number; color: string }[];
 }) {
   const rows = props.bars.length > 0 ? props.bars : [{ value: 0, color: "#e4e4e7" }];
@@ -168,10 +161,16 @@ function KpiCard(props: {
       <p className="mt-1 font-display text-[1.65rem] font-bold leading-none tracking-tight tabular-nums [overflow-wrap:anywhere] sm:text-[2rem]">
         {props.value}
       </p>
-      <p className="mt-3 flex flex-wrap items-center gap-2">
-        <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", props.chipClass)}>{props.chip}</span>
-        <span className="text-xs text-muted-foreground">{props.chipHint}</span>
-      </p>
+      {props.chip || props.chipHint ? (
+        <p className="mt-3 flex flex-wrap items-center gap-2">
+          {props.chip ? (
+            <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", props.chipClass)}>{props.chip}</span>
+          ) : null}
+          {props.chipHint ? (
+            <span className="text-xs text-muted-foreground">{props.chipHint}</span>
+          ) : null}
+        </p>
+      ) : null}
     </Link>
   );
 }

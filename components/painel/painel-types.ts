@@ -13,7 +13,6 @@ export type PainelDashboardProps = {
   referenceMonth: string;
   activeStudentCount: number;
   overdueCount: number;
-  birthdayMonthCount: number;
   graduationAlertCount: number;
   birthdayToday: PainelAttentionRow[];
   dueToday: PainelAttentionRow[];

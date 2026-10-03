@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { UserPlus, Users } from "lucide-react";
 
 import { PageFrame } from "@/components/prototype/page-frame";
-import { StudentsList } from "@/components/students/students-list";
 import { DashboardStatTile } from "@/components/layout/dashboard-stat-tile";
+import { BirthdayMonthTile } from "@/components/students/birthday-month-tile";
+import { StudentsList } from "@/components/students/students-list";
 import { getStudentCatalog } from "@/lib/data/students-catalog";
-import { listStudentsQuery } from "@/lib/data/students-list";
+import { listPnl21StudentBirthdaysThisMonth, listStudentsQuery } from "@/lib/data/students-list";
 import { ROUTES } from "@/lib/routes";
 import { parseAlunosSearchParams } from "@/lib/students/alunos-url";
 
@@ -21,7 +22,7 @@ export default async function AlunosPage({ searchParams }: PageProps) {
   const raw = await searchParams;
   const urlState = parseAlunosSearchParams(raw);
 
-  const [{ belts, plans }, list] = await Promise.all([
+  const [{ belts, plans }, list, birthdays] = await Promise.all([
     getStudentCatalog(),
     listStudentsQuery({
       q: urlState.q || undefined,
@@ -31,6 +32,7 @@ export default async function AlunosPage({ searchParams }: PageProps) {
       sort: urlState.sort,
       page: urlState.page,
     }),
+    listPnl21StudentBirthdaysThisMonth(),
   ]);
 
   return (
@@ -53,6 +55,7 @@ export default async function AlunosPage({ searchParams }: PageProps) {
             icon={Users}
             accent="primary"
           />
+          <BirthdayMonthTile rows={birthdays} />
         </div>
         <StudentsList
           rows={list.rows}

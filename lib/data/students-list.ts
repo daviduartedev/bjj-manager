@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { STUDENTS_PAGE_SIZE } from "@/lib/constants/students";
 import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
+import {
+  listBirthdaysThisCalendarMonth,
+  type BirthdayThisMonthRow,
+} from "@/lib/painel/birthday-utils";
 import type { PlanKind } from "@/lib/students/plan-kind";
 import { studentGraduationDurationLine } from "@/lib/students/duration-display";
 import { currentBeltDegreeGraduationMeta } from "@/lib/students/graduation-current-since";
@@ -205,4 +209,28 @@ export async function listStudentsQuery(
     page,
     pageSize,
   };
+}
+
+/**
+ * Aniversariantes do mês civil actual (SP) no recorte PNL-2.1.
+ * Isento entra; arquivado e removido ficam de fora.
+ */
+export async function listPnl21StudentBirthdaysThisMonth(): Promise<BirthdayThisMonthRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("students")
+    .select("full_name, birth_date")
+    .eq("status", "active")
+    .is("archived_at", null)
+    .is("removed_at", null)
+    .order("full_name", { ascending: true });
+  if (error) throw error;
+
+  return listBirthdaysThisCalendarMonth(
+    (data ?? []).map((row) => ({
+      fullName: row.full_name as string,
+      birthDate: (row.birth_date as string | null) ?? null,
+    })),
+    toCalendarDateStringInAppTZ(new Date()),
+  );
 }
