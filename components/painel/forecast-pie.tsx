@@ -40,7 +40,7 @@ export function ForecastPie({
       <div
         className={cn(box, "relative rounded-full")}
         style={{
-          background: `conic-gradient(#16a34a 0deg ${receivedDeg}deg, #e4e4e7 ${receivedDeg}deg 360deg)`,
+          background: `conic-gradient(hsl(var(--status-paid)) 0deg ${receivedDeg}deg, hsl(var(--muted)) ${receivedDeg}deg 360deg)`,
         }}
         role="img"
         aria-label={`${slices.pct}% recebido da previsão`}
@@ -54,7 +54,7 @@ export function ForecastPie({
           <span className="font-display text-2xl font-bold tabular-nums">
             {slices.pct}%
           </span>
-          <span className="text-[11px] text-muted-foreground">recebido</span>
+          <span className="text-crm-xs text-muted-foreground">recebido</span>
         </div>
       </div>
       <ul className="space-y-0.5 text-center text-sm">

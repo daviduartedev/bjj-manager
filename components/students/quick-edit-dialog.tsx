@@ -190,7 +190,11 @@ export function QuickEditDialog({
     try {
       const result = await quickUpdateStudent(student.id, kind as StudentKind, values);
       if (!result.ok) {
-        const { toastError } = applyActionFailureToForm(form.setError, result);
+        const { toastError } = applyActionFailureToForm(
+          form.setError,
+          result,
+          Object.keys(form.getValues()),
+        );
         if (toastError) toast.error(result.error);
         return;
       }

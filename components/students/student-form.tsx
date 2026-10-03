@@ -89,6 +89,9 @@ export function StudentForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
+  const [entryYearDraft, setEntryYearDraft] = useState(() =>
+    defaultValues.academy_start_date.slice(0, 4),
+  );
   const [exemptConfirmOpen, setExemptConfirmOpen] = useState(false);
   const [adultOrangeConfirm, setAdultOrangeConfirm] = useState<{
     beltId: string;
@@ -174,6 +177,7 @@ export function StudentForm({
     if (next !== current) {
       form.setValue("academy_start_date", next);
     }
+    setEntryYearDraft((prev) => (prev.length === 4 ? year : prev));
   }, [isWhiteBelt, form]);
 
   useEffect(() => {
@@ -373,20 +377,15 @@ export function StudentForm({
                         step={1}
                         disabled={loading}
                         placeholder="Ex.: 2025"
-                        value={
-                          field.value && field.value.length >= 4
-                            ? field.value.slice(0, 4)
-                            : ""
-                        }
+                        value={entryYearDraft}
                         onChange={(e) => {
                           const raw = e.target.value
                             .replace(/\D/g, "")
                             .slice(0, 4);
+                          setEntryYearDraft(raw);
                           if (raw.length === 4) {
-                            field.onChange(
-                              academyStartStored(true, raw, field.value),
-                            );
-                          } else if (raw.length === 0) {
+                            field.onChange(academyStartStored(true, raw, ""));
+                          } else {
                             field.onChange("");
                           }
                         }}

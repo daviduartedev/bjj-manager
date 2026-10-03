@@ -23,6 +23,15 @@ describe("shouldToastActionError", () => {
     expect(shouldToastActionError({ fieldErrors: {} })).toBe(true);
     expect(shouldToastActionError({ fieldErrors: { name: [] } })).toBe(true);
   });
+
+  it("toasta quando o erro de campo não tem input neste formulário", () => {
+    expect(
+      shouldToastActionError(
+        { fieldErrors: { academy_start_date: ["A data da graduação não pode ser no futuro."] } },
+        ["weight_kg", "plan_id"],
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("applyActionFailureToForm", () => {

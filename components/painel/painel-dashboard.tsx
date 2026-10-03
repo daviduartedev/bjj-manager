@@ -130,10 +130,7 @@ export function PainelDashboard(props: PainelDashboardProps) {
           label="Alertas de graduação"
           value={String(props.graduationAlertCount)}
           bars={[
-            { value: props.dueToday.length, color: "#f59e0b" },
-            { value: props.overdue14.length, color: "#e11d48" },
-            { value: props.birthdayToday.length, color: "#8b5cf6" },
-            { value: props.graduationAlertCount, color: "#0ea5e9" },
+            { value: props.graduationAlertCount, color: "hsl(var(--status-info))" },
           ]}
         />
         ) : null}
@@ -270,7 +267,7 @@ function AttentionBoard(props: { items: ReturnType<typeof attentionItems>; class
     {
       reason: "Faixa ou grau",
       label: "Faixa ou grau",
-      hint: "Tempo no grau passou de 4 meses, ou na faixa passou de 1 ano.",
+      hint: "Aluno activo que atingiu o critério de prontidão da academia.",
     },
   ] as const;
   const firstWithRows = groups.findIndex((group) => props.items.some((item) => item.reason === group.reason));

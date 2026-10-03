@@ -23,7 +23,7 @@ export function StudentFormProgress({ step, onSelectCompleted }: Props) {
           const isCurrent = index === step;
           const isCompleted = index < step;
           const className = cn(
-            "text-xs",
+            "min-h-11 text-xs",
             isCurrent && "font-medium text-foreground",
             isCompleted && "text-muted-foreground",
             !isCurrent && !isCompleted && "text-muted-foreground/60",

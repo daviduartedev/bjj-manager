@@ -12,21 +12,29 @@ export function applyActionFieldErrors<TFieldValues extends FieldValues>(
 }
 
 /** Toast only when the failure has no field messages to show under inputs. */
-export function shouldToastActionError(result: {
-  fieldErrors?: Record<string, string[]>;
-}): boolean {
+export function shouldToastActionError(
+  result: {
+    fieldErrors?: Record<string, string[]>;
+  },
+  knownFields?: Iterable<string>,
+): boolean {
   if (!result.fieldErrors) return true;
-  return !Object.values(result.fieldErrors).some((messages) =>
+  const entries = Object.entries(result.fieldErrors).filter(([, messages]) =>
     messages.some((message) => message.length > 0),
   );
+  if (entries.length === 0) return true;
+  if (!knownFields) return false;
+  const known = new Set(knownFields);
+  return entries.some(([key]) => !known.has(key));
 }
 
 export function applyActionFailureToForm<TFieldValues extends FieldValues>(
   setError: UseFormSetError<TFieldValues>,
   result: { fieldErrors?: Record<string, string[]> },
+  knownFields?: Iterable<string>,
 ): { toastError: boolean } {
   if (result.fieldErrors) {
     applyActionFieldErrors(setError, result.fieldErrors);
   }
-  return { toastError: shouldToastActionError(result) };
+  return { toastError: shouldToastActionError(result, knownFields) };
 }
