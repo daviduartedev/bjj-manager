@@ -5,9 +5,11 @@ import type {
 } from "@/lib/data/painel-page";
 import type { UpcomingSessionRow } from "@/lib/data/classes-page";
 import type { PainelBillingMix } from "@/lib/painel/billing-mix";
+import type { PainelBlockId } from "@/lib/painel/hidden-blocks";
 
 export type PainelDashboardProps = {
   displayName: string;
+  hiddenBlocks: readonly PainelBlockId[];
   accountName: string;
   todayYmd: string;
   referenceMonth: string;

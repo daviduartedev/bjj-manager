@@ -21,6 +21,7 @@ export type ProfileRow = {
   display_name: string;
   phone: string | null;
   role: AuthRole;
+  painel_hidden_blocks: string[];
   created_at: string;
   updated_at: string;
 };
@@ -62,6 +63,7 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
       display_name,
       phone,
       role,
+      painel_hidden_blocks,
       created_at,
       updated_at,
       accounts (
@@ -97,6 +99,9 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
     display_name: profileRow.display_name,
     phone: profileRow.phone ?? null,
     role: (profileRow.role === "student" ? "student" : "professor") as AuthRole,
+    painel_hidden_blocks: Array.isArray(profileRow.painel_hidden_blocks)
+      ? profileRow.painel_hidden_blocks
+      : [],
     created_at: profileRow.created_at,
     updated_at: profileRow.updated_at,
   };

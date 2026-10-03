@@ -16,10 +16,12 @@ import { RouteHeader } from "@/components/layout/route-header";
 import { useState, type ReactNode } from "react";
 
 import { ForecastPie } from "@/components/painel/forecast-pie";
+import { PainelCustomizeControl } from "@/components/painel/painel-customize-dialog";
 import { formatPainelDate, formatPainelMonth, moneyLabel } from "@/components/painel/painel-blocks";
 import type { PainelDashboardProps } from "@/components/painel/painel-types";
 import { MIX_META, attentionItems, mixTotal, shareLabel } from "@/components/painel/painel-attention";
 import { studentKindLabels } from "@/lib/i18n/domain-enums";
+import { isPainelBlockVisible, type PainelBlockId } from "@/lib/painel/hidden-blocks";
 import { ROUTES, routeAlunosActivos, routeAulasSessao, routeMensalidadesComFiltro } from "@/lib/routes";
 import { beltDistributionBarColor } from "@/lib/students/belt-chart-colors";
 import { cn } from "@/lib/utils";
@@ -43,6 +45,11 @@ export function PainelDashboard(props: PainelDashboardProps) {
     value: props.billingMix[item.key],
   }));
   const attention = attentionItems(props);
+  const show = (id: PainelBlockId) => isPainelBlockVisible(props.hiddenBlocks, id);
+  const showKpis =
+    show("overdue") || show("active") || show("received") || show("alerts");
+  const showAttention = show("attention");
+  const showBelts = show("belts");
 
   return (
     <div
@@ -65,9 +72,12 @@ export function PainelDashboard(props: PainelDashboardProps) {
           href: ROUTES.alunosNovo,
           icon: <UserPlus className="size-4" aria-hidden />,
         }}
+        extra={<PainelCustomizeControl hiddenBlocks={props.hiddenBlocks} />}
       />
 
+      {showKpis ? (
       <section aria-label="Indicadores" className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 xl:grid-cols-4">
+        {show("overdue") ? (
         <KpiCard
           href={routeMensalidadesComFiltro("atrasado")}
           icon={<AlertTriangle className="size-4" aria-hidden />}
@@ -79,6 +89,8 @@ export function PainelDashboard(props: PainelDashboardProps) {
           chipClass={props.overdueCount > 0 ? pillTone.rose : pillTone.emerald}
           bars={mixRows.map((row) => ({ value: row.value, color: row.key === "overdue" ? row.color : "#d4d4d8" }))}
         />
+        ) : null}
+        {show("active") ? (
         <KpiCard
           href={routeAlunosActivos()}
           icon={<Users className="size-4" aria-hidden />}
@@ -93,6 +105,8 @@ export function PainelDashboard(props: PainelDashboardProps) {
             color: ["#2563eb", "#7c3aed", "#ea580c", "#16a34a", "#eab308", "#0ea5e9"][index] ?? "#71717a",
           }))}
         />
+        ) : null}
+        {show("received") ? (
         <KpiCard
           href={ROUTES.mensalidades}
           icon={<Wallet className="size-4" aria-hidden />}
@@ -107,6 +121,8 @@ export function PainelDashboard(props: PainelDashboardProps) {
             color: ["#16a34a", "#22c55e", "#4ade80", "#15803d", "#86efac", "#166534"][index] ?? "#16a34a",
           }))}
         />
+        ) : null}
+        {show("alerts") ? (
         <KpiCard
           href={routeAlunosActivos()}
           icon={<Award className="size-4" aria-hidden />}
@@ -120,8 +136,11 @@ export function PainelDashboard(props: PainelDashboardProps) {
             { value: props.graduationAlertCount, color: "#0ea5e9" },
           ]}
         />
+        ) : null}
       </section>
+      ) : null}
 
+      {show("forecast") ? (
       <section className={cn(card, "mt-3 p-4 sm:mt-4 sm:p-5")} aria-labelledby="painel-forecast-heading">
         <h2 id="painel-forecast-heading" className="text-base font-semibold">
           Previsão de receita
@@ -134,12 +153,29 @@ export function PainelDashboard(props: PainelDashboardProps) {
           receivedCents={props.monthFinance.totalPaidReceivedCents}
         />
       </section>
+      ) : null}
 
-      <section className="mt-3 grid grid-cols-1 items-stretch gap-3 min-[520px]:mt-4 min-[520px]:gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <AttentionBoard items={attention} />
-        <BeltBarsCard adult={props.distributionAdult} kids={props.distributionKids} />
+      {showAttention || showBelts ? (
+      <section
+        className={cn(
+          "mt-3 grid grid-cols-1 items-stretch gap-3 min-[520px]:mt-4 min-[520px]:gap-4",
+          showAttention && showBelts && "md:grid-cols-2 xl:grid-cols-5",
+        )}
+      >
+        {showAttention ? (
+          <AttentionBoard items={attention} className={showBelts ? "xl:col-span-3" : undefined} />
+        ) : null}
+        {showBelts ? (
+          <BeltBarsCard
+            adult={props.distributionAdult}
+            kids={props.distributionKids}
+            className={showAttention ? "xl:col-span-2" : undefined}
+          />
+        ) : null}
       </section>
+      ) : null}
 
+      {show("classes") ? (
       <section className={cn(card, "mt-3 p-4 sm:mt-4 sm:p-5")}>
         <div className="flex items-center gap-2">
           <CalendarDays className="size-4 text-sky-600" aria-hidden />
@@ -147,6 +183,7 @@ export function PainelDashboard(props: PainelDashboardProps) {
         </div>
         <TodaySessions sessions={props.todaySessions} nextSession={props.nextSession} />
       </section>
+      ) : null}
     </div>
   );
 }
@@ -213,7 +250,7 @@ function MiniBars(props: { rows: { value: number; color: string }[] }) {
   );
 }
 
-function AttentionBoard(props: { items: ReturnType<typeof attentionItems> }) {
+function AttentionBoard(props: { items: ReturnType<typeof attentionItems>; className?: string }) {
   const groups = [
     {
       reason: "Vence hoje",
@@ -249,7 +286,7 @@ function AttentionBoard(props: { items: ReturnType<typeof attentionItems> }) {
   const visible = rows.slice(safePage * pageSize, safePage * pageSize + pageSize);
 
   return (
-    <div className={cn(card, "flex h-full min-w-0 flex-col p-4 sm:p-5 xl:col-span-3")}>
+    <div className={cn(card, "flex h-full min-w-0 flex-col p-4 sm:p-5", props.className)}>
       <h2 className="text-base font-semibold">Atenção</h2>
       <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="Tipo de atenção">
         {groups.map((group) => {
@@ -327,6 +364,7 @@ function AttentionBoard(props: { items: ReturnType<typeof attentionItems> }) {
 function BeltBarsCard(props: {
   adult: PainelDashboardProps["distributionAdult"];
   kids: PainelDashboardProps["distributionKids"];
+  className?: string;
 }) {
   const [kind, setKind] = useState<"adult" | "kids">(props.adult.length > 0 ? "adult" : "kids");
   const slices = kind === "adult" ? props.adult : props.kids;
@@ -337,7 +375,7 @@ function BeltBarsCard(props: {
       : "Sem alunos kids ativos com faixa registrada.";
 
   return (
-    <div className={cn(card, "flex h-full min-w-0 flex-col p-4 sm:p-5 xl:col-span-2")}>
+    <div className={cn(card, "flex h-full min-w-0 flex-col p-4 sm:p-5", props.className)}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold">Faixas</h2>

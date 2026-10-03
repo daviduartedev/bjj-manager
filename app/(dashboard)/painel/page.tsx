@@ -7,6 +7,7 @@ import { Hand } from "lucide-react";
 
 import { loadPainelPageData } from "@/lib/data/painel-page";
 import { getCurrentAccount } from "@/lib/auth";
+import { parsePainelHiddenBlocks } from "@/lib/painel/hidden-blocks";
 
 export const metadata: Metadata = {
   title: "Painel",
@@ -45,6 +46,7 @@ export default async function PainelPage() {
     <PainelDashboard
       displayName={ctx.profile.display_name}
       accountName={ctx.account.name}
+      hiddenBlocks={parsePainelHiddenBlocks(ctx.profile.painel_hidden_blocks)}
       activeStudentCount={data.activeStudentCount}
       overdueCount={data.overdueCount}
       graduationAlertCount={data.graduationAlertCount}

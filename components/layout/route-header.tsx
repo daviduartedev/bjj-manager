@@ -32,6 +32,7 @@ type RouteHeaderProps = {
   tone?: RouteTone;
   primary?: ActionSlot;
   secondary?: ActionSlot;
+  extra?: ReactNode;
 };
 
 export function RouteHeader(props: RouteHeaderProps) {
@@ -50,7 +51,7 @@ export function RouteHeader(props: RouteHeaderProps) {
             <p className="mt-0.5 truncate text-xs text-muted-foreground">{props.context}</p>
           ) : null}
         </div>
-        {actions.primary || actions.secondary ? (
+        {actions.primary || actions.secondary || props.extra ? (
           <div className="flex shrink-0 items-center justify-end gap-2">
             {actions.primary ? (
               <Button className={primaryActionClass} asChild>
@@ -68,6 +69,7 @@ export function RouteHeader(props: RouteHeaderProps) {
                 </Link>
               </Button>
             ) : null}
+            {props.extra}
           </div>
         ) : null}
       </div>

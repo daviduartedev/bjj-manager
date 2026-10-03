@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   display_name text NOT NULL,
   phone text NULL,
   role public.profile_role NOT NULL DEFAULT 'professor',
+  painel_hidden_blocks text[] NOT NULL DEFAULT '{}',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT profiles_user_id_key UNIQUE (user_id)
