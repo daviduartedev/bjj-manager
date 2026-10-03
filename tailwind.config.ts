@@ -80,16 +80,16 @@ const config: Config = {
           "system-ui",
           "sans-serif",
         ],
-        /* Mesma família que sans: hierarquia só por peso/tamanho , padrão CRM */
         display: [
-          "var(--font-sans)",
-          '"IBM Plex Sans"',
-          "Segoe UI",
-          "system-ui",
+          "var(--font-lp-display)",
+          '"Big Shoulders Display"',
+          '"Arial Narrow"',
+          "Impact",
           "sans-serif",
         ],
         lp: [
           "var(--font-lp-display)",
+          '"Big Shoulders Display"',
           '"Arial Narrow"',
           "Impact",
           "sans-serif",

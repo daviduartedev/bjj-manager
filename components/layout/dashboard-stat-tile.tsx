@@ -53,7 +53,7 @@ export function DashboardStatTile({
         <span className={cn("mt-1 h-8 w-2 rounded-full", bar[accent])} aria-hidden />
       </div>
       <p className="mt-4 text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 font-display text-[1.65rem] font-semibold leading-none tracking-tight tabular-nums [overflow-wrap:anywhere] sm:text-[2rem]">
+      <p className="mt-1 font-display text-[1.65rem] font-bold leading-none tracking-tight tabular-nums [overflow-wrap:anywhere] sm:text-[2rem]">
         {value}
       </p>
     </div>

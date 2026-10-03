@@ -67,7 +67,7 @@
     --status-overdue-foreground: 357 73% 38%;
     --status-info-foreground: 213 70% 32%;
 
-    /* --font-sans é injectado por next/font no <html> (IBM Plex Sans). */
+    /* --font-sans (IBM Plex Sans) e --font-lp-display (Big Shoulders Display) no <html>. */
 
     /*
      * App shell — sidebar/drawer/bottom nav em identidade preta (SHELL-7.1, DS-1.12).
@@ -184,24 +184,24 @@
   h4,
   h5,
   h6 {
-    @apply font-display font-semibold tracking-tight text-foreground;
+    @apply font-display font-bold tracking-tight text-foreground;
   }
 }
 
 @layer components {
   /** Título de página (rotas autenticadas) , usar em vez de repetir classes no h1 */
   .type-page-title {
-    @apply font-display text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem] sm:leading-snug md:text-[1.875rem] md:leading-tight;
+    @apply font-display text-2xl font-bold tracking-tight text-foreground sm:text-[1.75rem] sm:leading-snug md:text-[1.875rem] md:leading-tight;
   }
 
   /** Título de secção / cartão principal */
   .type-section-title {
-    @apply font-display text-lg font-semibold tracking-tight text-foreground;
+    @apply font-display text-lg font-bold tracking-tight text-foreground;
   }
 
   /** Título dentro de cartão, estado vazio ou bloco compacto */
   .type-card-heading {
-    @apply font-display text-base font-semibold tracking-tight text-foreground;
+    @apply font-display text-base font-bold tracking-tight text-foreground;
   }
 
   /** Rótulos de metadados, filtros e navegação secundária */

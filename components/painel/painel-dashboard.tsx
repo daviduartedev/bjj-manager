@@ -165,7 +165,7 @@ function KpiCard(props: {
         <MiniBars rows={rows} />
       </div>
       <p className="mt-4 text-sm text-muted-foreground">{props.label}</p>
-      <p className="mt-1 font-display text-[1.65rem] font-semibold leading-none tracking-tight tabular-nums [overflow-wrap:anywhere] sm:text-[2rem]">
+      <p className="mt-1 font-display text-[1.65rem] font-bold leading-none tracking-tight tabular-nums [overflow-wrap:anywhere] sm:text-[2rem]">
         {props.value}
       </p>
       <p className="mt-3 flex flex-wrap items-center gap-2">

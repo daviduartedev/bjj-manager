@@ -43,7 +43,7 @@ export function RouteHeader(props: RouteHeaderProps) {
     <header className="sticky top-0 z-20 -mx-3 mb-3 border-b border-zinc-200 bg-[#f3f4f6] px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:-mx-4 sm:px-4 lg:-mx-6 lg:mb-5 lg:px-6 lg:pt-4 dark:border-zinc-800 dark:bg-zinc-950">
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-lg font-semibold tracking-tight lg:text-2xl">
+          <h1 className="truncate font-display text-lg font-bold tracking-tight lg:text-2xl">
             {props.title} <span aria-hidden>{props.emoji}</span>
           </h1>
           {props.context ? (

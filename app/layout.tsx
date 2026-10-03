@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
 
+import { landingDisplay } from "@/components/marketing/landing-display-font";
 import { Toaster } from "@/components/ui/sonner";
 import { APP_NAME } from "@/lib/branding";
 
 import "./globals.css";
 
-/** Tipografia única estilo CRM / painel operacional (IBM Plex Sans, legível em dados densos, bom suporte a pt-BR). */
+/** Corpo: IBM Plex Sans. Títulos: Big Shoulders Display — o par da landing (casca.pro). */
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
@@ -56,7 +57,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={ibmPlexSans.variable} suppressHydrationWarning>
+    <html
+      lang="pt-BR"
+      className={`${ibmPlexSans.variable} ${landingDisplay.variable}`}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-background antialiased">
         {children}
         <Toaster richColors position="bottom-right" />
