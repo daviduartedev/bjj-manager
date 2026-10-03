@@ -135,7 +135,7 @@ export function RecordPaymentDialog({
   if (summary) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[min(92vh,720px)] flex-col gap-4 overflow-y-auto sm:max-w-md">
+        <DialogContent size="short" className="flex max-h-[min(92vh,720px)] flex-col gap-4 overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Pagamento registrado</DialogTitle>
             <DialogDescription>
@@ -162,7 +162,7 @@ export function RecordPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[min(92vh,720px)] flex-col gap-4 overflow-y-auto sm:max-w-md">
+      <DialogContent size="short" className="flex max-h-[min(92vh,720px)] flex-col gap-4 overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Registrar pagamento</DialogTitle>
           <DialogDescription>

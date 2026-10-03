@@ -32,7 +32,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
 import { ROUTES } from "@/lib/routes";
-import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
+import { cn } from "@/lib/utils";
+import { applyActionFailureToForm } from "@/lib/ui/action-field-errors";
+import {
+  formActionsClass,
+  formCheckboxRowClass,
+  formShellClass,
+  primaryActionClass,
+  secondaryActionClass,
+} from "@/lib/ui/form-chrome";
 import { mapStudentServerError } from "@/lib/students/action-errors";
 import { beltLabelPt } from "@/lib/students/belt-labels";
 import { academyStartStored } from "@/lib/students/academy-start";
@@ -196,18 +204,8 @@ export function StudentForm({
           : await updateStudent(studentId!, values);
 
       if (!result.ok) {
-        if (result.fieldErrors) {
-          for (const [key, msgs] of Object.entries(result.fieldErrors)) {
-            form.setError(key as keyof StudentFullFormValues, {
-              message: msgs[0],
-            });
-          }
-          const alreadyOnField = Object.values(result.fieldErrors)
-            .flat()
-            .includes(result.error);
-          if (alreadyOnField) return;
-        }
-        toast.error(result.error);
+        const { toastError } = applyActionFailureToForm(form.setError, result);
+        if (toastError) toast.error(result.error);
         return;
       }
       toast.success(
@@ -230,7 +228,7 @@ export function StudentForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex w-full flex-col gap-6"
+        className={`${formShellClass} flex flex-col gap-6`}
       >
         <FormField
           control={form.control}
@@ -487,9 +485,10 @@ export function StudentForm({
           control={form.control}
           name="is_exempt"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start gap-3 rounded-lg border border-border/60 bg-muted/15 p-4">
+            <FormItem className={cn(formCheckboxRowClass, "items-start rounded-lg border border-border/60 bg-muted/15 p-4")}>
               <FormControl>
                 <Checkbox
+                  size="sm"
                   checked={field.value}
                   disabled={loading}
                   onCheckedChange={(checked) =>
@@ -498,7 +497,7 @@ export function StudentForm({
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
-                <FormLabel>Isento de mensalidade</FormLabel>
+                <FormLabel className="cursor-pointer">Isento de mensalidade</FormLabel>
                 <p className="text-sm text-muted-foreground">
                   Não entra na lista de mensalidades nem aparece como atrasado.
                 </p>

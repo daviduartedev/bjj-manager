@@ -9,7 +9,14 @@ import { z } from "zod";
 
 import { completeStudentOnboarding } from "@/actions/student-portal/onboarding";
 import { Button } from "@/components/ui/button";
-import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
+import { cn } from "@/lib/utils";
+import { applyActionFailureToForm } from "@/lib/ui/action-field-errors";
+import {
+  formActionsClass,
+  formCheckboxRowClass,
+  formShellClass,
+  primaryActionClass,
+} from "@/lib/ui/form-chrome";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -62,12 +69,8 @@ export function StudentOnboardingForm({ requiresGuardianEmail, studentName }: Pr
         guardianEmail: values.guardianEmail?.trim() || "",
       });
       if (!result.ok) {
-        if (result.fieldErrors) {
-          for (const [field, messages] of Object.entries(result.fieldErrors)) {
-            form.setError(field as keyof FormValues, { message: messages[0] });
-          }
-        }
-        toast.error(result.error);
+        const { toastError } = applyActionFailureToForm(form.setError, result);
+        if (toastError) toast.error(result.error);
         return;
       }
       toast.success("Onboarding concluído.");
@@ -80,7 +83,7 @@ export function StudentOnboardingForm({ requiresGuardianEmail, studentName }: Pr
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className={`${formShellClass} space-y-6`}>
         <p className="text-sm text-muted-foreground">
           Olá, {studentName}. Antes de aceder ao portal, confirme os termos abaixo.
         </p>
@@ -89,9 +92,14 @@ export function StudentOnboardingForm({ requiresGuardianEmail, studentName }: Pr
           control={form.control}
           name="acceptTerms"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start gap-3 space-y-0 rounded-lg border p-4">
+            <FormItem className={cn(formCheckboxRowClass, "items-start rounded-lg border p-4")}>
               <FormControl>
-                <Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={loading} />
+                <Checkbox
+                  size="sm"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={loading}
+                />
               </FormControl>
               <div className="space-y-1">
                 <FormLabel className="font-normal leading-snug">

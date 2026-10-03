@@ -11,7 +11,14 @@ import {
   updateGraduation,
 } from "@/actions/graduations";
 import { Button } from "@/components/ui/button";
-import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
+import { applyActionFailureToForm } from "@/lib/ui/action-field-errors";
+import {
+  dialogWideFieldsClass,
+  formCheckboxRowClass,
+  primaryActionClass,
+  secondaryActionClass,
+} from "@/lib/ui/form-chrome";
+import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -190,14 +197,8 @@ export function GraduationEventDialog({
       }
 
       if (!result.ok) {
-        if (result.fieldErrors) {
-          for (const [field, messages] of Object.entries(result.fieldErrors)) {
-            form.setError(field as keyof GraduationEventFormValues, {
-              message: messages[0],
-            });
-          }
-        }
-        toast.error(result.error);
+        const { toastError } = applyActionFailureToForm(form.setError, result);
+        if (toastError) toast.error(result.error);
         return;
       }
 
@@ -218,7 +219,7 @@ export function GraduationEventDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent size="wide" className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{titles[mode]}</DialogTitle>
           <DialogDescription>
@@ -239,17 +240,16 @@ export function GraduationEventDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex items-center gap-2">
+            <label className={formCheckboxRowClass}>
               <Checkbox
-                id="show-all-belts"
+                size="sm"
                 checked={showAllBelts}
                 onCheckedChange={(c) => setShowAllBelts(c === true)}
               />
-              <label htmlFor="show-all-belts" className="text-sm">
-                Mostrar todas as faixas
-              </label>
-            </div>
+              <span className="text-sm">Mostrar todas as faixas</span>
+            </label>
 
+            <div className={dialogWideFieldsClass}>
             <FormField
               control={form.control}
               name="resulting_belt_id"
@@ -366,6 +366,7 @@ export function GraduationEventDialog({
                 </FormItem>
               )}
             />
+            </div>
 
             {skipDetected || wasSkip ? (
               <>
@@ -373,9 +374,10 @@ export function GraduationEventDialog({
                   control={form.control}
                   name="was_skip"
                   render={({ field }) => (
-                    <FormItem className="flex items-start gap-2 space-y-0">
+                    <FormItem className={cn(formCheckboxRowClass, "items-start")}>
                       <FormControl>
                         <Checkbox
+                          size="sm"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />

@@ -106,7 +106,7 @@ export function ReceiptViewerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent size="short">
         <DialogHeader>
           <DialogTitle>Comprovante de pagamento</DialogTitle>
           <DialogDescription>

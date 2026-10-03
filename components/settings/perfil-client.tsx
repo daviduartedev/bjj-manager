@@ -11,7 +11,8 @@ import { updateProfile } from "@/actions/settings";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
-import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
+import { applyActionFailureToForm } from "@/lib/ui/action-field-errors";
+import { formActionsClass, formShellClass, primaryActionClass } from "@/lib/ui/form-chrome";
 import {
   Form,
   FormControl,
@@ -71,7 +72,8 @@ export function PerfilClient(props: Props) {
       phone: values.phone.trim() === "" ? "" : values.phone.trim(),
     });
     if (!r.ok) {
-      toast.error(r.error);
+      const { toastError } = applyActionFailureToForm(form.setError, r);
+      if (toastError) toast.error(r.error);
       return;
     }
     toast.success("Perfil atualizado.");
@@ -90,7 +92,7 @@ export function PerfilClient(props: Props) {
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className="flex min-w-0 flex-1 flex-col gap-4 md:max-w-lg"
+              className={`${formShellClass} flex min-w-0 flex-1 flex-col gap-4`}
             >
               <FormField
                 control={form.control}

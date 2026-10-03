@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { studentKindLabels } from "@/lib/i18n/domain-enums";
 import { routeAulasTurma, ROUTES } from "@/lib/routes";
-import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
+import { formActionsClass, formShellClass, primaryActionClass } from "@/lib/ui/form-chrome";
 
 type Mode =
   | { kind: "create" }
@@ -70,7 +70,7 @@ export function ClassForm({ mode, instructorProfileId, initial }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className={`${formShellClass} space-y-5`}>
       <div className="space-y-2">
         <Label htmlFor="class-name">Nome da turma</Label>
         <Input

@@ -10,8 +10,8 @@ export type CheckboxProps = React.ComponentPropsWithoutRef<
   typeof CheckboxPrimitive.Root
 > & {
   /**
-   * **`default`**: alvo tocável ≥44px (formulários).
-   * **`sm`**: listas e secções médias.
+   * **`default`**: quadrado 44px (listas sem rótulo na mesma linha).
+   * **`sm`**: formulários e diálogos — o alvo de toque é a linha (quadrado + rótulo) ≥44px.
    * **`dense`**: grelhas com centenas de linhas (ex.: mensalidades).
    */
   size?: "default" | "sm" | "dense";

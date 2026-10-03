@@ -18,7 +18,20 @@ import {
 } from "@/lib/validations/settings";
 import { createClient } from "@/lib/supabase/server";
 
-export type SettingsActionResult = { ok: true } | { ok: false; error: string };
+export type SettingsActionResult =
+  | { ok: true }
+  | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
+
+function fieldErrorsFromZod(err: {
+  flatten: () => { fieldErrors: Record<string, string[] | undefined> };
+}): Record<string, string[]> | undefined {
+  const flat = err.flatten().fieldErrors;
+  const out: Record<string, string[]> = {};
+  for (const [k, v] of Object.entries(flat)) {
+    if (v?.length) out[k] = v;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
 
 async function requireSettingsAccount() {
   const supabase = await createClient();
@@ -139,10 +152,11 @@ export async function updateAccount(input: unknown): Promise<SettingsActionResul
   try {
     const parsed = updateAccountSchema.safeParse(input);
     if (!parsed.success) {
+      const fieldErrors = fieldErrorsFromZod(parsed.error);
       const msg =
-        Object.values(parsed.error.flatten().fieldErrors).flat()[0] ??
+        Object.values(fieldErrors ?? {}).flat()[0] ??
         "Verifique os dados da academia.";
-      return { ok: false, error: msg };
+      return { ok: false, error: msg, fieldErrors };
     }
 
     const supabase = await createClient();
@@ -184,10 +198,11 @@ export async function updateReceiver(input: unknown): Promise<SettingsActionResu
   try {
     const parsed = updateReceiverSchema.safeParse(input);
     if (!parsed.success) {
+      const fieldErrors = fieldErrorsFromZod(parsed.error);
       const msg =
-        Object.values(parsed.error.flatten().fieldErrors).flat()[0] ??
+        Object.values(fieldErrors ?? {}).flat()[0] ??
         "Verifique os dados do recebedor.";
-      return { ok: false, error: msg };
+      return { ok: false, error: msg, fieldErrors };
     }
 
     const supabase = await createClient();
@@ -249,10 +264,11 @@ export async function updateProfile(input: unknown): Promise<SettingsActionResul
   try {
     const parsed = updateProfileSchema.safeParse(input);
     if (!parsed.success) {
+      const fieldErrors = fieldErrorsFromZod(parsed.error);
       const msg =
-        Object.values(parsed.error.flatten().fieldErrors).flat()[0] ??
+        Object.values(fieldErrors ?? {}).flat()[0] ??
         "Verifique os dados do perfil.";
-      return { ok: false, error: msg };
+      return { ok: false, error: msg, fieldErrors };
     }
 
     const supabase = await createClient();

@@ -6,7 +6,14 @@ import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { toast } from "sonner";
 
-import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
+import { applyActionFailureToForm } from "@/lib/ui/action-field-errors";
+import {
+  dialogWideFieldsClass,
+  formCheckboxRowClass,
+  primaryActionClass,
+  secondaryActionClass,
+} from "@/lib/ui/form-chrome";
+import { cn } from "@/lib/utils";
 
 import { quickUpdateStudent } from "@/actions/students";
 import { AdultOrangeBeltConfirmDialog } from "@/components/students/adult-orange-belt-confirm-dialog";
@@ -180,14 +187,8 @@ export function QuickEditDialog({
     try {
       const result = await quickUpdateStudent(student.id, kind as StudentKind, values);
       if (!result.ok) {
-        if (result.fieldErrors) {
-          for (const [key, msgs] of Object.entries(result.fieldErrors)) {
-            form.setError(key as keyof QuickEditFormValues, {
-              message: msgs[0],
-            });
-          }
-        }
-        toast.error(result.error);
+        const { toastError } = applyActionFailureToForm(form.setError, result);
+        if (toastError) toast.error(result.error);
         return;
       }
       toast.success("Alterações salvas.");
@@ -203,7 +204,7 @@ export function QuickEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+      <DialogContent size="wide" className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edição rápida</DialogTitle>
           <DialogDescription>
@@ -219,6 +220,7 @@ export function QuickEditDialog({
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className={dialogWideFieldsClass}>
               <FormField
                 control={form.control}
                 name="status"
@@ -259,9 +261,10 @@ export function QuickEditDialog({
                 control={form.control}
                 name="is_exempt"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
+                  <FormItem className={cn(formCheckboxRowClass, "items-start rounded-xl border border-zinc-200 bg-zinc-50 p-3 sm:col-span-2 dark:border-zinc-800 dark:bg-zinc-900")}>
                     <FormControl>
                       <Checkbox
+                        size="sm"
                         checked={field.value}
                         disabled={loading}
                         onCheckedChange={(checked) =>
@@ -270,7 +273,7 @@ export function QuickEditDialog({
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Isento de mensalidade</FormLabel>
+                      <FormLabel className="cursor-pointer">Isento de mensalidade</FormLabel>
                     </div>
                   </FormItem>
                 )}
@@ -331,7 +334,6 @@ export function QuickEditDialog({
                 </>
               ) : null}
 
-              <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="current_belt_id"
@@ -434,13 +436,12 @@ export function QuickEditDialog({
                     </FormItem>
                   )}
                 />
-              </div>
 
               <FormField
                 control={form.control}
                 name="weight_kg"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="sm:col-span-2">
                     <FormLabel>Peso (kg) — opcional</FormLabel>
                     <FormControl>
                       <Input
@@ -461,6 +462,7 @@ export function QuickEditDialog({
                   </FormItem>
                 )}
               />
+              </div>
 
               <DialogFooter>
                 <Button variant="outline" className={secondaryActionClass} asChild>

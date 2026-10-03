@@ -57,6 +57,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  formActionsClass,
+  formCheckboxRowClass,
+  formShellClass,
+  primaryActionClass,
+  secondaryActionClass,
+} from "@/lib/ui/form-chrome";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -235,18 +242,14 @@ export function DesignSystemGallery() {
               <Textarea id="ds-note" placeholder="Notas internas…" />
             </div>
           </div>
-          <div className="mt-6 flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-3">
-                  <Checkbox id="ds-check" />
-                  <Label htmlFor="ds-check">Checkbox padrão (formulários)</Label>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Checkbox id="ds-check-sm" size="sm" />
-                  <Label htmlFor="ds-check-sm">Compacto (tabelas)</Label>
-                </div>
-              </div>
+          <div className="mt-6 flex flex-wrap items-center gap-6">
+            <label className={formCheckboxRowClass}>
+              <Checkbox size="sm" />
+              <span>Formulário (sm, linha ≥ 44px)</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <Checkbox id="ds-check-dense" size="dense" />
+              <Label htmlFor="ds-check-dense">Mensalidades (dense)</Label>
             </div>
           </div>
         </Section>
@@ -276,25 +279,36 @@ export function DesignSystemGallery() {
 
         <Section title="Sobreposições">
           <div className="flex flex-wrap gap-3">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline">Dialog</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirmar ação</DialogTitle>
-                  <DialogDescription>
-                    Exemplo de diálogo modal com foco gerenciado pelo Radix.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="gap-2 sm:gap-0">
-                  <Button type="button" variant="outline">
-                    Cancelar
-                  </Button>
-                  <Button type="button">Confirmar</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            {(
+              [
+                ["confirm", "Confirmação"],
+                ["short", "Formulário curto"],
+                ["wide", "Formulário largo"],
+              ] as const
+            ).map(([size, label]) => (
+              <Dialog key={size}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">{label}</Button>
+                </DialogTrigger>
+                <DialogContent size={size}>
+                  <DialogHeader>
+                    <DialogTitle>{label}</DialogTitle>
+                    <DialogDescription>
+                      Overlay com escurecimento e desfoque. Três larguras: confirmação,
+                      formulário curto e formulário largo.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button type="button" variant="outline" className={secondaryActionClass}>
+                      Cancelar
+                    </Button>
+                    <Button type="button" className={primaryActionClass}>
+                      Confirmar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            ))}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -424,7 +438,7 @@ export function DesignSystemGallery() {
             <CardContent>
               <Form {...form}>
                 <form
-                  className="space-y-6"
+                  className={`${formShellClass} space-y-6`}
                   onSubmit={form.handleSubmit(() =>
                     toast.success("Formulário válido (demo)."),
                   )}
@@ -446,9 +460,10 @@ export function DesignSystemGallery() {
                     control={form.control}
                     name="aceito"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start gap-3 space-y-0">
+                      <FormItem className={cn(formCheckboxRowClass, "items-start")}>
                         <FormControl>
                           <Checkbox
+                            size="sm"
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
@@ -465,7 +480,11 @@ export function DesignSystemGallery() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit">Enviar</Button>
+                  <div className={formActionsClass}>
+                    <Button type="submit" className={primaryActionClass}>
+                      Enviar
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </CardContent>
