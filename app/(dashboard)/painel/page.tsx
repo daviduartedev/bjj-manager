@@ -57,6 +57,7 @@ export default async function PainelPage() {
       todayYmd={data.todayYmd}
       referenceMonth={data.referenceMonth}
       monthFinance={data.monthFinance}
+      forecastCents={data.forecastCents}
       billingMix={data.billingMix}
       todaySessions={data.todaySessions}
       nextSession={data.nextSession}

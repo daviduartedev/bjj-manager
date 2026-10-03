@@ -21,6 +21,7 @@ export type PainelDashboardProps = {
   distributionAdult: PainelDistributionSlice[];
   distributionKids: PainelDistributionSlice[];
   monthFinance: MonthFinanceSummary;
+  forecastCents: number;
   billingMix: PainelBillingMix;
   todaySessions: UpcomingSessionRow[];
   nextSession: UpcomingSessionRow | null;

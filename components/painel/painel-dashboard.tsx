@@ -15,6 +15,7 @@ import {
 import { RouteHeader } from "@/components/layout/route-header";
 import { useState, type ReactNode } from "react";
 
+import { ForecastPie } from "@/components/painel/forecast-pie";
 import { formatPainelDate, formatPainelMonth, moneyLabel } from "@/components/painel/painel-blocks";
 import type { PainelDashboardProps } from "@/components/painel/painel-types";
 import { MIX_META, attentionItems, mixTotal, shareLabel } from "@/components/painel/painel-attention";
@@ -118,6 +119,19 @@ export function PainelDashboard(props: PainelDashboardProps) {
             { value: props.birthdayToday.length, color: "#8b5cf6" },
             { value: props.graduationAlertCount, color: "#0ea5e9" },
           ]}
+        />
+      </section>
+
+      <section className={cn(card, "mt-3 p-4 sm:mt-4 sm:p-5")} aria-labelledby="painel-forecast-heading">
+        <h2 id="painel-forecast-heading" className="text-base font-semibold">
+          Previsão de receita
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">{monthLabel}</p>
+        <ForecastPie
+          className="mt-4"
+          size="lg"
+          forecastCents={props.forecastCents}
+          receivedCents={props.monthFinance.totalPaidReceivedCents}
         />
       </section>
 
