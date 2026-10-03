@@ -12,12 +12,15 @@ import { isBirthdayToday } from "@/lib/painel/birthday-utils";
 import { countBillingMix, type PainelBillingMix } from "@/lib/painel/billing-mix";
 import {
   calendarDaysBetween,
-  meetsGraduationAttentionThreshold,
   resolveBeltStart,
   resolveDegreeStart,
   type GraduationRecordInput,
 } from "@/lib/students/graduation-reference";
 import { beltLabelPt } from "@/lib/students/belt-labels";
+import {
+  meetsReadinessAlert,
+  type ReadinessCriterion,
+} from "@/lib/students/readiness-alert";
 import {
   buildPaymentReminderRows,
   type PaymentReminderRow,
@@ -61,7 +64,7 @@ type StudentPainelRow = {
   id: string;
   full_name: string;
   phone: string | null;
-  kind: "adult" | "kids";
+  kind: "adult" | "kids" | "baby";
   status: string;
   is_exempt: boolean | null;
   archived_at: string | null;
@@ -153,7 +156,10 @@ function buildDistribution(
   return slices;
 }
 
-export async function loadPainelPageData(academyName: string): Promise<{
+export async function loadPainelPageData(
+  academyName: string,
+  criterion: ReadinessCriterion,
+): Promise<{
   todayYmd: string;
   referenceMonth: string;
   activeStudentCount: number;
@@ -255,8 +261,19 @@ export async function loadPainelPageData(academyName: string): Promise<{
       s.current_degree,
       s.academy_start_date,
     );
+    const belt = unwrapBelt(s.belts);
+    const studentKind =
+      s.kind === "baby" ? "baby" : s.kind === "kids" ? "kids" : "adult";
     if (
-      meetsGraduationAttentionThreshold(beltR.startYmd, degR.startYmd, todayYmd)
+      meetsReadinessAlert({
+        criterion,
+        beltSlug: belt?.slug ?? "",
+        beltKind: belt?.kind ?? (studentKind === "adult" ? "adult" : "kids"),
+        studentKind,
+        beltStartYmd: beltR.startYmd,
+        degreeStartYmd: degR.startYmd,
+        todayYmd,
+      })
     ) {
       graduationAlerts.push({ studentId: s.id, fullName: s.full_name });
     }

@@ -10,6 +10,8 @@ export type AccountRow = {
   cnpj: string | null;
   signature_url: string | null;
   logo_url: string | null;
+  readiness_kids_degree_months: number | null;
+  readiness_confirmed_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -73,6 +75,8 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
         cnpj,
         signature_url,
         logo_url,
+        readiness_kids_degree_months,
+        readiness_confirmed_at,
         created_at,
         updated_at
       )
@@ -106,5 +110,21 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
     updated_at: profileRow.updated_at,
   };
 
-  return { user, profile, account: accountRow };
+  const account: AccountRow = {
+    id: accountRow.id,
+    name: accountRow.name,
+    legal_name: accountRow.legal_name ?? null,
+    cnpj: accountRow.cnpj ?? null,
+    signature_url: accountRow.signature_url ?? null,
+    logo_url: accountRow.logo_url ?? null,
+    readiness_kids_degree_months:
+      typeof accountRow.readiness_kids_degree_months === "number"
+        ? accountRow.readiness_kids_degree_months
+        : null,
+    readiness_confirmed_at: accountRow.readiness_confirmed_at ?? null,
+    created_at: accountRow.created_at,
+    updated_at: accountRow.updated_at,
+  };
+
+  return { user, profile, account };
 }

@@ -8,6 +8,7 @@ import { Hand } from "lucide-react";
 import { loadPainelPageData } from "@/lib/data/painel-page";
 import { getCurrentAccount } from "@/lib/auth";
 import { parsePainelHiddenBlocks } from "@/lib/painel/hidden-blocks";
+import { criterionFromAccount } from "@/lib/students/readiness-alert";
 
 export const metadata: Metadata = {
   title: "Painel",
@@ -40,7 +41,10 @@ export default async function PainelPage() {
     );
   }
 
-  const data = await loadPainelPageData(ctx.account.name);
+  const data = await loadPainelPageData(
+    ctx.account.name,
+    criterionFromAccount(ctx.account),
+  );
 
   return (
     <PainelDashboard

@@ -32,6 +32,7 @@ import { Label } from "@/components/ui/label";
 import { CnpjInput } from "@/components/settings/cnpj-input";
 import { LogoUploader } from "@/components/settings/logo-uploader";
 import { SignatureUploader } from "@/components/settings/signature-uploader";
+import { ReadinessCriterionPanel } from "@/components/settings/readiness-criterion-panel";
 import type { SettingsPlanRow, SettingsReceiverRow } from "@/lib/data/settings-page";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
 import {
@@ -51,6 +52,8 @@ type Props = {
   initialAccountName: string;
   plans: SettingsPlanRow[];
   receiver: SettingsReceiverRow;
+  readinessKidsDegreeMonths: number | null;
+  readinessConfirmedAt: string | null;
 };
 
 function reaisFromCents(cents: number): string {
@@ -126,6 +129,11 @@ export function ConfiguracoesClient(props: Props) {
           </form>
         </Form>
       </DashboardPanel>
+
+      <ReadinessCriterionPanel
+        kidsDegreeMonths={props.readinessKidsDegreeMonths}
+        confirmedAt={props.readinessConfirmedAt}
+      />
 
       <ReceiverPanel receiver={props.receiver} onSaved={() => router.refresh()} />
 

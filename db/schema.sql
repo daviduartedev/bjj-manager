@@ -114,6 +114,8 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   pix_key_type public.pix_key_type NULL,
   pix_key text NULL,
   pix_holder_name text NULL,
+  readiness_kids_degree_months smallint NULL,
+  readiness_confirmed_at timestamptz NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT accounts_cnpj_format_ck CHECK (
@@ -124,6 +126,10 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   ),
   CONSTRAINT accounts_pix_holder_name_not_blank CHECK (
     pix_holder_name IS NULL OR length(trim(pix_holder_name)) > 0
+  ),
+  CONSTRAINT accounts_readiness_kids_degree_months_ck CHECK (
+    readiness_kids_degree_months IS NULL
+    OR readiness_kids_degree_months IN (1, 3, 4)
   )
 );
 

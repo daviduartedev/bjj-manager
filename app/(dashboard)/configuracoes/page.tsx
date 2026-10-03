@@ -55,6 +55,10 @@ export default async function ConfiguracoesPage() {
           initialAccountName={data.ctx.account.name}
           plans={data.plans}
           receiver={data.receiver}
+          readinessKidsDegreeMonths={
+            data.ctx.account.readiness_kids_degree_months
+          }
+          readinessConfirmedAt={data.ctx.account.readiness_confirmed_at}
         />
       </div>
     </PageFrame>

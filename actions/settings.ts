@@ -14,6 +14,7 @@ import {
 import {
   updateAccountSchema,
   updateProfileSchema,
+  updateReadinessCriterionSchema,
   updateReceiverSchema,
 } from "@/lib/validations/settings";
 import { createClient } from "@/lib/supabase/server";
@@ -289,6 +290,70 @@ export async function updateProfile(input: unknown): Promise<SettingsActionResul
     if (error) throw error;
 
     revalidatePath(ROUTES.perfil);
+    revalidatePath(ROUTES.configuracoes);
+    revalidatePath(ROUTES.painel);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
+
+export async function updateReadinessCriterion(
+  input: unknown,
+): Promise<SettingsActionResult> {
+  try {
+    const parsed = updateReadinessCriterionSchema.safeParse(input);
+    if (!parsed.success) {
+      const fieldErrors = fieldErrorsFromZod(parsed.error);
+      const msg =
+        Object.values(fieldErrors ?? {}).flat()[0] ??
+        "Verifique o critério de prontidão.";
+      return { ok: false, error: msg, fieldErrors };
+    }
+
+    const ctx = await requireSettingsAccount();
+    if (!ctx.ok) return ctx;
+
+    const { data: account, error: readError } = await ctx.supabase
+      .from("accounts")
+      .select("readiness_confirmed_at")
+      .eq("id", ctx.accountId)
+      .maybeSingle();
+    if (readError) throw readError;
+    if (!account) return { ok: false, error: "Conta não encontrada." };
+
+    const alreadyConfirmed = Boolean(account.readiness_confirmed_at);
+    if (!alreadyConfirmed && parsed.data.confirmAccepted !== true) {
+      return {
+        ok: false,
+        error: "Confirme estes critérios para os alertas desta academia.",
+        fieldErrors: {
+          confirmAccepted: [
+            "Confirme estes critérios para os alertas desta academia.",
+          ],
+        },
+      };
+    }
+
+    const now = new Date().toISOString();
+    const patch: {
+      readiness_kids_degree_months: number;
+      updated_at: string;
+      readiness_confirmed_at?: string;
+    } = {
+      readiness_kids_degree_months: parsed.data.kidsDegreeMonths,
+      updated_at: now,
+    };
+    if (!alreadyConfirmed) {
+      patch.readiness_confirmed_at = now;
+    }
+
+    const { error } = await ctx.supabase
+      .from("accounts")
+      .update(patch)
+      .eq("id", ctx.accountId);
+    if (error) throw error;
+
     revalidatePath(ROUTES.configuracoes);
     revalidatePath(ROUTES.painel);
     return { ok: true };
