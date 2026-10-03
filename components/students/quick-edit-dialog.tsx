@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 import { quickUpdateStudent } from "@/actions/students";
 import { AdultOrangeBeltConfirmDialog } from "@/components/students/adult-orange-belt-confirm-dialog";
+import { IsentoConfirmDialog } from "@/components/students/isento-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -79,6 +80,7 @@ export function QuickEditDialog({
   onOpenChange,
 }: Props) {
   const [loading, setLoading] = useState(false);
+  const [exemptConfirmOpen, setExemptConfirmOpen] = useState(false);
   const [adultOrangeConfirm, setAdultOrangeConfirm] = useState<{
     beltId: string;
     label: string;
@@ -119,6 +121,7 @@ export function QuickEditDialog({
   useEffect(() => {
     if (defaults && open) {
       form.reset(defaults);
+      setExemptConfirmOpen(false);
     }
   }, [defaults, open, form]);
 
@@ -267,9 +270,13 @@ export function QuickEditDialog({
                         size="sm"
                         checked={field.value}
                         disabled={loading}
-                        onCheckedChange={(checked) =>
-                          field.onChange(checked === true)
-                        }
+                        onCheckedChange={(checked) => {
+                          if (checked === true) {
+                            setExemptConfirmOpen(true);
+                            return;
+                          }
+                          field.onChange(false);
+                        }}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -485,6 +492,13 @@ export function QuickEditDialog({
                   if (adultOrangeConfirm) {
                     applyBeltChange(adultOrangeConfirm.beltId);
                   }
+                }}
+              />
+              <IsentoConfirmDialog
+                open={exemptConfirmOpen}
+                onOpenChange={setExemptConfirmOpen}
+                onConfirm={() => {
+                  form.setValue("is_exempt", true, { shouldDirty: true });
                 }}
               />
             </form>
