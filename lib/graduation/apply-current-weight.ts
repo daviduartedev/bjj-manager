@@ -7,7 +7,6 @@ import {
   validateGraduatedAtNotFuture,
 } from "@/lib/graduation/graduated-at";
 import type { GraduationEventInput } from "@/lib/graduation/types";
-import { currentBeltDegreeGraduationMeta } from "@/lib/students/graduation-current-since";
 import type { createClient } from "@/lib/supabase/server";
 
 export class GraduationWeightError extends Error {
@@ -35,6 +34,44 @@ type GraduationRow = {
   skip_reason: string | null;
   created_at: string;
 };
+
+function sameBeltId(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
+/**
+ * Peso fica na graduação do par (faixa, grau) actual.
+ * Se esse par não existir mas o aluno já tiver histórico, actualiza a última
+ * graduação em vez de inserir um evento que a timeline rejeita.
+ * Sem histórico, devolve null para criar a graduação de base.
+ */
+export function pickGraduationIdForWeight(
+  rows: Pick<
+    GraduationRow,
+    "id" | "resulting_belt_id" | "resulting_degree" | "graduated_at"
+  >[],
+  beltId: string,
+  degree: number,
+): string | null {
+  const sorted = [...rows].sort(
+    (a, b) =>
+      new Date(a.graduated_at).getTime() - new Date(b.graduated_at).getTime(),
+  );
+  const targetDegree = Number(degree);
+  let exact: (typeof sorted)[number] | null = null;
+  for (const row of sorted) {
+    if (
+      sameBeltId(row.resulting_belt_id, beltId) &&
+      Number(row.resulting_degree) === targetDegree &&
+      row.id.trim()
+    ) {
+      exact = row;
+    }
+  }
+  if (exact) return exact.id;
+  const latest = sorted[sorted.length - 1];
+  return latest?.id.trim() ? latest.id : null;
+}
 
 function resolveBaselineGraduationDate(args: {
   academyStartDate: string | null;
@@ -139,20 +176,9 @@ export async function applyWeightToCurrentGraduation(
   if (error) throw error;
 
   const rows = (data ?? []) as GraduationRow[];
+  const graduationId = pickGraduationIdForWeight(rows, beltId, degree);
 
-  const meta = currentBeltDegreeGraduationMeta(
-    rows.map((row) => ({
-      id: row.id,
-      resulting_belt_id: row.resulting_belt_id,
-      resulting_degree: row.resulting_degree,
-      graduated_at: row.graduated_at,
-      weight_kg: row.weight_kg,
-    })),
-    beltId,
-    degree,
-  );
-
-  if (!meta?.graduationId) {
+  if (!graduationId) {
     if (weightKg == null) return;
 
     const { data: student, error: stErr } = await supabase
@@ -177,7 +203,7 @@ export async function applyWeightToCurrentGraduation(
   const { error: updErr } = await supabase
     .from("student_graduations")
     .update({ weight_kg: weightKg })
-    .eq("id", meta.graduationId)
+    .eq("id", graduationId)
     .eq("student_id", studentId);
   if (updErr) throw updErr;
 }

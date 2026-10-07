@@ -21,7 +21,7 @@ export function LpCta() {
           data-testid="landing-cta-logo"
         />
 
-        <h2 className="mx-auto mt-8 max-w-3xl font-sans text-[clamp(2.25rem,5.5vw,4.5rem)] font-semibold leading-[1.08] tracking-[-0.02em] text-white">
+        <h2 className="mx-auto mt-8 max-w-3xl font-sans text-[clamp(2.25rem,5.5vw,4.5rem)] font-semibold leading-[1.15] tracking-[-0.02em] text-white">
           Feito para quem ensina e para quem administra a escola
         </h2>
 

@@ -15,7 +15,7 @@ export function MarketingLegalLayout({
     <div className="bg-black text-white">
       <LpHeader solid />
       <article className="mx-auto max-w-2xl px-5 py-16 sm:px-8 sm:py-24">
-        <h1 className="font-sans text-[clamp(2rem,5vw,3rem)] font-semibold leading-[1.08] tracking-[-0.02em]">
+        <h1 className="font-sans text-[clamp(2rem,5vw,3rem)] font-semibold leading-[1.15] tracking-[-0.02em]">
           {title}
         </h1>
         <p className="mt-4 text-sm text-white/50">Atualizado em {updated}.</p>
