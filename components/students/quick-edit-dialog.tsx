@@ -80,7 +80,9 @@ export function QuickEditDialog({
   onOpenChange,
 }: Props) {
   const [loading, setLoading] = useState(false);
-  const [exemptConfirmOpen, setExemptConfirmOpen] = useState(false);
+  const [exemptIntent, setExemptIntent] = useState<"mark" | "clear" | null>(
+    null,
+  );
   const [adultOrangeConfirm, setAdultOrangeConfirm] = useState<{
     beltId: string;
     label: string;
@@ -121,7 +123,7 @@ export function QuickEditDialog({
   useEffect(() => {
     if (defaults && open) {
       form.reset(defaults);
-      setExemptConfirmOpen(false);
+      setExemptIntent(null);
     }
   }, [defaults, open, form]);
 
@@ -268,18 +270,14 @@ export function QuickEditDialog({
                 control={form.control}
                 name="is_exempt"
                 render={({ field }) => (
-                  <FormItem className={cn(formCheckboxRowClass, "items-start rounded-xl border border-zinc-200 bg-zinc-50 p-3 sm:col-span-2 dark:border-zinc-800 dark:bg-zinc-900")}>
+                  <FormItem className={cn(formCheckboxRowClass, "items-center sm:col-span-2")}>
                     <FormControl>
                       <Checkbox
                         size="sm"
                         checked={field.value}
                         disabled={loading}
                         onCheckedChange={(checked) => {
-                          if (checked === true) {
-                            setExemptConfirmOpen(true);
-                            return;
-                          }
-                          field.onChange(false);
+                          setExemptIntent(checked === true ? "mark" : "clear");
                         }}
                       />
                     </FormControl>
@@ -458,16 +456,18 @@ export function QuickEditDialog({
                       <Input
                         type="number"
                         step="0.1"
-                        min={20}
-                        max={250}
-                        placeholder="Ex.: 72,5"
+                        min={kind === "baby" ? undefined : 20}
+                        max={kind === "baby" ? undefined : 250}
+                        placeholder={kind === "baby" ? "Ex.: 14,5" : "Ex.: 72,5"}
                         disabled={loading}
                         value={field.value ?? ""}
                         onChange={(e) => field.onChange(e.target.value)}
                       />
                     </FormControl>
                     <FormDescription>
-                      Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar.
+                      {kind === "baby"
+                        ? "Qualquer peso em kg. Guardado na graduação actual ao salvar."
+                        : "Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar."}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -499,10 +499,15 @@ export function QuickEditDialog({
                 }}
               />
               <IsentoConfirmDialog
-                open={exemptConfirmOpen}
-                onOpenChange={setExemptConfirmOpen}
+                open={exemptIntent !== null}
+                intent={exemptIntent ?? "mark"}
+                onOpenChange={(open) => {
+                  if (!open) setExemptIntent(null);
+                }}
                 onConfirm={() => {
-                  form.setValue("is_exempt", true, { shouldDirty: true });
+                  form.setValue("is_exempt", exemptIntent === "mark", {
+                    shouldDirty: true,
+                  });
                 }}
               />
             </form>

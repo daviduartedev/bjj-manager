@@ -27,6 +27,9 @@ export const STUDENT_FORM_STEP_COUNT = STUDENT_FORM_STEPS.length;
 export const ISENTO_CONFIRM_MESSAGE =
   "Este aluno sai da cobrança de todas as mensalidades. Tem certeza?";
 
+export const ISENTO_CLEAR_CONFIRM_MESSAGE =
+  "Este aluno volta à cobrança de todas as mensalidades. Tem certeza?";
+
 export function studentFormStepFields(
   stepIndex: number,
 ): readonly StudentFormStepFieldName[] {

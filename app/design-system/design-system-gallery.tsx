@@ -147,7 +147,7 @@ export function DesignSystemGallery() {
 
         <Section
           title="Tipografia e tokens"
-          description="IBM Plex Sans no corpo, Big Shoulders Display nos títulos (casca.pro), escala CRM (15px base)."
+          description="Inter (análogo SF Pro) no CRM e na landing: títulos 600, descrições 400, números lining tabular."
         >
           <div className="grid gap-6 md:grid-cols-2">
             <Card>

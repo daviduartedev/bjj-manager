@@ -57,6 +57,7 @@ export default async function PainelPage() {
       birthdayToday={data.birthdayToday}
       dueToday={data.dueToday}
       overdue14={data.overdue14}
+      paymentReminders={data.paymentReminders}
       graduationAlerts={data.graduationAlerts}
       distributionAdult={data.distributionAdult}
       distributionKids={data.distributionKids}

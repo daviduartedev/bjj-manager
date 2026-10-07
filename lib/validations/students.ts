@@ -20,7 +20,7 @@ import {
   planKindMatchesStudentContext,
 } from "@/lib/students/plan-kind";
 import type { StudentKind } from "@/lib/students/degree";
-import { weightKgSchema } from "@/lib/validations/graduations";
+import { weightKgBabySchema, weightKgSchema } from "@/lib/validations/graduations";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida.");
 
@@ -58,7 +58,7 @@ export function buildStudentFullFormSchema(
       guardian_phone: z.preprocess(emptyToUndef, z.string().trim().optional()),
       email: z.preprocess(emptyToUndef, z.string().trim().optional()),
       notes: z.preprocess(emptyToUndef, z.string().trim().optional()),
-      weight_kg: weightKgSchema.optional(),
+      weight_kg: weightKgBabySchema.optional(),
     })
     .strict()
     .transform((data) => {
@@ -124,6 +124,14 @@ export function buildStudentFullFormSchema(
             path: ["academy_start_date"],
           });
         }
+      }
+
+      if (data.kind !== "baby" && data.weight_kg != null && data.weight_kg < 20) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Mínimo 20,0 kg.",
+          path: ["weight_kg"],
+        });
       }
 
       if (data.kind === "baby") {
@@ -253,7 +261,7 @@ export function buildQuickEditFormSchema(
       due_day: z.coerce.number().int().min(1).max(28).optional(),
       current_belt_id: z.string().uuid(),
       current_degree: z.coerce.number().int(),
-      weight_kg: weightKgSchema.optional(),
+      weight_kg: (studentKind === "baby" ? weightKgBabySchema : weightKgSchema).optional(),
     })
     .strict()
     .superRefine((data, ctx) => {

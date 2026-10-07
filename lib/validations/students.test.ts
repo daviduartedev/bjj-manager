@@ -37,6 +37,10 @@ const planKids2 = {
   id: "20000000-0000-4000-8000-000000000003",
   kind: "kids_2" as const,
 };
+const planBaby = {
+  id: "20000000-0000-4000-8000-000000000006",
+  kind: "baby" as const,
+};
 
 const baseInput = {
   full_name: "Teste Silva",
@@ -50,11 +54,77 @@ const baseInput = {
 };
 
 describe("buildStudentFullFormSchema", () => {
-  const plansTriple = [planAdult, planKids, planKids2];
+  const plansTriple = [planAdult, planKids, planKids2, planBaby];
   const schema = buildStudentFullFormSchema(
     [beltAdult, beltKids, beltKidsOrange, beltAdultBlue],
     plansTriple,
   );
+
+  it("aceita peso de baby abaixo de 20 kg", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "baby" as const,
+      birth_date: "2022-06-01",
+      current_belt_id: beltKids.id,
+      plan_id: planBaby.id,
+      weight_kg: 12.4,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.weight_kg).toBe(12.4);
+  });
+
+  it("aceita baby sem peso", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "baby" as const,
+      birth_date: "2022-06-01",
+      current_belt_id: beltKids.id,
+      plan_id: planBaby.id,
+      weight_kg: "",
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.weight_kg).toBeNull();
+  });
+
+  it("rejeita peso zero no baby", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "baby" as const,
+      birth_date: "2022-06-01",
+      current_belt_id: beltKids.id,
+      plan_id: planBaby.id,
+      weight_kg: 0,
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it("rejeita peso de adulto abaixo de 20 kg", () => {
+    const r = schema.safeParse({ ...baseInput, weight_kg: 12 });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.flatten().fieldErrors.weight_kg?.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("aceita peso de adulto dentro da faixa", () => {
+    const r = schema.safeParse({ ...baseInput, weight_kg: "72.5" });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.weight_kg).toBe(72.5);
+  });
+
+  it("rejeita peso de kids abaixo de 20 kg", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "kids" as const,
+      current_belt_id: beltKids.id,
+      plan_id: planKids.id,
+      weight_kg: 15,
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.flatten().fieldErrors.weight_kg?.[0]).toMatch(/20/);
+    }
+  });
 
   it("aceita combinação adulto + plano adulto + faixa adulta", () => {
     const r = schema.safeParse(baseInput);

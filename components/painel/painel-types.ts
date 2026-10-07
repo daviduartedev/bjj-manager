@@ -6,6 +6,7 @@ import type {
 import type { UpcomingSessionRow } from "@/lib/data/classes-page";
 import type { PainelBillingMix } from "@/lib/painel/billing-mix";
 import type { PainelBlockId } from "@/lib/painel/hidden-blocks";
+import type { PaymentReminderRow } from "@/lib/painel/payment-reminders";
 
 export type PainelDashboardProps = {
   displayName: string;
@@ -19,6 +20,7 @@ export type PainelDashboardProps = {
   birthdayToday: PainelAttentionRow[];
   dueToday: PainelAttentionRow[];
   overdue14: PainelAttentionRow[];
+  paymentReminders: PaymentReminderRow[];
   graduationAlerts: PainelAttentionRow[];
   distributionAdult: PainelDistributionSlice[];
   distributionKids: PainelDistributionSlice[];

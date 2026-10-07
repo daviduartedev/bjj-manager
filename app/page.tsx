@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { landingDisplay } from "@/components/marketing/landing-display-font";
 import { LandingPage } from "@/components/marketing/landing-page";
 
 export const metadata: Metadata = {
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className={`${landingDisplay.variable} min-h-screen bg-black`}>
+    <div className="min-h-screen bg-black">
       <LandingPage />
     </div>
   );

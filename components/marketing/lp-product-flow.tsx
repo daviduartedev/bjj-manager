@@ -68,7 +68,7 @@ export function LpProductFlow() {
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/80">
                   <mod.icon className="h-5 w-5" aria-hidden />
                 </span>
-                <span className="font-lp text-sm font-bold tracking-[0.2em] text-bjj-red">
+                <span className="font-sans text-sm font-semibold tabular-nums tracking-[-0.02em] text-bjj-red">
                   {mod.number}
                 </span>
               </div>

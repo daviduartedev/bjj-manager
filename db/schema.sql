@@ -215,7 +215,7 @@ CREATE TABLE IF NOT EXISTS public.student_graduations (
   CONSTRAINT student_graduations_weight_kg_ck CHECK (
     weight_kg IS NULL
     OR (
-      weight_kg >= 20.0
+      weight_kg >= 0.1
       AND weight_kg <= 250.0
     )
   )

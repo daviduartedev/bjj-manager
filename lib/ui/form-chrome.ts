@@ -17,10 +17,14 @@ export const formShellClass = "w-full max-w-xl";
 export const formCheckboxRowClass =
   "flex min-h-11 cursor-pointer flex-row items-center gap-3 space-y-0";
 
+/** Uma caixa só: larga e mais baixa, igual em confirmação, formulário curto e largo. */
+const dialogBoxClass =
+  "h-[min(28rem,calc(100dvh-2rem))] w-[min(44rem,calc(100%-1.5rem))] max-w-[44rem] sm:h-[28rem] sm:w-[44rem]";
+
 export const dialogSizeClass = {
-  confirm: "max-w-sm",
-  short: "max-w-md",
-  wide: "max-w-2xl",
+  confirm: dialogBoxClass,
+  short: dialogBoxClass,
+  wide: dialogBoxClass,
 } as const;
 
 export type DialogSize = keyof typeof dialogSizeClass;

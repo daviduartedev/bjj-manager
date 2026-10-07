@@ -79,7 +79,7 @@ export function PainelCustomizeControl(props: {
               perfil.
             </DialogDescription>
           </DialogHeader>
-          <ul className="grid gap-1">
+          <ul className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
             {PAINEL_BLOCK_IDS.map((id) => {
               const checked = isPainelBlockVisible(draftHidden, id);
               return (

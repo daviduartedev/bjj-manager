@@ -52,11 +52,10 @@ describe("LandingPage system video section", () => {
     expect(marketing).toContain("@remotion/player");
     expect(marketing).toContain('data-testid="lp-system-video-copy"');
 
-    const copyStart = marketing.indexOf('data-testid="lp-system-video-copy"');
-    expect(copyStart).toBeGreaterThanOrEqual(0);
-    const copyRegion = marketing.slice(copyStart, copyStart + 2500);
+    const videoSource = readFileSync(join(MARKETING_DIR, "lp-system-video.tsx"), "utf8");
+    expect(videoSource).toContain('data-testid="lp-system-video-copy"');
     for (const label of SYSTEM_CAPABILITY_LABELS) {
-      expect(copyRegion.includes(label), `Right column must mention ${label}`).toBe(true);
+      expect(videoSource.includes(label), `Right column must mention ${label}`).toBe(true);
     }
 
     const remotionComposition = readdirSync(MARKETING_DIR)

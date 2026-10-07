@@ -197,7 +197,7 @@ export function ProductEditorCard({ product }: Props) {
                     <Package className="size-4" aria-hidden />
                   </span>
                   <div className="min-w-0 space-y-1">
-                    <h2 className="font-display text-lg font-semibold leading-tight text-foreground sm:text-xl">
+                    <h2 className="text-lg font-semibold leading-tight tracking-[-0.02em] text-foreground sm:text-xl">
                       {product.name}
                     </h2>
                     <p className="text-crm-xs text-muted-foreground">

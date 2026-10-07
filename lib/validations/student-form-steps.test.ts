@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildStudentFullFormSchema } from "@/lib/validations/students";
 import {
+  ISENTO_CLEAR_CONFIRM_MESSAGE,
   ISENTO_CONFIRM_MESSAGE,
   STUDENT_FORM_STEPS,
   studentFormProgressPercent,
@@ -187,6 +188,12 @@ describe("ISENTO_CONFIRM_MESSAGE", () => {
   it("trava a frase do diálogo de isento", () => {
     expect(ISENTO_CONFIRM_MESSAGE).toBe(
       "Este aluno sai da cobrança de todas as mensalidades. Tem certeza?",
+    );
+  });
+
+  it("trava a frase ao desmarcar isento", () => {
+    expect(ISENTO_CLEAR_CONFIRM_MESSAGE).toBe(
+      "Este aluno volta à cobrança de todas as mensalidades. Tem certeza?",
     );
   });
 });

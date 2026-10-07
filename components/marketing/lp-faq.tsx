@@ -64,12 +64,12 @@ export function LpFaq() {
               <details key={q} className="group">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left text-base font-medium text-white outline-none focus-visible:ring-2 focus-visible:ring-white sm:text-lg [&::-webkit-details-marker]:hidden">
                   <span>{q}</span>
-                  <span aria-hidden className="font-lp text-2xl text-bjj-red group-open:hidden">
+                  <span aria-hidden className="font-sans text-2xl font-semibold text-bjj-red group-open:hidden">
                     +
                   </span>
                   <span
                     aria-hidden
-                    className="hidden font-lp text-2xl text-bjj-red group-open:inline"
+                    className="hidden font-sans text-2xl font-semibold text-bjj-red group-open:inline"
                   >
                     −
                   </span>

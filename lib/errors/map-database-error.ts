@@ -17,7 +17,10 @@ export function mapDatabaseErrorToUserMessage(error: unknown): string | null {
   if (
     o.code === "42703" ||
     (msg.includes("column") && msg.includes("does not exist")) ||
-    msg.includes("undefined_column")
+    msg.includes("undefined_column") ||
+    (msg.includes("could not find") &&
+      msg.includes("column") &&
+      msg.includes("schema cache"))
   ) {
     return "Falta uma atualização na base de dados (contacte o suporte técnico ou o administrador).";
   }
