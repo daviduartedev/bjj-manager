@@ -217,7 +217,7 @@ export function QuickEditDialog({
         <DialogHeader>
           <DialogTitle>Edição rápida</DialogTitle>
           <DialogDescription>
-            Ajuste situação, plano, vencimento, faixa e grau. Para nome e contactos,
+            Ajuste situação, plano, vencimento, faixa e grau. Para nome e contatos,
             use a ficha completa.
           </DialogDescription>
         </DialogHeader>

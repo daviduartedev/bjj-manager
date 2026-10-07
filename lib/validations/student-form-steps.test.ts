@@ -49,7 +49,7 @@ describe("STUDENT_FORM_STEPS", () => {
       "Identificação",
       "Faixa",
       "Mensalidade",
-      "Contactos",
+      "Contatos",
     ]);
   });
 });
@@ -80,7 +80,7 @@ describe("studentFormStepFields", () => {
     ]);
   });
 
-  it("agrupa CPF, telefones, e-mail e observações em Contactos", () => {
+  it("agrupa CPF, telefones, e-mail e observações em Contatos", () => {
     expect(studentFormStepFields(3)).toEqual([
       "document",
       "phone",
@@ -111,7 +111,7 @@ describe("studentFormProgressPercent", () => {
 });
 
 describe("validateStudentFormStep", () => {
-  it("rejeita Identificação sem nome e ignora e-mail inválido de Contactos", () => {
+  it("rejeita Identificação sem nome e ignora e-mail inválido de Contatos", () => {
     const result = validateStudentFormStep(
       schema,
       { ...validInput, full_name: "", email: "nao-e-email" },
@@ -132,7 +132,7 @@ describe("validateStudentFormStep", () => {
     expect(result).toEqual({ ok: true });
   });
 
-  it("rejeita Faixa com ano de entrada futuro e não exige Contactos", () => {
+  it("rejeita Faixa com ano de entrada futuro e não exige Contatos", () => {
     const result = validateStudentFormStep(
       schema,
       { ...validInput, academy_start_date: "2099-01-01", email: "nao-e-email" },
@@ -172,7 +172,7 @@ describe("validateStudentFormStep", () => {
     expect(result).toEqual({ ok: true });
   });
 
-  it("rejeita e-mail inválido só no trecho Contactos", () => {
+  it("rejeita e-mail inválido só no trecho Contatos", () => {
     const result = validateStudentFormStep(
       schema,
       { ...validInput, email: "nao-e-email" },

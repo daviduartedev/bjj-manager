@@ -2,7 +2,7 @@ export const STUDENT_FORM_STEPS = [
   { id: "identificacao", label: "Identificação" },
   { id: "faixa", label: "Faixa" },
   { id: "mensalidade", label: "Mensalidade" },
-  { id: "contactos", label: "Contactos" },
+  { id: "contactos", label: "Contatos" },
 ] as const;
 
 export type StudentFormStepId = (typeof STUDENT_FORM_STEPS)[number]["id"];

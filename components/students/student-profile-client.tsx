@@ -216,7 +216,7 @@ export function StudentProfileClient({
         </div>
 
         <TabsContent value="dados" className="space-y-4">
-          <Section title="Identificação e contactos">
+          <Section title="Identificação e contatos">
             <ProfileSurfaceCard>
               <CardContent className="grid gap-6 p-6 sm:grid-cols-2">
                 <Field

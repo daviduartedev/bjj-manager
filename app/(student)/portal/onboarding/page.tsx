@@ -38,7 +38,7 @@ export default async function PortalOnboardingPage() {
       icon={Sparkles}
       tone="amber"
     >
-      <DashboardPanel title="Primeiros passos" subtitle="Termos e contacto do responsável">
+      <DashboardPanel title="Primeiros passos" subtitle="Termos e contato do responsável">
         <StudentOnboardingForm
           studentName={student.full_name}
           requiresGuardianEmail={requiresGuardianEmail}
