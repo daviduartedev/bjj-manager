@@ -24,4 +24,13 @@ describe("isDatabasePrivilegeError", () => {
     expect(isDatabasePrivilegeError(error)).toBe(false);
     expect(mapDatabaseErrorToUserMessage(error)).toMatch(/atualização na base/);
   });
+
+  it("trata coluna ausente no schema cache como atualização em falta", () => {
+    const error = {
+      code: "PGRST204",
+      message:
+        "Could not find the 'painel_hidden_blocks' column of 'profiles' in the schema cache",
+    };
+    expect(mapDatabaseErrorToUserMessage(error)).toMatch(/atualização na base/);
+  });
 });

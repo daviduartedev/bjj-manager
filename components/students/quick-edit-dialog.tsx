@@ -6,10 +6,18 @@ import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { toast } from "sonner";
 
-import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
+import { applyActionFailureToForm } from "@/lib/ui/action-field-errors";
+import {
+  dialogWideFieldsClass,
+  formCheckboxRowClass,
+  primaryActionClass,
+  secondaryActionClass,
+} from "@/lib/ui/form-chrome";
+import { cn } from "@/lib/utils";
 
 import { quickUpdateStudent } from "@/actions/students";
 import { AdultOrangeBeltConfirmDialog } from "@/components/students/adult-orange-belt-confirm-dialog";
+import { IsentoConfirmDialog } from "@/components/students/isento-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -72,6 +80,9 @@ export function QuickEditDialog({
   onOpenChange,
 }: Props) {
   const [loading, setLoading] = useState(false);
+  const [exemptIntent, setExemptIntent] = useState<"mark" | "clear" | null>(
+    null,
+  );
   const [adultOrangeConfirm, setAdultOrangeConfirm] = useState<{
     beltId: string;
     label: string;
@@ -112,6 +123,7 @@ export function QuickEditDialog({
   useEffect(() => {
     if (defaults && open) {
       form.reset(defaults);
+      setExemptIntent(null);
     }
   }, [defaults, open, form]);
 
@@ -180,14 +192,12 @@ export function QuickEditDialog({
     try {
       const result = await quickUpdateStudent(student.id, kind as StudentKind, values);
       if (!result.ok) {
-        if (result.fieldErrors) {
-          for (const [key, msgs] of Object.entries(result.fieldErrors)) {
-            form.setError(key as keyof QuickEditFormValues, {
-              message: msgs[0],
-            });
-          }
-        }
-        toast.error(result.error);
+        const { toastError } = applyActionFailureToForm(
+          form.setError,
+          result,
+          Object.keys(form.getValues()),
+        );
+        if (toastError) toast.error(result.error);
         return;
       }
       toast.success("Alterações salvas.");
@@ -203,7 +213,7 @@ export function QuickEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+      <DialogContent size="wide" className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edição rápida</DialogTitle>
           <DialogDescription>
@@ -219,6 +229,7 @@ export function QuickEditDialog({
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className={dialogWideFieldsClass}>
               <FormField
                 control={form.control}
                 name="status"
@@ -259,18 +270,19 @@ export function QuickEditDialog({
                 control={form.control}
                 name="is_exempt"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
+                  <FormItem className={cn(formCheckboxRowClass, "items-center sm:col-span-2")}>
                     <FormControl>
                       <Checkbox
+                        size="sm"
                         checked={field.value}
                         disabled={loading}
-                        onCheckedChange={(checked) =>
-                          field.onChange(checked === true)
-                        }
+                        onCheckedChange={(checked) => {
+                          setExemptIntent(checked === true ? "mark" : "clear");
+                        }}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Isento de mensalidade</FormLabel>
+                      <FormLabel className="cursor-pointer">Isento de mensalidade</FormLabel>
                     </div>
                   </FormItem>
                 )}
@@ -331,7 +343,6 @@ export function QuickEditDialog({
                 </>
               ) : null}
 
-              <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="current_belt_id"
@@ -434,33 +445,35 @@ export function QuickEditDialog({
                     </FormItem>
                   )}
                 />
-              </div>
 
               <FormField
                 control={form.control}
                 name="weight_kg"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="sm:col-span-2">
                     <FormLabel>Peso (kg) — opcional</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         step="0.1"
-                        min={20}
-                        max={250}
-                        placeholder="Ex.: 72,5"
+                        min={kind === "baby" ? undefined : 20}
+                        max={kind === "baby" ? undefined : 250}
+                        placeholder={kind === "baby" ? "Ex.: 14,5" : "Ex.: 72,5"}
                         disabled={loading}
                         value={field.value ?? ""}
                         onChange={(e) => field.onChange(e.target.value)}
                       />
                     </FormControl>
                     <FormDescription>
-                      Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar.
+                      {kind === "baby"
+                        ? "Qualquer peso em kg. Guardado na graduação actual ao salvar."
+                        : "Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar."}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              </div>
 
               <DialogFooter>
                 <Button variant="outline" className={secondaryActionClass} asChild>
@@ -483,6 +496,18 @@ export function QuickEditDialog({
                   if (adultOrangeConfirm) {
                     applyBeltChange(adultOrangeConfirm.beltId);
                   }
+                }}
+              />
+              <IsentoConfirmDialog
+                open={exemptIntent !== null}
+                intent={exemptIntent ?? "mark"}
+                onOpenChange={(open) => {
+                  if (!open) setExemptIntent(null);
+                }}
+                onConfirm={() => {
+                  form.setValue("is_exempt", exemptIntent === "mark", {
+                    shouldDirty: true,
+                  });
                 }}
               />
             </form>

@@ -27,6 +27,7 @@ export default async function NovoAlunoPage() {
       <div className="space-y-6">
       <DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>
       <DashboardPanel
+        className="mx-auto w-full max-w-3xl"
         icon={UserPlus}
         title="Ficha do aluno"
         subtitle="Tipo, faixa, plano e dados pessoais"

@@ -11,9 +11,15 @@ import { currentBeltDegreeGraduationMeta } from "@/lib/students/graduation-curre
 import type { createClient } from "@/lib/supabase/server";
 
 export class GraduationWeightError extends Error {
-  constructor(message: string) {
+  readonly field: "weight_kg" | "academy_start_date";
+
+  constructor(
+    message: string,
+    field: "weight_kg" | "academy_start_date" = "weight_kg",
+  ) {
     super(message);
     this.name = "GraduationWeightError";
+    this.field = field;
   }
 }
 
@@ -66,7 +72,9 @@ async function createBaselineGraduationForWeight(
   });
 
   const dateErr = validateGraduatedAtNotFuture(graduatedAtYmd);
-  if (dateErr) throw new GraduationWeightError(dateErr);
+  if (dateErr) {
+    throw new GraduationWeightError(dateErr, "academy_start_date");
+  }
 
   const belts = await getBeltsCatalog();
   const catalog = buildBeltCatalogMap(belts);

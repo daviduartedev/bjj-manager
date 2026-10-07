@@ -152,3 +152,17 @@ export function parsePlanRowReaisToCents(reaisStr: string): number {
   const normalized = reaisStr.trim().replace(/\s/g, "").replace(",", ".");
   return Math.round(Number(normalized) * 100);
 }
+
+export const READINESS_CONFIRM_MESSAGE =
+  "Confirmo estes critérios para os alertas desta academia.";
+
+export const updateReadinessCriterionSchema = z
+  .object({
+    kidsDegreeMonths: z.union([z.literal(1), z.literal(3), z.literal(4)]),
+    confirmAccepted: z.boolean().optional(),
+  })
+  .strict();
+
+export type UpdateReadinessCriterionInput = z.infer<
+  typeof updateReadinessCriterionSchema
+>;

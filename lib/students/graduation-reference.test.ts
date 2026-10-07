@@ -64,17 +64,17 @@ describe("graduation-reference", () => {
     expect(r.approximate).toBe(true);
   });
 
-  it("meetsGraduationAttentionThreshold at 120 days on degree", () => {
+  it("fallback alerts at 4 calendar months on degree", () => {
     expect(
-      meetsGraduationAttentionThreshold("2025-01-01", "2025-01-01", "2025-08-01"),
+      meetsGraduationAttentionThreshold("2025-01-01", "2025-01-01", "2025-05-01"),
     ).toBe(true);
   });
 
-  it("meetsGraduationAttentionThreshold at 365 days on belt", () => {
-    expect(meetsGraduationAttentionThreshold("2024-01-01", null, "2025-01-05")).toBe(true);
+  it("fallback alerts at 12 calendar months on belt", () => {
+    expect(meetsGraduationAttentionThreshold("2024-01-01", null, "2025-01-01")).toBe(true);
   });
 
-  it("does not alert below thresholds", () => {
+  it("does not alert below 4/12 calendar months", () => {
     expect(
       meetsGraduationAttentionThreshold("2025-05-01", "2025-05-01", "2025-06-01"),
     ).toBe(false);

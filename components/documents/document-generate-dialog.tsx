@@ -118,7 +118,7 @@ export function DocumentGenerateDialog({
         onOpenChange(o);
       }}
     >
-      <DialogContent className="flex max-h-[min(92vh,720px)] flex-col gap-4 overflow-y-auto sm:max-w-lg">
+      <DialogContent size="short" className="flex max-h-[min(92vh,720px)] flex-col gap-4 overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Gerar documento</DialogTitle>
           <DialogDescription>

@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import { calculateAge } from "./age";
 import { formatDateBR, formatRelativeBR } from "./format-br";
 import { humanizeDuration } from "./humanize-duration";
-import { parseCalendarDate, toCalendarDateStringInAppTZ } from "./parse-calendar-date";
+import {
+  parseCalendarDate,
+  toCalendarDateStringInAppTZ,
+  todayCalendarDateStringInAppTZ,
+} from "./parse-calendar-date";
 import {
   timeAtCurrentBelt,
   timeSinceJoined,
@@ -114,5 +118,13 @@ describe("toCalendarDateStringInAppTZ", () => {
     const d = new Date(Date.UTC(2025, 5, 15, 3, 0, 0));
     const s = toCalendarDateStringInAppTZ(d);
     expect(s).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe("todayCalendarDateStringInAppTZ", () => {
+  it("usa o dia civil em America/Sao_Paulo, não a data UTC", () => {
+    // 3 out 2026 22:53 em São Paulo = 4 out 2026 01:53 UTC
+    const eveningInSaoPaulo = new Date("2026-10-04T01:53:00.000Z");
+    expect(todayCalendarDateStringInAppTZ(eveningInSaoPaulo)).toBe("2026-10-03");
   });
 });

@@ -218,7 +218,7 @@ export function ProductLedgerNotebook({
         onSubmit={onCreate}
         className="rounded-lg border border-border/80 bg-[hsl(42_33%_97%)] p-5 shadow-sm dark:bg-card"
       >
-        <p className="font-display text-lg font-semibold tracking-tight">
+        <p className="text-lg font-semibold tracking-[-0.02em]">
           {editingId ? "Editar anotação" : "Nova anotação"}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -439,7 +439,7 @@ export function ProductLedgerNotebook({
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-display text-lg font-semibold tracking-tight">{row.title}</p>
+                    <p className="text-lg font-semibold tracking-[-0.02em]">{row.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {row.kind === "sale" ? "Venda" : "Saída"} ·{" "}
                       {LEDGER_PAYMENT_METHOD_LABELS[row.paymentMethod]} · {row.installmentCount}x ·{" "}

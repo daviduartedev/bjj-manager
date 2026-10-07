@@ -67,7 +67,7 @@
     --status-overdue-foreground: 357 73% 38%;
     --status-info-foreground: 213 70% 32%;
 
-    /* --font-sans (IBM Plex Sans) e --font-lp-display (Big Shoulders Display) no <html>. */
+    /* --font-sans: Inter (análogo SF Pro), no sistema e na landing. */
 
     /*
      * App shell — sidebar/drawer/bottom nav em identidade preta (SHELL-7.1, DS-1.12).
@@ -184,39 +184,42 @@
   h4,
   h5,
   h6 {
-    @apply font-display font-bold tracking-tight text-foreground;
+    @apply font-sans font-semibold tracking-[-0.02em] text-foreground;
   }
 }
 
 @layer components {
   /** Título de página (rotas autenticadas) , usar em vez de repetir classes no h1 */
   .type-page-title {
-    @apply font-display text-2xl font-bold tracking-tight text-foreground sm:text-[1.75rem] sm:leading-snug md:text-[1.875rem] md:leading-tight;
+    @apply font-sans text-2xl font-semibold tracking-[-0.02em] text-foreground sm:text-[1.75rem] sm:leading-snug md:text-[1.875rem] md:leading-tight;
   }
 
   /** Título de secção / cartão principal */
   .type-section-title {
-    @apply font-display text-lg font-bold tracking-tight text-foreground;
+    @apply font-sans text-lg font-semibold tracking-[-0.02em] text-foreground;
   }
 
   /** Título dentro de cartão, estado vazio ou bloco compacto */
   .type-card-heading {
-    @apply font-display text-base font-bold tracking-tight text-foreground;
+    @apply font-sans text-base font-semibold tracking-[-0.02em] text-foreground;
   }
 
   /** Rótulos de metadados, filtros e navegação secundária */
   .type-meta-label {
-    @apply text-crm-xs font-semibold uppercase tracking-wide text-muted-foreground;
+    @apply text-crm-xs font-medium tracking-[0.02em] text-muted-foreground;
   }
 
   /** Texto auxiliar padronizado (descrições sob títulos) */
   .type-lead {
-    @apply text-crm-sm leading-relaxed text-muted-foreground;
+    @apply text-[0.9375rem] font-normal text-muted-foreground;
+    line-height: 1.47;
+    letter-spacing: -0.01em;
   }
 
   /** Números em tabelas e valores , alinhamento estável */
   .tabular-nums-crm {
     font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1, "lnum" 1, "kern" 1;
   }
 
   /** Rótulo de campo / filtro (formulários e listas) */

@@ -13,7 +13,7 @@ import { LpEnterLink } from "@/components/marketing/lp-chrome";
 function CapabilityItem({ kicker, label }: { kicker: string; label: string }) {
   return (
     <div>
-      <p className="font-lp text-xl sm:text-2xl font-extrabold uppercase">{kicker}</p>
+      <p className="font-sans text-xl font-semibold tracking-[-0.02em] sm:text-2xl">{kicker}</p>
       <p className="mt-2 text-sm text-white/55 leading-relaxed">{label}</p>
     </div>
   );

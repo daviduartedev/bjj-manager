@@ -138,7 +138,7 @@ export function LpSystemVideo() {
           <ul data-testid="lp-system-video-copy" className="flex flex-col">
             {ITEMS.map((item) => (
               <li key={item.title} className="border-l-2 border-white/10 pl-5 py-1">
-                <p className="font-lp text-xl sm:text-2xl font-extrabold uppercase">{item.title}</p>
+                <p className="font-sans text-xl font-semibold tracking-[-0.02em] sm:text-2xl">{item.title}</p>
                 <p className="mt-1.5 text-sm sm:text-base text-white/60 leading-relaxed">
                   {item.body}
                 </p>

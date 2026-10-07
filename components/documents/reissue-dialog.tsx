@@ -26,14 +26,16 @@ type Props = {
 
 export function ReissueDialog({ documentId, open, onOpenChange, onReissued }: Props) {
   const [reason, setReason] = useState("");
+  const [reasonError, setReasonError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function submit() {
     if (!documentId) return;
     if (reason.trim().length < 3) {
-      toast.error("Indique o motivo da reemissão.");
+      setReasonError("Indique o motivo da reemissão.");
       return;
     }
+    setReasonError(null);
     startTransition(async () => {
       const r = await reissueDocument({ documentId, reason: reason.trim() });
       if (!r.ok) {
@@ -51,11 +53,14 @@ export function ReissueDialog({ documentId, open, onOpenChange, onReissued }: Pr
     <Dialog
       open={open}
       onOpenChange={(o) => {
-        if (!o) setReason("");
+        if (!o) {
+          setReason("");
+          setReasonError(null);
+        }
         onOpenChange(o);
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="short">
         <DialogHeader>
           <DialogTitle>Reemitir documento</DialogTitle>
           <DialogDescription>
@@ -68,10 +73,17 @@ export function ReissueDialog({ documentId, open, onOpenChange, onReissued }: Pr
           <Input
             id="reason"
             value={reason}
-            onChange={(e) => setReason(e.target.value)}
+            onChange={(e) => {
+              setReason(e.target.value);
+              setReasonError(null);
+            }}
             placeholder="Ex.: erro de digitação no nome"
             maxLength={500}
+            aria-invalid={reasonError ? true : undefined}
           />
+          {reasonError ? (
+            <p className="text-crm-sm font-medium text-destructive">{reasonError}</p>
+          ) : null}
         </div>
         <DialogFooter>
           <Button

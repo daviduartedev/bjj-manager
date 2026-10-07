@@ -46,7 +46,7 @@ export function LpDisplay({ className, children }: { className?: string; childre
   return (
     <p
       className={cn(
-        "font-lp font-extrabold uppercase tracking-[-0.02em] !leading-[1.05] text-white",
+        "font-sans font-semibold tracking-[-0.02em] leading-[1.08] text-white",
         className,
       )}
     >

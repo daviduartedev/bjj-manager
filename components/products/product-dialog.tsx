@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { shouldToastActionError } from "@/lib/ui/action-field-errors";
 import { primaryActionClass } from "@/lib/ui/form-chrome";
 
 type Props = {
@@ -27,15 +28,19 @@ type Props = {
 export function ProductDialog({ open, onOpenChange }: Props) {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    setNameError(null);
     setLoading(true);
     try {
       const r = await createProduct({ name });
       if (!r.ok) {
-        toast.error(r.error);
+        const fieldMessage = r.fieldErrors?.name?.[0];
+        if (fieldMessage) setNameError(fieldMessage);
+        if (shouldToastActionError(r)) toast.error(r.error);
         return;
       }
       toast.success("Produto criado.");
@@ -51,11 +56,14 @@ export function ProductDialog({ open, onOpenChange }: Props) {
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (!next) setName("");
+        if (!next) {
+          setName("");
+          setNameError(null);
+        }
         onOpenChange(next);
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="short">
         <form onSubmit={onSubmit}>
           <DialogHeader>
             <DialogTitle>Novo produto</DialogTitle>
@@ -68,12 +76,19 @@ export function ProductDialog({ open, onOpenChange }: Props) {
             <Input
               id="new-product-name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                setNameError(null);
+              }}
               placeholder="Ex.: Faixa branca"
               maxLength={120}
               disabled={loading}
               autoComplete="off"
+              aria-invalid={nameError ? true : undefined}
             />
+            {nameError ? (
+              <p className="text-crm-sm font-medium text-destructive">{nameError}</p>
+            ) : null}
           </div>
           <DialogFooter>
             <Button type="submit" className={primaryActionClass} disabled={loading}>

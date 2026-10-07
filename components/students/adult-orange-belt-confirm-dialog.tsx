@@ -29,7 +29,7 @@ export function AdultOrangeBeltConfirmDialog({
 }: AdultOrangeBeltConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="confirm">
         <DialogHeader>
           <DialogTitle>Confirmar faixa laranja no Adulto</DialogTitle>
           <DialogDescription asChild>

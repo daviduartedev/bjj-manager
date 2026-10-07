@@ -18,12 +18,11 @@ test.describe("XSS armazenado (nome do aluno)", () => {
     });
 
     await loginAs(page, email!, password!);
-    await page.goto("/alunos/novo", { waitUntil: "networkidle" });
+    await page.goto("/alunos/novo");
 
     await page.getByLabel("Nome completo").fill(XSS_PAYLOAD);
-    await page.getByRole("button", { name: "Registar aluno" }).click();
-
-    await page.waitForTimeout(2500);
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await expect(page.getByText("Ano de entrada na academia")).toBeVisible();
 
     const fired = await page.evaluate(() => (window as unknown as { __xss_fired?: number }).__xss_fired);
     expect(fired).toBeUndefined();

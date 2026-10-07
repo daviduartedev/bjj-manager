@@ -11,7 +11,13 @@ import { updateAccount, updateReceiver } from "@/actions/settings";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
-import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
+import { applyActionFailureToForm } from "@/lib/ui/action-field-errors";
+import {
+  formActionsClass,
+  formCheckboxRowClass,
+  formShellClass,
+  primaryActionClass,
+} from "@/lib/ui/form-chrome";
 import { EmptyState } from "@/components/layout/empty-state";
 import {
   Form,
@@ -26,6 +32,7 @@ import { Label } from "@/components/ui/label";
 import { CnpjInput } from "@/components/settings/cnpj-input";
 import { LogoUploader } from "@/components/settings/logo-uploader";
 import { SignatureUploader } from "@/components/settings/signature-uploader";
+import { ReadinessCriterionPanel } from "@/components/settings/readiness-criterion-panel";
 import type { SettingsPlanRow, SettingsReceiverRow } from "@/lib/data/settings-page";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
 import {
@@ -39,13 +46,14 @@ import {
   type UpdateAccountInput,
   type UpdateReceiverFormValues,
 } from "@/lib/validations/settings";
-import { cn } from "@/lib/utils";
 import { AlertTriangle, Building2, Layers, Receipt } from "lucide-react";
 
 type Props = {
   initialAccountName: string;
   plans: SettingsPlanRow[];
   receiver: SettingsReceiverRow;
+  readinessKidsDegreeMonths: number | null;
+  readinessConfirmedAt: string | null;
 };
 
 function reaisFromCents(cents: number): string {
@@ -68,7 +76,8 @@ export function ConfiguracoesClient(props: Props) {
   async function submitAccount(values: UpdateAccountInput) {
     const r = await updateAccount(values);
     if (!r.ok) {
-      toast.error(r.error);
+      const { toastError } = applyActionFailureToForm(accountForm.setError, r);
+      if (toastError) toast.error(r.error);
       return;
     }
     toast.success("Nome da academia atualizado.");
@@ -85,7 +94,7 @@ export function ConfiguracoesClient(props: Props) {
         <Form {...accountForm}>
           <form
             onSubmit={accountForm.handleSubmit(submitAccount)}
-            className="mx-auto flex max-w-lg flex-col gap-4"
+            className={`${formShellClass} flex flex-col gap-4`}
           >
             <FormField
               control={accountForm.control}
@@ -120,6 +129,11 @@ export function ConfiguracoesClient(props: Props) {
           </form>
         </Form>
       </DashboardPanel>
+
+      <ReadinessCriterionPanel
+        kidsDegreeMonths={props.readinessKidsDegreeMonths}
+        confirmedAt={props.readinessConfirmedAt}
+      />
 
       <ReceiverPanel receiver={props.receiver} onSaved={() => router.refresh()} />
 
@@ -182,7 +196,8 @@ function ReceiverPanel({
       cnpj: cnpjDigits.length > 0 ? cnpjDigits : "",
     });
     if (!r.ok) {
-      toast.error(r.error);
+      const { toastError } = applyActionFailureToForm(form.setError, r);
+      if (toastError) toast.error(r.error);
       return;
     }
     toast.success("Dados do recebedor atualizados.");
@@ -213,7 +228,7 @@ function ReceiverPanel({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(submit)}
-          className="grid gap-4 md:grid-cols-2"
+          className={`${formShellClass} grid gap-4 md:grid-cols-2`}
         >
           <FormField
             control={form.control}
@@ -356,18 +371,18 @@ function PlanEditorRow(props: {
             {kindLabel}
           </p>
         </div>
-        <div className="flex items-center gap-3 sm:justify-end">
+        <label className={`${formCheckboxRowClass} sm:justify-end`}>
           <Checkbox
-            id={`active-${plan.id}`}
+            size="sm"
             checked={active}
             disabled={pendingToggle}
             onCheckedChange={(v) => onActiveChecked(v === true)}
-            className={cn("size-5 touch-manipulation")}
+            className="touch-manipulation"
           />
-          <Label htmlFor={`active-${plan.id}`} className="cursor-pointer text-crm-sm font-medium leading-snug">
+          <span className="text-crm-sm font-medium leading-snug">
             Plano ativo (aceita novos vínculos)
-          </Label>
-        </div>
+          </span>
+        </label>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(submitPlan)} className="grid gap-4 md:grid-cols-2">

@@ -1,7 +1,13 @@
 import { z } from "zod";
 
 import { calculateAge } from "@/lib/dates/age";
-import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
+import { todayCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
+import {
+  academyStartStored,
+  coloredBeltEntryDateError,
+  whiteBeltEntryYearError,
+} from "@/lib/students/academy-start";
+import { isWhiteBeltSlug } from "@/lib/students/belt-kind";
 import { isValidCpfDigits, onlyDigits } from "@/lib/students/input-masks";
 import { isValidDegreeForBelt } from "@/lib/students/degree";
 import type { PlanKind } from "@/lib/students/plan-kind";
@@ -14,7 +20,7 @@ import {
   planKindMatchesStudentContext,
 } from "@/lib/students/plan-kind";
 import type { StudentKind } from "@/lib/students/degree";
-import { weightKgSchema } from "@/lib/validations/graduations";
+import { weightKgBabySchema, weightKgSchema } from "@/lib/validations/graduations";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida.");
 
@@ -52,9 +58,22 @@ export function buildStudentFullFormSchema(
       guardian_phone: z.preprocess(emptyToUndef, z.string().trim().optional()),
       email: z.preprocess(emptyToUndef, z.string().trim().optional()),
       notes: z.preprocess(emptyToUndef, z.string().trim().optional()),
-      weight_kg: weightKgSchema.optional(),
+      weight_kg: weightKgBabySchema.optional(),
     })
     .strict()
+    .transform((data) => {
+      const belt = belts.find((b) => b.id === data.current_belt_id);
+      if (!belt || !isWhiteBeltSlug(belt.slug)) return data;
+      const year = data.academy_start_date.slice(0, 4);
+      return {
+        ...data,
+        academy_start_date: academyStartStored(
+          true,
+          year,
+          data.academy_start_date,
+        ),
+      };
+    })
     .superRefine((data, ctx) => {
       if (!beltIds.has(data.current_belt_id)) {
         ctx.addIssue({
@@ -80,8 +99,42 @@ export function buildStudentFullFormSchema(
         });
       }
 
+      const today = todayCalendarDateStringInAppTZ();
+      if (isWhiteBeltSlug(belt.slug)) {
+        const yearErr = whiteBeltEntryYearError(
+          data.academy_start_date.slice(0, 4),
+          today,
+        );
+        if (yearErr) {
+          ctx.addIssue({
+            code: "custom",
+            message: yearErr,
+            path: ["academy_start_date"],
+          });
+        }
+      } else {
+        const dateErr = coloredBeltEntryDateError(
+          data.academy_start_date,
+          today,
+        );
+        if (dateErr) {
+          ctx.addIssue({
+            code: "custom",
+            message: dateErr,
+            path: ["academy_start_date"],
+          });
+        }
+      }
+
+      if (data.kind !== "baby" && data.weight_kg != null && data.weight_kg < 20) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Mínimo 20,0 kg.",
+          path: ["weight_kg"],
+        });
+      }
+
       if (data.kind === "baby") {
-        const today = toCalendarDateStringInAppTZ(new Date());
         const age = calculateAge(data.birth_date, today);
         if (
           age == null ||
@@ -208,7 +261,7 @@ export function buildQuickEditFormSchema(
       due_day: z.coerce.number().int().min(1).max(28).optional(),
       current_belt_id: z.string().uuid(),
       current_degree: z.coerce.number().int(),
-      weight_kg: weightKgSchema.optional(),
+      weight_kg: (studentKind === "baby" ? weightKgBabySchema : weightKgSchema).optional(),
     })
     .strict()
     .superRefine((data, ctx) => {

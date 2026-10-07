@@ -7,6 +7,8 @@ import { Hand } from "lucide-react";
 
 import { loadPainelPageData } from "@/lib/data/painel-page";
 import { getCurrentAccount } from "@/lib/auth";
+import { parsePainelHiddenBlocks } from "@/lib/painel/hidden-blocks";
+import { criterionFromAccount } from "@/lib/students/readiness-alert";
 
 export const metadata: Metadata = {
   title: "Painel",
@@ -39,25 +41,30 @@ export default async function PainelPage() {
     );
   }
 
-  const data = await loadPainelPageData(ctx.account.name);
+  const data = await loadPainelPageData(
+    ctx.account.name,
+    criterionFromAccount(ctx.account),
+  );
 
   return (
     <PainelDashboard
       displayName={ctx.profile.display_name}
       accountName={ctx.account.name}
+      hiddenBlocks={parsePainelHiddenBlocks(ctx.profile.painel_hidden_blocks)}
       activeStudentCount={data.activeStudentCount}
       overdueCount={data.overdueCount}
-      birthdayMonthCount={data.birthdayMonthCount}
       graduationAlertCount={data.graduationAlertCount}
       birthdayToday={data.birthdayToday}
       dueToday={data.dueToday}
       overdue14={data.overdue14}
+      paymentReminders={data.paymentReminders}
       graduationAlerts={data.graduationAlerts}
       distributionAdult={data.distributionAdult}
       distributionKids={data.distributionKids}
       todayYmd={data.todayYmd}
       referenceMonth={data.referenceMonth}
       monthFinance={data.monthFinance}
+      forecastCents={data.forecastCents}
       billingMix={data.billingMix}
       todaySessions={data.todaySessions}
       nextSession={data.nextSession}

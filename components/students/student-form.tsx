@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -8,6 +8,8 @@ import { toast } from "sonner";
 
 import { createStudent, updateStudent } from "@/actions/students";
 import { AdultOrangeBeltConfirmDialog } from "@/components/students/adult-orange-belt-confirm-dialog";
+import { IsentoConfirmDialog } from "@/components/students/isento-confirm-dialog";
+import { StudentFormProgress } from "@/components/students/student-form-progress";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -32,9 +34,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
 import { ROUTES } from "@/lib/routes";
-import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
+import { cn } from "@/lib/utils";
+import {
+  applyActionFailureToForm,
+  applyActionFieldErrors,
+} from "@/lib/ui/action-field-errors";
+import {
+  formActionsClass,
+  formCheckboxRowClass,
+  primaryActionClass,
+  secondaryActionClass,
+} from "@/lib/ui/form-chrome";
 import { mapStudentServerError } from "@/lib/students/action-errors";
 import { beltLabelPt } from "@/lib/students/belt-labels";
+import { academyStartStored } from "@/lib/students/academy-start";
 import { isWhiteBeltSlug } from "@/lib/students/belt-kind";
 import { degreeOptionsForBelt } from "@/lib/students/degree";
 import { maskCpfInput, maskPhoneBrInput } from "@/lib/students/input-masks";
@@ -43,6 +56,11 @@ import {
   pickDefaultPlanForStudentContext,
   planKindMatchesStudentContext,
 } from "@/lib/students/plan-kind";
+import {
+  STUDENT_FORM_STEPS,
+  studentFormStepIndexForFields,
+  validateStudentFormStep,
+} from "@/lib/validations/student-form-steps";
 import {
   buildStudentFullFormSchema,
   type StudentFullFormValues,
@@ -57,6 +75,8 @@ type Props = {
   graduationEventId?: string | null;
 };
 
+const LAST_STEP = STUDENT_FORM_STEPS.length - 1;
+
 export function StudentForm({
   belts,
   plans,
@@ -67,6 +87,13 @@ export function StudentForm({
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(0);
+  const [entryYearDraft, setEntryYearDraft] = useState(() =>
+    defaultValues.academy_start_date.slice(0, 4),
+  );
+  const [exemptIntent, setExemptIntent] = useState<"mark" | "clear" | null>(
+    null,
+  );
   const [adultOrangeConfirm, setAdultOrangeConfirm] = useState<{
     beltId: string;
     label: string;
@@ -86,6 +113,9 @@ export function StudentForm({
   const kind = form.watch("kind");
   const beltId = form.watch("current_belt_id");
   const isExempt = form.watch("is_exempt");
+  const stepId = STUDENT_FORM_STEPS[step]?.id;
+  const isFirst = step === 0;
+  const isLast = step === LAST_STEP;
 
   const { adultBelts, orangeJuvenileBelts, kidsBelts } = useMemo(() => {
     const byOrdinal = (a: BeltCatalogRow, b: BeltCatalogRow) =>
@@ -140,6 +170,18 @@ export function StudentForm({
   }, [isWhiteBelt, form]);
 
   useEffect(() => {
+    if (!isWhiteBelt) return;
+    const current = form.getValues("academy_start_date");
+    if (!current || current.length < 4) return;
+    const year = current.slice(0, 4);
+    const next = academyStartStored(true, year, current);
+    if (next !== current) {
+      form.setValue("academy_start_date", next);
+    }
+    setEntryYearDraft((prev) => (prev.length === 4 ? year : prev));
+  }, [isWhiteBelt, form]);
+
+  useEffect(() => {
     const currentPlanId = form.getValues("plan_id");
     if (plansForKind.some((p) => p.id === currentPlanId)) return;
     const fallback = pickDefaultPlanForStudentContext(
@@ -175,6 +217,37 @@ export function StudentForm({
     if (p) form.setValue("plan_id", p.id);
   }
 
+  function goToStep(next: number) {
+    setStep(Math.max(0, Math.min(LAST_STEP, next)));
+  }
+
+  function goToCompletedStep(next: number) {
+    form.clearErrors();
+    goToStep(next);
+  }
+
+  function advanceStep() {
+    const result = validateStudentFormStep(schema, form.getValues(), step);
+    if (!result.ok) {
+      applyActionFieldErrors(form.setError, result.fieldErrors);
+      return;
+    }
+    form.clearErrors();
+    goToStep(step + 1);
+  }
+
+  function onFormSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!isLast) {
+      advanceStep();
+      return;
+    }
+    void form.handleSubmit(onSubmit, (errors) => {
+      const next = studentFormStepIndexForFields(Object.keys(errors));
+      if (next != null) goToStep(next);
+    })(e);
+  }
+
   async function onSubmit(values: StudentFullFormValues) {
     setLoading(true);
     try {
@@ -184,14 +257,14 @@ export function StudentForm({
           : await updateStudent(studentId!, values);
 
       if (!result.ok) {
+        const { toastError } = applyActionFailureToForm(form.setError, result);
         if (result.fieldErrors) {
-          for (const [key, msgs] of Object.entries(result.fieldErrors)) {
-            form.setError(key as keyof StudentFullFormValues, {
-              message: msgs[0],
-            });
-          }
+          const next = studentFormStepIndexForFields(
+            Object.keys(result.fieldErrors),
+          );
+          if (next != null) goToStep(next);
         }
-        toast.error(result.error);
+        if (toastError) toast.error(result.error);
         return;
       }
       toast.success(
@@ -210,215 +283,61 @@ export function StudentForm({
     }
   }
 
+  function leaveWithoutSave() {
+    router.push(ROUTES.alunos);
+  }
+
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex w-full flex-col gap-6"
+        onSubmit={onFormSubmit}
+        className="mx-auto flex w-full max-w-3xl flex-col gap-6"
       >
-        <FormField
-          control={form.control}
-          name="full_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome completo</FormLabel>
-              <FormControl>
-                <Input {...field} disabled={loading} autoComplete="name" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <StudentFormProgress step={step} onSelectCompleted={goToCompletedStep} />
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="birth_date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de nascimento</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} disabled={loading} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="academy_start_date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {isWhiteBelt
-                    ? "Ano de entrada na academia"
-                    : "Data de entrada na academia"}
-                </FormLabel>
-                <FormControl>
-                  {isWhiteBelt ? (
-                    <Input
-                      type="number"
-                      min={1990}
-                      max={2100}
-                      step={1}
-                      disabled={loading}
-                      placeholder="Ex.: 2025"
-                      value={
-                        field.value && field.value.length >= 4
-                          ? field.value.slice(0, 4)
-                          : ""
-                      }
-                      onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, "").slice(0, 4);
-                        if (raw.length === 4) {
-                          const y = parseInt(raw, 10);
-                          if (y >= 1990 && y <= 2100) {
-                            field.onChange(`${raw}-01-01`);
-                          }
-                        } else if (raw.length === 0) {
-                          field.onChange("");
-                        }
-                      }}
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
-                    />
-                  ) : (
-                    <Input type="date" {...field} disabled={loading} />
-                  )}
-                </FormControl>
-                {isWhiteBelt ? (
-                  <p className="text-xs text-muted-foreground">
-                    Faixa branca: indique só o ano; defina graus após graduações no
-                    histórico.
-                  </p>
-                ) : null}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="kind"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo</FormLabel>
-              <Select
-                disabled={loading}
-                value={field.value}
-                onValueChange={(v) => {
-                  field.onChange(v as "adult" | "kids" | "baby");
-                  syncKind(v as "adult" | "kids" | "baby");
-                }}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="adult">Adulto</SelectItem>
-                  <SelectItem value="kids">Kids</SelectItem>
-                  <SelectItem value="baby">Baby (3–5 anos)</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div
-          className={`grid gap-4 ${
-            isWhiteBelt ? "grid-cols-1" : "sm:grid-cols-2"
-          }`}
-        >
-          <FormField
-            control={form.control}
-            name="current_belt_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Faixa</FormLabel>
-                <Select
-                  disabled={loading}
-                  value={field.value}
-                  onValueChange={(v) => {
-                    const b = belts.find((x) => x.id === v);
-                    if (!b) return;
-                    if (
-                      kind === "adult" &&
-                      b.kind === "kids" &&
-                      isOrangeFamilyKidsBeltSlug(b.slug)
-                    ) {
-                      const prev = belts.find((x) => x.id === field.value);
-                      if (!isOrangeFamilyKidsBeltSlug(prev?.slug)) {
-                        setAdultOrangeConfirm({
-                          beltId: v,
-                          label: beltLabelPt(b.slug, b.kind),
-                        });
-                        return;
-                      }
-                    }
-                    applyBeltChange(v);
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Escolha" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {kind === "adult" ? (
-                      <>
-                        <SelectGroup>
-                          <SelectLabel>Faixas adulto</SelectLabel>
-                          {adultBelts.map((b) => (
-                            <SelectItem key={b.id} value={b.id}>
-                              {beltLabelPt(b.slug, b.kind)}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                        {orangeJuvenileBelts.length > 0 ? (
-                          <SelectGroup>
-                            <SelectLabel className="text-primary">
-                              Laranja (juvenil) — tipo Adulto
-                            </SelectLabel>
-                            {orangeJuvenileBelts.map((b) => (
-                              <SelectItem key={b.id} value={b.id}>
-                                {beltLabelPt(b.slug, b.kind)}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        ) : null}
-                      </>
-                    ) : (
-                      <SelectGroup>
-                        <SelectLabel>Faixas kids</SelectLabel>
-                        {kidsBelts.map((b) => (
-                          <SelectItem key={b.id} value={b.id}>
-                            {beltLabelPt(b.slug, b.kind)}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    )}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {!isWhiteBelt ? (
+        {stepId === "identificacao" ? (
+          <div className="grid gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
-              name="current_degree"
+              name="full_name"
+              render={({ field }) => (
+                <FormItem className="sm:col-span-2">
+                  <FormLabel>Nome completo</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled={loading} autoComplete="name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="birth_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Grau</FormLabel>
+                  <FormLabel>Data de nascimento</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} disabled={loading} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="kind"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo</FormLabel>
                   <Select
                     disabled={loading}
-                    value={String(field.value)}
-                    onValueChange={(v) => field.onChange(Number(v))}
+                    value={field.value}
+                    onValueChange={(v) => {
+                      field.onChange(v as "adult" | "kids" | "baby");
+                      syncKind(v as "adult" | "kids" | "baby");
+                    }}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -426,257 +345,466 @@ export function StudentForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {degreeChoices.map((d) => (
-                        <SelectItem key={d} value={String(d)}>
-                          {d}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="adult">Adulto</SelectItem>
+                      <SelectItem value="kids">Kids</SelectItem>
+                      <SelectItem value="baby">Baby (3–5 anos)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          ) : null}
-        </div>
-
-        {mode === "edit" ? (
-          <FormField
-            control={form.control}
-            name="weight_kg"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Peso (kg) — opcional</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min={20}
-                    max={250}
-                    placeholder="Ex.: 72,5"
-                    disabled={loading}
-                    value={field.value ?? ""}
-                    onChange={(e) => field.onChange(e.target.value)}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          </div>
         ) : null}
 
-        <FormField
-          control={form.control}
-          name="is_exempt"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start gap-3 rounded-lg border border-border/60 bg-muted/15 p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  disabled={loading}
-                  onCheckedChange={(checked) =>
-                    field.onChange(checked === true)
-                  }
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Isento de mensalidade</FormLabel>
-                <p className="text-sm text-muted-foreground">
-                  Não entra na lista de mensalidades nem aparece como atrasado.
-                </p>
-              </div>
-            </FormItem>
-          )}
-        />
-
-        {!isExempt ? (
-          <>
-        <FormField
-          control={form.control}
-          name="plan_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Plano</FormLabel>
-              {plansForKind.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  {plans.length === 0
-                    ? "Não foram encontrados planos para esta academia. Recarregue a página; se continuar vazio, confira o vínculo conta/perfil em docs/security/rls.md."
-                    : "Não há planos ativos para este tipo de aluno (Kids 1 / Kids 2 ou Adulto). Ative os planos nas configurações da conta."}
-                </p>
-              ) : (
-                <Select
-                  disabled={loading}
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
+        {stepId === "faixa" ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="academy_start_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {isWhiteBelt
+                      ? "Ano de entrada na academia"
+                      : "Data de entrada na academia"}
+                  </FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Escolha" />
-                    </SelectTrigger>
+                    {isWhiteBelt ? (
+                      <Input
+                        type="number"
+                        min={1990}
+                        max={2100}
+                        step={1}
+                        disabled={loading}
+                        placeholder="Ex.: 2025"
+                        value={entryYearDraft}
+                        onChange={(e) => {
+                          const raw = e.target.value
+                            .replace(/\D/g, "")
+                            .slice(0, 4);
+                          setEntryYearDraft(raw);
+                          if (raw.length === 4) {
+                            field.onChange(academyStartStored(true, raw, ""));
+                          } else {
+                            field.onChange("");
+                          }
+                        }}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    ) : (
+                      <Input type="date" {...field} disabled={loading} />
+                    )}
                   </FormControl>
-                  <SelectContent>
-                    {plansForKind.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {isWhiteBelt ? (
+                    <p className="text-xs text-muted-foreground">
+                      Só o ano. O relógio usa 1 de janeiro até haver graduação.
+                    </p>
+                  ) : null}
+                  <FormMessage />
+                </FormItem>
               )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            />
 
-        <FormField
-          control={form.control}
-          name="due_day"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dia de vencimento (1–28)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min={1}
-                  max={28}
-                  disabled={loading}
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-          </>
-        ) : null}
-
-        <FormField
-          control={form.control}
-          name="document"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>CPF (opcional)</FormLabel>
-              <FormControl>
-                <Input
-                  disabled={loading}
-                  inputMode="numeric"
-                  placeholder="000.000.000-00"
-                  value={field.value ?? ""}
-                  onChange={(e) =>
-                    field.onChange(maskCpfInput(e.target.value))
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Telefone (opcional)</FormLabel>
-              <FormControl>
-                <Input
-                  disabled={loading}
-                  inputMode="tel"
-                  placeholder="(00) 00000-0000"
-                  value={field.value ?? ""}
-                  onChange={(e) =>
-                    field.onChange(maskPhoneBrInput(e.target.value))
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {(kind === "kids" || kind === "baby") ? (
-          <FormField
-            control={form.control}
-            name="guardian_phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Telefone do responsável (opcional)</FormLabel>
-                <FormControl>
-                  <Input
+            <FormField
+              control={form.control}
+              name="current_belt_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Faixa</FormLabel>
+                  <Select
                     disabled={loading}
-                    inputMode="tel"
-                    placeholder="(00) 00000-0000"
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(maskPhoneBrInput(e.target.value))
-                    }
-                  />
-                </FormControl>
-                <FormDescription>
-                  Usado para enviar matrícula/termo ASLAM por WhatsApp a menores.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                    value={field.value}
+                    onValueChange={(v) => {
+                      const b = belts.find((x) => x.id === v);
+                      if (!b) return;
+                      if (
+                        kind === "adult" &&
+                        b.kind === "kids" &&
+                        isOrangeFamilyKidsBeltSlug(b.slug)
+                      ) {
+                        const prev = belts.find((x) => x.id === field.value);
+                        if (!isOrangeFamilyKidsBeltSlug(prev?.slug)) {
+                          setAdultOrangeConfirm({
+                            beltId: v,
+                            label: beltLabelPt(b.slug, b.kind),
+                          });
+                          return;
+                        }
+                      }
+                      applyBeltChange(v);
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Escolha" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {kind === "adult" ? (
+                        <>
+                          <SelectGroup>
+                            <SelectLabel>Faixas adulto</SelectLabel>
+                            {adultBelts.map((b) => (
+                              <SelectItem key={b.id} value={b.id}>
+                                {beltLabelPt(b.slug, b.kind)}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                          {orangeJuvenileBelts.length > 0 ? (
+                            <SelectGroup>
+                              <SelectLabel className="text-primary">
+                                Laranja (juvenil) — tipo Adulto
+                              </SelectLabel>
+                              {orangeJuvenileBelts.map((b) => (
+                                <SelectItem key={b.id} value={b.id}>
+                                  {beltLabelPt(b.slug, b.kind)}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          ) : null}
+                        </>
+                      ) : (
+                        <SelectGroup>
+                          <SelectLabel>Faixas kids</SelectLabel>
+                          {kidsBelts.map((b) => (
+                            <SelectItem key={b.id} value={b.id}>
+                              {beltLabelPt(b.slug, b.kind)}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {!isWhiteBelt ? (
+              <FormField
+                control={form.control}
+                name="current_degree"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Grau</FormLabel>
+                    <Select
+                      disabled={loading}
+                      value={String(field.value)}
+                      onValueChange={(v) => field.onChange(Number(v))}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {degreeChoices.map((d) => (
+                          <SelectItem key={d} value={String(d)}>
+                            {d}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : null}
+
+            {mode === "edit" || kind === "baby" ? (
+              <FormField
+                control={form.control}
+                name="weight_kg"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Peso (kg) — opcional</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min={kind === "baby" ? undefined : 20}
+                        max={kind === "baby" ? undefined : 250}
+                        placeholder={kind === "baby" ? "Ex.: 14,5" : "Ex.: 72,5"}
+                        disabled={loading}
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {kind === "baby"
+                        ? "Qualquer peso em kg. Guardado na graduação actual ao salvar."
+                        : "Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar."}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : null}
+          </div>
         ) : null}
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>E-mail (opcional)</FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  disabled={loading}
-                  autoComplete="email"
-                  {...field}
-                  value={field.value ?? ""}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {stepId === "mensalidade" ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="is_exempt"
+              render={({ field }) => (
+                <FormItem className={cn(formCheckboxRowClass, "items-center sm:col-span-2")}>
+                  <FormControl>
+                    <Checkbox
+                      size="sm"
+                      checked={field.value}
+                      disabled={loading}
+                      onCheckedChange={(checked) => {
+                        setExemptIntent(checked === true ? "mark" : "clear");
+                      }}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="cursor-pointer">
+                      Isento de mensalidade
+                    </FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Não entra na lista de mensalidades nem aparece como
+                      atrasado.
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Observações (opcional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  disabled={loading}
-                  className="min-h-[88px]"
-                  {...field}
-                  value={field.value ?? ""}
+            {!isExempt ? (
+              <>
+                <FormField
+                  control={form.control}
+                  name="plan_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plano</FormLabel>
+                      {plansForKind.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          {plans.length === 0
+                            ? "Não foram encontrados planos para esta academia. Recarregue a página; se continuar vazio, confira o vínculo conta/perfil em docs/security/rls.md."
+                            : "Não há planos ativos para este tipo de aluno (Kids 1 / Kids 2 ou Adulto). Ative os planos nas configurações da conta."}
+                        </p>
+                      ) : (
+                        <Select
+                          disabled={loading}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Escolha" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {plansForKind.map((p) => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        <div className={formActionsClass}>
-          <Button
-            type="button"
-            variant="outline"
-            className={secondaryActionClass}
-            disabled={loading}
-            onClick={() => router.push(ROUTES.alunos)}
-          >
-            Cancelar
-          </Button>
-          <Button type="submit" className={primaryActionClass} disabled={loading}>
-            {loading ? "Salvando…" : mode === "create" ? "Registar aluno" : "Salvar"}
-          </Button>
+                <FormField
+                  control={form.control}
+                  name="due_day"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dia de vencimento (1–28)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={28}
+                          disabled={loading}
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            ) : null}
+          </div>
+        ) : null}
+
+        {stepId === "contactos" ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="document"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CPF (opcional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled={loading}
+                      inputMode="numeric"
+                      placeholder="000.000.000-00"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(maskCpfInput(e.target.value))
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone (opcional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled={loading}
+                      inputMode="tel"
+                      placeholder="(00) 00000-0000"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(maskPhoneBrInput(e.target.value))
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {kind === "kids" || kind === "baby" ? (
+              <FormField
+                control={form.control}
+                name="guardian_phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telefone do responsável (opcional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={loading}
+                        inputMode="tel"
+                        placeholder="(00) 00000-0000"
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(maskPhoneBrInput(e.target.value))
+                        }
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Usado para enviar matrícula/termo ASLAM por WhatsApp a
+                      menores.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : null}
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>E-mail (opcional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      disabled={loading}
+                      autoComplete="email"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem className="sm:col-span-2">
+                  <FormLabel>Observações (opcional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      disabled={loading}
+                      className="min-h-[88px]"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        ) : null}
+
+        <div className={cn(formActionsClass, "border-t border-black/[0.04] pt-4 dark:border-border")}>
+          {!isFirst ? (
+            <Button
+              type="button"
+              variant="outline"
+              className={secondaryActionClass}
+              disabled={loading}
+              onClick={() => {
+                form.clearErrors();
+                goToStep(step - 1);
+              }}
+            >
+              Voltar
+            </Button>
+          ) : null}
+          {isFirst || isLast ? (
+            <Button
+              type="button"
+              variant="outline"
+              className={secondaryActionClass}
+              disabled={loading}
+              onClick={leaveWithoutSave}
+            >
+              Cancelar
+            </Button>
+          ) : null}
+          {isLast ? (
+            <Button
+              type="submit"
+              className={primaryActionClass}
+              disabled={loading}
+            >
+              {loading
+                ? "Salvando…"
+                : mode === "create"
+                  ? "Registar aluno"
+                  : "Salvar"}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              className={primaryActionClass}
+              disabled={loading}
+              onClick={advanceStep}
+            >
+              Continuar
+            </Button>
+          )}
         </div>
 
         <AdultOrangeBeltConfirmDialog
@@ -689,6 +817,18 @@ export function StudentForm({
             if (adultOrangeConfirm) {
               applyBeltChange(adultOrangeConfirm.beltId);
             }
+          }}
+        />
+        <IsentoConfirmDialog
+          open={exemptIntent !== null}
+          intent={exemptIntent ?? "mark"}
+          onOpenChange={(open) => {
+            if (!open) setExemptIntent(null);
+          }}
+          onConfirm={() => {
+            form.setValue("is_exempt", exemptIntent === "mark", {
+              shouldDirty: true,
+            });
           }}
         />
       </form>

@@ -1,5 +1,5 @@
 import { tz } from "@date-fns/tz";
-import { differenceInCalendarDays } from "date-fns";
+import { addMonths, differenceInCalendarDays } from "date-fns";
 
 import { APP_TIME_ZONE } from "@/lib/dates/constants";
 import { parseCalendarDate, toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
@@ -96,19 +96,30 @@ export function calendarDaysBetween(fromYmd: string, toYmd: string): number | nu
   return differenceInCalendarDays(to, from, inSP);
 }
 
-/** **PNL-4.2**, alerta se tempo no grau ≥120 dias OU na faixa ≥365 dias (até `todayYmd`). */
+function reachedAfterCalendarMonths(
+  startYmd: string | null,
+  todayYmd: string,
+  months: number,
+): boolean {
+  if (!startYmd) return false;
+  const start = parseCalendarDate(startYmd);
+  const today = parseCalendarDate(todayYmd);
+  if (!start || !today) return false;
+  const due = addMonths(start, months, inSP);
+  return differenceInCalendarDays(today, due, inSP) >= 0;
+}
+
+/**
+ * Fallback 4 meses no grau ou 12 na faixa (critério ainda não confirmado).
+ * O painel deve usar `meetsReadinessAlert` — esta função não conhece faixa/preta.
+ */
 export function meetsGraduationAttentionThreshold(
   beltStartYmd: string | null,
   degreeStartYmd: string | null,
   todayYmd: string,
 ): boolean {
-  if (degreeStartYmd) {
-    const dDeg = calendarDaysBetween(degreeStartYmd, todayYmd);
-    if (dDeg !== null && dDeg >= 120) return true;
-  }
-  if (beltStartYmd) {
-    const dBelt = calendarDaysBetween(beltStartYmd, todayYmd);
-    if (dBelt !== null && dBelt >= 365) return true;
-  }
-  return false;
+  return (
+    reachedAfterCalendarMonths(degreeStartYmd, todayYmd, 4) ||
+    reachedAfterCalendarMonths(beltStartYmd, todayYmd, 12)
+  );
 }
