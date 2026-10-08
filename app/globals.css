@@ -321,3 +321,24 @@
     box-shadow: inset 0 2px 0 0 hsl(var(--primary) / 0.12);
   }
 }
+
+/* Landing — luz e malha. Só transform; parado se o utilizador pedir menos movimento. */
+@keyframes lp-orb-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, -5%, 0) scale(1.08);
+  }
+}
+
+.lp-orb {
+  animation: lp-orb-drift 18s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-orb {
+    animation: none;
+  }
+}

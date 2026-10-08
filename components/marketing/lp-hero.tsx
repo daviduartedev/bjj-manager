@@ -1,6 +1,5 @@
 import {
   LpDisplay,
-  LpEyebrow,
   LpReveal,
   LpSection,
 } from "@/components/marketing/lp-primitives";
@@ -25,24 +24,21 @@ function CapabilityItem({ kicker, label }: { kicker: string; label: string }) {
 
 export function LpHero() {
   return (
-    <LpSection className="pt-28 sm:pt-36">
+    <LpSection className="pt-24 sm:pt-28">
       {/* Centered copy block */}
-      <LpReveal>
-        <div className="text-center mx-auto max-w-3xl">
-          <LpEyebrow>Gestão para academias de jiu-jitsu</LpEyebrow>
-
-          <LpDisplay className="text-[clamp(2.75rem,7vw,5.5rem)] mt-6">
-            Alunos, faixas e mensalidades no mesmo lugar.
+      <LpReveal onLoad>
+        <div className="mx-auto w-full max-w-7xl text-center">
+          <LpDisplay className="whitespace-nowrap text-[clamp(1.15rem,4.4vw,4rem)]">
+            Se preocupe apenas em dar aula.
           </LpDisplay>
         </div>
       </LpReveal>
 
       {/* Subcopy + CTAs */}
-      <LpReveal delay={0.08}>
+      <LpReveal onLoad delay={0.12}>
         <div className="text-center mx-auto max-w-3xl">
-          <p className="mt-6 text-base sm:text-lg text-white/65 leading-relaxed max-w-2xl mx-auto">
-            Casca é o sistema da academia de jiu-jitsu: cadastro adulto e kids, graduação com
-            histórico, financeiro do mês e o painel do dia. Sem planilha.
+          <p className="mx-auto mt-6 max-w-2xl text-balance text-base leading-relaxed text-white/65 sm:text-lg">
+            No Casca, você visualiza e organiza toda a gestão da sua academia em um só lugar.
           </p>
 
           <div className="mt-10 flex items-center justify-center gap-4">
@@ -58,7 +54,11 @@ export function LpHero() {
       </LpReveal>
 
       {/* Capability strip */}
-      <div className="mt-20 border-t border-white/10 pt-10 grid grid-cols-2 lg:grid-cols-4 gap-8 text-left">
+      <LpReveal
+        onLoad
+        delay={0.22}
+        className="mt-24 grid grid-cols-2 gap-10 text-left lg:grid-cols-4 lg:gap-14"
+      >
         <CapabilityItem
           kicker="Adulto e kids"
           label="O mesmo cadastro cobre as duas linhas da escola."
@@ -75,7 +75,7 @@ export function LpHero() {
           kicker="Sua academia"
           label="Isolamento por conta. Cada escola vê só os seus dados."
         />
-      </div>
+      </LpReveal>
     </LpSection>
   );
 }

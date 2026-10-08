@@ -12,7 +12,6 @@ import {
 } from "@/components/marketing/lp-system-screens";
 import {
   LpDisplay,
-  LpEyebrow,
   LpReveal,
 } from "@/components/marketing/lp-primitives";
 
@@ -87,24 +86,23 @@ export function LpSystemVideo() {
     <section
       data-testid="lp-system-video"
       aria-label="O sistema em uso"
-      className="relative border-y border-white/10 bg-white/[0.03] px-5 py-20 sm:px-10 sm:py-28 lg:px-14"
+      className="relative z-10 bg-black px-5 py-24 text-white sm:px-10 sm:py-32 lg:px-16"
     >
-      <div className="mx-auto w-full max-w-6xl">
+      <div className="relative z-10 mx-auto w-full max-w-7xl">
         {/* Header */}
         <LpReveal>
-          <LpEyebrow>Em uso</LpEyebrow>
-          <LpDisplay className="mt-6 text-[clamp(2.25rem,5vw,4rem)]">O sistema rodando</LpDisplay>
+          <LpDisplay className="text-[clamp(2.25rem,5vw,4rem)]">O sistema rodando</LpDisplay>
           <p className="mt-6 max-w-[52ch] text-white/60 leading-relaxed">
             Cinco telas reais, em sequência: do painel do dia às aulas.
           </p>
         </LpReveal>
 
         {/* Grid */}
-        <LpReveal className="mt-14 grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start">
+        <LpReveal className="mt-16 grid gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-start lg:gap-16">
           {/* Left — player inside manual browser frame */}
           <div
             data-testid="lp-system-video-card"
-            className="overflow-hidden rounded-xl border border-white/10 bg-[#0d0d0d] shadow-[0_20px_60px_-15px_rgb(0_0_0/0.8)]"
+            className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0d] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.65)]"
           >
             {/* Browser bar */}
             <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2.5">

@@ -5,7 +5,7 @@ import { LandingPage } from "@/components/marketing/landing-page";
 export const metadata: Metadata = {
   title: "Início",
   description:
-    "Casca é o software para donos e professores de academia de jiu-jitsu: alunos, graduações, mensalidades e painel operacional num só lugar.",
+    "Se preocupe apenas em dar aula. No Casca, você visualiza e organiza toda a gestão da sua academia em um só lugar.",
 };
 
 export default function HomePage() {

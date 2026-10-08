@@ -1,6 +1,5 @@
 import {
   LpDisplay,
-  LpEyebrow,
   LpReveal,
   LpSection,
 } from "@/components/marketing/lp-primitives";
@@ -42,16 +41,15 @@ const faqItems = [
 
 export function LpFaq() {
   return (
-    <LpSection id="faq">
-      <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20">
+    <LpSection id="faq" className="relative z-10 bg-white text-neutral-950">
+      <div className="grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-28">
         {/* Left column — sticky on desktop */}
         <LpReveal>
           <div className="lg:sticky lg:top-28 mb-12 lg:mb-0">
-            <LpEyebrow>FAQ</LpEyebrow>
-            <LpDisplay className="mt-6 text-[clamp(2.25rem,5vw,4rem)]">
+            <LpDisplay surface="light" className="text-[clamp(2.25rem,5vw,4rem)]">
               Perguntas frequentes
             </LpDisplay>
-            <p className="mt-6 max-w-[36ch] leading-relaxed text-white/60">
+            <p className="mt-6 max-w-[36ch] leading-relaxed text-black/60">
               O que donos e professores perguntam antes de entrar.
             </p>
           </div>
@@ -59,10 +57,10 @@ export function LpFaq() {
 
         {/* Right column — accordion */}
         <LpReveal delay={0.1}>
-          <div className="divide-y divide-white/10 border-y border-white/10">
+          <div className="divide-y divide-black/10 border-y border-black/10">
             {faqItems.map(({ q, a }) => (
               <details key={q} className="group">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left text-base font-medium text-white outline-none focus-visible:ring-2 focus-visible:ring-white sm:text-lg [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left text-base font-medium text-neutral-950 outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 sm:text-lg [&::-webkit-details-marker]:hidden">
                   <span>{q}</span>
                   <span aria-hidden className="font-sans text-2xl font-semibold text-bjj-red group-open:hidden">
                     +
@@ -74,7 +72,7 @@ export function LpFaq() {
                     −
                   </span>
                 </summary>
-                <p className="max-w-[56ch] pb-5 leading-relaxed text-white/60">{a}</p>
+                <p className="max-w-[56ch] pb-5 leading-relaxed text-black/60">{a}</p>
               </details>
             ))}
           </div>

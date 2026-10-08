@@ -19,22 +19,9 @@ export function LpSection({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className={cn("relative px-5 py-20 sm:px-10 sm:py-28 lg:px-14", className)}>
-      <div className="mx-auto w-full max-w-6xl">{children}</div>
+    <section id={id} className={cn("relative px-5 py-24 sm:px-10 sm:py-32 lg:px-16", className)}>
+      <div className="relative z-10 mx-auto w-full max-w-7xl">{children}</div>
     </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// LpEyebrow — pill label with red dot
-// ---------------------------------------------------------------------------
-
-export function LpEyebrow({ children }: { children: ReactNode }) {
-  return (
-    <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white/70">
-      <span className="h-1.5 w-1.5 rounded-full bg-bjj-red" aria-hidden />
-      {children}
-    </p>
   );
 }
 
@@ -42,12 +29,21 @@ export function LpEyebrow({ children }: { children: ReactNode }) {
 // LpDisplay — big display type
 // ---------------------------------------------------------------------------
 
-export function LpDisplay({ className, children }: { className?: string; children: ReactNode }) {
+export function LpDisplay({
+  className,
+  surface = "dark",
+  children,
+}: {
+  className?: string;
+  surface?: "dark" | "light";
+  children: ReactNode;
+}) {
   return (
     <p
       className={cn(
-        "font-sans font-semibold tracking-[-0.02em] text-white",
+        "font-sans font-semibold tracking-[-0.02em]",
         className,
+        surface === "light" ? "text-neutral-950" : "text-white",
         "leading-[1.15]",
       )}
     >
@@ -60,13 +56,18 @@ export function LpDisplay({ className, children }: { className?: string; childre
 // LpReveal — client component, scroll-triggered fade-in with reduced-motion support
 // ---------------------------------------------------------------------------
 
+const revealEase = [0.22, 1, 0.36, 1] as const;
+
 export function LpReveal({
   className,
   delay,
+  onLoad = false,
   children,
 }: {
   className?: string;
   delay?: number;
+  /** Hero e o que já está no ecrã: entra ao carregar, sem esperar o scroll. */
+  onLoad?: boolean;
   children: ReactNode;
 }) {
   const shouldReduce = useReducedMotion();
@@ -78,10 +79,11 @@ export function LpReveal({
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, delay: delay ?? 0, ease: "easeOut" }}
+      initial={{ opacity: 0, y: 28 }}
+      animate={onLoad ? { opacity: 1, y: 0 } : undefined}
+      whileInView={onLoad ? undefined : { opacity: 1, y: 0 }}
+      viewport={onLoad ? undefined : { once: true, margin: "0px 0px -12% 0px" }}
+      transition={{ duration: 0.75, delay: delay ?? 0, ease: revealEase }}
     >
       {children}
     </motion.div>

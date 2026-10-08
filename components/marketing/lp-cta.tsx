@@ -9,7 +9,7 @@ import { LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 export function LpCta() {
   return (
-    <LpSection className="text-center">
+    <LpSection className="bg-black text-center">
       <LpReveal>
         <Image
           src="/uf.png"
