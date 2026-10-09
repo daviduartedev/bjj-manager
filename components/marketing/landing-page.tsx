@@ -1,14 +1,23 @@
-import { LpAtmosphere } from "@/components/marketing/lp-atmosphere";
-import { LpFooter, LpHeader } from "@/components/marketing/lp-chrome";
+﻿import { LpAtmosphere } from "@/components/marketing/lp-atmosphere";
+import { LpAudience } from "@/components/marketing/lp-audience";
+import { LpBelts } from "@/components/marketing/lp-belts";
+import { LpHeader } from "@/components/marketing/lp-chrome";
 import { LpCta } from "@/components/marketing/lp-cta";
 import { LpFaq } from "@/components/marketing/lp-faq";
+import { LpFooter } from "@/components/marketing/lp-footer";
 import { LpHero } from "@/components/marketing/lp-hero";
+import { LpHowItWorks } from "@/components/marketing/lp-how-it-works";
 import { LpProductFlow } from "@/components/marketing/lp-product-flow";
-import { LpSystemVideo } from "@/components/marketing/lp-system-video";
+import { LpTrust } from "@/components/marketing/lp-trust";
 
+/**
+ * Ordem das seções (fundos alternando preto e branco):
+ * hero (com o vídeo) → funcionalidades → como funciona → faixas e graus → para quem →
+ * segurança → FAQ → CTA (vermelho) → rodapé (escuro).
+ */
 export function LandingPage() {
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-black text-white">
+    <div id="top" className="relative min-h-screen overflow-x-hidden bg-black text-white">
       <main className="relative z-10">
         <LpHeader />
         <h1 className="sr-only">
@@ -19,11 +28,14 @@ export function LandingPage() {
           <LpHero />
         </div>
         <LpProductFlow />
-        <LpSystemVideo />
+        <LpHowItWorks />
+        <LpBelts />
+        <LpAudience />
+        <LpTrust />
         <LpFaq />
         <LpCta />
-        <LpFooter />
       </main>
+      <LpFooter />
     </div>
   );
 }

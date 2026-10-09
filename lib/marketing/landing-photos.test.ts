@@ -45,9 +45,10 @@ describe("LandingPage system video section", () => {
     const landing = readFileSync(LANDING_PAGE_SOURCE, "utf8");
     const marketing = readMarketingSources();
 
-    expect(landing.includes("lp-system-video"), "LandingPage must mount the system-video section").toBe(
-      true,
-    );
+    // O vídeo vive na própria hero (cycle 1008, rodada 4).
+    const heroSource = readFileSync(join(MARKETING_DIR, "lp-hero.tsx"), "utf8");
+    expect(heroSource.includes("LpSystemVideo"), "LpHero must mount the system video").toBe(true);
+    expect(landing.includes("LpHero"), "LandingPage must render the hero").toBe(true);
     expect(marketing).toContain('data-testid="lp-system-video"');
     expect(marketing).toContain("@remotion/player");
     expect(marketing).toContain('data-testid="lp-system-video-copy"');
@@ -58,21 +59,28 @@ describe("LandingPage system video section", () => {
       expect(videoSource.includes(label), `Right column must mention ${label}`).toBe(true);
     }
 
-    const remotionComposition = readdirSync(MARKETING_DIR)
+    // Vídeo-promo (cycle 1008): composição recriada em UI animada, em components/marketing/promo/.
+    const PROMO_DIR = join(MARKETING_DIR, "promo");
+    const promoSources = readdirSync(PROMO_DIR)
       .filter((name) => /\.(tsx|ts)$/.test(name))
-      .map((name) => ({ name, source: readFileSync(join(MARKETING_DIR, name), "utf8") }))
-      .find(({ source }) => source.includes('from "remotion"') || source.includes("from 'remotion'"));
+      .map((name) => ({ name, source: readFileSync(join(PROMO_DIR, name), "utf8") }));
 
-    expect(remotionComposition, "Remotion composition must live in marketing").toBeTruthy();
-    expect(remotionComposition!.source).not.toMatch(/<h[1-6]\b/);
-    expect(remotionComposition!.source).not.toMatch(/\btag\b/i);
-    expect(remotionComposition!.source).not.toMatch(/\bcaption\b/i);
-    expect(remotionComposition!.source).not.toMatch(/\blower-third\b/i);
-    for (const label of SYSTEM_CAPABILITY_LABELS) {
-      expect(
-        remotionComposition!.source.includes(label),
-        `Card composition must not render ${label} as a title`,
-      ).toBe(false);
+    expect(
+      promoSources.some(({ source }) => source.includes('from "remotion"')),
+      "Remotion composition must live in marketing/promo",
+    ).toBe(true);
+    for (const { name, source } of promoSources) {
+      // Semântica fica na página; dentro do vídeo não há headings reais.
+      expect(source, `${name} must not render heading elements`).not.toMatch(/<h[1-6]\b/);
     }
+    expect(
+      promoSources.some(({ source }) => source.includes("SceneNote")),
+      "Each scene is announced with a scene note",
+    ).toBe(true);
+  });
+
+  it("does not ship the old still-image slideshow", () => {
+    const source = readMarketingSources();
+    expect(source).not.toContain("lp-real-");
   });
 });

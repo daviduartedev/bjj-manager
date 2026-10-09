@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 
-import { LpFooter, LpHeader } from "@/components/marketing/lp-chrome";
+import { LpHeader } from "@/components/marketing/lp-chrome";
+import { LpFooter } from "@/components/marketing/lp-footer";
 
 export function MarketingLegalLayout({
   title,
