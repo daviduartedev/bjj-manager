@@ -490,9 +490,15 @@ WITH
 -- ---------- plans ----------
 DROP POLICY IF EXISTS plans_tenant_all ON public.plans;
 
-CREATE POLICY plans_tenant_all ON public.plans FOR ALL TO authenticated USING (account_id = public.current_account_id ())
+CREATE POLICY plans_tenant_all ON public.plans FOR ALL TO authenticated USING (
+  public.can_manage_commercial_plans ()
+  AND account_id = public.current_account_id ()
+)
 WITH
-  CHECK (account_id = public.current_account_id ());
+  CHECK (
+    public.can_manage_commercial_plans ()
+    AND account_id = public.current_account_id ()
+  );
 
 -- ---------- student_graduations ----------
 DROP POLICY IF EXISTS student_graduations_by_student_tenant ON public.student_graduations;
@@ -556,7 +562,8 @@ WITH
 DROP POLICY IF EXISTS student_plans_tenant_consistent ON public.student_plans;
 
 CREATE POLICY student_plans_tenant_consistent ON public.student_plans FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_commercial_plans ()
+  AND EXISTS (
     SELECT
       1
     FROM
@@ -570,7 +577,8 @@ CREATE POLICY student_plans_tenant_consistent ON public.student_plans FOR ALL TO
 )
 WITH
   CHECK (
-    EXISTS (
+    public.can_manage_commercial_plans ()
+    AND EXISTS (
       SELECT
         1
       FROM

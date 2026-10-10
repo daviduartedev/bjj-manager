@@ -33,6 +33,7 @@ const MARKER_PRODUCT = "RLS-V-SHOP-PRODUCT";
 const MARKER_PRODUCT_CODE = "RLS-V-SHOP";
 const MARKER_PAYMENT = "RLS-V-PAYMENT";
 const MARKER_GRADUATION = "RLS-V-GRADUATION";
+const MARKER_PLAN = "RLS-V-PLAN";
 
 function requireEnv(name) {
   const v = process.env[name];
@@ -1106,6 +1107,477 @@ async function main() {
          where id = $1 and skip_reason = $2`,
         [graduationId, MARKER_GRADUATION]
       );
+    }
+
+    if (passwordForSignIn) {
+      console.log(", Planos comerciais: professor grava, aluno não lê nem grava ,");
+
+      const LINK_START = "2099-01-01";
+      const LINK_END = "2099-01-02";
+      const PLAN_KINDS = ["baby", "kids_1", "kids_2", "adult"];
+      const PLAN_PRICE = 22200;
+
+      const assertCommercialWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar plano comercial nem vínculo`);
+        }
+      };
+
+      const isUniqueViolation = (error) =>
+        error?.code === "23505" ||
+        /duplicate key|plans_account_kind_unique/i.test(error?.message || "");
+
+      const deleteSentinelLinks = (accountId) =>
+        pg.query(
+          `delete from public.student_plans sp
+           using public.students s
+           where sp.student_id = s.id
+             and s.account_id = $1
+             and s.full_name like 'RLS-V-%'
+             and sp.started_at = $2
+             and sp.ended_at = $3`,
+          [accountId, LINK_START, LINK_END]
+        );
+
+      const signIn = async (email) => {
+        const client = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signed = await client.auth.signInWithPassword({
+          email,
+          password: passwordForSignIn,
+        });
+        if (signed.error) throw signed.error;
+        return client;
+      };
+
+      const attemptAlunoPlanInsert = async (client, kind, strictUnique) => {
+        const result = await client.from("plans").insert({
+          account_id: tenantA.accountId,
+          kind,
+          name: MARKER_PLAN,
+          price_cents: 1,
+          active: false,
+        });
+        if (!result.error) {
+          await pg.query(
+            `delete from public.plans
+             where account_id = $1 and name = $2 and kind = $3::public.plan_kind
+               and price_cents = 1`,
+            [tenantA.accountId, MARKER_PLAN, kind]
+          );
+          throw new Error("aluno não devia criar plano comercial");
+        }
+        if (strictUnique && isUniqueViolation(result.error)) {
+          throw new Error(
+            "INSERT de plano do aluno falhou por unicidade, não por recusa de acesso"
+          );
+        }
+        console.log(`  Recusado INSERT plano (aluno): ${result.error.message}`);
+      };
+
+      await deleteSentinelLinks(tenantA.accountId);
+      await deleteSentinelLinks(tenantB.accountId);
+
+      const planStudentName = studentFixture ? MARKER_STUDENT : "RLS-V-A";
+      const planStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantA.accountId, planStudentName]
+      );
+      if (!planStudent.rows.length) {
+        throw new Error(`Fixture de plano sem aluno ${planStudentName}`);
+      }
+      const planStudentId = planStudent.rows[0].id;
+
+      const tenantBStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantB.accountId, "RLS-V-B"]
+      );
+      if (!tenantBStudent.rows.length) {
+        throw new Error("Fixture RLS-V-B ausente para isolamento de plano");
+      }
+      const tenantBStudentId = tenantBStudent.rows[0].id;
+
+      const existingPlans = await pg.query(
+        `select id, kind::text as kind, name, price_cents
+         from public.plans where account_id = $1`,
+        [tenantA.accountId]
+      );
+      const markerPlan = existingPlans.rows.find((row) => row.name === MARKER_PLAN);
+      const usedKinds = new Set(existingPlans.rows.map((row) => row.kind));
+      const freeKinds = PLAN_KINDS.filter((kind) => !usedKinds.has(kind));
+
+      let planId = null;
+      let vinculoId = null;
+      let insertedFixture = false;
+      let priceRestore = null;
+      let alunoPlanInsertChecked = false;
+
+      const assertFixtureUntouched = async (label) => {
+        const planRow = await pg.query(
+          `select price_cents from public.plans where id = $1 and name = $2`,
+          [planId, MARKER_PLAN]
+        );
+        if (
+          planRow.rows.length !== 1 ||
+          Number(planRow.rows[0].price_cents) !== PLAN_PRICE
+        ) {
+          throw new Error(`${label}: plano fixture alterado`);
+        }
+        const linkRow = await pg.query(
+          `select custom_price_cents, due_day from public.student_plans
+           where id = $1 and started_at = $2 and ended_at = $3`,
+          [vinculoId, LINK_START, LINK_END]
+        );
+        if (
+          linkRow.rows.length !== 1 ||
+          Number(linkRow.rows[0].custom_price_cents) !== 8800 ||
+          Number(linkRow.rows[0].due_day) !== 12
+        ) {
+          throw new Error(`${label}: vínculo fixture alterado`);
+        }
+      };
+
+      try {
+        let professorInsertKind = null;
+        if (markerPlan) {
+          planId = markerPlan.id;
+          priceRestore = {
+            id: markerPlan.id,
+            name: markerPlan.name,
+            price_cents: markerPlan.price_cents,
+          };
+        } else if (freeKinds.length >= 1) {
+          professorInsertKind = freeKinds[0];
+        } else {
+          const unlinked = await pg.query(
+            `select p.id, p.name, p.price_cents
+             from public.plans p
+             where p.account_id = $1
+               and not exists (
+                 select 1 from public.student_plans sp where sp.plan_id = p.id
+               )
+             order by case p.kind when 'baby' then 0 else 1 end
+             limit 1`,
+            [tenantA.accountId]
+          );
+          const borrow =
+            unlinked.rows[0] ||
+            existingPlans.rows.find((row) => row.kind === "baby") ||
+            existingPlans.rows[0];
+          if (!borrow) {
+            throw new Error("Fixture de plano comercial indisponível na conta de teste");
+          }
+          priceRestore = {
+            id: borrow.id,
+            name: borrow.name,
+            price_cents: borrow.price_cents,
+          };
+          planId = borrow.id;
+        }
+
+        const alunoInsertKind =
+          studentFixture && freeKinds.length >= 2
+            ? freeKinds[1]
+            : studentFixture && markerPlan && freeKinds.length >= 1
+              ? freeKinds[0]
+              : null;
+        const alunoInsertKindEarly =
+          studentFixture && !markerPlan && freeKinds.length === 1
+            ? freeKinds[0]
+            : null;
+
+        if (alunoInsertKindEarly) {
+          const studentEarly = await signIn(studentFixture.email);
+          try {
+            await attemptAlunoPlanInsert(studentEarly, alunoInsertKindEarly, true);
+            alunoPlanInsertChecked = true;
+          } finally {
+            await studentEarly.auth.signOut();
+          }
+        }
+
+        const profPlan = await signIn(EMAIL_A);
+
+        if (professorInsertKind) {
+          const insertedPlan = await profPlan
+            .from("plans")
+            .insert({
+              account_id: tenantA.accountId,
+              kind: professorInsertKind,
+              name: MARKER_PLAN,
+              price_cents: 11100,
+              active: true,
+            })
+            .select("id, price_cents")
+            .single();
+          if (insertedPlan.error) {
+            throw new Error(
+              `professor insert plano comercial: ${insertedPlan.error.message}`
+            );
+          }
+          planId = insertedPlan.data.id;
+          insertedFixture = true;
+        }
+
+        const planPatch = priceRestore
+          ? { name: MARKER_PLAN, price_cents: PLAN_PRICE }
+          : { price_cents: PLAN_PRICE };
+        const priced = await profPlan
+          .from("plans")
+          .update(planPatch)
+          .eq("id", planId)
+          .select("id, name, price_cents")
+          .single();
+        if (priced.error) {
+          throw new Error(
+            `professor actualizar plano comercial: ${priced.error.message}`
+          );
+        }
+        if (
+          priced.data?.name !== MARKER_PLAN ||
+          Number(priced.data?.price_cents) !== PLAN_PRICE
+        ) {
+          throw new Error("professor não actualizou o plano comercial fixture");
+        }
+
+        const insertedLink = await profPlan
+          .from("student_plans")
+          .insert({
+            student_id: planStudentId,
+            plan_id: planId,
+            custom_price_cents: 9900,
+            due_day: 10,
+            started_at: LINK_START,
+            ended_at: LINK_END,
+          })
+          .select("id, custom_price_cents, due_day")
+          .single();
+        if (insertedLink.error) {
+          throw new Error(
+            `professor insert vínculo: ${insertedLink.error.message}`
+          );
+        }
+        vinculoId = insertedLink.data.id;
+
+        const pricedLink = await profPlan
+          .from("student_plans")
+          .update({ custom_price_cents: 8800, due_day: 12 })
+          .eq("id", vinculoId)
+          .select("id, custom_price_cents, due_day")
+          .single();
+        if (pricedLink.error) {
+          throw new Error(
+            `professor actualizar vínculo: ${pricedLink.error.message}`
+          );
+        }
+        if (
+          Number(pricedLink.data?.custom_price_cents) !== 8800 ||
+          Number(pricedLink.data?.due_day) !== 12
+        ) {
+          throw new Error("professor não actualizou o vínculo fixture");
+        }
+
+        const crossPlan = await profPlan.from("plans").insert({
+          account_id: tenantB.accountId,
+          kind: "baby",
+          name: MARKER_PLAN,
+          price_cents: 33300,
+          active: false,
+        });
+        if (!crossPlan.error) {
+          await pg.query(
+            `delete from public.plans
+             where account_id = $1 and name = $2 and price_cents = 33300`,
+            [tenantB.accountId, MARKER_PLAN]
+          );
+          throw new Error("professor não devia gravar plano de outra academia");
+        }
+        console.log(
+          `  Recusado INSERT plano cross-tenant: ${crossPlan.error.message}`
+        );
+
+        const crossLink = await profPlan.from("student_plans").insert({
+          student_id: tenantBStudentId,
+          plan_id: planId,
+          custom_price_cents: 9900,
+          due_day: 10,
+          started_at: LINK_START,
+          ended_at: LINK_END,
+        });
+        if (!crossLink.error) {
+          await pg.query(
+            `delete from public.student_plans
+             where student_id = $1 and started_at = $2 and ended_at = $3`,
+            [tenantBStudentId, LINK_START, LINK_END]
+          );
+          throw new Error("professor não devia gravar vínculo de outra academia");
+        }
+        console.log(
+          `  Recusado INSERT vínculo cross-tenant: ${crossLink.error.message}`
+        );
+
+        await profPlan.auth.signOut();
+
+        const userBPlan = await signIn(EMAIL_B);
+        const bPlanRead = await userBPlan
+          .from("plans")
+          .select("id")
+          .eq("id", planId);
+        if (bPlanRead.error) {
+          throw new Error(`B plans: ${bPlanRead.error.message}`);
+        }
+        if ((bPlanRead.data || []).length !== 0) {
+          throw new Error("B não devia ler plano comercial da conta A");
+        }
+        assertCommercialWriteRefused(
+          await userBPlan
+            .from("plans")
+            .update({ price_cents: 1 })
+            .eq("id", planId)
+            .select("id"),
+          "UPDATE plano cross-tenant"
+        );
+        assertCommercialWriteRefused(
+          await userBPlan.from("plans").delete().eq("id", planId).select("id"),
+          "DELETE plano cross-tenant"
+        );
+        const bLinkRead = await userBPlan
+          .from("student_plans")
+          .select("id")
+          .eq("id", vinculoId);
+        if (bLinkRead.error) {
+          throw new Error(`B student_plans: ${bLinkRead.error.message}`);
+        }
+        if ((bLinkRead.data || []).length !== 0) {
+          throw new Error("B não devia ler vínculo da conta A");
+        }
+        assertCommercialWriteRefused(
+          await userBPlan
+            .from("student_plans")
+            .update({ custom_price_cents: 1, due_day: 1 })
+            .eq("id", vinculoId)
+            .select("id"),
+          "UPDATE vínculo cross-tenant"
+        );
+        assertCommercialWriteRefused(
+          await userBPlan
+            .from("student_plans")
+            .delete()
+            .eq("id", vinculoId)
+            .select("id"),
+          "DELETE vínculo cross-tenant"
+        );
+        await userBPlan.auth.signOut();
+        await assertFixtureUntouched("outra academia");
+
+        if (studentFixture) {
+          const studentPlan = await signIn(studentFixture.email);
+          const alunoPlans = await studentPlan.from("plans").select("id");
+          if (alunoPlans.error) {
+            throw new Error(`aluno plans: ${alunoPlans.error.message}`);
+          }
+          if ((alunoPlans.data || []).length !== 0) {
+            throw new Error(
+              `aluno devia ver 0 planos comerciais, viu ${(alunoPlans.data || []).length}`
+            );
+          }
+          const alunoLinks = await studentPlan.from("student_plans").select("id");
+          if (alunoLinks.error) {
+            throw new Error(`aluno student_plans: ${alunoLinks.error.message}`);
+          }
+          if ((alunoLinks.data || []).length !== 0) {
+            throw new Error(
+              `aluno devia ver 0 vínculos, viu ${(alunoLinks.data || []).length}`
+            );
+          }
+
+          if (!alunoPlanInsertChecked) {
+            await attemptAlunoPlanInsert(
+              studentPlan,
+              alunoInsertKind || "adult",
+              Boolean(alunoInsertKind)
+            );
+          }
+
+          assertCommercialWriteRefused(
+            await studentPlan
+              .from("plans")
+              .update({ price_cents: 1 })
+              .eq("id", planId)
+              .select("id, price_cents"),
+            "UPDATE plano (aluno)"
+          );
+          assertCommercialWriteRefused(
+            await studentPlan.from("plans").delete().eq("id", planId).select("id"),
+            "DELETE plano (aluno)"
+          );
+
+          const alunoLinkInsert = await studentPlan.from("student_plans").insert({
+            student_id: planStudentId,
+            plan_id: planId,
+            custom_price_cents: 1,
+            due_day: 3,
+            started_at: LINK_START,
+            ended_at: LINK_END,
+          });
+          if (!alunoLinkInsert.error) {
+            await pg.query(
+              `delete from public.student_plans
+               where student_id = $1 and plan_id = $2 and custom_price_cents = 1
+                 and started_at = $3 and ended_at = $4`,
+              [planStudentId, planId, LINK_START, LINK_END]
+            );
+            throw new Error("aluno não devia criar vínculo");
+          }
+          console.log(
+            `  Recusado INSERT vínculo (aluno): ${alunoLinkInsert.error.message}`
+          );
+
+          assertCommercialWriteRefused(
+            await studentPlan
+              .from("student_plans")
+              .update({ custom_price_cents: 1, due_day: 4 })
+              .eq("id", vinculoId)
+              .select("id, custom_price_cents, due_day"),
+            "UPDATE vínculo (aluno)"
+          );
+          assertCommercialWriteRefused(
+            await studentPlan
+              .from("student_plans")
+              .delete()
+              .eq("id", vinculoId)
+              .select("id"),
+            "DELETE vínculo (aluno)"
+          );
+
+          await assertFixtureUntouched("aluno");
+          await studentPlan.auth.signOut();
+        } else {
+          console.log(
+            "  [Opcional] sem fixture student — testes de aluno em planos comerciais omitidos."
+          );
+        }
+      } finally {
+        await deleteSentinelLinks(tenantA.accountId);
+        await deleteSentinelLinks(tenantB.accountId);
+        if (insertedFixture && planId) {
+          await pg.query(
+            `delete from public.plans where id = $1 and name = $2`,
+            [planId, MARKER_PLAN]
+          );
+        }
+        if (priceRestore) {
+          await pg.query(
+            `update public.plans set name = $2, price_cents = $3 where id = $1`,
+            [priceRestore.id, priceRestore.name, priceRestore.price_cents]
+          );
+        }
+      }
     }
 
     console.log(", Portal Fase 2: fixture turma/sessão/check-in ,");
