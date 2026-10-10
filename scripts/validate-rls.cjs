@@ -3387,6 +3387,202 @@ async function main() {
       ]);
     }
 
+    if (passwordForSignIn) {
+      console.log(
+        ", Academia: aluno não apaga nem configura; professor configura a própria ,"
+      );
+
+      const assertAccountWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar a academia`);
+        }
+      };
+
+      const readAccount = async (accountId) => {
+        const res = await pg.query(
+          `select id, name, pix_key, pix_key_type, pix_holder_name
+           from public.accounts
+           where id = $1`,
+          [accountId]
+        );
+        return res.rows[0] || null;
+      };
+
+      const signInAccount = async (email) => {
+        const client = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signed = await client.auth.signInWithPassword({
+          email,
+          password: passwordForSignIn,
+        });
+        if (signed.error) throw signed.error;
+        return client;
+      };
+
+      const beforeA = await readAccount(tenantA.accountId);
+      if (!beforeA) throw new Error("academia fixture A ausente");
+      const beforeB = await readAccount(tenantB.accountId);
+      if (!beforeB) throw new Error("academia fixture B ausente");
+
+      const profAccount = await signInAccount(EMAIL_A);
+
+      const readOther = await profAccount
+        .from("accounts")
+        .select("id, name")
+        .eq("id", tenantB.accountId);
+      if (readOther.error) {
+        console.log(
+          `  Recusado SELECT academia alheia: ${readOther.error.message}`
+        );
+      } else if ((readOther.data || []).length > 0) {
+        throw new Error("professor A não devia ler a academia de B");
+      }
+
+      const ownAccount = await profAccount
+        .from("accounts")
+        .select("id")
+        .eq("id", tenantA.accountId);
+      if (ownAccount.error) {
+        throw new Error(`professor A accounts: ${ownAccount.error.message}`);
+      }
+      if ((ownAccount.data || []).length !== 1) {
+        throw new Error("professor A devia ler a própria academia");
+      }
+
+      assertAccountWriteRefused(
+        await profAccount
+          .from("accounts")
+          .update({ name: "RLS-V-B-ACCOUNT" })
+          .eq("id", tenantB.accountId)
+          .select("id, name"),
+        "UPDATE academia alheia"
+      );
+      const afterCross = await readAccount(tenantB.accountId);
+      if (
+        !afterCross ||
+        afterCross.name !== beforeB.name ||
+        afterCross.pix_key !== beforeB.pix_key
+      ) {
+        if (afterCross) {
+          await pg.query(
+            `update public.accounts
+             set name = $2, pix_key = $3, pix_key_type = $4, pix_holder_name = $5
+             where id = $1`,
+            [
+              tenantB.accountId,
+              beforeB.name,
+              beforeB.pix_key,
+              beforeB.pix_key_type,
+              beforeB.pix_holder_name,
+            ]
+          );
+        }
+        throw new Error("professor A alterou a academia de B");
+      }
+
+      if (studentFixture) {
+        const alunoAccount = await signInAccount(studentFixture.email);
+
+        assertAccountWriteRefused(
+          await alunoAccount
+            .from("accounts")
+            .update({ name: "RLS-V-A-ALUNO" })
+            .eq("id", studentFixture.accountId)
+            .select("id, name"),
+          "UPDATE nome (aluno)"
+        );
+        assertAccountWriteRefused(
+          await alunoAccount
+            .from("accounts")
+            .update({
+              pix_key: "00000000000",
+              pix_key_type: "cpf",
+              pix_holder_name: "RLS-V-A",
+            })
+            .eq("id", studentFixture.accountId)
+            .select("id, pix_key"),
+          "UPDATE pix (aluno)"
+        );
+        assertAccountWriteRefused(
+          await alunoAccount
+            .from("accounts")
+            .delete()
+            .eq("id", studentFixture.accountId)
+            .select("id"),
+          "DELETE academia (aluno)"
+        );
+
+        const afterAluno = await readAccount(studentFixture.accountId);
+        if (!afterAluno) {
+          throw new Error("aluno apagou a academia fixture");
+        }
+        if (
+          afterAluno.name !== beforeA.name ||
+          afterAluno.pix_key !== beforeA.pix_key ||
+          afterAluno.pix_key_type !== beforeA.pix_key_type ||
+          afterAluno.pix_holder_name !== beforeA.pix_holder_name
+        ) {
+          await pg.query(
+            `update public.accounts
+             set name = $2, pix_key = $3, pix_key_type = $4, pix_holder_name = $5
+             where id = $1`,
+            [
+              studentFixture.accountId,
+              beforeA.name,
+              beforeA.pix_key,
+              beforeA.pix_key_type,
+              beforeA.pix_holder_name,
+            ]
+          );
+          throw new Error("aluno alterou nome ou pix da academia fixture");
+        }
+
+        await alunoAccount.auth.signOut();
+
+        const markerName = "RLS-V-A-ACCOUNT";
+        const profRename = await profAccount
+          .from("accounts")
+          .update({ name: markerName })
+          .eq("id", studentFixture.accountId)
+          .select("id, name");
+        const renamed = await readAccount(studentFixture.accountId);
+        if (renamed && renamed.name !== beforeA.name) {
+          await pg.query(
+            `update public.accounts set name = $2 where id = $1`,
+            [studentFixture.accountId, beforeA.name]
+          );
+        }
+        if (profRename.error) {
+          throw new Error(
+            `professor devia actualizar o nome da academia: ${profRename.error.message}`
+          );
+        }
+        if (
+          (profRename.data || []).length !== 1 ||
+          profRename.data[0].name !== markerName ||
+          !renamed ||
+          renamed.name !== markerName
+        ) {
+          throw new Error("professor não actualizou o nome da academia fixture");
+        }
+        const restored = await readAccount(studentFixture.accountId);
+        if (!restored || restored.name !== beforeA.name) {
+          throw new Error("nome da academia fixture não foi reposto");
+        }
+      } else {
+        console.log(
+          "  [Opcional] sem fixture student — testes de aluno na academia omitidos."
+        );
+      }
+
+      await profAccount.auth.signOut();
+    }
+
     console.log("\nOK , validação RLS concluída.");
   } finally {
     await pg.end();

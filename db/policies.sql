@@ -401,15 +401,18 @@ DROP POLICY IF EXISTS accounts_update_professor ON public.accounts;
 
 CREATE POLICY accounts_update_professor ON public.accounts FOR UPDATE TO authenticated USING (
   id = public.current_account_id ()
-  AND public.current_profile_role () = 'professor'::public.profile_role
+  AND public.can_manage_account_settings ()
 )
 WITH
   CHECK (
     id = public.current_account_id ()
-    AND public.current_profile_role () = 'professor'::public.profile_role
+    AND public.can_manage_account_settings ()
   );
 
-CREATE POLICY accounts_delete_own ON public.accounts FOR DELETE TO authenticated USING (id = public.current_account_id ());
+CREATE POLICY accounts_delete_own ON public.accounts FOR DELETE TO authenticated USING (
+  id = public.current_account_id ()
+  AND public.can_delete_account ()
+);
 
 -- ---------- profiles ----------
 DROP POLICY IF EXISTS profiles_select_same_account ON public.profiles;
