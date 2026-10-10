@@ -31,6 +31,7 @@ const MARKER_STUDENT_PROFILE = "RLS-V-STUDENT";
 const MARKER_CLASS = "RLS-V-CLASS";
 const MARKER_PRODUCT = "RLS-V-SHOP-PRODUCT";
 const MARKER_PRODUCT_CODE = "RLS-V-SHOP";
+const MARKER_PAYMENT = "RLS-V-PAYMENT";
 
 function requireEnv(name) {
   const v = process.env[name];
@@ -580,6 +581,292 @@ async function main() {
 
         await studentClient.auth.signOut();
       }
+    }
+
+    if (passwordForSignIn) {
+      console.log(", Mensalidades: professor grava, aluno não lê nem grava ,");
+
+      const assertPaymentWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar mensalidade`);
+        }
+      };
+
+      const financeStudentName = studentFixture ? MARKER_STUDENT : "RLS-V-A";
+      const financeStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantA.accountId, financeStudentName]
+      );
+      if (!financeStudent.rows.length) {
+        throw new Error(
+          `Fixture de mensalidade sem aluno ${financeStudentName}`
+        );
+      }
+      const financeStudentId = financeStudent.rows[0].id;
+
+      await pg.query(
+        `delete from public.payments p
+         using public.students s
+         where p.student_id = s.id
+           and s.full_name like 'RLS-V-%'
+           and p.notes = $1`,
+        [MARKER_PAYMENT]
+      );
+
+      const profPay = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInProfPay = await profPay.auth.signInWithPassword({
+        email: EMAIL_A,
+        password: passwordForSignIn,
+      });
+      if (signInProfPay.error) throw signInProfPay.error;
+
+      const insertedPay = await profPay
+        .from("payments")
+        .insert({
+          student_id: financeStudentId,
+          reference_month: "2099-01-01",
+          amount_cents: 12000,
+          status: "pending",
+          notes: MARKER_PAYMENT,
+        })
+        .select("id, status")
+        .single();
+      if (insertedPay.error) {
+        throw new Error(
+          `professor insert mensalidade: ${insertedPay.error.message}`
+        );
+      }
+      const paymentId = insertedPay.data.id;
+
+      const markedPaid = await profPay
+        .from("payments")
+        .update({
+          amount_cents: 12000,
+          status: "paid",
+          paid_at: new Date().toISOString(),
+        })
+        .eq("id", paymentId)
+        .eq("notes", MARKER_PAYMENT)
+        .select("id, status, amount_cents")
+        .single();
+      if (markedPaid.error) {
+        throw new Error(
+          `professor marcar mensalidade paga: ${markedPaid.error.message}`
+        );
+      }
+      if (markedPaid.data?.status !== "paid") {
+        throw new Error("professor não marcou a mensalidade fixture como paga");
+      }
+
+      const markedScholarship = await profPay
+        .from("payments")
+        .update({
+          amount_cents: 0,
+          status: "scholarship",
+          paid_at: null,
+        })
+        .eq("id", paymentId)
+        .eq("notes", MARKER_PAYMENT)
+        .select("id, status, amount_cents")
+        .single();
+      if (markedScholarship.error) {
+        throw new Error(
+          `professor marcar Bolsista: ${markedScholarship.error.message}`
+        );
+      }
+      if (
+        markedScholarship.data?.status !== "scholarship" ||
+        Number(markedScholarship.data?.amount_cents) !== 0
+      ) {
+        throw new Error(
+          "professor não actualizou a mensalidade fixture para Bolsista"
+        );
+      }
+
+      const tenantBStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantB.accountId, "RLS-V-B"]
+      );
+      if (!tenantBStudent.rows.length) {
+        throw new Error("Fixture RLS-V-B ausente para isolamento de mensalidade");
+      }
+      const crossPay = await profPay.from("payments").insert({
+        student_id: tenantBStudent.rows[0].id,
+        reference_month: "2099-01-01",
+        amount_cents: 12000,
+        status: "pending",
+        notes: MARKER_PAYMENT,
+      });
+      if (!crossPay.error) {
+        await pg.query(
+          `delete from public.payments
+           where student_id = $1 and notes = $2 and reference_month = '2099-01-01'`,
+          [tenantBStudent.rows[0].id, MARKER_PAYMENT]
+        );
+        throw new Error(
+          "professor não devia gravar mensalidade de outra academia"
+        );
+      }
+      console.log(
+        `  Recusado INSERT mensalidade cross-tenant: ${crossPay.error.message}`
+      );
+
+      await profPay.auth.signOut();
+
+      const userBPay = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInBPay = await userBPay.auth.signInWithPassword({
+        email: EMAIL_B,
+        password: passwordForSignIn,
+      });
+      if (signInBPay.error) throw signInBPay.error;
+
+      const bPayRead = await userBPay
+        .from("payments")
+        .select("id")
+        .eq("id", paymentId);
+      if (bPayRead.error) {
+        throw new Error(`B payments: ${bPayRead.error.message}`);
+      }
+      if ((bPayRead.data || []).length !== 0) {
+        throw new Error("B não devia ler mensalidade da conta A");
+      }
+      assertPaymentWriteRefused(
+        await userBPay
+          .from("payments")
+          .update({ status: "paid", amount_cents: 1 })
+          .eq("id", paymentId)
+          .select("id"),
+        "UPDATE mensalidade cross-tenant"
+      );
+      assertPaymentWriteRefused(
+        await userBPay.from("payments").delete().eq("id", paymentId).select("id"),
+        "DELETE mensalidade cross-tenant"
+      );
+      await userBPay.auth.signOut();
+
+      const afterCross = await pg.query(
+        `select status, amount_cents from public.payments
+         where id = $1 and notes = $2`,
+        [paymentId, MARKER_PAYMENT]
+      );
+      if (
+        afterCross.rows.length !== 1 ||
+        afterCross.rows[0].status !== "scholarship" ||
+        Number(afterCross.rows[0].amount_cents) !== 0
+      ) {
+        throw new Error("mensalidade fixture alterada por outra academia");
+      }
+
+      if (studentFixture) {
+        const studentPay = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signInStudentPay = await studentPay.auth.signInWithPassword({
+          email: studentFixture.email,
+          password: passwordForSignIn,
+        });
+        if (signInStudentPay.error) throw signInStudentPay.error;
+
+        const alunoRead = await studentPay.from("payments").select("id");
+        if (alunoRead.error) {
+          throw new Error(`aluno payments: ${alunoRead.error.message}`);
+        }
+        if ((alunoRead.data || []).length !== 0) {
+          throw new Error(
+            `aluno devia ver 0 mensalidades, viu ${(alunoRead.data || []).length}`
+          );
+        }
+
+        const alunoInsert = await studentPay.from("payments").insert({
+          student_id: financeStudentId,
+          reference_month: "2099-02-01",
+          amount_cents: 12000,
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          notes: MARKER_PAYMENT,
+        });
+        if (!alunoInsert.error) {
+          await pg.query(
+            `delete from public.payments
+             where student_id = $1 and notes = $2 and reference_month = '2099-02-01'`,
+            [financeStudentId, MARKER_PAYMENT]
+          );
+          throw new Error("aluno não devia criar mensalidade");
+        }
+        console.log(
+          `  Recusado INSERT mensalidade (aluno): ${alunoInsert.error.message}`
+        );
+
+        assertPaymentWriteRefused(
+          await studentPay
+            .from("payments")
+            .update({
+              amount_cents: 5000,
+              status: "paid",
+              paid_at: new Date().toISOString(),
+            })
+            .eq("id", paymentId)
+            .select("id, status"),
+          "UPDATE mensalidade (aluno)"
+        );
+        assertPaymentWriteRefused(
+          await studentPay
+            .from("payments")
+            .delete()
+            .eq("id", paymentId)
+            .select("id"),
+          "DELETE mensalidade (aluno)"
+        );
+
+        const afterAluno = await pg.query(
+          `select status, amount_cents from public.payments
+           where id = $1 and notes = $2`,
+          [paymentId, MARKER_PAYMENT]
+        );
+        if (
+          afterAluno.rows.length !== 1 ||
+          afterAluno.rows[0].status !== "scholarship" ||
+          Number(afterAluno.rows[0].amount_cents) !== 0
+        ) {
+          throw new Error("aluno alterou a mensalidade fixture");
+        }
+
+        await studentPay.auth.signOut();
+      } else {
+        console.log(
+          "  [Opcional] sem fixture student — testes de aluno em mensalidades omitidos."
+        );
+      }
+
+      const profVoid = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInVoid = await profVoid.auth.signInWithPassword({
+        email: EMAIL_A,
+        password: passwordForSignIn,
+      });
+      if (signInVoid.error) throw signInVoid.error;
+      const voided = await profVoid
+        .from("payments")
+        .delete()
+        .eq("id", paymentId)
+        .eq("notes", MARKER_PAYMENT)
+        .select("id");
+      if (voided.error) {
+        throw new Error(`professor estornar mensalidade: ${voided.error.message}`);
+      }
+      if ((voided.data || []).length !== 1) {
+        throw new Error("professor devia estornar a mensalidade fixture");
+      }
+      await profVoid.auth.signOut();
     }
 
     console.log(", Portal Fase 2: fixture turma/sessão/check-in ,");

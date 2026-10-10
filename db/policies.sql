@@ -525,7 +525,8 @@ WITH
 DROP POLICY IF EXISTS payments_by_student_tenant ON public.payments;
 
 CREATE POLICY payments_by_student_tenant ON public.payments FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_finance ()
+  AND EXISTS (
     SELECT
       1
     FROM
@@ -537,7 +538,8 @@ CREATE POLICY payments_by_student_tenant ON public.payments FOR ALL TO authentic
 )
 WITH
   CHECK (
-    EXISTS (
+    public.can_manage_finance ()
+    AND EXISTS (
       SELECT
         1
       FROM
