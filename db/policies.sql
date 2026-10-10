@@ -656,12 +656,12 @@ DROP POLICY IF EXISTS products_operational_all ON public.products;
 DROP POLICY IF EXISTS products_student_select ON public.products;
 
 CREATE POLICY products_operational_all ON public.products FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 )
 WITH
   CHECK (
-    public.current_profile_role () = 'professor'::public.profile_role
+    public.can_manage_students ()
     AND account_id = public.current_account_id ()
   );
 
@@ -680,7 +680,7 @@ DROP POLICY IF EXISTS product_variants_operational_all ON public.product_variant
 DROP POLICY IF EXISTS product_variants_student_select ON public.product_variants;
 
 CREATE POLICY product_variants_operational_all ON public.product_variants FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND EXISTS (
     SELECT
       1
@@ -693,7 +693,7 @@ CREATE POLICY product_variants_operational_all ON public.product_variants FOR AL
 )
 WITH
   CHECK (
-    public.current_profile_role () = 'professor'::public.profile_role
+    public.can_manage_students ()
     AND EXISTS (
       SELECT
         1
@@ -728,12 +728,12 @@ DROP POLICY IF EXISTS reservations_operational_all ON public.reservations;
 DROP POLICY IF EXISTS reservations_student_select ON public.reservations;
 
 CREATE POLICY reservations_operational_all ON public.reservations FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 )
 WITH
   CHECK (
-    public.current_profile_role () = 'professor'::public.profile_role
+    public.can_manage_students ()
     AND account_id = public.current_account_id ()
   );
 
@@ -872,11 +872,11 @@ DROP POLICY IF EXISTS classes_operational_all ON public.classes;
 DROP POLICY IF EXISTS classes_student_select ON public.classes;
 
 CREATE POLICY classes_operational_all ON public.classes FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -896,11 +896,11 @@ DROP POLICY IF EXISTS class_recurring_schedules_operational_all ON public.class_
 DROP POLICY IF EXISTS class_recurring_schedules_student_select ON public.class_recurring_schedules;
 
 CREATE POLICY class_recurring_schedules_operational_all ON public.class_recurring_schedules FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -920,11 +920,11 @@ DROP POLICY IF EXISTS class_sessions_operational_all ON public.class_sessions;
 DROP POLICY IF EXISTS class_sessions_student_select ON public.class_sessions;
 
 CREATE POLICY class_sessions_operational_all ON public.class_sessions FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -944,11 +944,11 @@ DROP POLICY IF EXISTS student_class_enrollments_operational_all ON public.studen
 DROP POLICY IF EXISTS student_class_enrollments_student_select ON public.student_class_enrollments;
 
 CREATE POLICY student_class_enrollments_operational_all ON public.student_class_enrollments FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -967,11 +967,11 @@ DROP POLICY IF EXISTS check_ins_student_insert ON public.check_ins;
 DROP POLICY IF EXISTS check_ins_student_delete ON public.check_ins;
 
 CREATE POLICY check_ins_operational_all ON public.check_ins FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -1007,11 +1007,11 @@ DROP POLICY IF EXISTS attendances_operational_all ON public.attendances;
 DROP POLICY IF EXISTS attendances_student_select ON public.attendances;
 
 CREATE POLICY attendances_operational_all ON public.attendances FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -1028,21 +1028,21 @@ ALTER TABLE public.product_ledger_installments ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS product_ledger_notes_operational_all ON public.product_ledger_notes;
 
 CREATE POLICY product_ledger_notes_operational_all ON public.product_ledger_notes FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 );
 
 DROP POLICY IF EXISTS product_ledger_installments_operational_all ON public.product_ledger_installments;
 
 CREATE POLICY product_ledger_installments_operational_all ON public.product_ledger_installments FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 );

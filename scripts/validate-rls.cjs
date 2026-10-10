@@ -3062,6 +3062,19 @@ async function main() {
       );
       if (signInStudentPortal.error) throw signInStudentPortal.error;
 
+      const ownClasses = await studentPortalClient
+        .from("classes")
+        .select("id, name")
+        .eq("id", classPortalFixture.classId);
+      if (ownClasses.error) {
+        throw new Error(`student classes: ${ownClasses.error.message}`);
+      }
+      if ((ownClasses.data || []).length !== 1) {
+        throw new Error(
+          `student devia ver 1 turma própria, viu ${(ownClasses.data || []).length}`
+        );
+      }
+
       await pg.query(`delete from public.check_ins where class_session_id = $1`, [
         classPortalFixture.sessionId,
       ]);
