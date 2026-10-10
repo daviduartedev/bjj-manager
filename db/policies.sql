@@ -690,37 +690,46 @@ CREATE POLICY reservations_student_select ON public.reservations FOR SELECT TO a
   AND student_id = public.current_student_id ()
 );
 
--- ---------- document_templates: globais (account_id IS NULL) leitura para todos; por conta tenant-only ----------
+-- ---------- document_templates: professor lê globais (account_id IS NULL) e da academia; escrita só da academia ----------
 DROP POLICY IF EXISTS document_templates_select ON public.document_templates;
 
 DROP POLICY IF EXISTS document_templates_modify_tenant ON public.document_templates;
 
 CREATE POLICY document_templates_select ON public.document_templates FOR SELECT TO authenticated USING (
-  account_id IS NULL OR account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND (
+    account_id IS NULL
+    OR account_id = public.current_account_id ()
+  )
 );
 
 CREATE POLICY document_templates_modify_tenant ON public.document_templates FOR ALL TO authenticated USING (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 );
 
 -- ---------- generated_documents ----------
 DROP POLICY IF EXISTS generated_documents_tenant_all ON public.generated_documents;
 
 CREATE POLICY generated_documents_tenant_all ON public.generated_documents FOR ALL TO authenticated USING (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 );
 
 -- ---------- generated_document_deliveries (via parent) ----------
 DROP POLICY IF EXISTS generated_document_deliveries_by_doc_tenant ON public.generated_document_deliveries;
 
 CREATE POLICY generated_document_deliveries_by_doc_tenant ON public.generated_document_deliveries FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_documents ()
+  AND EXISTS (
     SELECT 1
     FROM public.generated_documents d
     WHERE d.id = generated_document_deliveries.document_id
@@ -728,7 +737,8 @@ CREATE POLICY generated_document_deliveries_by_doc_tenant ON public.generated_do
   )
 )
 WITH CHECK (
-  EXISTS (
+  public.can_manage_documents ()
+  AND EXISTS (
     SELECT 1
     FROM public.generated_documents d
     WHERE d.id = generated_document_deliveries.document_id
@@ -740,10 +750,12 @@ WITH CHECK (
 DROP POLICY IF EXISTS document_sequences_tenant_all ON public.document_sequences;
 
 CREATE POLICY document_sequences_tenant_all ON public.document_sequences FOR ALL TO authenticated USING (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 );
 
 -- ---------- lesson_plans ----------

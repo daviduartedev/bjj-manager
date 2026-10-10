@@ -34,6 +34,7 @@ const MARKER_PRODUCT_CODE = "RLS-V-SHOP";
 const MARKER_PAYMENT = "RLS-V-PAYMENT";
 const MARKER_GRADUATION = "RLS-V-GRADUATION";
 const MARKER_PLAN = "RLS-V-PLAN";
+const MARKER_DOCUMENT = "RLS-V-DOC";
 
 function requireEnv(name) {
   const v = process.env[name];
@@ -1575,6 +1576,711 @@ async function main() {
           await pg.query(
             `update public.plans set name = $2, price_cents = $3 where id = $1`,
             [priceRestore.id, priceRestore.name, priceRestore.price_cents]
+          );
+        }
+      }
+    }
+
+    if (passwordForSignIn) {
+      console.log(", Documentos: professor grava, aluno não lê nem grava ,");
+
+      const DOC_TYPE = "certificate";
+      const SEQ_YEAR_MIN = 2090;
+      const SEQ_YEAR_MAX = 2099;
+
+      const assertDocumentWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar documento`);
+        }
+      };
+
+      const isUniqueViolation = (error) =>
+        error?.code === "23505" ||
+        /duplicate key|unique constraint/i.test(error?.message || "");
+
+      const signIn = async (email) => {
+        const client = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signed = await client.auth.signInWithPassword({
+          email,
+          password: passwordForSignIn,
+        });
+        if (signed.error) throw signed.error;
+        return client;
+      };
+
+      const cleanupMarkerRows = async () => {
+        await pg.query(
+          `delete from public.generated_document_deliveries d
+           using public.generated_documents g
+           where d.document_id = g.id
+             and g.idempotency_key like 'RLS-V-DOC%'`
+        );
+        await pg.query(
+          `delete from public.generated_documents
+           where idempotency_key like 'RLS-V-DOC%'`
+        );
+        await pg.query(
+          `delete from public.document_templates
+           where storage_path like 'RLS-V-DOC%'`
+        );
+      };
+
+      const assertSelectEmpty = (result, label) => {
+        if (result.error) {
+          throw new Error(`${label}: ${result.error.message}`);
+        }
+        if ((result.data || []).length !== 0) {
+          throw new Error(
+            `${label} devia ver 0 linhas, viu ${(result.data || []).length}`
+          );
+        }
+      };
+
+      const assertInsertRefused = async (result, label, cleanup) => {
+        if (!result.error) {
+          if (cleanup) await cleanup();
+          throw new Error(`${label} não devia criar linha`);
+        }
+        if (isUniqueViolation(result.error)) {
+          throw new Error(
+            `${label} falhou por unicidade, não por recusa de acesso`
+          );
+        }
+        console.log(`  Recusado ${label}: ${result.error.message}`);
+      };
+
+      await cleanupMarkerRows();
+
+      let documentId = null;
+      let deliveryId = null;
+      let templateId = null;
+      let globalTemplateId = null;
+      let seqYear = null;
+      let insertedSequence = false;
+
+      try {
+        const globalIns = await pg.query(
+          `insert into public.document_templates
+             (account_id, type, version, is_active, storage_path)
+           values (null, $2::public.document_type, 2099, false, $1)
+           returning id`,
+          [MARKER_DOCUMENT, DOC_TYPE]
+        );
+        globalTemplateId = globalIns.rows[0].id;
+
+        const takenVersions = await pg.query(
+          `select version from public.document_templates
+           where account_id = $1
+             and type = $2::public.document_type
+             and version between $3 and $4`,
+          [tenantA.accountId, DOC_TYPE, SEQ_YEAR_MIN, SEQ_YEAR_MAX]
+        );
+        const usedVersions = new Set(
+          takenVersions.rows.map((row) => Number(row.version))
+        );
+        let templateVersion = null;
+        for (let version = SEQ_YEAR_MAX; version >= SEQ_YEAR_MIN; version -= 1) {
+          if (!usedVersions.has(version)) {
+            templateVersion = version;
+            break;
+          }
+        }
+        if (templateVersion === null) {
+          throw new Error("Fixture de template sem versão livre");
+        }
+
+        const takenYears = await pg.query(
+          `select year from public.document_sequences
+           where account_id = $1
+             and type = $2::public.document_type
+             and year between $3 and $4`,
+          [tenantA.accountId, DOC_TYPE, SEQ_YEAR_MIN, SEQ_YEAR_MAX]
+        );
+        const usedYears = new Set(takenYears.rows.map((row) => Number(row.year)));
+        for (let year = SEQ_YEAR_MAX; year >= SEQ_YEAR_MIN; year -= 1) {
+          if (!usedYears.has(year)) {
+            seqYear = year;
+            break;
+          }
+        }
+        if (seqYear === null) {
+          throw new Error("Fixture de sequência sem ano livre");
+        }
+
+        const profDoc = await signIn(EMAIL_A);
+
+        const insertedDoc = await profDoc
+          .from("generated_documents")
+          .insert({
+            account_id: tenantA.accountId,
+            type: DOC_TYPE,
+            status: "pending",
+            idempotency_key: MARKER_DOCUMENT,
+            number: MARKER_DOCUMENT,
+            payload_json: { marker: MARKER_DOCUMENT },
+          })
+          .select("id, status")
+          .single();
+        if (insertedDoc.error) {
+          throw new Error(
+            `professor insert documento: ${insertedDoc.error.message}`
+          );
+        }
+        documentId = insertedDoc.data.id;
+
+        const updatedDoc = await profDoc
+          .from("generated_documents")
+          .update({ status: "ready" })
+          .eq("id", documentId)
+          .eq("idempotency_key", MARKER_DOCUMENT)
+          .select("id, status")
+          .single();
+        if (updatedDoc.error) {
+          throw new Error(
+            `professor actualizar documento: ${updatedDoc.error.message}`
+          );
+        }
+        if (updatedDoc.data?.status !== "ready") {
+          throw new Error("professor não actualizou o documento fixture");
+        }
+
+        const insertedDelivery = await profDoc
+          .from("generated_document_deliveries")
+          .insert({
+            document_id: documentId,
+            channel: "download",
+            status: "completed",
+            metadata_json: { marker: MARKER_DOCUMENT },
+          })
+          .select("id, status")
+          .single();
+        if (insertedDelivery.error) {
+          throw new Error(
+            `professor insert entrega: ${insertedDelivery.error.message}`
+          );
+        }
+        deliveryId = insertedDelivery.data.id;
+
+        const updatedDelivery = await profDoc
+          .from("generated_document_deliveries")
+          .update({ status: "requested" })
+          .eq("id", deliveryId)
+          .select("id, status")
+          .single();
+        if (updatedDelivery.error) {
+          throw new Error(
+            `professor actualizar entrega: ${updatedDelivery.error.message}`
+          );
+        }
+        if (updatedDelivery.data?.status !== "requested") {
+          throw new Error("professor não actualizou a entrega fixture");
+        }
+
+        const insertedTemplate = await profDoc
+          .from("document_templates")
+          .insert({
+            account_id: tenantA.accountId,
+            type: DOC_TYPE,
+            version: templateVersion,
+            is_active: false,
+            storage_path: MARKER_DOCUMENT,
+          })
+          .select("id, is_active")
+          .single();
+        if (insertedTemplate.error) {
+          throw new Error(
+            `professor insert template: ${insertedTemplate.error.message}`
+          );
+        }
+        templateId = insertedTemplate.data.id;
+
+        const globalRead = await profDoc
+          .from("document_templates")
+          .select("id, account_id")
+          .eq("id", globalTemplateId);
+        if (globalRead.error) {
+          throw new Error(`professor template global: ${globalRead.error.message}`);
+        }
+        if (
+          (globalRead.data || []).length !== 1 ||
+          globalRead.data[0].account_id !== null
+        ) {
+          throw new Error("professor não leu o template global");
+        }
+
+        const insertedSeq = await profDoc
+          .from("document_sequences")
+          .insert({
+            account_id: tenantA.accountId,
+            type: DOC_TYPE,
+            year: seqYear,
+            last_seq: 1,
+          })
+          .select("last_seq")
+          .single();
+        if (insertedSeq.error) {
+          throw new Error(
+            `professor insert sequência: ${insertedSeq.error.message}`
+          );
+        }
+        insertedSequence = true;
+
+        const updatedSeq = await profDoc
+          .from("document_sequences")
+          .update({ last_seq: 2 })
+          .eq("account_id", tenantA.accountId)
+          .eq("type", DOC_TYPE)
+          .eq("year", seqYear)
+          .select("last_seq");
+        if (updatedSeq.error) {
+          throw new Error(
+            `professor actualizar sequência: ${updatedSeq.error.message}`
+          );
+        }
+        if (Number(updatedSeq.data?.[0]?.last_seq) !== 2) {
+          throw new Error("professor não actualizou a sequência fixture");
+        }
+
+        await assertInsertRefused(
+          await profDoc.from("generated_documents").insert({
+            account_id: tenantB.accountId,
+            type: DOC_TYPE,
+            status: "pending",
+            idempotency_key: "RLS-V-DOC-CROSS",
+            number: "RLS-V-DOC-CROSS",
+          }),
+          "INSERT documento cross-tenant",
+          () =>
+            pg.query(
+              `delete from public.generated_documents
+               where account_id = $1 and idempotency_key = 'RLS-V-DOC-CROSS'`,
+              [tenantB.accountId]
+            )
+        );
+
+        await assertInsertRefused(
+          await profDoc.from("document_templates").insert({
+            account_id: tenantB.accountId,
+            type: DOC_TYPE,
+            version: templateVersion,
+            is_active: false,
+            storage_path: "RLS-V-DOC-CROSS",
+          }),
+          "INSERT template cross-tenant",
+          () =>
+            pg.query(
+              `delete from public.document_templates
+               where account_id = $1 and storage_path = 'RLS-V-DOC-CROSS'`,
+              [tenantB.accountId]
+            )
+        );
+
+        await assertInsertRefused(
+          await profDoc.from("document_sequences").insert({
+            account_id: tenantB.accountId,
+            type: "manual_receipt",
+            year: seqYear,
+            last_seq: 1,
+          }),
+          "INSERT sequência cross-tenant",
+          () =>
+            pg.query(
+              `delete from public.document_sequences
+               where account_id = $1
+                 and type = 'manual_receipt'::public.document_type
+                 and year = $2
+                 and last_seq = 1`,
+              [tenantB.accountId, seqYear]
+            )
+        );
+
+        await profDoc.auth.signOut();
+
+        const userBDoc = await signIn(EMAIL_B);
+        assertSelectEmpty(
+          await userBDoc.from("generated_documents").select("id").eq("id", documentId),
+          "B documento"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("generated_documents")
+            .update({ status: "archived" })
+            .eq("id", documentId)
+            .select("id"),
+          "UPDATE documento cross-tenant"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("generated_documents")
+            .delete()
+            .eq("id", documentId)
+            .select("id"),
+          "DELETE documento cross-tenant"
+        );
+        assertSelectEmpty(
+          await userBDoc
+            .from("generated_document_deliveries")
+            .select("id")
+            .eq("id", deliveryId),
+          "B entrega"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("generated_document_deliveries")
+            .update({ status: "failed" })
+            .eq("id", deliveryId)
+            .select("id"),
+          "UPDATE entrega cross-tenant"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("generated_document_deliveries")
+            .delete()
+            .eq("id", deliveryId)
+            .select("id"),
+          "DELETE entrega cross-tenant"
+        );
+        assertSelectEmpty(
+          await userBDoc
+            .from("document_sequences")
+            .select("account_id")
+            .eq("account_id", tenantA.accountId)
+            .eq("type", DOC_TYPE)
+            .eq("year", seqYear),
+          "B sequência"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("document_sequences")
+            .update({ last_seq: 9 })
+            .eq("account_id", tenantA.accountId)
+            .eq("type", DOC_TYPE)
+            .eq("year", seqYear)
+            .select("last_seq"),
+          "UPDATE sequência cross-tenant"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("document_sequences")
+            .delete()
+            .eq("account_id", tenantA.accountId)
+            .eq("type", DOC_TYPE)
+            .eq("year", seqYear)
+            .select("account_id"),
+          "DELETE sequência cross-tenant"
+        );
+        assertSelectEmpty(
+          await userBDoc.from("document_templates").select("id").eq("id", templateId),
+          "B template"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("document_templates")
+            .update({ is_active: true })
+            .eq("id", templateId)
+            .select("id"),
+          "UPDATE template cross-tenant"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("document_templates")
+            .delete()
+            .eq("id", templateId)
+            .select("id"),
+          "DELETE template cross-tenant"
+        );
+        const bGlobal = await userBDoc
+          .from("document_templates")
+          .select("id, account_id")
+          .eq("id", globalTemplateId);
+        if (bGlobal.error) {
+          throw new Error(`B template global: ${bGlobal.error.message}`);
+        }
+        if (
+          (bGlobal.data || []).length !== 1 ||
+          bGlobal.data[0].account_id !== null
+        ) {
+          throw new Error("professor de outra academia não leu o template global");
+        }
+        await userBDoc.auth.signOut();
+
+        const assertFixtureUntouched = async (label) => {
+          const docRow = await pg.query(
+            `select status from public.generated_documents
+             where id = $1 and idempotency_key = $2`,
+            [documentId, MARKER_DOCUMENT]
+          );
+          if (docRow.rows.length !== 1 || docRow.rows[0].status !== "ready") {
+            throw new Error(`${label}: documento fixture alterado`);
+          }
+          const deliveryRow = await pg.query(
+            `select status::text as status
+             from public.generated_document_deliveries
+             where id = $1`,
+            [deliveryId]
+          );
+          if (
+            deliveryRow.rows.length !== 1 ||
+            deliveryRow.rows[0].status !== "requested"
+          ) {
+            throw new Error(`${label}: entrega fixture alterada`);
+          }
+          const templateRow = await pg.query(
+            `select is_active, storage_path
+             from public.document_templates
+             where id = $1 and storage_path = $2`,
+            [templateId, MARKER_DOCUMENT]
+          );
+          if (
+            templateRow.rows.length !== 1 ||
+            templateRow.rows[0].is_active !== false
+          ) {
+            throw new Error(`${label}: template fixture alterado`);
+          }
+          const seqRow = await pg.query(
+            `select last_seq from public.document_sequences
+             where account_id = $1
+               and type = $2::public.document_type
+               and year = $3`,
+            [tenantA.accountId, DOC_TYPE, seqYear]
+          );
+          if (seqRow.rows.length !== 1 || Number(seqRow.rows[0].last_seq) !== 2) {
+            throw new Error(`${label}: sequência fixture alterada`);
+          }
+          const globalRow = await pg.query(
+            `select account_id, storage_path
+             from public.document_templates
+             where id = $1`,
+            [globalTemplateId]
+          );
+          if (
+            globalRow.rows.length !== 1 ||
+            globalRow.rows[0].account_id !== null ||
+            globalRow.rows[0].storage_path !== MARKER_DOCUMENT
+          ) {
+            throw new Error(`${label}: template global alterado`);
+          }
+        };
+
+        await assertFixtureUntouched("outra academia");
+
+        if (studentFixture) {
+          const alunoDoc = await signIn(studentFixture.email);
+
+          assertSelectEmpty(
+            await alunoDoc.from("generated_documents").select("id"),
+            "aluno documento"
+          );
+          assertSelectEmpty(
+            await alunoDoc.from("generated_document_deliveries").select("id"),
+            "aluno entrega"
+          );
+          assertSelectEmpty(
+            await alunoDoc.from("document_sequences").select("account_id"),
+            "aluno sequência"
+          );
+          assertSelectEmpty(
+            await alunoDoc.from("document_templates").select("id"),
+            "aluno template"
+          );
+          assertSelectEmpty(
+            await alunoDoc
+              .from("document_templates")
+              .select("id")
+              .eq("id", globalTemplateId),
+            "aluno template global"
+          );
+
+          await assertInsertRefused(
+            await alunoDoc.from("generated_documents").insert({
+              account_id: tenantA.accountId,
+              type: DOC_TYPE,
+              status: "pending",
+              idempotency_key: "RLS-V-DOC-ALUNO",
+              number: "RLS-V-DOC-ALUNO",
+            }),
+            "INSERT documento (aluno)",
+            () =>
+              pg.query(
+                `delete from public.generated_documents
+                 where account_id = $1 and idempotency_key = 'RLS-V-DOC-ALUNO'`,
+                [tenantA.accountId]
+              )
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("generated_documents")
+              .update({ status: "archived" })
+              .eq("id", documentId)
+              .select("id, status"),
+            "UPDATE documento (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("generated_documents")
+              .delete()
+              .eq("id", documentId)
+              .select("id"),
+            "DELETE documento (aluno)"
+          );
+
+          await assertInsertRefused(
+            await alunoDoc.from("generated_document_deliveries").insert({
+              document_id: documentId,
+              channel: "download",
+              status: "failed",
+              metadata_json: { marker: "RLS-V-DOC-ALUNO" },
+            }),
+            "INSERT entrega (aluno)",
+            () =>
+              pg.query(
+                `delete from public.generated_document_deliveries
+                 where document_id = $1
+                   and metadata_json->>'marker' = 'RLS-V-DOC-ALUNO'`,
+                [documentId]
+              )
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("generated_document_deliveries")
+              .update({ status: "failed" })
+              .eq("id", deliveryId)
+              .select("id, status"),
+            "UPDATE entrega (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("generated_document_deliveries")
+              .delete()
+              .eq("id", deliveryId)
+              .select("id"),
+            "DELETE entrega (aluno)"
+          );
+
+          await assertInsertRefused(
+            await alunoDoc.from("document_sequences").insert({
+              account_id: tenantA.accountId,
+              type: "liability_term",
+              year: seqYear,
+              last_seq: 1,
+            }),
+            "INSERT sequência (aluno)",
+            () =>
+              pg.query(
+                `delete from public.document_sequences
+                 where account_id = $1
+                   and type = 'liability_term'::public.document_type
+                   and year = $2
+                   and last_seq = 1`,
+                [tenantA.accountId, seqYear]
+              )
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_sequences")
+              .update({ last_seq: 9 })
+              .eq("account_id", tenantA.accountId)
+              .eq("type", DOC_TYPE)
+              .eq("year", seqYear)
+              .select("last_seq"),
+            "UPDATE sequência (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_sequences")
+              .delete()
+              .eq("account_id", tenantA.accountId)
+              .eq("type", DOC_TYPE)
+              .eq("year", seqYear)
+              .select("account_id"),
+            "DELETE sequência (aluno)"
+          );
+
+          await assertInsertRefused(
+            await alunoDoc.from("document_templates").insert({
+              account_id: tenantA.accountId,
+              type: "manual_receipt",
+              version: templateVersion,
+              is_active: false,
+              storage_path: "RLS-V-DOC-ALUNO",
+            }),
+            "INSERT template (aluno)",
+            () =>
+              pg.query(
+                `delete from public.document_templates
+                 where storage_path = 'RLS-V-DOC-ALUNO'`
+              )
+          );
+          await assertInsertRefused(
+            await alunoDoc.from("document_templates").insert({
+              account_id: null,
+              type: "manual_receipt",
+              version: 2098,
+              is_active: false,
+              storage_path: "RLS-V-DOC-ALUNO-GLOBAL",
+            }),
+            "INSERT template global (aluno)",
+            () =>
+              pg.query(
+                `delete from public.document_templates
+                 where storage_path = 'RLS-V-DOC-ALUNO-GLOBAL'`
+              )
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_templates")
+              .update({ is_active: true })
+              .eq("id", templateId)
+              .select("id, is_active"),
+            "UPDATE template (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_templates")
+              .delete()
+              .eq("id", templateId)
+              .select("id"),
+            "DELETE template (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_templates")
+              .update({ is_active: true })
+              .eq("id", globalTemplateId)
+              .select("id"),
+            "UPDATE template global (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_templates")
+              .delete()
+              .eq("id", globalTemplateId)
+              .select("id"),
+            "DELETE template global (aluno)"
+          );
+
+          await assertFixtureUntouched("aluno");
+          await alunoDoc.auth.signOut();
+        } else {
+          console.log(
+            "  [Opcional] sem fixture student — testes de aluno em documentos omitidos."
+          );
+        }
+      } finally {
+        await cleanupMarkerRows();
+        if (insertedSequence && seqYear !== null) {
+          await pg.query(
+            `delete from public.document_sequences
+             where account_id = $1
+               and type = $2::public.document_type
+               and year = $3`,
+            [tenantA.accountId, DOC_TYPE, seqYear]
           );
         }
       }
