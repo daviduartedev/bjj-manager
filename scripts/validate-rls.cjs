@@ -35,6 +35,7 @@ const MARKER_PAYMENT = "RLS-V-PAYMENT";
 const MARKER_GRADUATION = "RLS-V-GRADUATION";
 const MARKER_PLAN = "RLS-V-PLAN";
 const MARKER_DOCUMENT = "RLS-V-DOC";
+const MARKER_LESSON = "RLS-V-LESSON";
 
 function requireEnv(name) {
   const v = process.env[name];
@@ -2283,6 +2284,428 @@ async function main() {
             [tenantA.accountId, DOC_TYPE, seqYear]
           );
         }
+      }
+    }
+
+    if (passwordForSignIn) {
+      console.log(", Planos de aula: professor grava, aluno não lê nem grava ,");
+
+      const LESSON_MONTH = "2099-01-01";
+      const LESSON_KIND = "adult";
+
+      const assertLessonWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar plano de aula`);
+        }
+      };
+
+      const isUniqueViolation = (error) =>
+        error?.code === "23505" ||
+        /duplicate key|unique constraint/i.test(error?.message || "");
+
+      const signIn = async (email) => {
+        const client = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signed = await client.auth.signInWithPassword({
+          email,
+          password: passwordForSignIn,
+        });
+        if (signed.error) throw signed.error;
+        return client;
+      };
+
+      const cleanupMarkerRows = async () => {
+        await pg.query(
+          `update public.lesson_plans
+           set current_revision_id = null
+           where title like 'RLS-V-LESSON%'`
+        );
+        await pg.query(
+          `delete from public.lesson_plan_attachments a
+           using public.lesson_plans lp
+           where a.lesson_plan_id = lp.id
+             and lp.title like 'RLS-V-LESSON%'`
+        );
+        await pg.query(
+          `delete from public.lesson_plan_attachments
+           where storage_path like 'RLS-V-LESSON%'`
+        );
+        await pg.query(
+          `delete from public.lesson_plan_revisions r
+           using public.lesson_plans lp
+           where r.lesson_plan_id = lp.id
+             and lp.title like 'RLS-V-LESSON%'`
+        );
+        await pg.query(
+          `delete from public.lesson_plan_revisions
+           where change_summary like 'RLS-V-LESSON%'`
+        );
+        await pg.query(
+          `delete from public.lesson_plans
+           where title like 'RLS-V-LESSON%'`
+        );
+      };
+
+      const assertSelectEmpty = (result, label) => {
+        if (result.error) {
+          throw new Error(`${label}: ${result.error.message}`);
+        }
+        if ((result.data || []).length !== 0) {
+          throw new Error(
+            `${label} devia ver 0 linhas, viu ${(result.data || []).length}`
+          );
+        }
+      };
+
+      const assertInsertRefused = async (result, label, cleanup) => {
+        if (!result.error) {
+          if (cleanup) await cleanup();
+          throw new Error(`${label} não devia criar linha`);
+        }
+        if (isUniqueViolation(result.error)) {
+          throw new Error(
+            `${label} falhou por unicidade, não por recusa de acesso`
+          );
+        }
+        console.log(`  Recusado ${label}: ${result.error.message}`);
+      };
+
+      await cleanupMarkerRows();
+
+      let planId = null;
+      let revisionId = null;
+      let attachmentId = null;
+
+      try {
+        const profLesson = await signIn(EMAIL_A);
+
+        const insertedPlan = await profLesson
+          .from("lesson_plans")
+          .insert({
+            account_id: tenantA.accountId,
+            plan_kind: LESSON_KIND,
+            reference_month: LESSON_MONTH,
+            title: MARKER_LESSON,
+            status: "draft",
+          })
+          .select("id, title")
+          .single();
+        if (insertedPlan.error) {
+          throw new Error(
+            `professor insert plano de aula: ${insertedPlan.error.message}`
+          );
+        }
+        planId = insertedPlan.data.id;
+
+        const updatedPlan = await profLesson
+          .from("lesson_plans")
+          .update({ internal_notes: MARKER_LESSON })
+          .eq("id", planId)
+          .eq("title", MARKER_LESSON)
+          .select("id, internal_notes")
+          .single();
+        if (updatedPlan.error) {
+          throw new Error(
+            `professor actualizar plano de aula: ${updatedPlan.error.message}`
+          );
+        }
+        if (updatedPlan.data?.internal_notes !== MARKER_LESSON) {
+          throw new Error("professor não actualizou o plano de aula fixture");
+        }
+
+        const insertedRevision = await profLesson
+          .from("lesson_plan_revisions")
+          .insert({
+            lesson_plan_id: planId,
+            revision_number: 1,
+            content_json: { marker: MARKER_LESSON },
+            change_summary: MARKER_LESSON,
+          })
+          .select("id, change_summary")
+          .single();
+        if (insertedRevision.error) {
+          throw new Error(
+            `professor insert revisão: ${insertedRevision.error.message}`
+          );
+        }
+        revisionId = insertedRevision.data.id;
+
+        const insertedAttachment = await profLesson
+          .from("lesson_plan_attachments")
+          .insert({
+            lesson_plan_id: planId,
+            storage_path: MARKER_LESSON,
+            filename: "RLS-V-LESSON.pdf",
+            mime_type: "application/pdf",
+            byte_size: 1,
+          })
+          .select("id, storage_path")
+          .single();
+        if (insertedAttachment.error) {
+          throw new Error(
+            `professor insert anexo: ${insertedAttachment.error.message}`
+          );
+        }
+        attachmentId = insertedAttachment.data.id;
+
+        await assertInsertRefused(
+          await profLesson.from("lesson_plans").insert({
+            account_id: tenantB.accountId,
+            plan_kind: LESSON_KIND,
+            reference_month: LESSON_MONTH,
+            title: "RLS-V-LESSON-CROSS",
+            status: "draft",
+          }),
+          "INSERT plano de aula cross-tenant",
+          () =>
+            pg.query(
+              `delete from public.lesson_plans
+               where account_id = $1 and title = 'RLS-V-LESSON-CROSS'`,
+              [tenantB.accountId]
+            )
+        );
+
+        await profLesson.auth.signOut();
+
+        const userBLesson = await signIn(EMAIL_B);
+        assertSelectEmpty(
+          await userBLesson.from("lesson_plans").select("id").eq("id", planId),
+          "B plano de aula"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plans")
+            .update({ internal_notes: "RLS-V-LESSON-CROSS" })
+            .eq("id", planId)
+            .select("id"),
+          "UPDATE plano de aula cross-tenant"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plans")
+            .delete()
+            .eq("id", planId)
+            .select("id"),
+          "DELETE plano de aula cross-tenant"
+        );
+        assertSelectEmpty(
+          await userBLesson
+            .from("lesson_plan_revisions")
+            .select("id")
+            .eq("id", revisionId),
+          "B revisão"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plan_revisions")
+            .update({ change_summary: "RLS-V-LESSON-CROSS" })
+            .eq("id", revisionId)
+            .select("id"),
+          "UPDATE revisão cross-tenant"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plan_revisions")
+            .delete()
+            .eq("id", revisionId)
+            .select("id"),
+          "DELETE revisão cross-tenant"
+        );
+        assertSelectEmpty(
+          await userBLesson
+            .from("lesson_plan_attachments")
+            .select("id")
+            .eq("id", attachmentId),
+          "B anexo"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plan_attachments")
+            .update({ byte_size: 9 })
+            .eq("id", attachmentId)
+            .select("id"),
+          "UPDATE anexo cross-tenant"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plan_attachments")
+            .delete()
+            .eq("id", attachmentId)
+            .select("id"),
+          "DELETE anexo cross-tenant"
+        );
+        await userBLesson.auth.signOut();
+
+        const assertFixtureUntouched = async (label) => {
+          const planRow = await pg.query(
+            `select title, internal_notes
+             from public.lesson_plans
+             where id = $1 and title = $2`,
+            [planId, MARKER_LESSON]
+          );
+          if (
+            planRow.rows.length !== 1 ||
+            planRow.rows[0].internal_notes !== MARKER_LESSON
+          ) {
+            throw new Error(`${label}: plano de aula fixture alterado`);
+          }
+          const revisionRow = await pg.query(
+            `select change_summary
+             from public.lesson_plan_revisions
+             where id = $1 and lesson_plan_id = $2`,
+            [revisionId, planId]
+          );
+          if (
+            revisionRow.rows.length !== 1 ||
+            revisionRow.rows[0].change_summary !== MARKER_LESSON
+          ) {
+            throw new Error(`${label}: revisão fixture alterada`);
+          }
+          const attachmentRow = await pg.query(
+            `select storage_path, byte_size
+             from public.lesson_plan_attachments
+             where id = $1 and lesson_plan_id = $2`,
+            [attachmentId, planId]
+          );
+          if (
+            attachmentRow.rows.length !== 1 ||
+            attachmentRow.rows[0].storage_path !== MARKER_LESSON ||
+            Number(attachmentRow.rows[0].byte_size) !== 1
+          ) {
+            throw new Error(`${label}: anexo fixture alterado`);
+          }
+        };
+
+        await assertFixtureUntouched("outra academia");
+
+        if (studentFixture) {
+          const alunoLesson = await signIn(studentFixture.email);
+
+          assertSelectEmpty(
+            await alunoLesson.from("lesson_plans").select("id"),
+            "aluno plano de aula"
+          );
+          assertSelectEmpty(
+            await alunoLesson.from("lesson_plan_revisions").select("id"),
+            "aluno revisão"
+          );
+          assertSelectEmpty(
+            await alunoLesson.from("lesson_plan_attachments").select("id"),
+            "aluno anexo"
+          );
+
+          await assertInsertRefused(
+            await alunoLesson.from("lesson_plans").insert({
+              account_id: tenantA.accountId,
+              plan_kind: LESSON_KIND,
+              reference_month: LESSON_MONTH,
+              title: "RLS-V-LESSON-ALUNO",
+              status: "draft",
+            }),
+            "INSERT plano de aula (aluno)",
+            () =>
+              pg.query(
+                `delete from public.lesson_plans
+                 where account_id = $1 and title = 'RLS-V-LESSON-ALUNO'`,
+                [tenantA.accountId]
+              )
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plans")
+              .update({ internal_notes: "RLS-V-LESSON-ALUNO" })
+              .eq("id", planId)
+              .select("id, internal_notes"),
+            "UPDATE plano de aula (aluno)"
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plans")
+              .delete()
+              .eq("id", planId)
+              .select("id"),
+            "DELETE plano de aula (aluno)"
+          );
+
+          await assertInsertRefused(
+            await alunoLesson.from("lesson_plan_revisions").insert({
+              lesson_plan_id: planId,
+              revision_number: 2,
+              content_json: { marker: "RLS-V-LESSON-ALUNO" },
+              change_summary: "RLS-V-LESSON-ALUNO",
+            }),
+            "INSERT revisão (aluno)",
+            () =>
+              pg.query(
+                `delete from public.lesson_plan_revisions
+                 where lesson_plan_id = $1
+                   and change_summary = 'RLS-V-LESSON-ALUNO'`,
+                [planId]
+              )
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plan_revisions")
+              .update({ change_summary: "RLS-V-LESSON-ALUNO" })
+              .eq("id", revisionId)
+              .select("id, change_summary"),
+            "UPDATE revisão (aluno)"
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plan_revisions")
+              .delete()
+              .eq("id", revisionId)
+              .select("id"),
+            "DELETE revisão (aluno)"
+          );
+
+          await assertInsertRefused(
+            await alunoLesson.from("lesson_plan_attachments").insert({
+              lesson_plan_id: planId,
+              storage_path: "RLS-V-LESSON-ALUNO",
+              filename: "RLS-V-LESSON-ALUNO.pdf",
+              mime_type: "application/pdf",
+              byte_size: 1,
+            }),
+            "INSERT anexo (aluno)",
+            () =>
+              pg.query(
+                `delete from public.lesson_plan_attachments
+                 where storage_path = 'RLS-V-LESSON-ALUNO'`
+              )
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plan_attachments")
+              .update({ byte_size: 9 })
+              .eq("id", attachmentId)
+              .select("id, byte_size"),
+            "UPDATE anexo (aluno)"
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plan_attachments")
+              .delete()
+              .eq("id", attachmentId)
+              .select("id"),
+            "DELETE anexo (aluno)"
+          );
+
+          await assertFixtureUntouched("aluno");
+          await alunoLesson.auth.signOut();
+        } else {
+          console.log(
+            "  [Opcional] sem fixture student — testes de aluno em planos de aula omitidos."
+          );
+        }
+      } finally {
+        await cleanupMarkerRows();
       }
     }
 

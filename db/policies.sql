@@ -762,17 +762,20 @@ WITH CHECK (
 DROP POLICY IF EXISTS lesson_plans_tenant_all ON public.lesson_plans;
 
 CREATE POLICY lesson_plans_tenant_all ON public.lesson_plans FOR ALL TO authenticated USING (
-  account_id = public.current_account_id ()
+  public.can_manage_lesson_plans ()
+  AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  account_id = public.current_account_id ()
+  public.can_manage_lesson_plans ()
+  AND account_id = public.current_account_id ()
 );
 
 -- ---------- lesson_plan_revisions (via parent) ----------
 DROP POLICY IF EXISTS lesson_plan_revisions_by_plan_tenant ON public.lesson_plan_revisions;
 
 CREATE POLICY lesson_plan_revisions_by_plan_tenant ON public.lesson_plan_revisions FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_lesson_plans ()
+  AND EXISTS (
     SELECT 1
     FROM public.lesson_plans lp
     WHERE lp.id = lesson_plan_revisions.lesson_plan_id
@@ -780,7 +783,8 @@ CREATE POLICY lesson_plan_revisions_by_plan_tenant ON public.lesson_plan_revisio
   )
 )
 WITH CHECK (
-  EXISTS (
+  public.can_manage_lesson_plans ()
+  AND EXISTS (
     SELECT 1
     FROM public.lesson_plans lp
     WHERE lp.id = lesson_plan_revisions.lesson_plan_id
@@ -792,7 +796,8 @@ WITH CHECK (
 DROP POLICY IF EXISTS lesson_plan_attachments_by_plan_tenant ON public.lesson_plan_attachments;
 
 CREATE POLICY lesson_plan_attachments_by_plan_tenant ON public.lesson_plan_attachments FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_lesson_plans ()
+  AND EXISTS (
     SELECT 1
     FROM public.lesson_plans lp
     WHERE lp.id = lesson_plan_attachments.lesson_plan_id
@@ -800,7 +805,8 @@ CREATE POLICY lesson_plan_attachments_by_plan_tenant ON public.lesson_plan_attac
   )
 )
 WITH CHECK (
-  EXISTS (
+  public.can_manage_lesson_plans ()
+  AND EXISTS (
     SELECT 1
     FROM public.lesson_plans lp
     WHERE lp.id = lesson_plan_attachments.lesson_plan_id
