@@ -554,6 +554,190 @@ async function main() {
           throw new Error("student onboarding update não afectou a linha esperada");
         }
 
+        const studentFichaId = studentRows[0].id;
+
+        async function readOwnFicha() {
+          const res = await pg.query(
+            `select id, account_id, kind, full_name, current_belt_id, current_degree,
+                    status, is_exempt, portal_terms_accepted_at, guardian_email,
+                    user_id, archived_at, updated_at
+             from public.students
+             where id = $1 and account_id = $2 and full_name = $3`,
+            [studentFichaId, studentFixture.accountId, MARKER_STUDENT]
+          );
+          if (res.rows.length !== 1) {
+            throw new Error("ficha RLS-V-A-STUDENT ausente");
+          }
+          return res.rows[0];
+        }
+
+        function fichaStamp(row) {
+          const iso = (value) =>
+            value ? new Date(value).toISOString() : null;
+          return JSON.stringify({
+            id: row.id,
+            account_id: row.account_id,
+            kind: row.kind,
+            full_name: row.full_name,
+            current_belt_id: row.current_belt_id,
+            current_degree: Number(row.current_degree),
+            status: row.status,
+            is_exempt: row.is_exempt === true,
+            portal_terms_accepted_at: iso(row.portal_terms_accepted_at),
+            guardian_email: row.guardian_email,
+            user_id: row.user_id,
+            archived_at: iso(row.archived_at),
+            updated_at: iso(row.updated_at),
+          });
+        }
+
+        console.log(", Student: updated_at junto com o onboarding ,");
+        const withBookkeeping = await studentClient
+          .from("students")
+          .update({
+            portal_terms_accepted_at: onboardingAt,
+            guardian_email: "rls-test-guardian@example.com",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", studentFichaId)
+          .eq("full_name", MARKER_STUDENT)
+          .select("id");
+        if (withBookkeeping.error) {
+          throw new Error(
+            `student onboarding com updated_at: ${withBookkeeping.error.message}`
+          );
+        }
+        if ((withBookkeeping.data || []).length !== 1) {
+          throw new Error(
+            "student onboarding com updated_at não afectou a linha esperada"
+          );
+        }
+
+        const savedOnboarding = await readOwnFicha();
+        if (savedOnboarding.guardian_email !== "rls-test-guardian@example.com") {
+          throw new Error("onboarding não gravou guardian_email");
+        }
+        if (!savedOnboarding.portal_terms_accepted_at) {
+          throw new Error("onboarding não gravou portal_terms_accepted_at");
+        }
+
+        const fichaBeforeForbidden = savedOnboarding;
+        const stampBefore = fichaStamp(fichaBeforeForbidden);
+
+        async function assertFichaUnchanged(label) {
+          const now = await readOwnFicha();
+          if (fichaStamp(now) !== stampBefore) {
+            throw new Error(`${label} alterou a ficha do aluno`);
+          }
+        }
+
+        async function assertStudentUpdateRefused(patch, label) {
+          const result = await studentClient
+            .from("students")
+            .update(patch)
+            .eq("id", studentFichaId)
+            .eq("full_name", MARKER_STUDENT)
+            .select("id");
+          if (!result.error) {
+            throw new Error(`${label} devia ser recusado`);
+          }
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          await assertFichaUnchanged(label);
+        }
+
+        const otherBelt = await pg.query(
+          `select id from public.belts where id <> $1 order by ordinal limit 1`,
+          [fichaBeforeForbidden.current_belt_id]
+        );
+        if (!otherBelt.rows.length) {
+          throw new Error("Sem segunda faixa para recusar update de faixa");
+        }
+
+        console.log(", Student: não altera faixa, grau, Isento nem status ,");
+        await assertStudentUpdateRefused(
+          { current_belt_id: otherBelt.rows[0].id },
+          "UPDATE faixa (aluno)"
+        );
+        await assertStudentUpdateRefused(
+          {
+            current_degree:
+              Number(fichaBeforeForbidden.current_degree) === 0 ? 1 : 0,
+          },
+          "UPDATE grau (aluno)"
+        );
+        await assertStudentUpdateRefused(
+          { is_exempt: fichaBeforeForbidden.is_exempt !== true },
+          "UPDATE Isento (aluno)"
+        );
+        await assertStudentUpdateRefused(
+          {
+            status:
+              fichaBeforeForbidden.status === "active" ? "inactive" : "active",
+          },
+          "UPDATE status (aluno)"
+        );
+
+        console.log(
+          ", Student: update misto (e-mail do responsável + Isento) recusado por inteiro ,"
+        );
+        const mixedEmail = "rls-test-mixed-guardian@example.com";
+        const mixedExempt = fichaBeforeForbidden.is_exempt !== true;
+        const mixed = await studentClient
+          .from("students")
+          .update({
+            portal_terms_accepted_at: new Date().toISOString(),
+            guardian_email: mixedEmail,
+            updated_at: new Date().toISOString(),
+            is_exempt: mixedExempt,
+          })
+          .eq("id", studentFichaId)
+          .eq("full_name", MARKER_STUDENT)
+          .select("id");
+        if (!mixed.error) {
+          throw new Error("update misto devia ser recusado por inteiro");
+        }
+        console.log(`  Recusado update misto: ${mixed.error.message}`);
+        await assertFichaUnchanged("update misto");
+
+        console.log(", Student: não insere nem apaga ficha ,");
+        const insertedFicha = await studentClient.from("students").insert({
+          account_id: studentFixture.accountId,
+          kind: "adult",
+          full_name: "RLS-V-A-STUDENT-INSERT",
+          current_belt_id: fichaBeforeForbidden.current_belt_id,
+          current_degree: 0,
+          status: "active",
+        });
+        if (!insertedFicha.error) {
+          await pg.query(
+            `delete from public.students
+             where account_id = $1 and full_name = 'RLS-V-A-STUDENT-INSERT'`,
+            [studentFixture.accountId]
+          );
+          throw new Error("aluno não devia inserir ficha");
+        }
+        console.log(
+          `  Recusado INSERT ficha (aluno): ${insertedFicha.error.message}`
+        );
+
+        const deletedFicha = await studentClient
+          .from("students")
+          .delete()
+          .eq("id", studentFichaId)
+          .eq("full_name", MARKER_STUDENT)
+          .select("id");
+        if (!deletedFicha.error && (deletedFicha.data || []).length > 0) {
+          throw new Error("aluno não devia apagar a própria ficha");
+        }
+        if (deletedFicha.error) {
+          console.log(
+            `  Recusado DELETE ficha (aluno): ${deletedFicha.error.message}`
+          );
+        } else {
+          console.log("  DELETE ficha (aluno) não removeu linhas");
+        }
+        await assertFichaUnchanged("DELETE ficha (aluno)");
+
         console.log(", Student: profiles — só a própria linha ,");
         const studentProfiles = await studentClient
           .from("profiles")
@@ -584,6 +768,52 @@ async function main() {
         );
 
         await studentClient.auth.signOut();
+
+        console.log(
+          ", Professor: ainda altera a ficha fixture, incluindo Isento ,"
+        );
+        const profFicha = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signInProfFicha = await profFicha.auth.signInWithPassword({
+          email: EMAIL_A,
+          password: passwordForSignIn,
+        });
+        if (signInProfFicha.error) throw signInProfFicha.error;
+
+        const nextExempt = fichaBeforeForbidden.is_exempt !== true;
+        const profUpdate = await profFicha
+          .from("students")
+          .update({ is_exempt: nextExempt })
+          .eq("id", studentFichaId)
+          .eq("full_name", MARKER_STUDENT)
+          .select("id, is_exempt");
+        if (profUpdate.error) {
+          throw new Error(
+            `professor update ficha: ${profUpdate.error.message}`
+          );
+        }
+        if (
+          (profUpdate.data || []).length !== 1 ||
+          profUpdate.data[0].is_exempt !== nextExempt
+        ) {
+          throw new Error("professor não alterou Isento na ficha fixture");
+        }
+        const profSeen = await readOwnFicha();
+        if ((profSeen.is_exempt === true) !== nextExempt) {
+          throw new Error("Isento da ficha fixture não persistiu para o professor");
+        }
+        await pg.query(
+          `update public.students set is_exempt = $1
+           where id = $2 and account_id = $3 and full_name = $4`,
+          [
+            fichaBeforeForbidden.is_exempt === true,
+            studentFichaId,
+            studentFixture.accountId,
+            MARKER_STUDENT,
+          ]
+        );
+        await profFicha.auth.signOut();
       }
     }
 
