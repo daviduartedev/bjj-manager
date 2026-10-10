@@ -103,6 +103,12 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (pathname === LEGACY_DASHBOARD_PREFIX || pathname.startsWith(`${LEGACY_DASHBOARD_PREFIX}/`)) {
+    if (user) {
+      const role = await resolveAuthRole(supabase, user.id);
+      if (!role) {
+        return redirectWithCookies(request, supabaseResponse, ROUTES.login);
+      }
+    }
     const url = request.nextUrl.clone();
     url.pathname = ROUTES.painel;
     const redirectResponse = NextResponse.redirect(url);
@@ -112,6 +118,10 @@ export async function updateSession(request: NextRequest) {
 
   if (user && (pathname === ROUTES.login || pathname === "/register")) {
     const role = await resolveAuthRole(supabase, user.id);
+    if (!role) {
+      if (pathname === ROUTES.login) return supabaseResponse;
+      return redirectWithCookies(request, supabaseResponse, ROUTES.login);
+    }
     return redirectWithCookies(request, supabaseResponse, postLoginPathForRole(role));
   }
 
@@ -125,6 +135,10 @@ export async function updateSession(request: NextRequest) {
 
   if (user && (isStudentPortalPath(pathname) || isOperationalAreaPath(pathname))) {
     const role = await resolveAuthRole(supabase, user.id);
+
+    if (!role) {
+      return redirectWithCookies(request, supabaseResponse, ROUTES.login);
+    }
 
     if (isStudentPortalPath(pathname) && !isStudentRole(role)) {
       return redirectWithCookies(request, supabaseResponse, ROUTES.painel);

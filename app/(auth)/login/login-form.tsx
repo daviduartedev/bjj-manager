@@ -54,7 +54,15 @@ export function LoginForm() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      const role = user ? await resolveAuthRole(supabase, user.id) : "professor";
+      if (!user) {
+        toast.error("Não foi possível confirmar a sessão.");
+        return;
+      }
+      const role = await resolveAuthRole(supabase, user.id);
+      if (!role) {
+        toast.error("Esta conta não tem acesso à academia.");
+        return;
+      }
       toast.success("Sessão iniciada.");
       router.push(postLoginPathForRole(role));
       router.refresh();
