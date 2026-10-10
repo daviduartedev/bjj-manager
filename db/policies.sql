@@ -498,7 +498,8 @@ WITH
 DROP POLICY IF EXISTS student_graduations_by_student_tenant ON public.student_graduations;
 
 CREATE POLICY student_graduations_by_student_tenant ON public.student_graduations FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_graduations ()
+  AND EXISTS (
     SELECT
       1
     FROM
@@ -510,7 +511,8 @@ CREATE POLICY student_graduations_by_student_tenant ON public.student_graduation
 )
 WITH
   CHECK (
-    EXISTS (
+    public.can_manage_graduations ()
+    AND EXISTS (
       SELECT
         1
       FROM

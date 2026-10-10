@@ -32,6 +32,7 @@ const MARKER_CLASS = "RLS-V-CLASS";
 const MARKER_PRODUCT = "RLS-V-SHOP-PRODUCT";
 const MARKER_PRODUCT_CODE = "RLS-V-SHOP";
 const MARKER_PAYMENT = "RLS-V-PAYMENT";
+const MARKER_GRADUATION = "RLS-V-GRADUATION";
 
 function requireEnv(name) {
   const v = process.env[name];
@@ -867,6 +868,244 @@ async function main() {
         throw new Error("professor devia estornar a mensalidade fixture");
       }
       await profVoid.auth.signOut();
+    }
+
+    if (passwordForSignIn) {
+      console.log(", Graduações: professor grava, aluno não lê nem grava ,");
+
+      const assertGraduationWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar graduação`);
+        }
+      };
+
+      const graduationStudentName = studentFixture ? MARKER_STUDENT : "RLS-V-A";
+      const graduationStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantA.accountId, graduationStudentName]
+      );
+      if (!graduationStudent.rows.length) {
+        throw new Error(
+          `Fixture de graduação sem aluno ${graduationStudentName}`
+        );
+      }
+      const graduationStudentId = graduationStudent.rows[0].id;
+
+      await pg.query(
+        `delete from public.student_graduations g
+         using public.students s
+         where g.student_id = s.id
+           and s.full_name like 'RLS-V-%'
+           and g.skip_reason = $1`,
+        [MARKER_GRADUATION]
+      );
+
+      const graduatedAt = "2099-01-15T15:00:00.000Z";
+      const graduationRow = {
+        student_id: graduationStudentId,
+        resulting_belt_id: beltId,
+        resulting_degree: 0,
+        graduated_at: graduatedAt,
+        was_skip: true,
+        skip_reason: MARKER_GRADUATION,
+      };
+
+      const profGrad = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInProfGrad = await profGrad.auth.signInWithPassword({
+        email: EMAIL_A,
+        password: passwordForSignIn,
+      });
+      if (signInProfGrad.error) throw signInProfGrad.error;
+
+      const insertedGrad = await profGrad
+        .from("student_graduations")
+        .insert(graduationRow)
+        .select("id, resulting_degree")
+        .single();
+      if (insertedGrad.error) {
+        throw new Error(
+          `professor insert graduação: ${insertedGrad.error.message}`
+        );
+      }
+      const graduationId = insertedGrad.data.id;
+
+      const promoted = await profGrad
+        .from("student_graduations")
+        .update({ resulting_degree: 1 })
+        .eq("id", graduationId)
+        .eq("skip_reason", MARKER_GRADUATION)
+        .select("id, resulting_degree")
+        .single();
+      if (promoted.error) {
+        throw new Error(
+          `professor actualizar graduação: ${promoted.error.message}`
+        );
+      }
+      if (Number(promoted.data?.resulting_degree) !== 1) {
+        throw new Error("professor não actualizou a graduação fixture");
+      }
+
+      const tenantBStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantB.accountId, "RLS-V-B"]
+      );
+      if (!tenantBStudent.rows.length) {
+        throw new Error("Fixture RLS-V-B ausente para isolamento de graduação");
+      }
+      const crossGrad = await profGrad.from("student_graduations").insert({
+        ...graduationRow,
+        student_id: tenantBStudent.rows[0].id,
+      });
+      if (!crossGrad.error) {
+        await pg.query(
+          `delete from public.student_graduations
+           where student_id = $1 and skip_reason = $2`,
+          [tenantBStudent.rows[0].id, MARKER_GRADUATION]
+        );
+        throw new Error(
+          "professor não devia gravar graduação de outra academia"
+        );
+      }
+      console.log(
+        `  Recusado INSERT graduação cross-tenant: ${crossGrad.error.message}`
+      );
+
+      await profGrad.auth.signOut();
+
+      const userBGrad = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInBGrad = await userBGrad.auth.signInWithPassword({
+        email: EMAIL_B,
+        password: passwordForSignIn,
+      });
+      if (signInBGrad.error) throw signInBGrad.error;
+
+      const bGradRead = await userBGrad
+        .from("student_graduations")
+        .select("id")
+        .eq("id", graduationId);
+      if (bGradRead.error) {
+        throw new Error(`B graduations: ${bGradRead.error.message}`);
+      }
+      if ((bGradRead.data || []).length !== 0) {
+        throw new Error("B não devia ler graduação da conta A");
+      }
+      assertGraduationWriteRefused(
+        await userBGrad
+          .from("student_graduations")
+          .update({ resulting_degree: 2 })
+          .eq("id", graduationId)
+          .select("id"),
+        "UPDATE graduação cross-tenant"
+      );
+      assertGraduationWriteRefused(
+        await userBGrad
+          .from("student_graduations")
+          .delete()
+          .eq("id", graduationId)
+          .select("id"),
+        "DELETE graduação cross-tenant"
+      );
+      await userBGrad.auth.signOut();
+
+      const afterCross = await pg.query(
+        `select resulting_degree from public.student_graduations
+         where id = $1 and skip_reason = $2`,
+        [graduationId, MARKER_GRADUATION]
+      );
+      if (
+        afterCross.rows.length !== 1 ||
+        Number(afterCross.rows[0].resulting_degree) !== 1
+      ) {
+        throw new Error("graduação fixture alterada por outra academia");
+      }
+
+      if (studentFixture) {
+        const studentGrad = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signInStudentGrad = await studentGrad.auth.signInWithPassword({
+          email: studentFixture.email,
+          password: passwordForSignIn,
+        });
+        if (signInStudentGrad.error) throw signInStudentGrad.error;
+
+        const alunoRead = await studentGrad
+          .from("student_graduations")
+          .select("id");
+        if (alunoRead.error) {
+          throw new Error(`aluno graduations: ${alunoRead.error.message}`);
+        }
+        if ((alunoRead.data || []).length !== 0) {
+          throw new Error(
+            `aluno devia ver 0 graduações, viu ${(alunoRead.data || []).length}`
+          );
+        }
+
+        const alunoInsert = await studentGrad.from("student_graduations").insert({
+          ...graduationRow,
+          graduated_at: "2099-02-15T15:00:00.000Z",
+        });
+        if (!alunoInsert.error) {
+          await pg.query(
+            `delete from public.student_graduations
+             where student_id = $1 and skip_reason = $2 and graduated_at = '2099-02-15T15:00:00.000Z'`,
+            [graduationStudentId, MARKER_GRADUATION]
+          );
+          throw new Error("aluno não devia criar graduação");
+        }
+        console.log(
+          `  Recusado INSERT graduação (aluno): ${alunoInsert.error.message}`
+        );
+
+        assertGraduationWriteRefused(
+          await studentGrad
+            .from("student_graduations")
+            .update({ resulting_degree: 2 })
+            .eq("id", graduationId)
+            .select("id, resulting_degree"),
+          "UPDATE graduação (aluno)"
+        );
+        assertGraduationWriteRefused(
+          await studentGrad
+            .from("student_graduations")
+            .delete()
+            .eq("id", graduationId)
+            .select("id"),
+          "DELETE graduação (aluno)"
+        );
+
+        const afterAluno = await pg.query(
+          `select resulting_degree from public.student_graduations
+           where id = $1 and skip_reason = $2`,
+          [graduationId, MARKER_GRADUATION]
+        );
+        if (
+          afterAluno.rows.length !== 1 ||
+          Number(afterAluno.rows[0].resulting_degree) !== 1
+        ) {
+          throw new Error("aluno alterou a graduação fixture");
+        }
+
+        await studentGrad.auth.signOut();
+      } else {
+        console.log(
+          "  [Opcional] sem fixture student — testes de aluno em graduações omitidos."
+        );
+      }
+
+      await pg.query(
+        `delete from public.student_graduations
+         where id = $1 and skip_reason = $2`,
+        [graduationId, MARKER_GRADUATION]
+      );
     }
 
     console.log(", Portal Fase 2: fixture turma/sessão/check-in ,");
