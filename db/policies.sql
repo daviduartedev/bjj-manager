@@ -31,22 +31,168 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT COALESCE(
-    (
-      SELECT p.role
-      FROM public.profiles p
-      WHERE p.user_id = auth.uid ()
-      LIMIT 1
-    ),
-    'professor'::public.profile_role
-  );
+  SELECT p.role
+  FROM public.profiles p
+  WHERE p.user_id = auth.uid ()
+  LIMIT 1;
 $$;
 
 REVOKE ALL ON FUNCTION public.current_profile_role () FROM PUBLIC;
 
 GRANT EXECUTE ON FUNCTION public.current_profile_role () TO authenticated;
 
-COMMENT ON FUNCTION public.current_profile_role () IS 'Returns profiles.role for auth.uid(); defaults to professor; SEC-1.4 in spec/features/rls-security/readme.md';
+COMMENT ON FUNCTION public.current_profile_role () IS 'Returns profiles.role for auth.uid(), or NULL when the profile is missing; SEC-1.4 in spec/features/rls-security/readme.md';
+
+-- ---------- Named capabilities (fail closed: missing role is false, not professor) ----------
+CREATE OR REPLACE FUNCTION public.can_manage_finance () RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.current_profile_role () = 'professor'::public.profile_role, false);
+$$;
+
+REVOKE ALL ON FUNCTION public.can_manage_finance () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.can_manage_finance () TO authenticated;
+
+COMMENT ON FUNCTION public.can_manage_finance () IS 'True only for professor; false when the role is missing';
+
+CREATE OR REPLACE FUNCTION public.can_manage_students () RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.current_profile_role () = 'professor'::public.profile_role, false);
+$$;
+
+REVOKE ALL ON FUNCTION public.can_manage_students () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.can_manage_students () TO authenticated;
+
+COMMENT ON FUNCTION public.can_manage_students () IS 'True only for professor; false when the role is missing';
+
+CREATE OR REPLACE FUNCTION public.can_manage_graduations () RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.current_profile_role () = 'professor'::public.profile_role, false);
+$$;
+
+REVOKE ALL ON FUNCTION public.can_manage_graduations () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.can_manage_graduations () TO authenticated;
+
+COMMENT ON FUNCTION public.can_manage_graduations () IS 'True only for professor; false when the role is missing';
+
+CREATE OR REPLACE FUNCTION public.can_manage_classes () RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.current_profile_role () = 'professor'::public.profile_role, false);
+$$;
+
+REVOKE ALL ON FUNCTION public.can_manage_classes () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.can_manage_classes () TO authenticated;
+
+COMMENT ON FUNCTION public.can_manage_classes () IS 'True only for professor; false when the role is missing';
+
+CREATE OR REPLACE FUNCTION public.can_manage_documents () RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.current_profile_role () = 'professor'::public.profile_role, false);
+$$;
+
+REVOKE ALL ON FUNCTION public.can_manage_documents () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.can_manage_documents () TO authenticated;
+
+COMMENT ON FUNCTION public.can_manage_documents () IS 'True only for professor; false when the role is missing';
+
+CREATE OR REPLACE FUNCTION public.can_manage_commercial_plans () RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.current_profile_role () = 'professor'::public.profile_role, false);
+$$;
+
+REVOKE ALL ON FUNCTION public.can_manage_commercial_plans () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.can_manage_commercial_plans () TO authenticated;
+
+COMMENT ON FUNCTION public.can_manage_commercial_plans () IS 'True only for professor; false when the role is missing';
+
+CREATE OR REPLACE FUNCTION public.can_manage_lesson_plans () RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.current_profile_role () = 'professor'::public.profile_role, false);
+$$;
+
+REVOKE ALL ON FUNCTION public.can_manage_lesson_plans () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.can_manage_lesson_plans () TO authenticated;
+
+COMMENT ON FUNCTION public.can_manage_lesson_plans () IS 'True only for professor; false when the role is missing. Plano de aula is its own capability';
+
+CREATE OR REPLACE FUNCTION public.can_manage_account_settings () RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.current_profile_role () = 'professor'::public.profile_role, false);
+$$;
+
+REVOKE ALL ON FUNCTION public.can_manage_account_settings () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.can_manage_account_settings () TO authenticated;
+
+COMMENT ON FUNCTION public.can_manage_account_settings () IS 'True only for professor; false when the role is missing';
+
+CREATE OR REPLACE FUNCTION public.can_delete_account () RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.current_profile_role () = 'professor'::public.profile_role, false);
+$$;
+
+REVOKE ALL ON FUNCTION public.can_delete_account () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.can_delete_account () TO authenticated;
+
+COMMENT ON FUNCTION public.can_delete_account () IS 'True only for professor; false when the role is missing';
+
+CREATE OR REPLACE FUNCTION public.can_use_portal_self () RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.current_profile_role () = 'student'::public.profile_role, false);
+$$;
+
+REVOKE ALL ON FUNCTION public.can_use_portal_self () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.can_use_portal_self () TO authenticated;
+
+COMMENT ON FUNCTION public.can_use_portal_self () IS 'True only for student; false when the role is missing';
 
 -- ---------- Helper: current student row from auth session (portal) ----------
 CREATE OR REPLACE FUNCTION public.current_student_id () RETURNS uuid
@@ -255,15 +401,18 @@ DROP POLICY IF EXISTS accounts_update_professor ON public.accounts;
 
 CREATE POLICY accounts_update_professor ON public.accounts FOR UPDATE TO authenticated USING (
   id = public.current_account_id ()
-  AND public.current_profile_role () = 'professor'::public.profile_role
+  AND public.can_manage_account_settings ()
 )
 WITH
   CHECK (
     id = public.current_account_id ()
-    AND public.current_profile_role () = 'professor'::public.profile_role
+    AND public.can_manage_account_settings ()
   );
 
-CREATE POLICY accounts_delete_own ON public.accounts FOR DELETE TO authenticated USING (id = public.current_account_id ());
+CREATE POLICY accounts_delete_own ON public.accounts FOR DELETE TO authenticated USING (
+  id = public.current_account_id ()
+  AND public.can_delete_account ()
+);
 
 -- ---------- profiles ----------
 DROP POLICY IF EXISTS profiles_select_same_account ON public.profiles;
@@ -341,18 +490,74 @@ WITH
     AND account_id = public.current_account_id ()
   );
 
+-- Aluno só altera o aceite do portal e o e-mail do responsável na própria ficha.
+-- O gatilho corre em todo UPDATE, mas só recusa quando o ator é aluno.
+-- Professor passa sem alteração. updated_at pode mudar com os dois campos.
+-- Sem policy de INSERT ou DELETE para o aluno.
+CREATE OR REPLACE FUNCTION public.guard_student_self_ficha_columns () RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+DECLARE
+  old_rest jsonb;
+  new_rest jsonb;
+BEGIN
+  IF NOT public.can_use_portal_self () THEN
+    RETURN NEW;
+  END IF;
+
+  old_rest := to_jsonb (OLD) - ARRAY[
+    'portal_terms_accepted_at',
+    'guardian_email',
+    'updated_at'
+  ];
+  new_rest := to_jsonb (NEW) - ARRAY[
+    'portal_terms_accepted_at',
+    'guardian_email',
+    'updated_at'
+  ];
+
+  IF old_rest IS DISTINCT FROM new_rest THEN
+    RAISE EXCEPTION 'Aluno só pode alterar o aceite do portal e o e-mail do responsável.'
+      USING ERRCODE = '42501';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.guard_student_self_ficha_columns () FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.guard_student_self_ficha_columns () TO authenticated;
+
+COMMENT ON FUNCTION public.guard_student_self_ficha_columns () IS 'On a student self-update of students, allows only portal_terms_accepted_at, guardian_email, and updated_at; other roles are unchanged';
+
+DROP TRIGGER IF EXISTS students_guard_self_ficha_columns ON public.students;
+
+CREATE TRIGGER students_guard_self_ficha_columns
+BEFORE UPDATE ON public.students
+FOR EACH ROW
+EXECUTE FUNCTION public.guard_student_self_ficha_columns ();
+
 -- ---------- plans ----------
 DROP POLICY IF EXISTS plans_tenant_all ON public.plans;
 
-CREATE POLICY plans_tenant_all ON public.plans FOR ALL TO authenticated USING (account_id = public.current_account_id ())
+CREATE POLICY plans_tenant_all ON public.plans FOR ALL TO authenticated USING (
+  public.can_manage_commercial_plans ()
+  AND account_id = public.current_account_id ()
+)
 WITH
-  CHECK (account_id = public.current_account_id ());
+  CHECK (
+    public.can_manage_commercial_plans ()
+    AND account_id = public.current_account_id ()
+  );
 
 -- ---------- student_graduations ----------
 DROP POLICY IF EXISTS student_graduations_by_student_tenant ON public.student_graduations;
 
 CREATE POLICY student_graduations_by_student_tenant ON public.student_graduations FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_graduations ()
+  AND EXISTS (
     SELECT
       1
     FROM
@@ -364,7 +569,8 @@ CREATE POLICY student_graduations_by_student_tenant ON public.student_graduation
 )
 WITH
   CHECK (
-    EXISTS (
+    public.can_manage_graduations ()
+    AND EXISTS (
       SELECT
         1
       FROM
@@ -379,7 +585,8 @@ WITH
 DROP POLICY IF EXISTS payments_by_student_tenant ON public.payments;
 
 CREATE POLICY payments_by_student_tenant ON public.payments FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_finance ()
+  AND EXISTS (
     SELECT
       1
     FROM
@@ -391,7 +598,8 @@ CREATE POLICY payments_by_student_tenant ON public.payments FOR ALL TO authentic
 )
 WITH
   CHECK (
-    EXISTS (
+    public.can_manage_finance ()
+    AND EXISTS (
       SELECT
         1
       FROM
@@ -406,7 +614,8 @@ WITH
 DROP POLICY IF EXISTS student_plans_tenant_consistent ON public.student_plans;
 
 CREATE POLICY student_plans_tenant_consistent ON public.student_plans FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_commercial_plans ()
+  AND EXISTS (
     SELECT
       1
     FROM
@@ -420,7 +629,8 @@ CREATE POLICY student_plans_tenant_consistent ON public.student_plans FOR ALL TO
 )
 WITH
   CHECK (
-    EXISTS (
+    public.can_manage_commercial_plans ()
+    AND EXISTS (
       SELECT
         1
       FROM
@@ -446,12 +656,12 @@ DROP POLICY IF EXISTS products_operational_all ON public.products;
 DROP POLICY IF EXISTS products_student_select ON public.products;
 
 CREATE POLICY products_operational_all ON public.products FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 )
 WITH
   CHECK (
-    public.current_profile_role () = 'professor'::public.profile_role
+    public.can_manage_students ()
     AND account_id = public.current_account_id ()
   );
 
@@ -470,7 +680,7 @@ DROP POLICY IF EXISTS product_variants_operational_all ON public.product_variant
 DROP POLICY IF EXISTS product_variants_student_select ON public.product_variants;
 
 CREATE POLICY product_variants_operational_all ON public.product_variants FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND EXISTS (
     SELECT
       1
@@ -483,7 +693,7 @@ CREATE POLICY product_variants_operational_all ON public.product_variants FOR AL
 )
 WITH
   CHECK (
-    public.current_profile_role () = 'professor'::public.profile_role
+    public.can_manage_students ()
     AND EXISTS (
       SELECT
         1
@@ -518,12 +728,12 @@ DROP POLICY IF EXISTS reservations_operational_all ON public.reservations;
 DROP POLICY IF EXISTS reservations_student_select ON public.reservations;
 
 CREATE POLICY reservations_operational_all ON public.reservations FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 )
 WITH
   CHECK (
-    public.current_profile_role () = 'professor'::public.profile_role
+    public.can_manage_students ()
     AND account_id = public.current_account_id ()
   );
 
@@ -532,37 +742,46 @@ CREATE POLICY reservations_student_select ON public.reservations FOR SELECT TO a
   AND student_id = public.current_student_id ()
 );
 
--- ---------- document_templates: globais (account_id IS NULL) leitura para todos; por conta tenant-only ----------
+-- ---------- document_templates: professor lê globais (account_id IS NULL) e da academia; escrita só da academia ----------
 DROP POLICY IF EXISTS document_templates_select ON public.document_templates;
 
 DROP POLICY IF EXISTS document_templates_modify_tenant ON public.document_templates;
 
 CREATE POLICY document_templates_select ON public.document_templates FOR SELECT TO authenticated USING (
-  account_id IS NULL OR account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND (
+    account_id IS NULL
+    OR account_id = public.current_account_id ()
+  )
 );
 
 CREATE POLICY document_templates_modify_tenant ON public.document_templates FOR ALL TO authenticated USING (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 );
 
 -- ---------- generated_documents ----------
 DROP POLICY IF EXISTS generated_documents_tenant_all ON public.generated_documents;
 
 CREATE POLICY generated_documents_tenant_all ON public.generated_documents FOR ALL TO authenticated USING (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 );
 
 -- ---------- generated_document_deliveries (via parent) ----------
 DROP POLICY IF EXISTS generated_document_deliveries_by_doc_tenant ON public.generated_document_deliveries;
 
 CREATE POLICY generated_document_deliveries_by_doc_tenant ON public.generated_document_deliveries FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_documents ()
+  AND EXISTS (
     SELECT 1
     FROM public.generated_documents d
     WHERE d.id = generated_document_deliveries.document_id
@@ -570,7 +789,8 @@ CREATE POLICY generated_document_deliveries_by_doc_tenant ON public.generated_do
   )
 )
 WITH CHECK (
-  EXISTS (
+  public.can_manage_documents ()
+  AND EXISTS (
     SELECT 1
     FROM public.generated_documents d
     WHERE d.id = generated_document_deliveries.document_id
@@ -582,27 +802,32 @@ WITH CHECK (
 DROP POLICY IF EXISTS document_sequences_tenant_all ON public.document_sequences;
 
 CREATE POLICY document_sequences_tenant_all ON public.document_sequences FOR ALL TO authenticated USING (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  account_id = public.current_account_id ()
+  public.can_manage_documents ()
+  AND account_id = public.current_account_id ()
 );
 
 -- ---------- lesson_plans ----------
 DROP POLICY IF EXISTS lesson_plans_tenant_all ON public.lesson_plans;
 
 CREATE POLICY lesson_plans_tenant_all ON public.lesson_plans FOR ALL TO authenticated USING (
-  account_id = public.current_account_id ()
+  public.can_manage_lesson_plans ()
+  AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  account_id = public.current_account_id ()
+  public.can_manage_lesson_plans ()
+  AND account_id = public.current_account_id ()
 );
 
 -- ---------- lesson_plan_revisions (via parent) ----------
 DROP POLICY IF EXISTS lesson_plan_revisions_by_plan_tenant ON public.lesson_plan_revisions;
 
 CREATE POLICY lesson_plan_revisions_by_plan_tenant ON public.lesson_plan_revisions FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_lesson_plans ()
+  AND EXISTS (
     SELECT 1
     FROM public.lesson_plans lp
     WHERE lp.id = lesson_plan_revisions.lesson_plan_id
@@ -610,7 +835,8 @@ CREATE POLICY lesson_plan_revisions_by_plan_tenant ON public.lesson_plan_revisio
   )
 )
 WITH CHECK (
-  EXISTS (
+  public.can_manage_lesson_plans ()
+  AND EXISTS (
     SELECT 1
     FROM public.lesson_plans lp
     WHERE lp.id = lesson_plan_revisions.lesson_plan_id
@@ -622,7 +848,8 @@ WITH CHECK (
 DROP POLICY IF EXISTS lesson_plan_attachments_by_plan_tenant ON public.lesson_plan_attachments;
 
 CREATE POLICY lesson_plan_attachments_by_plan_tenant ON public.lesson_plan_attachments FOR ALL TO authenticated USING (
-  EXISTS (
+  public.can_manage_lesson_plans ()
+  AND EXISTS (
     SELECT 1
     FROM public.lesson_plans lp
     WHERE lp.id = lesson_plan_attachments.lesson_plan_id
@@ -630,7 +857,8 @@ CREATE POLICY lesson_plan_attachments_by_plan_tenant ON public.lesson_plan_attac
   )
 )
 WITH CHECK (
-  EXISTS (
+  public.can_manage_lesson_plans ()
+  AND EXISTS (
     SELECT 1
     FROM public.lesson_plans lp
     WHERE lp.id = lesson_plan_attachments.lesson_plan_id
@@ -644,11 +872,11 @@ DROP POLICY IF EXISTS classes_operational_all ON public.classes;
 DROP POLICY IF EXISTS classes_student_select ON public.classes;
 
 CREATE POLICY classes_operational_all ON public.classes FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -668,11 +896,11 @@ DROP POLICY IF EXISTS class_recurring_schedules_operational_all ON public.class_
 DROP POLICY IF EXISTS class_recurring_schedules_student_select ON public.class_recurring_schedules;
 
 CREATE POLICY class_recurring_schedules_operational_all ON public.class_recurring_schedules FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -692,11 +920,11 @@ DROP POLICY IF EXISTS class_sessions_operational_all ON public.class_sessions;
 DROP POLICY IF EXISTS class_sessions_student_select ON public.class_sessions;
 
 CREATE POLICY class_sessions_operational_all ON public.class_sessions FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -716,11 +944,11 @@ DROP POLICY IF EXISTS student_class_enrollments_operational_all ON public.studen
 DROP POLICY IF EXISTS student_class_enrollments_student_select ON public.student_class_enrollments;
 
 CREATE POLICY student_class_enrollments_operational_all ON public.student_class_enrollments FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -739,11 +967,11 @@ DROP POLICY IF EXISTS check_ins_student_insert ON public.check_ins;
 DROP POLICY IF EXISTS check_ins_student_delete ON public.check_ins;
 
 CREATE POLICY check_ins_operational_all ON public.check_ins FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -779,11 +1007,11 @@ DROP POLICY IF EXISTS attendances_operational_all ON public.attendances;
 DROP POLICY IF EXISTS attendances_student_select ON public.attendances;
 
 CREATE POLICY attendances_operational_all ON public.attendances FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_classes ()
   AND account_id = public.current_account_id ()
 );
 
@@ -800,21 +1028,21 @@ ALTER TABLE public.product_ledger_installments ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS product_ledger_notes_operational_all ON public.product_ledger_notes;
 
 CREATE POLICY product_ledger_notes_operational_all ON public.product_ledger_notes FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 );
 
 DROP POLICY IF EXISTS product_ledger_installments_operational_all ON public.product_ledger_installments;
 
 CREATE POLICY product_ledger_installments_operational_all ON public.product_ledger_installments FOR ALL TO authenticated USING (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 )
 WITH CHECK (
-  public.current_profile_role () = 'professor'::public.profile_role
+  public.can_manage_students ()
   AND account_id = public.current_account_id ()
 );
