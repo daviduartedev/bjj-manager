@@ -30,9 +30,11 @@ import {
   type AcademyRegistrationInput,
 } from "@/lib/validations/academy-registration";
 
+import { ResendConfirmationForm } from "../resend-confirmation-form";
+
 export function RegisterForm() {
   const [loading, setLoading] = useState(false);
-  const [waiting, setWaiting] = useState<string | null>(null);
+  const [waiting, setWaiting] = useState<{ message: string; email: string } | null>(null);
 
   const form = useForm<AcademyRegistrationInput>({
     resolver: zodResolver(academyRegistrationSchema),
@@ -56,7 +58,7 @@ export function RegisterForm() {
       });
 
       if (result.ok) {
-        setWaiting(result.message);
+        setWaiting({ message: result.message, email: values.email });
         return;
       }
 
@@ -80,8 +82,11 @@ export function RegisterForm() {
       <Card className="w-full max-w-md border-border/70 bg-card/95 text-card-foreground shadow-xl shadow-black/25 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-xl">Verifique o e-mail</CardTitle>
-          <CardDescription>{waiting}</CardDescription>
+          <CardDescription>{waiting.message}</CardDescription>
         </CardHeader>
+        <CardContent>
+          <ResendConfirmationForm defaultEmail={waiting.email} emailHidden />
+        </CardContent>
       </Card>
     );
   }

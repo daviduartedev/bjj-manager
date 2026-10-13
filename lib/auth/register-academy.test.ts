@@ -16,18 +16,16 @@ const validInput = {
 };
 
 describe("academySignupCallbackUrl", () => {
-  it("monta o callback só com APP_URL", () => {
-    expect(academySignupCallbackUrl({ APP_URL: "https://app.casca.test/" })).toBe(
-      "https://app.casca.test/auth/callback",
-    );
+  it("monta o callback com a URL pública do servidor", () => {
+    expect(
+      academySignupCallbackUrl({ NEXT_PUBLIC_APP_URL: "https://app.casca.test/" }),
+    ).toBe("https://app.casca.test/auth/callback");
   });
 
-  it("não usa o URL público quando APP_URL falta", () => {
-    const env = {
-      APP_URL: "  ",
-      NEXT_PUBLIC_APP_URL: "https://evil.example",
-    };
-    expect(academySignupCallbackUrl(env)).toBeNull();
+  it("usa a base do convite quando a URL pública falta, sem o navegador escolher", () => {
+    expect(academySignupCallbackUrl({ NEXT_PUBLIC_APP_URL: "  " })).toBe(
+      "http://localhost:3000/auth/callback",
+    );
   });
 });
 
@@ -85,9 +83,12 @@ describe("submitAcademyRegistration", () => {
     expect(alreadyRegisteredRecord).not.toHaveBeenCalled();
   });
 
-  it("não chama o cadastro quando APP_URL não está definido", async () => {
-    const signUp = vi.fn();
-    const recordIntent = vi.fn();
+  it("cadastra com a base local do servidor quando a URL pública falta", async () => {
+    const signUp = vi.fn().mockResolvedValue({
+      user: { id: "user-created", identities: [{ id: "identity-1" }] },
+      error: null,
+    });
+    const recordIntent = vi.fn().mockResolvedValue({ ok: true });
 
     const result = await submitAcademyRegistration(validInput, {
       appUrl: "   ",
@@ -95,12 +96,12 @@ describe("submitAcademyRegistration", () => {
       recordIntent,
     });
 
-    expect(result).toEqual({
-      ok: false,
-      message: "Não foi possível concluir o cadastro. Tente novamente.",
+    expect(result).toEqual({ ok: true, message: WAITING });
+    expect(signUp).toHaveBeenCalledWith({
+      email: "ana@academia.com",
+      password: "senha-segura",
+      emailRedirectTo: "http://localhost:3000/auth/callback",
     });
-    expect(signUp).not.toHaveBeenCalled();
-    expect(recordIntent).not.toHaveBeenCalled();
   });
 
   it("não grava intenção quando a senha é curta e não chama o cadastro", async () => {

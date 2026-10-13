@@ -35,12 +35,17 @@ type RegistrationDeps = {
   }) => Promise<{ ok: true } | { ok: false }>;
 };
 
+/** Mesma base do convite de aluno quando `NEXT_PUBLIC_APP_URL` não está definida. */
+const SERVER_APP_FALLBACK = "http://localhost:3000";
+
 /**
- * Callback de confirmação. Só `APP_URL` entra aqui — o cliente não escolhe o destino.
+ * Callback de confirmação. A base é `NEXT_PUBLIC_APP_URL` lida no servidor,
+ * como o convite de aluno. O navegador não escolhe o destino.
  */
-export function academySignupCallbackUrl(env: { APP_URL?: string | null }): string | null {
-  const appUrl = env.APP_URL?.trim();
-  if (!appUrl) return null;
+export function academySignupCallbackUrl(env: {
+  NEXT_PUBLIC_APP_URL?: string | null;
+}): string {
+  const appUrl = env.NEXT_PUBLIC_APP_URL?.trim() || SERVER_APP_FALLBACK;
   return `${appUrl.replace(/\/$/, "")}/auth/callback`;
 }
 
@@ -91,10 +96,9 @@ export async function submitAcademyRegistration(
     return { ok: false, message: REGISTRATION_FAILED_MESSAGE };
   }
 
-  const emailRedirectTo = academySignupCallbackUrl({ APP_URL: deps.appUrl });
-  if (!emailRedirectTo) {
-    return { ok: false, message: REGISTRATION_FAILED_MESSAGE };
-  }
+  const emailRedirectTo = academySignupCallbackUrl({
+    NEXT_PUBLIC_APP_URL: deps.appUrl,
+  });
 
   const signup = await deps.signUp({
     email: parsed.data.email,

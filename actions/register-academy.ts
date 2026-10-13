@@ -13,7 +13,7 @@ function authErrorFields(error: { message: string }): SignupCallResult["error"] 
 }
 
 export async function registerAcademy(input: unknown) {
-  const appUrl = process.env.APP_URL ?? "";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
   const admin = createAdminClient();
 
   return submitAcademyRegistration(input, {
