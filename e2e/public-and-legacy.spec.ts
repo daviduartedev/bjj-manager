@@ -17,14 +17,15 @@ test.describe("Rotas públicas e legado", () => {
     await expect(page.getByRole("button", { name: "Entrar" })).toBeVisible();
   });
 
-  test("/register redirecciona anónimo para /login", async ({ page, request, baseURL }) => {
+  test("/register é acessível sem sessão", async ({ page, request, baseURL }) => {
     const origin = baseURL ?? "http://127.0.0.1:3000";
     const res = await request.get(`${origin}/register`, { maxRedirects: 0 });
-    expect([302, 303, 307, 308]).toContain(res.status());
-    expect(res.headers().location ?? "").toMatch(/\/login/i);
+    expect(res.status()).toBe(200);
 
     await page.goto("/register", { waitUntil: "networkidle" });
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/register$/);
+    await expect(page.getByLabel("E-mail")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Criar academia" })).toBeVisible();
   });
 
   test("/dashboard redirecciona para /painel com sessão", async ({ page }) => {
