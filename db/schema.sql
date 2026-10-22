@@ -193,6 +193,23 @@ CREATE TABLE IF NOT EXISTS public.belts (
   CONSTRAINT belts_slug_unique UNIQUE (slug)
 );
 
+CREATE TABLE IF NOT EXISTS public.graduation_references (
+  id text PRIMARY KEY,
+  modality text NOT NULL CHECK (modality IN ('judo','muay_thai')),
+  title text NOT NULL,
+  source_url text NOT NULL,
+  consulted_at date NOT NULL,
+  limitation text NOT NULL
+);
+CREATE TABLE IF NOT EXISTS public.graduation_ranks (
+  reference_id text NOT NULL REFERENCES public.graduation_references(id) ON DELETE RESTRICT,
+  code text NOT NULL,
+  ordinal smallint NOT NULL CHECK (ordinal >= 0),
+  label text NOT NULL,
+  PRIMARY KEY (reference_id, code),
+  UNIQUE (reference_id, ordinal)
+);
+
 CREATE TABLE IF NOT EXISTS public.students (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
@@ -200,6 +217,10 @@ CREATE TABLE IF NOT EXISTS public.students (
   full_name text NOT NULL,
   current_belt_id uuid NULL REFERENCES public.belts (id) ON DELETE RESTRICT,
   current_degree smallint NULL,
+  graduation_reference_id text NULL,
+  current_rank_code text NULL,
+  current_rank_date date NULL,
+  CONSTRAINT students_referenced_rank_fkey FOREIGN KEY (graduation_reference_id,current_rank_code) REFERENCES public.graduation_ranks(reference_id,code) ON DELETE RESTRICT,
   status public.student_status NOT NULL,
   birth_date date NULL,
   academy_start_date date NULL,

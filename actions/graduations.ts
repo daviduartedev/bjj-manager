@@ -101,6 +101,7 @@ export async function promoteStudent(
     const ctx = await getCurrentAccount();
     if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
     if (getGraduationPolicy(ctx.account.modality).mode === "none") return { ok: false, error: "Boxe não possui graduação." };
+    if (getGraduationPolicy(ctx.account.modality).mode === "referenced") return { ok: false, error: "Use o fluxo de graduação desta modalidade." };
     const parsed = graduationEventSchema.safeParse(values);
     if (!parsed.success) {
       return {
@@ -185,6 +186,7 @@ export async function addGraduation(
     const ctx = await getCurrentAccount();
     if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
     if (getGraduationPolicy(ctx.account.modality).mode === "none") return { ok: false, error: "Boxe não possui graduação." };
+    if (getGraduationPolicy(ctx.account.modality).mode === "referenced") return { ok: false, error: "Use o fluxo de graduação desta modalidade." };
     const parsed = addGraduationSchema.safeParse(values);
     if (!parsed.success) {
       return {
@@ -265,6 +267,7 @@ export async function updateGraduation(
     const ctx = await getCurrentAccount();
     if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
     if (getGraduationPolicy(ctx.account.modality).mode === "none") return { ok: false, error: "Boxe não possui graduação." };
+    if (getGraduationPolicy(ctx.account.modality).mode === "referenced") return { ok: false, error: "Use o fluxo de graduação desta modalidade." };
     const parsed = updateGraduationSchema.safeParse(values);
     if (!parsed.success) {
       return {
@@ -352,6 +355,7 @@ export async function updateGraduationWeight(
     const ctx = await getCurrentAccount();
     if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
     if (getGraduationPolicy(ctx.account.modality).mode === "none") return { ok: false, error: "Boxe não possui graduação." };
+    if (getGraduationPolicy(ctx.account.modality).mode === "referenced") return { ok: false, error: "Use o fluxo de graduação desta modalidade." };
     const parsed = updateGraduationWeightSchema.safeParse(values);
     if (!parsed.success) {
       return {

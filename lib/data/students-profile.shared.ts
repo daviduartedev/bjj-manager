@@ -1,3 +1,4 @@
+import type { ReferencedGraduationFields } from "@/lib/modalities/referenced-ranks";
 import {
   formatDateBR,
   toCalendarDateStringInAppTZ,
@@ -24,7 +25,7 @@ export type ProfilePaymentRow = {
   paid_at: string | null;
 };
 
-export type StudentProfilePayload = {
+export type StudentProfilePayload = ReferencedGraduationFields & {
   id: string;
   full_name: string;
   kind: "adult" | "kids" | "baby";

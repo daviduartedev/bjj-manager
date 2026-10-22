@@ -79,6 +79,7 @@ export async function createStudent(
     if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
     const { belts, plans, modality } = await getStudentCatalog();
     const ungraded = modality === "boxing";
+    const legacyGraduation = modality === "jiu_jitsu";
     const schema = buildStudentFullFormSchema(belts, plans, modality);
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
@@ -91,8 +92,8 @@ export async function createStudent(
     const v = parsed.data as StudentFullFormValues;
     const supabase = await createClient();
 
-    const belt = !ungraded && v.current_belt_id ? await resolveBelt(supabase, v.current_belt_id) : null;
-    if (!ungraded && (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind))) {
+    const belt = legacyGraduation && v.current_belt_id ? await resolveBelt(supabase, v.current_belt_id) : null;
+    if (legacyGraduation && (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind))) {
       return { ok: false, error: "Dados de faixa inválidos." };
     }
     if (!v.is_exempt) {
@@ -111,7 +112,7 @@ export async function createStudent(
         };
       }
     }
-    if (!ungraded && (!belt || v.current_degree == null || !isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree))) {
+    if (legacyGraduation && (!belt || v.current_degree == null || !isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree))) {
       return { ok: false, error: "Grau inválido para a faixa." };
     }
 
@@ -138,7 +139,12 @@ export async function createStudent(
         email: v.email?.trim().toLowerCase() ?? null,
         notes: v.notes?.trim() ?? null,
         is_exempt: v.is_exempt ?? false,
-        ...(ungraded ? { weight_kg: v.weight_kg ?? null } : {}),
+        ...(!legacyGraduation ? { weight_kg: v.weight_kg ?? null } : {}),
+        ...(modality === "judo" || modality === "muay_thai" ? {
+          graduation_reference_id: v.graduation_reference_id,
+          current_rank_code: v.current_rank_code,
+          current_rank_date: v.current_rank_date,
+        } : {}),
       })
       .select("id")
       .single();
@@ -175,6 +181,7 @@ export async function updateStudent(
     if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
     const { belts, plans, modality } = await getStudentCatalog();
     const ungraded = modality === "boxing";
+    const legacyGraduation = modality === "jiu_jitsu";
     const schema = buildStudentFullFormSchema(belts, plans, modality);
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
@@ -187,8 +194,8 @@ export async function updateStudent(
     const v = parsed.data as StudentFullFormValues;
     const supabase = await createClient();
 
-    const belt = !ungraded && v.current_belt_id ? await resolveBelt(supabase, v.current_belt_id) : null;
-    if (!ungraded && (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind))) {
+    const belt = legacyGraduation && v.current_belt_id ? await resolveBelt(supabase, v.current_belt_id) : null;
+    if (legacyGraduation && (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind))) {
       return { ok: false, error: "Dados de faixa inválidos." };
     }
     if (!v.is_exempt) {
@@ -207,7 +214,7 @@ export async function updateStudent(
         };
       }
     }
-    if (!ungraded && (!belt || v.current_degree == null || !isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree))) {
+    if (legacyGraduation && (!belt || v.current_degree == null || !isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree))) {
       return { ok: false, error: "Grau inválido para a faixa." };
     }
 
@@ -232,7 +239,12 @@ export async function updateStudent(
         email: v.email?.trim().toLowerCase() ?? null,
         notes: v.notes?.trim() ?? null,
         is_exempt: v.is_exempt ?? false,
-        ...(ungraded ? { weight_kg: v.weight_kg ?? null } : {}),
+        ...(!legacyGraduation ? { weight_kg: v.weight_kg ?? null } : {}),
+        ...(modality === "judo" || modality === "muay_thai" ? {
+          graduation_reference_id: v.graduation_reference_id,
+          current_rank_code: v.current_rank_code,
+          current_rank_date: v.current_rank_date,
+        } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq("id", studentId)
@@ -252,7 +264,7 @@ export async function updateStudent(
       });
     }
 
-    if (!ungraded && v.current_belt_id && v.current_degree != null) await applyWeightToCurrentGraduation(
+    if (legacyGraduation && v.current_belt_id && v.current_degree != null) await applyWeightToCurrentGraduation(
       supabase,
       studentId,
       v.current_belt_id,
@@ -297,6 +309,7 @@ export async function quickUpdateStudent(
     studentKind = existing.kind as StudentKind;
     const { belts, plans, modality } = await getStudentCatalog();
     const ungraded = modality === "boxing";
+    const legacyGraduation = modality === "jiu_jitsu";
     const schema = buildQuickEditFormSchema(belts, plans, studentKind, modality);
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
@@ -308,11 +321,11 @@ export async function quickUpdateStudent(
     }
     const v = parsed.data as QuickEditFormValues;
 
-    const belt = !ungraded && v.current_belt_id ? await resolveBelt(supabase, v.current_belt_id) : null;
-    if (!ungraded && (!belt || !beltMatchesStudentKindForBeltRow(belt, studentKind))) {
+    const belt = legacyGraduation && v.current_belt_id ? await resolveBelt(supabase, v.current_belt_id) : null;
+    if (legacyGraduation && (!belt || !beltMatchesStudentKindForBeltRow(belt, studentKind))) {
       return { ok: false, error: "Dados de faixa inválidos." };
     }
-    if (!ungraded && (!belt || v.current_degree == null || !isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree))) {
+    if (legacyGraduation && (!belt || v.current_degree == null || !isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree))) {
       return { ok: false, error: "Grau inválido para a faixa." };
     }
 
@@ -340,7 +353,12 @@ export async function quickUpdateStudent(
         current_belt_id: v.current_belt_id ?? null,
         current_degree: v.current_degree ?? null,
         is_exempt: v.is_exempt ?? false,
-        ...(ungraded ? { weight_kg: v.weight_kg ?? null } : {}),
+        ...(!legacyGraduation ? { weight_kg: v.weight_kg ?? null } : {}),
+        ...(modality === "judo" || modality === "muay_thai" ? {
+          graduation_reference_id: v.graduation_reference_id,
+          current_rank_code: v.current_rank_code,
+          current_rank_date: v.current_rank_date,
+        } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq("id", studentId)
@@ -360,7 +378,7 @@ export async function quickUpdateStudent(
       });
     }
 
-    if (!ungraded && v.current_belt_id && v.current_degree != null) await applyWeightToCurrentGraduation(
+    if (legacyGraduation && v.current_belt_id && v.current_degree != null) await applyWeightToCurrentGraduation(
       supabase,
       studentId,
       v.current_belt_id,

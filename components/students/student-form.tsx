@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { createStudent, updateStudent } from "@/actions/students";
+import { ReferencedGraduationFields } from "@/components/students/referenced-graduation-fields";
 import { AdultOrangeBeltConfirmDialog } from "@/components/students/adult-orange-belt-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,6 +71,7 @@ export function StudentForm({
 }: Props) {
   const router = useRouter();
   const ungraded = modality === "boxing";
+  const legacyGraduation = modality === "jiu_jitsu";
   const [loading, setLoading] = useState(false);
   const [adultOrangeConfirm, setAdultOrangeConfirm] = useState<{
     beltId: string;
@@ -133,7 +135,7 @@ export function StudentForm({
       ),
     [plans, kind, selectedBelt?.slug],
   );
-  const isWhiteBelt = selectedBelt
+  const isWhiteBelt = legacyGraduation && selectedBelt
     ? isWhiteBeltSlug(selectedBelt.slug)
     : false;
 
@@ -335,7 +337,9 @@ export function StudentForm({
           )}
         />
 
-        {!ungraded ? <div
+        {!legacyGraduation && !ungraded ? <ReferencedGraduationFields modality={modality} disabled={loading} /> : null}
+
+        {legacyGraduation ? <div
           className={`grid gap-4 ${
             isWhiteBelt ? "grid-cols-1" : "sm:grid-cols-2"
           }`}
@@ -446,7 +450,7 @@ export function StudentForm({
           ) : null}
         </div> : null}
 
-        {mode === "edit" || ungraded ? (
+        {mode === "edit" || !legacyGraduation ? (
           <FormField
             control={form.control}
             name="weight_kg"
@@ -466,7 +470,7 @@ export function StudentForm({
                   />
                 </FormControl>
                 <FormDescription>
-                  {ungraded ? "Entre 20,0 e 250,0 kg. Guardado na ficha do aluno." : "Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar."}
+                  {!legacyGraduation ? "Entre 20,0 e 250,0 kg. Guardado na ficha do aluno." : "Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar."}
                 </FormDescription>
                 <FormMessage />
               </FormItem>

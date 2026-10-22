@@ -16,6 +16,8 @@ import {
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { EmptyState } from "@/components/layout/empty-state";
 import { QuickEditDialog } from "@/components/students/quick-edit-dialog";
+import { ReferencedRankDisplay } from "@/components/graduation/referenced-rank-display";
+import { findReferencedRank } from "@/lib/modalities/referenced-ranks";
 import { BeltIllustration } from "@/components/graduation/belt-illustration";
 import { StudentAgeLabel } from "@/components/students/student-age";
 import { StudentStatusBadge } from "@/components/students/student-status-badge";
@@ -129,6 +131,7 @@ export function StudentsList({
       ? 1
       : Math.ceil(total / STUDENTS_PAGE_SIZE);
 
+  const columnLabels = modality === "jiu_jitsu" ? ALUNOS_LIST_COLUMN_LABELS : { ...ALUNOS_LIST_COLUMN_LABELS, faixa: "Graduação", data_graduacao: "Data da graduação", tempo_grau: "Tempo na graduação" };
   const availableCols = ALUNOS_LIST_COLUMNS.filter((c) => modality !== "boxing" || !["faixa", "data_graduacao", "tempo_grau"].includes(c));
   const visibleCols = availableCols.filter((c) =>
     urlState.colunas.includes(c),
@@ -139,11 +142,15 @@ export function StudentsList({
   }
 
   function beltLine(row: ListStudentRow): string {
+    const rank = findReferencedRank(row.graduation_reference_id, row.current_rank_code);
+    if (rank) return rank.label;
     if (!row.belt) return "–";
     return beltWithDegreeLine(row.belt.slug, row.belt.kind, row.current_degree ?? 0);
   }
 
   function BeltFaixaCell({ row }: { row: ListStudentRow }) {
+    const rank = findReferencedRank(row.graduation_reference_id, row.current_rank_code);
+    if (rank) return <ReferencedRankDisplay rank={rank} compact />;
     return (
       <div className="flex flex-wrap items-center gap-2">
         {row.belt ? (
@@ -168,13 +175,13 @@ export function StudentsList({
           <span className="tabular-nums-crm text-muted-foreground">
             {row.graduationConfiguredAtYmd
               ? (formatDateBR(row.graduationConfiguredAtYmd) ?? "–")
-              : "–"}
+              : (row.graduation_reference_id ? "Data não informada" : "–")}
           </span>
         );
       case "tempo_grau":
         return (
           <span className="text-crm-sm text-muted-foreground">
-            {row.graduationDurationLine ?? "–"}
+            {row.graduationDurationLine ?? (row.graduation_reference_id ? "Tempo indisponível" : "–")}
           </span>
         );
       case "peso":
@@ -205,27 +212,27 @@ export function StudentsList({
     const lines: { label: string; value: ReactNode }[] = [];
     if (showCol("data_graduacao")) {
       lines.push({
-        label: ALUNOS_LIST_COLUMN_LABELS.data_graduacao,
+        label: columnLabels.data_graduacao,
         value: row.graduationConfiguredAtYmd
           ? (formatDateBR(row.graduationConfiguredAtYmd) ?? "–")
-          : "–",
+          : (row.graduation_reference_id ? "Data não informada" : "–"),
       });
     }
     if (showCol("tempo_grau")) {
       lines.push({
-        label: ALUNOS_LIST_COLUMN_LABELS.tempo_grau,
-        value: row.graduationDurationLine ?? "–",
+        label: columnLabels.tempo_grau,
+        value: row.graduationDurationLine ?? (row.graduation_reference_id ? "Tempo indisponível" : "–"),
       });
     }
     if (showCol("peso")) {
       lines.push({
-        label: ALUNOS_LIST_COLUMN_LABELS.peso,
+        label: columnLabels.peso,
         value: formatWeightKgPt(row.graduationWeightKg) ?? "–",
       });
     }
     if (showCol("idade")) {
       lines.push({
-        label: ALUNOS_LIST_COLUMN_LABELS.idade,
+        label: columnLabels.idade,
         value: <StudentAgeLabel birthDate={row.birth_date} />,
       });
     }
@@ -492,7 +499,7 @@ export function StudentsList({
                                 })
                               }
                             />
-                            {ALUNOS_LIST_COLUMN_LABELS[col]}
+                            {columnLabels[col]}
                           </label>
                         </li>
                       ))}
@@ -586,7 +593,7 @@ export function StudentsList({
                   <TableHead className={thClass}>Nome</TableHead>
                   {visibleCols.map((col) => (
                     <TableHead key={col} className={thClass}>
-                      {ALUNOS_LIST_COLUMN_LABELS[col]}
+                      {columnLabels[col]}
                     </TableHead>
                   ))}
                   <TableHead className={`${thClass} w-[72px] text-right`}>Ações</TableHead>

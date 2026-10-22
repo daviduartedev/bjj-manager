@@ -1,3 +1,5 @@
+import { timeAtCurrentBelt } from "@/lib/dates/duration-domain";
+import type { ReferencedGraduationFields } from "@/lib/modalities/referenced-ranks";
 import { createClient } from "@/lib/supabase/server";
 import { STUDENTS_PAGE_SIZE } from "@/lib/constants/students";
 import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
@@ -8,7 +10,7 @@ import type { GraduationRecordInput } from "@/lib/students/graduation-reference"
 import type { StudentListLifecycle } from "@/lib/students/alunos-url";
 import type { ListSortKey } from "@/lib/validations/students";
 
-export type ListStudentRow = {
+export type ListStudentRow = ReferencedGraduationFields & {
   id: string;
   full_name: string;
   kind: "adult" | "kids" | "baby";
@@ -93,6 +95,9 @@ export async function listStudentsQuery(
       is_exempt,
       birth_date,
       academy_start_date,
+      graduation_reference_id,
+      current_rank_code,
+      current_rank_date,
       current_belt_id,
       current_degree,
       weight_kg,
@@ -182,6 +187,9 @@ export async function listStudentsQuery(
       birth_date: (raw.birth_date as string | null) ?? null,
       academy_start_date: (raw.academy_start_date as string | null) ?? null,
       current_belt_id: beltId,
+      graduation_reference_id: raw.graduation_reference_id as string | null,
+      current_rank_code: raw.current_rank_code as string | null,
+      current_rank_date: raw.current_rank_date as string | null,
       current_degree: degree,
       updated_at: raw.updated_at as string,
       belt: beltsRel ?? null,
@@ -193,8 +201,8 @@ export async function listStudentsQuery(
             plan_kind: open.plans.kind,
           }
         : null,
-      graduationDurationLine,
-      graduationConfiguredAtYmd: gradMeta?.configuredAtYmd ?? null,
+      graduationDurationLine: raw.graduation_reference_id ? timeAtCurrentBelt(raw.current_rank_date as string | null, todayYmd) : graduationDurationLine,
+      graduationConfiguredAtYmd: raw.graduation_reference_id ? (raw.current_rank_date as string | null) ?? null : gradMeta?.configuredAtYmd ?? null,
       graduationWeightKg: beltId == null ? (raw.weight_kg as number | null) ?? null : gradMeta?.weightKg ?? null,
       graduationEventId: gradMeta?.graduationId ?? null,
     };

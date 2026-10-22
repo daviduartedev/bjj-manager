@@ -1301,54 +1301,65 @@ GRANT EXECUTE ON FUNCTION public.provision_academy_for_current_user () TO authen
 COMMENT ON FUNCTION public.provision_academy_for_current_user () IS
   'Cria a academia do auth.uid() a partir da intenção ainda não consumida. Não altera conta, perfil nem preço de plano já existentes.';
 
--- #29: invariantes de modalidade/graduação e plano (migration 032).
--- Invoker: respeita a visibilidade do tenant. Valores de outra conta não são expostos.
+-- #30: catálogos somente leitura e invariantes de modalidade (033).
+ALTER TABLE public.graduation_references ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.graduation_ranks ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.graduation_references, public.graduation_ranks FROM PUBLIC, anon, authenticated;
+GRANT SELECT ON public.graduation_references, public.graduation_ranks TO authenticated;
+DROP POLICY IF EXISTS graduation_references_read ON public.graduation_references;
+CREATE POLICY graduation_references_read ON public.graduation_references FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS graduation_ranks_read ON public.graduation_ranks;
+CREATE POLICY graduation_ranks_read ON public.graduation_ranks FOR SELECT TO authenticated USING (true);
+
+
 CREATE OR REPLACE FUNCTION public.guard_student_modality () RETURNS trigger
 LANGUAGE plpgsql SET search_path = '' AS $$
 DECLARE v_modality text; v_today date;
 BEGIN
   SELECT a.modality INTO v_modality FROM public.accounts a WHERE a.id = NEW.account_id;
-  IF v_modality IS NULL THEN
-    RAISE EXCEPTION 'student unavailable' USING ERRCODE = '42501';
+  IF v_modality IS NULL THEN RAISE EXCEPTION 'student unavailable' USING ERRCODE = '42501'; END IF;
+  v_today := (pg_catalog.now() AT TIME ZONE 'America/Sao_Paulo')::date;
+  IF v_modality <> 'jiu_jitsu' AND (NEW.kind <> 'adult'::public.student_kind OR NEW.birth_date IS NULL
+     OR NEW.birth_date > (v_today - interval '18 years')::date) THEN
+    RAISE EXCEPTION 'modality requires adult aged eighteen' USING ERRCODE = '23514';
   END IF;
-  IF v_modality = 'boxing' THEN
-    IF NEW.current_belt_id IS NOT NULL OR NEW.current_degree IS NOT NULL THEN
-      RAISE EXCEPTION 'boxing has no graduation' USING ERRCODE = '23514';
+  IF v_modality = 'judo' THEN
+    IF NEW.current_belt_id IS NOT NULL OR NEW.current_degree IS NOT NULL
+       OR NEW.graduation_reference_id IS DISTINCT FROM 'cbj-2023' OR NEW.current_rank_code IS NULL
+       OR NOT EXISTS (SELECT 1 FROM public.graduation_ranks r JOIN public.graduation_references ref ON ref.id=r.reference_id
+                      WHERE r.reference_id=NEW.graduation_reference_id AND r.code=NEW.current_rank_code AND ref.modality=v_modality)
+       OR NEW.current_rank_date > v_today THEN
+      RAISE EXCEPTION 'invalid referenced graduation' USING ERRCODE = '23514';
     END IF;
-    v_today := (pg_catalog.now() AT TIME ZONE 'America/Sao_Paulo')::date;
-    IF NEW.kind <> 'adult'::public.student_kind OR NEW.birth_date IS NULL
-       OR NEW.birth_date > (v_today - interval '18 years')::date THEN
-      RAISE EXCEPTION 'boxing requires adult aged eighteen' USING ERRCODE = '23514';
+  ELSE
+    IF NEW.graduation_reference_id IS NOT NULL OR NEW.current_rank_code IS NOT NULL OR NEW.current_rank_date IS NOT NULL THEN
+      RAISE EXCEPTION 'foreign referenced graduation' USING ERRCODE = '23514';
     END IF;
-  ELSIF NEW.current_belt_id IS NULL OR NEW.current_degree IS NULL THEN
-    RAISE EXCEPTION 'graduation required for graded sport' USING ERRCODE = '23514';
+    IF v_modality = 'boxing' THEN
+      IF NEW.current_belt_id IS NOT NULL OR NEW.current_degree IS NOT NULL THEN
+        RAISE EXCEPTION 'boxing has no graduation' USING ERRCODE = '23514';
+      END IF;
+    ELSIF NEW.current_belt_id IS NULL OR NEW.current_degree IS NULL THEN
+      RAISE EXCEPTION 'graduation required for graded sport' USING ERRCODE = '23514';
+    END IF;
   END IF;
   RETURN NEW;
 END;
 $$;
 REVOKE ALL ON FUNCTION public.guard_student_modality () FROM PUBLIC, anon, authenticated;
-DROP TRIGGER IF EXISTS students_guard_modality ON public.students;
-CREATE TRIGGER students_guard_modality BEFORE INSERT OR UPDATE ON public.students
-FOR EACH ROW EXECUTE FUNCTION public.guard_student_modality ();
 
+-- Histórico legado recebe apenas eventos de JJ. Judô terá eventos próprios em #32.
 CREATE OR REPLACE FUNCTION public.guard_graduation_modality () RETURNS trigger
 LANGUAGE plpgsql SET search_path = '' AS $$
 DECLARE v_modality text;
 BEGIN
   SELECT a.modality INTO v_modality FROM public.students s JOIN public.accounts a ON a.id = s.account_id WHERE s.id = NEW.student_id;
-  IF v_modality IS NULL THEN
-    RAISE EXCEPTION 'student unavailable' USING ERRCODE = '42501';
-  END IF;
-  IF v_modality = 'boxing' THEN
-    RAISE EXCEPTION 'boxing has no graduation' USING ERRCODE = '23514';
-  END IF;
+  IF v_modality IS NULL THEN RAISE EXCEPTION 'student unavailable' USING ERRCODE = '42501'; END IF;
+  IF v_modality <> 'jiu_jitsu' THEN RAISE EXCEPTION 'legacy graduation requires jiu jitsu' USING ERRCODE = '23514'; END IF;
   RETURN NEW;
 END;
 $$;
 REVOKE ALL ON FUNCTION public.guard_graduation_modality () FROM PUBLIC, anon, authenticated;
-DROP TRIGGER IF EXISTS student_graduations_guard_modality ON public.student_graduations;
-CREATE TRIGGER student_graduations_guard_modality BEFORE INSERT OR UPDATE ON public.student_graduations
-FOR EACH ROW EXECUTE FUNCTION public.guard_graduation_modality ();
 
 CREATE OR REPLACE FUNCTION public.guard_student_plan_modality () RETURNS trigger
 LANGUAGE plpgsql SET search_path = '' AS $$
@@ -1357,16 +1368,21 @@ BEGIN
   SELECT a.modality, p.kind INTO v_modality, v_plan_kind
   FROM public.students s JOIN public.accounts a ON a.id = s.account_id
   JOIN public.plans p ON p.id = NEW.plan_id AND p.account_id = s.account_id WHERE s.id = NEW.student_id;
-  IF v_modality IS NULL THEN
-    RAISE EXCEPTION 'student or plan unavailable' USING ERRCODE = '42501';
-  END IF;
-  IF v_modality = 'boxing' AND v_plan_kind <> 'adult'::public.plan_kind THEN
-    RAISE EXCEPTION 'boxing requires adult plan' USING ERRCODE = '23514';
+  IF v_modality IS NULL THEN RAISE EXCEPTION 'student or plan unavailable' USING ERRCODE = '42501'; END IF;
+  IF v_modality <> 'jiu_jitsu' AND v_plan_kind <> 'adult'::public.plan_kind THEN
+    RAISE EXCEPTION 'modality requires adult plan' USING ERRCODE = '23514';
   END IF;
   RETURN NEW;
 END;
 $$;
 REVOKE ALL ON FUNCTION public.guard_student_plan_modality () FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS students_guard_modality ON public.students;
+CREATE TRIGGER students_guard_modality BEFORE INSERT OR UPDATE ON public.students
+FOR EACH ROW EXECUTE FUNCTION public.guard_student_modality ();
+DROP TRIGGER IF EXISTS student_graduations_guard_modality ON public.student_graduations;
+CREATE TRIGGER student_graduations_guard_modality BEFORE INSERT OR UPDATE ON public.student_graduations
+FOR EACH ROW EXECUTE FUNCTION public.guard_graduation_modality ();
 DROP TRIGGER IF EXISTS student_plans_guard_modality ON public.student_plans;
 CREATE TRIGGER student_plans_guard_modality BEFORE INSERT OR UPDATE ON public.student_plans
 FOR EACH ROW EXECUTE FUNCTION public.guard_student_plan_modality ();

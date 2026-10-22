@@ -1,7 +1,8 @@
+import type { ReferencedGraduationFields } from "@/lib/modalities/referenced-ranks";
 import { createClient } from "@/lib/supabase/server";
 import { currentBeltDegreeGraduationMeta } from "@/lib/students/graduation-current-since";
 
-export type StudentEditRow = {
+export type StudentEditRow = ReferencedGraduationFields & {
   id: string;
   full_name: string;
   kind: "adult" | "kids" | "baby";
@@ -37,6 +38,9 @@ export async function getStudentByIdForEdit(
       status,
       birth_date,
       academy_start_date,
+      graduation_reference_id,
+      current_rank_code,
+      current_rank_date,
       current_belt_id,
       current_degree,
       weight_kg,
@@ -91,6 +95,9 @@ export async function getStudentByIdForEdit(
     birth_date: data.birth_date,
     academy_start_date: data.academy_start_date,
     current_belt_id: data.current_belt_id,
+    graduation_reference_id: data.graduation_reference_id as string | null,
+    current_rank_code: data.current_rank_code as string | null,
+    current_rank_date: data.current_rank_date as string | null,
     current_degree: data.current_degree,
     document: data.document,
     phone: data.phone,

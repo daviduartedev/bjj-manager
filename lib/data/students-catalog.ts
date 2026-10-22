@@ -49,7 +49,7 @@ export async function getStudentCatalog(): Promise<{
   if (!ctx) throw new Error("Conta indisponível.");
   const modality = ctx.account.modality;
   const [belts, plans] = await Promise.all([
-    modality === "boxing" ? Promise.resolve([]) : getBeltsCatalog(),
+    modality === "jiu_jitsu" ? getBeltsCatalog() : Promise.resolve([]),
     getPlansCatalog(),
   ]);
   return { belts, plans, modality };

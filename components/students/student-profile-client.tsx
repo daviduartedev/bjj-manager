@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserRound } from "lucide-react";
 
+import { JudoBeltIllustration, ReferencedRankDisplay } from "@/components/graduation/referenced-rank-display";
+import { referencedGraduationSummary } from "@/lib/modalities/referenced-graduation-summary";
 import { BeltIllustration } from "@/components/graduation/belt-illustration";
 import { GraduationEventDialog } from "@/components/graduation/graduation-event-dialog";
 
@@ -105,6 +107,8 @@ export function StudentProfileClient({
 }: Props) {
   const router = useRouter();
   const ungraded = modality === "boxing";
+  const referenced = modality === "judo" || modality === "muay_thai";
+  const rankSummary = referencedGraduationSummary(profile, profile.todayYmd);
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
 
@@ -112,12 +116,12 @@ export function StudentProfileClient({
 
   const beltSlug = profile.currentBelt?.slug;
   const beltKind = profile.currentBelt?.kind;
-  const beltTitle =
+  const beltTitle = rankSummary.rank?.label ?? (
     beltSlug && beltKind
       ? beltWithDegreeLine(beltSlug, beltKind, profile.current_degree ?? 0)
       : profile.current_degree != null && profile.current_degree > 0
         ? `Grau ${profile.current_degree}`
-        : ",";
+        : ",");
 
   const showKidsAdultBanner =
     profile.kind === "kids" &&
@@ -155,7 +159,7 @@ export function StudentProfileClient({
               <Button className="min-h-11" asChild>
                 <Link href={routeAlunoEditar(profile.id)}>Editar</Link>
               </Button>
-              {!ungraded ? <Button
+              {modality === "jiu_jitsu" ? <Button
                 type="button"
                 variant="outline"
                 className="min-h-11"
@@ -245,7 +249,7 @@ export function StudentProfileClient({
                     profile.phone ? maskPhoneBrInput(profile.phone) : ","
                   }
                 />
-                {ungraded ? <Field label="Peso" value={formatWeightKg(profile.weight_kg ?? null) ?? "–"} /> : null}
+                {!profile.current_belt_id ? <Field label="Peso" value={formatWeightKg(profile.weight_kg ?? null) ?? "–"} /> : null}
                 <Field label="E-mail" value={profile.email ?? ","} />
               </CardContent>
             </ProfileSurfaceCard>
@@ -266,6 +270,7 @@ export function StudentProfileClient({
             <ProfileSurfaceCard>
               <CardHeader className="pb-2">
                 <div className="flex flex-wrap items-center gap-4">
+                  {rankSummary.rank?.modality === "judo" ? <JudoBeltIllustration rank={rankSummary.rank} decorative /> : null}
                   {beltSlug && beltKind ? (
                     <BeltIllustration
                       slug={beltSlug}
@@ -281,14 +286,15 @@ export function StudentProfileClient({
               <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <p>
                   <span className="font-medium text-foreground">
-                    Tempo na faixa e no grau actuais:{" "}
+                    {referenced ? "Tempo na graduação atual:" : "Tempo na faixa e no grau actuais:"}{" "}
                   </span>
-                  {profile.timeAtBeltPhrase ?? ","}
+                  {referenced ? rankSummary.durationLabel : profile.timeAtBeltPhrase ?? ","}
                   {profile.timeAtDegreePhrase &&
                   profile.timeAtDegreePhrase !== profile.timeAtBeltPhrase ? (
                     <>, grau: {profile.timeAtDegreePhrase}</>
                   ) : null}
                 </p>
+                {referenced ? <p><span className="font-medium text-foreground">Data da graduação: </span>{rankSummary.dateLabel}</p> : null}
                 {profile.academy_start_date ? (
                   <p>
                     <span className="font-medium text-foreground">
@@ -306,17 +312,22 @@ export function StudentProfileClient({
             </ProfileSurfaceCard>
           </Section>
           <Section title="Histórico">
-            <div className="flex flex-wrap items-center justify-end gap-2">
+            {modality === "jiu_jitsu" ? <div className="flex flex-wrap items-center justify-end gap-2">
               <Button variant="outline" size="sm" className="min-h-9" asChild>
                 <Link href={routeAlunoGraduacoes(profile.id)}>
                   Ver histórico completo
                 </Link>
               </Button>
-            </div>
+            </div> : null}
+            {referenced ? <ProfileSurfaceCard><CardContent className="space-y-3 p-4">
+              <p className="text-sm text-muted-foreground">Graduação preexistente informada na ficha; sem reconstrução de eventos anteriores.</p>
+              {rankSummary.rank ? <ReferencedRankDisplay rank={rankSummary.rank} compact /> : null}
+              <p className="text-sm text-muted-foreground">{rankSummary.dateLabel} · {rankSummary.durationLabel}</p>
+            </CardContent></ProfileSurfaceCard> : null}
             {recentGraduations.length === 0 ? (
               <ProfileSurfaceCard>
                 <CardContent className="p-8 text-center text-sm text-muted-foreground">
-                  Ainda não há graduações registadas.
+                  {referenced ? "Ainda não há eventos de promoção registrados." : "Ainda não há graduações registadas."}
                 </CardContent>
               </ProfileSurfaceCard>
             ) : (

@@ -9,3 +9,9 @@ Após implementação e validação, propor atualizar modalidade/graduação, al
 - Contexto autenticado resolve modalidade da academia vinculada pelo perfil; modalidade ou papel ilegíveis não produzem contexto. Configurações exibe o valor persistido.
 - UPDATE direto da modalidade é recusado para roles de API; a futura troca controlada terá seu próprio contrato na #37.
 - Política/estado de graduação passam a distinguir ausência, adaptador legado JJ e referência de catálogo. Nenhum campo ou identificador legado é removido; regras/catálogos novos entram nas suas fatias.
+
+## T3 / #30 — proposta após implementação
+- Judô usa catálogo CBJ 2023 fechado de 22 posições, com referência/código independentes de faixa/grauJJ, data preexistente opcional explicitamente nula e SVG com nome textual.
+- Cadastro/edição completos e rápidos exigem graduação atual CBJ válida e Adulto 18+; entrada não substitui graduação. Datas conhecidas futuras são recusadas. Estado preexistente não fabrica histórico nem papel de acesso.
+- Persistência aditiva: catálogos globais somente leitura para authenticated; ficha com referência/código/data e FK composta. Peso permanece independente. Planos adultos, Isento e um vínculo aberto preservados.
+- Propor atualização das specs de alunos/perfil/schema após validação integrada e humana. Promoção própria, painel, turmas/portal e liberação pública continuam em suas fatias; não promover estas notas automaticamente para spec/.
