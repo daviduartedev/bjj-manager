@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/table";
 import { STUDENTS_PAGE_SIZE } from "@/lib/constants/students";
 import { formatDateBR } from "@/lib/dates";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
 import type { ListStudentRow } from "@/lib/data/students-list";
 import { ROUTES, routeAlunoEditar, routeAlunoPerfil } from "@/lib/routes";
@@ -68,6 +69,7 @@ import { beltWithDegreeLine } from "@/lib/students/belt-labels";
 import { formatWeightKgPt } from "@/lib/students/format-weight";
 
 type Props = {
+  modality?: AcademyModality;
   rows: ListStudentRow[];
   total: number;
   urlState: AlunosUrlState;
@@ -77,6 +79,7 @@ type Props = {
 
 export function StudentsList({
   rows,
+  modality = "jiu_jitsu",
   total,
   urlState,
   belts,
@@ -126,17 +129,18 @@ export function StudentsList({
       ? 1
       : Math.ceil(total / STUDENTS_PAGE_SIZE);
 
-  const visibleCols = ALUNOS_LIST_COLUMNS.filter((c) =>
+  const availableCols = ALUNOS_LIST_COLUMNS.filter((c) => modality !== "boxing" || !["faixa", "data_graduacao", "tempo_grau"].includes(c));
+  const visibleCols = availableCols.filter((c) =>
     urlState.colunas.includes(c),
   );
 
   function showCol(col: AlunosListColumn): boolean {
-    return urlState.colunas.includes(col);
+    return availableCols.includes(col) && urlState.colunas.includes(col);
   }
 
   function beltLine(row: ListStudentRow): string {
     if (!row.belt) return "–";
-    return beltWithDegreeLine(row.belt.slug, row.belt.kind, row.current_degree);
+    return beltWithDegreeLine(row.belt.slug, row.belt.kind, row.current_degree ?? 0);
   }
 
   function BeltFaixaCell({ row }: { row: ListStudentRow }) {
@@ -146,7 +150,7 @@ export function StudentsList({
           <BeltIllustration
             slug={row.belt.slug}
             kind={row.belt.kind}
-            degree={row.current_degree}
+            degree={row.current_degree ?? 0}
             compact
           />
         ) : null}
@@ -402,9 +406,11 @@ export function StudentsList({
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="adult">Adulto</SelectItem>
+                  {modality === "jiu_jitsu" ? <>
                   <SelectItem value="kids_1">Kids 1</SelectItem>
                   <SelectItem value="kids_2">Kids 2</SelectItem>
                   <SelectItem value="baby">Baby</SelectItem>
+                  </> : null}
                 </SelectContent>
               </Select>
             </div>
@@ -471,7 +477,7 @@ export function StudentsList({
                       Escolha o que aparece na lista
                     </p>
                     <ul className="space-y-2">
-                      {ALUNOS_LIST_COLUMNS.map((col) => (
+                      {availableCols.map((col) => (
                         <li key={col}>
                           <label className="flex cursor-pointer items-center gap-2 text-crm-sm">
                             <Checkbox
@@ -703,6 +709,7 @@ export function StudentsList({
       </DashboardPanel>
 
       <QuickEditDialog
+        modality={modality}
         student={quickStudent}
         belts={belts}
         plans={plans}

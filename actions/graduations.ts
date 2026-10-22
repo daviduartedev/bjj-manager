@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { getCurrentAccount } from "@/lib/auth";
+import { getGraduationPolicy } from "@/lib/modalities/graduation-policy";
 import { getBeltsCatalog } from "@/lib/data/students-catalog";
 import { buildBeltCatalogMap } from "@/lib/graduation/catalog";
 import {
@@ -96,6 +98,9 @@ export async function promoteStudent(
   values: unknown,
 ): Promise<GraduationActionResult> {
   try {
+    const ctx = await getCurrentAccount();
+    if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
+    if (getGraduationPolicy(ctx.account.modality).mode === "none") return { ok: false, error: "Boxe não possui graduação." };
     const parsed = graduationEventSchema.safeParse(values);
     if (!parsed.success) {
       return {
@@ -177,6 +182,9 @@ export async function addGraduation(
   values: unknown,
 ): Promise<GraduationActionResult> {
   try {
+    const ctx = await getCurrentAccount();
+    if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
+    if (getGraduationPolicy(ctx.account.modality).mode === "none") return { ok: false, error: "Boxe não possui graduação." };
     const parsed = addGraduationSchema.safeParse(values);
     if (!parsed.success) {
       return {
@@ -254,6 +262,9 @@ export async function updateGraduation(
   values: unknown,
 ): Promise<GraduationActionResult> {
   try {
+    const ctx = await getCurrentAccount();
+    if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
+    if (getGraduationPolicy(ctx.account.modality).mode === "none") return { ok: false, error: "Boxe não possui graduação." };
     const parsed = updateGraduationSchema.safeParse(values);
     if (!parsed.success) {
       return {
@@ -338,6 +349,9 @@ export async function updateGraduationWeight(
   values: unknown,
 ): Promise<GraduationActionResult> {
   try {
+    const ctx = await getCurrentAccount();
+    if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
+    if (getGraduationPolicy(ctx.account.modality).mode === "none") return { ok: false, error: "Boxe não possui graduação." };
     const parsed = updateGraduationWeightSchema.safeParse(values);
     if (!parsed.success) {
       return {

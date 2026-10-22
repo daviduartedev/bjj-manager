@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 };
 
 export default async function NovoAlunoPage() {
-  const { belts, plans } = await getStudentCatalog();
-  const defaults = defaultCreateStudentValues(belts, plans);
+  const { belts, plans, modality } = await getStudentCatalog();
+  const defaults = defaultCreateStudentValues(belts, plans, modality);
 
   return (
     <PageFrame
@@ -29,9 +29,9 @@ export default async function NovoAlunoPage() {
       <DashboardPanel
         icon={UserPlus}
         title="Ficha do aluno"
-        subtitle="Tipo, faixa, plano e dados pessoais"
+        subtitle={modality === "boxing" ? "Plano e dados pessoais" : "Tipo, faixa, plano e dados pessoais"}
       >
-        <StudentForm belts={belts} plans={plans} mode="create" defaultValues={defaults} />
+        <StudentForm modality={modality} belts={belts} plans={plans} mode="create" defaultValues={defaults} />
       </DashboardPanel>
       </div>
     </PageFrame>

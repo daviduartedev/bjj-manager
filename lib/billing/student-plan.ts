@@ -47,14 +47,18 @@ export async function applyStudentPlanChange(args: {
 
   const studentKind = studentRow.kind as StudentKind;
 
-  const { data: beltRow, error: beltErr } = await supabase
-    .from("belts")
-    .select("slug")
-    .eq("id", studentRow.current_belt_id)
-    .maybeSingle();
+  // Adulto não depende de graduação; Boxe persiste current_belt_id nulo.
+  let beltSlug: string | null = null;
+  if (studentKind !== "adult" && studentRow.current_belt_id) {
+    const { data: beltRow, error: beltErr } = await supabase
+      .from("belts")
+      .select("slug")
+      .eq("id", studentRow.current_belt_id)
+      .maybeSingle();
 
-  if (beltErr) throw beltErr;
-  const beltSlug = beltRow?.slug ?? null;
+    if (beltErr) throw beltErr;
+    beltSlug = beltRow?.slug ?? null;
+  }
 
   const { data: planRow, error: planErr } = await supabase
     .from("plans")

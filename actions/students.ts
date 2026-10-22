@@ -10,11 +10,7 @@ import {
   applyWeightToCurrentGraduation,
   GraduationWeightError,
 } from "@/lib/graduation/apply-current-weight";
-import {
-  getBeltsCatalog,
-  getPlansCatalog,
-  getStudentCatalog,
-} from "@/lib/data/students-catalog";
+import { getStudentCatalog } from "@/lib/data/students-catalog";
 import { ROUTES } from "@/lib/routes";
 import { mapStudentServerError } from "@/lib/students/action-errors";
 import { onlyDigits } from "@/lib/students/input-masks";
@@ -79,8 +75,11 @@ export async function createStudent(
   values: unknown,
 ): Promise<StudentActionResult> {
   try {
-    const { belts, plans } = await getStudentCatalog();
-    const schema = buildStudentFullFormSchema(belts, plans);
+    const ctx = await getCurrentAccount();
+    if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
+    const { belts, plans, modality } = await getStudentCatalog();
+    const ungraded = modality === "boxing";
+    const schema = buildStudentFullFormSchema(belts, plans, modality);
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
       return {
@@ -90,19 +89,10 @@ export async function createStudent(
       };
     }
     const v = parsed.data as StudentFullFormValues;
-    const ctx = await getCurrentAccount();
-    if (!ctx) {
-      return {
-        ok: false,
-        error:
-          "Conta da academia indisponível. Confirme o vínculo perfil/conta ou volte a iniciar sessão.",
-      };
-    }
-
     const supabase = await createClient();
 
-    const belt = await resolveBelt(supabase, v.current_belt_id);
-    if (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind)) {
+    const belt = !ungraded && v.current_belt_id ? await resolveBelt(supabase, v.current_belt_id) : null;
+    if (!ungraded && (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind))) {
       return { ok: false, error: "Dados de faixa inválidos." };
     }
     if (!v.is_exempt) {
@@ -112,16 +102,16 @@ export async function createStudent(
         !planKindMatchesStudentContext({
           planKind: plan.kind,
           studentKind: v.kind as StudentKind,
-          beltSlug: belt.slug,
+          beltSlug: belt?.slug,
         })
       ) {
         return {
           ok: false,
-          error: "Dados de plano inválidos para a faixa do aluno.",
+          error: ungraded ? "Dados de plano inválidos para o aluno." : "Dados de plano inválidos para a faixa do aluno.",
         };
       }
     }
-    if (!isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree)) {
+    if (!ungraded && (!belt || v.current_degree == null || !isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree))) {
       return { ok: false, error: "Grau inválido para a faixa." };
     }
 
@@ -137,8 +127,8 @@ export async function createStudent(
         account_id: ctx.account.id,
         kind: v.kind,
         full_name: v.full_name.trim(),
-        current_belt_id: v.current_belt_id,
-        current_degree: v.current_degree,
+        current_belt_id: v.current_belt_id ?? null,
+        current_degree: v.current_degree ?? null,
         status: "active",
         birth_date: v.birth_date,
         academy_start_date: v.academy_start_date,
@@ -148,6 +138,7 @@ export async function createStudent(
         email: v.email?.trim().toLowerCase() ?? null,
         notes: v.notes?.trim() ?? null,
         is_exempt: v.is_exempt ?? false,
+        ...(ungraded ? { weight_kg: v.weight_kg ?? null } : {}),
       })
       .select("id")
       .single();
@@ -180,8 +171,11 @@ export async function updateStudent(
   values: unknown,
 ): Promise<StudentActionResult> {
   try {
-    const { belts, plans } = await getStudentCatalog();
-    const schema = buildStudentFullFormSchema(belts, plans);
+    const ctx = await getCurrentAccount();
+    if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
+    const { belts, plans, modality } = await getStudentCatalog();
+    const ungraded = modality === "boxing";
+    const schema = buildStudentFullFormSchema(belts, plans, modality);
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
       return {
@@ -193,8 +187,8 @@ export async function updateStudent(
     const v = parsed.data as StudentFullFormValues;
     const supabase = await createClient();
 
-    const belt = await resolveBelt(supabase, v.current_belt_id);
-    if (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind)) {
+    const belt = !ungraded && v.current_belt_id ? await resolveBelt(supabase, v.current_belt_id) : null;
+    if (!ungraded && (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind))) {
       return { ok: false, error: "Dados de faixa inválidos." };
     }
     if (!v.is_exempt) {
@@ -204,16 +198,16 @@ export async function updateStudent(
         !planKindMatchesStudentContext({
           planKind: plan.kind,
           studentKind: v.kind as StudentKind,
-          beltSlug: belt.slug,
+          beltSlug: belt?.slug,
         })
       ) {
         return {
           ok: false,
-          error: "Dados de plano inválidos para a faixa do aluno.",
+          error: ungraded ? "Dados de plano inválidos para o aluno." : "Dados de plano inválidos para a faixa do aluno.",
         };
       }
     }
-    if (!isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree)) {
+    if (!ungraded && (!belt || v.current_degree == null || !isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree))) {
       return { ok: false, error: "Grau inválido para a faixa." };
     }
 
@@ -223,13 +217,13 @@ export async function updateStudent(
     const guardianPhoneDigits =
       v.guardian_phone != null ? onlyDigits(v.guardian_phone) : "";
 
-    const { error: upErr } = await supabase
+    const { data: updated, error: upErr } = await supabase
       .from("students")
       .update({
         kind: v.kind,
         full_name: v.full_name.trim(),
-        current_belt_id: v.current_belt_id,
-        current_degree: v.current_degree,
+        current_belt_id: v.current_belt_id ?? null,
+        current_degree: v.current_degree ?? null,
         birth_date: v.birth_date,
         academy_start_date: v.academy_start_date,
         document: documentDigits.length ? documentDigits : null,
@@ -238,11 +232,16 @@ export async function updateStudent(
         email: v.email?.trim().toLowerCase() ?? null,
         notes: v.notes?.trim() ?? null,
         is_exempt: v.is_exempt ?? false,
+        ...(ungraded ? { weight_kg: v.weight_kg ?? null } : {}),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", studentId);
+      .eq("id", studentId)
+      .eq("account_id", ctx.account.id)
+      .select("id")
+      .maybeSingle();
 
     if (upErr) throw upErr;
+    if (!updated) return { ok: false, error: "Registo não encontrado." };
 
     if (!v.is_exempt && v.plan_id != null && v.due_day != null) {
       await applyStudentPlanChange({
@@ -253,7 +252,7 @@ export async function updateStudent(
       });
     }
 
-    await applyWeightToCurrentGraduation(
+    if (!ungraded && v.current_belt_id && v.current_degree != null) await applyWeightToCurrentGraduation(
       supabase,
       studentId,
       v.current_belt_id,
@@ -283,9 +282,22 @@ export async function quickUpdateStudent(
   values: unknown,
 ): Promise<StudentActionResult> {
   try {
-    const belts = await getBeltsCatalog();
-    const plans = await getPlansCatalog();
-    const schema = buildQuickEditFormSchema(belts, plans, studentKind);
+    const ctx = await getCurrentAccount();
+    if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
+    const supabase = await createClient();
+    const { data: existing, error: readErr } = await supabase
+      .from("students")
+      .select("id, kind")
+      .eq("id", studentId)
+      .eq("account_id", ctx.account.id)
+      .maybeSingle();
+    if (readErr) throw readErr;
+    if (!existing) return { ok: false, error: "Registo não encontrado." };
+    // O contexto etário vem da ficha persistida, nunca do parâmetro do cliente.
+    studentKind = existing.kind as StudentKind;
+    const { belts, plans, modality } = await getStudentCatalog();
+    const ungraded = modality === "boxing";
+    const schema = buildQuickEditFormSchema(belts, plans, studentKind, modality);
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
       return {
@@ -295,13 +307,12 @@ export async function quickUpdateStudent(
       };
     }
     const v = parsed.data as QuickEditFormValues;
-    const supabase = await createClient();
 
-    const belt = await resolveBelt(supabase, v.current_belt_id);
-    if (!belt || !beltMatchesStudentKindForBeltRow(belt, studentKind)) {
+    const belt = !ungraded && v.current_belt_id ? await resolveBelt(supabase, v.current_belt_id) : null;
+    if (!ungraded && (!belt || !beltMatchesStudentKindForBeltRow(belt, studentKind))) {
       return { ok: false, error: "Dados de faixa inválidos." };
     }
-    if (!isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree)) {
+    if (!ungraded && (!belt || v.current_degree == null || !isValidDegreeForBelt(belt.slug, belt.kind, v.current_degree))) {
       return { ok: false, error: "Grau inválido para a faixa." };
     }
 
@@ -312,28 +323,33 @@ export async function quickUpdateStudent(
         !planKindMatchesStudentContext({
           planKind: plan.kind,
           studentKind,
-          beltSlug: belt.slug,
+          beltSlug: belt?.slug,
         })
       ) {
         return {
           ok: false,
-          error: "Dados de plano inválidos para a faixa do aluno.",
+          error: ungraded ? "Dados de plano inválidos para o aluno." : "Dados de plano inválidos para a faixa do aluno.",
         };
       }
     }
 
-    const { error: upErr } = await supabase
+    const { data: updated, error: upErr } = await supabase
       .from("students")
       .update({
         status: v.status,
-        current_belt_id: v.current_belt_id,
-        current_degree: v.current_degree,
+        current_belt_id: v.current_belt_id ?? null,
+        current_degree: v.current_degree ?? null,
         is_exempt: v.is_exempt ?? false,
+        ...(ungraded ? { weight_kg: v.weight_kg ?? null } : {}),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", studentId);
+      .eq("id", studentId)
+      .eq("account_id", ctx.account.id)
+      .select("id")
+      .maybeSingle();
 
     if (upErr) throw upErr;
+    if (!updated) return { ok: false, error: "Registo não encontrado." };
 
     if (!v.is_exempt && v.plan_id != null && v.due_day != null) {
       await applyStudentPlanChange({
@@ -344,7 +360,7 @@ export async function quickUpdateStudent(
       });
     }
 
-    await applyWeightToCurrentGraduation(
+    if (!ungraded && v.current_belt_id && v.current_degree != null) await applyWeightToCurrentGraduation(
       supabase,
       studentId,
       v.current_belt_id,

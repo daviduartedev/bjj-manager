@@ -198,8 +198,8 @@ CREATE TABLE IF NOT EXISTS public.students (
   account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
   kind public.student_kind NOT NULL,
   full_name text NOT NULL,
-  current_belt_id uuid NOT NULL REFERENCES public.belts (id) ON DELETE RESTRICT,
-  current_degree smallint NOT NULL,
+  current_belt_id uuid NULL REFERENCES public.belts (id) ON DELETE RESTRICT,
+  current_degree smallint NULL,
   status public.student_status NOT NULL,
   birth_date date NULL,
   academy_start_date date NULL,
@@ -217,6 +217,8 @@ CREATE TABLE IF NOT EXISTS public.students (
   is_exempt boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
+  weight_kg numeric(5, 1) NULL,
+  CONSTRAINT students_weight_kg_check CHECK (weight_kg IS NULL OR weight_kg BETWEEN 20 AND 250),
   CONSTRAINT students_degree_bounds CHECK (
     current_degree >= 0
     AND current_degree <= 6

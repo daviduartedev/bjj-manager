@@ -1,3 +1,4 @@
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
 import type { StudentFullFormValues } from "@/lib/validations/students";
 
@@ -5,6 +6,7 @@ import type { StudentFullFormValues } from "@/lib/validations/students";
 export function defaultCreateStudentValues(
   belts: BeltCatalogRow[],
   plans: PlanCatalogRow[],
+  modality: AcademyModality = "jiu_jitsu",
 ): StudentFullFormValues {
   const today = new Date().toISOString().slice(0, 10);
   const adultBelt = belts.find((b) => b.kind === "adult");
@@ -14,8 +16,8 @@ export function defaultCreateStudentValues(
     birth_date: today,
     academy_start_date: today,
     kind: "adult",
-    current_belt_id: adultBelt?.id ?? "",
-    current_degree: 0,
+    current_belt_id: modality === "boxing" ? null : adultBelt?.id ?? "",
+    current_degree: modality === "boxing" ? null : 0,
     is_exempt: false,
     plan_id: adultPlan?.id ?? "",
     due_day: 10,

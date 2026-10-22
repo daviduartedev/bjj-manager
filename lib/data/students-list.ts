@@ -16,8 +16,8 @@ export type ListStudentRow = {
   is_exempt: boolean;
   birth_date: string | null;
   academy_start_date: string | null;
-  current_belt_id: string;
-  current_degree: number;
+  current_belt_id: string | null;
+  current_degree: number | null;
   updated_at: string;
   belt: { slug: string; kind: "adult" | "kids" } | null;
   openPlan: {
@@ -95,6 +95,7 @@ export async function listStudentsQuery(
       academy_start_date,
       current_belt_id,
       current_degree,
+      weight_kg,
       updated_at,
       belts!students_current_belt_id_fkey ( slug, kind ),
       ${studentPlansSelect},
@@ -162,10 +163,10 @@ export async function listStudentsQuery(
     const open = spArr?.find((s) => s.ended_at == null);
     const gradsRaw = raw.student_graduations as GraduationRecordInput[] | null;
     const grads = Array.isArray(gradsRaw) ? gradsRaw : [];
-    const beltId = raw.current_belt_id as string;
-    const degree = raw.current_degree as number;
-    const gradMeta = currentBeltDegreeGraduationMeta(grads, beltId, degree);
-    const graduationDurationLine = studentGraduationDurationLine(
+    const beltId = raw.current_belt_id as string | null;
+    const degree = raw.current_degree as number | null;
+    const gradMeta = beltId == null || degree == null ? null : currentBeltDegreeGraduationMeta(grads, beltId, degree);
+    const graduationDurationLine = beltId == null || degree == null ? null : studentGraduationDurationLine(
       grads,
       beltId,
       degree,
@@ -180,8 +181,8 @@ export async function listStudentsQuery(
       is_exempt: raw.is_exempt === true,
       birth_date: (raw.birth_date as string | null) ?? null,
       academy_start_date: (raw.academy_start_date as string | null) ?? null,
-      current_belt_id: raw.current_belt_id as string,
-      current_degree: raw.current_degree as number,
+      current_belt_id: beltId,
+      current_degree: degree,
       updated_at: raw.updated_at as string,
       belt: beltsRel ?? null,
       openPlan: open?.plans
@@ -194,7 +195,7 @@ export async function listStudentsQuery(
         : null,
       graduationDurationLine,
       graduationConfiguredAtYmd: gradMeta?.configuredAtYmd ?? null,
-      graduationWeightKg: gradMeta?.weightKg ?? null,
+      graduationWeightKg: beltId == null ? (raw.weight_kg as number | null) ?? null : gradMeta?.weightKg ?? null,
       graduationEventId: gradMeta?.graduationId ?? null,
     };
   });

@@ -38,8 +38,9 @@ export type StudentProfilePayload = {
   phone: string | null;
   email: string | null;
   notes: string | null;
-  current_belt_id: string;
-  current_degree: number;
+  current_belt_id: string | null;
+  current_degree: number | null;
+  weight_kg?: number | null;
   currentBelt: { slug: string; kind: "adult" | "kids" } | null;
   billing: {
     plan_name: string;

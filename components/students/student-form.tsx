@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
 import { ROUTES } from "@/lib/routes";
 import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
@@ -49,6 +50,7 @@ import {
 } from "@/lib/validations/students";
 
 type Props = {
+  modality?: AcademyModality;
   belts: BeltCatalogRow[];
   plans: PlanCatalogRow[];
   mode: "create" | "edit";
@@ -60,12 +62,14 @@ type Props = {
 export function StudentForm({
   belts,
   plans,
+  modality = "jiu_jitsu",
   mode,
   studentId,
   defaultValues,
   graduationEventId: _graduationEventId = null,
 }: Props) {
   const router = useRouter();
+  const ungraded = modality === "boxing";
   const [loading, setLoading] = useState(false);
   const [adultOrangeConfirm, setAdultOrangeConfirm] = useState<{
     beltId: string;
@@ -73,8 +77,8 @@ export function StudentForm({
   } | null>(null);
 
   const schema = useMemo(
-    () => buildStudentFullFormSchema(belts, plans),
-    [belts, plans],
+    () => buildStudentFullFormSchema(belts, plans, modality),
+    [belts, plans, modality],
   );
 
   const form = useForm<StudentFullFormValues>({
@@ -320,8 +324,10 @@ export function StudentForm({
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="adult">Adulto</SelectItem>
+                  {modality === "jiu_jitsu" ? <>
                   <SelectItem value="kids">Kids</SelectItem>
                   <SelectItem value="baby">Baby (3–5 anos)</SelectItem>
+                  </> : null}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -329,7 +335,7 @@ export function StudentForm({
           )}
         />
 
-        <div
+        {!ungraded ? <div
           className={`grid gap-4 ${
             isWhiteBelt ? "grid-cols-1" : "sm:grid-cols-2"
           }`}
@@ -342,7 +348,7 @@ export function StudentForm({
                 <FormLabel>Faixa</FormLabel>
                 <Select
                   disabled={loading}
-                  value={field.value}
+                  value={field.value ?? undefined}
                   onValueChange={(v) => {
                     const b = belts.find((x) => x.id === v);
                     if (!b) return;
@@ -438,9 +444,9 @@ export function StudentForm({
               )}
             />
           ) : null}
-        </div>
+        </div> : null}
 
-        {mode === "edit" ? (
+        {mode === "edit" || ungraded ? (
           <FormField
             control={form.control}
             name="weight_kg"
@@ -460,7 +466,7 @@ export function StudentForm({
                   />
                 </FormControl>
                 <FormDescription>
-                  Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar.
+                  {ungraded ? "Entre 20,0 e 250,0 kg. Guardado na ficha do aluno." : "Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar."}
                 </FormDescription>
                 <FormMessage />
               </FormItem>

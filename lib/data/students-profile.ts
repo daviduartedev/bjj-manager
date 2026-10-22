@@ -59,6 +59,7 @@ export async function getStudentProfileById(
       portal_terms_accepted_at,
       current_belt_id,
       current_degree,
+      weight_kg,
       belts!students_current_belt_id_fkey ( slug, kind ),
       student_plans (
         plan_id,
@@ -144,7 +145,7 @@ export async function getStudentProfileById(
     graduated_at: g.graduated_at,
   }));
 
-  const establishedYmd = calendarDateWhenCurrentBeltDegreeEstablished(
+  const establishedYmd = st.current_belt_id == null ? null : calendarDateWhenCurrentBeltDegreeEstablished(
     graduationsForTimeline,
     st.current_belt_id as string,
     st.current_degree as number,
@@ -153,7 +154,7 @@ export async function getStudentProfileById(
   const academyStart = st.academy_start_date as string | null;
   const fromBeltDegree =
     establishedYmd ?? (rawGrads.length === 0 ? academyStart : null);
-  const fallbackNote =
+  const fallbackNote = st.current_belt_id == null ? null :
     rawGrads.length === 0
       ? "Tempos calculados pela data de entrada na academia até haver graduações registadas."
       : establishedYmd === null && academyStart
@@ -164,8 +165,8 @@ export async function getStudentProfileById(
 
   const ageYears = calculateAge(st.birth_date as string | null, todayYmd);
 
-  const timeAtBeltPhrase = timeAtCurrentBelt(durationFrom, todayYmd);
-  const timeAtDegreePhrase = timeAtCurrentDegree(durationFrom, todayYmd);
+  const timeAtBeltPhrase = st.current_belt_id == null ? null : timeAtCurrentBelt(durationFrom, todayYmd);
+  const timeAtDegreePhrase = st.current_belt_id == null ? null : timeAtCurrentDegree(durationFrom, todayYmd);
   const timeSinceJoinedPhrase = timeSinceJoined(academyStart, todayYmd);
 
   const graduations: ProfileGraduationRow[] = rawGrads
@@ -256,8 +257,9 @@ export async function getStudentProfileById(
     notes: st.notes as string | null,
     user_id: (st.user_id as string | null) ?? null,
     portal_terms_accepted_at: (st.portal_terms_accepted_at as string | null) ?? null,
-    current_belt_id: st.current_belt_id as string,
-    current_degree: st.current_degree as number,
+    current_belt_id: st.current_belt_id as string | null,
+    current_degree: st.current_degree as number | null,
+    weight_kg: st.weight_kg as number | null,
     currentBelt: beltRel,
     billing,
     graduations,

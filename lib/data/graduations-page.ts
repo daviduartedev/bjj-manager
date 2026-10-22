@@ -77,7 +77,7 @@ export async function getGraduationsPageByStudentId(
     getBeltsCatalog(),
   ]);
 
-  if (stErr || !st) return null;
+  if (stErr || !st || st.current_belt_id == null) return null;
 
   const beltRel = relationOne(
     st.belts as

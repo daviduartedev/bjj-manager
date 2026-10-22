@@ -8,8 +8,8 @@ export type StudentEditRow = {
   status: string;
   birth_date: string | null;
   academy_start_date: string | null;
-  current_belt_id: string;
-  current_degree: number;
+  current_belt_id: string | null;
+  current_degree: number | null;
   document: string | null;
   phone: string | null;
   guardian_phone: string | null;
@@ -39,6 +39,7 @@ export async function getStudentByIdForEdit(
       academy_start_date,
       current_belt_id,
       current_degree,
+      weight_kg,
       document,
       phone,
       guardian_phone,
@@ -70,7 +71,7 @@ export async function getStudentByIdForEdit(
         weight_kg: number | null;
       }[]
     | null;
-  const gradMeta = currentBeltDegreeGraduationMeta(
+  const gradMeta = data.current_belt_id == null ? null : currentBeltDegreeGraduationMeta(
     (gradsRaw ?? []).map((g) => ({
       id: g.id,
       resulting_belt_id: g.resulting_belt_id,
@@ -100,7 +101,7 @@ export async function getStudentByIdForEdit(
     openPlanId: open?.id ?? null,
     plan_id: open?.plan_id ?? null,
     due_day: open?.due_day ?? null,
-    graduationWeightKg: gradMeta?.weightKg ?? null,
+    graduationWeightKg: data.current_belt_id == null ? data.weight_kg : gradMeta?.weightKg ?? null,
     graduationEventId: gradMeta?.graduationId ?? null,
   };
 }

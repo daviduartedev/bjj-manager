@@ -28,7 +28,7 @@ export async function generateMetadata({
 
 export default async function EditarAlunoPage({ params }: PageProps) {
   const { id } = await params;
-  const [{ belts, plans }, student] = await Promise.all([
+  const [{ belts, plans, modality }, student] = await Promise.all([
     getStudentCatalog(),
     getStudentByIdForEdit(id),
   ]);
@@ -71,9 +71,10 @@ export default async function EditarAlunoPage({ params }: PageProps) {
       <DashboardPanel
         icon={FilePenLine}
         title="Ficha completa"
-        subtitle="Atualize dados pessoais, faixa e vínculo de plano"
+        subtitle={modality === "boxing" ? "Atualize dados pessoais e vínculo de plano" : "Atualize dados pessoais, faixa e vínculo de plano"}
       >
         <StudentForm
+          modality={modality}
           belts={belts}
           plans={plans}
           mode="edit"

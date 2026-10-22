@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { StudentProfilePayload } from "@/lib/data/students-profile.shared";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import type { BeltCatalogRow } from "@/lib/data/students-catalog";
 import type { StudentAttendancesPage } from "@/lib/data/student-attendances";
 import { profileFormatPaidAt } from "@/lib/data/students-profile.shared";
@@ -49,6 +50,7 @@ import {
 import { studentKindLabels } from "@/lib/i18n/domain-enums";
 
 type Props = {
+  modality?: AcademyModality;
   profile: StudentProfilePayload;
   belts: BeltCatalogRow[];
   defaultTab?: "dados" | "graduacao" | "financeiro" | "documentos" | "portal" | "presenca";
@@ -94,6 +96,7 @@ function Field({
 
 export function StudentProfileClient({
   profile,
+  modality = "jiu_jitsu",
   belts,
   defaultTab = "dados",
   attendance,
@@ -101,6 +104,7 @@ export function StudentProfileClient({
   frameVariant,
 }: Props) {
   const router = useRouter();
+  const ungraded = modality === "boxing";
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
 
@@ -110,8 +114,8 @@ export function StudentProfileClient({
   const beltKind = profile.currentBelt?.kind;
   const beltTitle =
     beltSlug && beltKind
-      ? beltWithDegreeLine(beltSlug, beltKind, profile.current_degree)
-      : profile.current_degree > 0
+      ? beltWithDegreeLine(beltSlug, beltKind, profile.current_degree ?? 0)
+      : profile.current_degree != null && profile.current_degree > 0
         ? `Grau ${profile.current_degree}`
         : ",";
 
@@ -129,7 +133,7 @@ export function StudentProfileClient({
       emoji="👤"
       icon={UserRound}
       tone="rose"
-      context={`${beltTitle}, ${studentKindLabels[profile.kind]}, ${ageDisplay}`}
+      context={`${ungraded ? "" : `${beltTitle}, `}${studentKindLabels[profile.kind]}, ${ageDisplay}`}
     >
     <div className="space-y-6">
       <DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>
@@ -141,7 +145,7 @@ export function StudentProfileClient({
           </div>
           <div className="min-w-0 flex-1 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{beltTitle}</Badge>
+              {!ungraded ? <Badge variant="secondary">{beltTitle}</Badge> : null}
               <Badge variant="outline">{studentKindLabels[profile.kind]}</Badge>
               <StudentStatusBadge status={profile.status} />
               {profile.is_exempt ? <StudentExemptBadge /> : null}
@@ -151,14 +155,14 @@ export function StudentProfileClient({
               <Button className="min-h-11" asChild>
                 <Link href={routeAlunoEditar(profile.id)}>Editar</Link>
               </Button>
-              <Button
+              {!ungraded ? <Button
                 type="button"
                 variant="outline"
                 className="min-h-11"
                 onClick={() => setPromoteOpen(true)}
               >
                 Promover
-              </Button>
+              </Button> : null}
               {profile.canRegisterMonthlyPayments ? (
                 <Button
                   type="button"
@@ -197,9 +201,9 @@ export function StudentProfileClient({
             <TabsTrigger value="dados" className="min-h-11 shrink-0">
               Dados pessoais
             </TabsTrigger>
-            <TabsTrigger value="graduacao" className="min-h-11 shrink-0">
+            {!ungraded ? <TabsTrigger value="graduacao" className="min-h-11 shrink-0">
               Graduação
-            </TabsTrigger>
+            </TabsTrigger> : null}
             <TabsTrigger value="financeiro" className="min-h-11 shrink-0">
               Financeiro
             </TabsTrigger>
@@ -241,6 +245,7 @@ export function StudentProfileClient({
                     profile.phone ? maskPhoneBrInput(profile.phone) : ","
                   }
                 />
+                {ungraded ? <Field label="Peso" value={formatWeightKg(profile.weight_kg ?? null) ?? "–"} /> : null}
                 <Field label="E-mail" value={profile.email ?? ","} />
               </CardContent>
             </ProfileSurfaceCard>
@@ -256,7 +261,7 @@ export function StudentProfileClient({
           </Section>
         </TabsContent>
 
-        <TabsContent value="graduacao" className="space-y-4">
+        {!ungraded ? <TabsContent value="graduacao" className="space-y-4">
           <Section title="Estado actual">
             <ProfileSurfaceCard>
               <CardHeader className="pb-2">
@@ -265,7 +270,7 @@ export function StudentProfileClient({
                     <BeltIllustration
                       slug={beltSlug}
                       kind={beltKind}
-                      degree={profile.current_degree}
+                      degree={profile.current_degree ?? 0}
                     />
                   ) : null}
                   <CardTitle className="text-base font-semibold">
@@ -375,7 +380,7 @@ export function StudentProfileClient({
               </div>
             )}
           </Section>
-        </TabsContent>
+        </TabsContent> : null}
 
         <TabsContent value="financeiro" className="space-y-4">
           {profile.is_exempt ? (
@@ -540,7 +545,7 @@ export function StudentProfileClient({
         </TabsContent>
       </Tabs>
 
-      <GraduationEventDialog
+      {!ungraded && profile.current_belt_id != null && profile.current_degree != null ? <GraduationEventDialog
         open={promoteOpen}
         onOpenChange={setPromoteOpen}
         mode="promote"
@@ -551,7 +556,7 @@ export function StudentProfileClient({
         currentDegree={profile.current_degree}
         belts={belts}
         onSuccess={() => router.refresh()}
-      />
+      /> : null}
 
       <RecordPaymentDialog
         open={paymentOpen}
