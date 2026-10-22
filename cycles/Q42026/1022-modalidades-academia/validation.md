@@ -159,3 +159,10 @@ Planejamento aprovado; implementação iniciada. Evidências por ticket abaixo; 
 
 ### Limites
 - Smoke autenticado do painel e a passagem de teclado/mobile ficam no roteiro final. Não fecha issues antigas de evolução do painel nem a trilha React Aria.
+
+## T9 / #36 — 22/10/2026
+
+### TDD e verificações direcionadas
+- `pnpm exec vitest run lib/documents/modality-templates.test.ts lib/documents/templates/enrollment-liability-form/v1/builder.test.ts lib/documents/numbering.test.ts lib/documents/signing/merge-signed-pdf.test.ts`: **11 testes aprovados em 4 arquivos**. Payload sem modalidade continua com Jiu-Jitsu e ASLAM. Boxe, Judô e Muay Thai trazem a academia, o esporte, 18 anos e a negativa de homologação, sem ASLAM nem Jiu-Jitsu, e recusam termo de menor. Comprovante e certificado de Boxe saem sem faixa. Numeração e a junção de PDF assinado existentes continuam passando.
+- `pnpm type-check`: aprovado.
+- Não houve migração nova. O PDF já gravado não é reescrito. Isolamento de documento segue a policy existente de `generated_documents`, não alterada nesta fatia. Jornada autenticada de assinatura fica no roteiro final.

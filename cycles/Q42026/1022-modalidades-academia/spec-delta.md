@@ -44,3 +44,8 @@ Após implementação e validação, propor atualizar modalidade/graduação, al
 - KPIs de alunos, carteira, recebido e aulas permanecem. O alerta de prontidão 120/365 dias e o quadro de faixas ficam só no Jiu-Jitsu.
 - Boxe não mostra distribuição nem alerta de graduação. Judô e Muay Thai mostram a graduação atual por nível, com rótulos que separam níveis da mesma cor. Data desconhecida não vira duração nem elegibilidade a partir da entrada.
 - Seletores de plano/público em mensalidades e planos de aula oferecem só Adulto fora do Jiu-Jitsu, sem apagar cadastros comerciais. Títulos esportivos não alteram permissão. Não promove estas notas automaticamente para spec/.
+
+## T9 / #36 — proposta após implementação
+- Novas emissões de matrícula nas modalidades novas usam o nome da academia e o esporte, sem ASLAM nem Jiu-Jitsu, e recusam termo de menor. O Jiu-Jitsu e os payloads já gravados sem modalidade continuam no texto histórico.
+- Comprovante cita a modalidade quando ela está no payload. Certificado genérico continua sem faixa; nas modalidades novas declara que não há homologação federativa. Recibo e numeração não mudam.
+- O PDF já armazenado é o snapshot. Reemitir ou assinar um payload antigo não reescreve o texto para outra modalidade. A spec antiga que exigia faixa no certificado não corresponde ao certificado genérico já entregue; esta nota não promove essa exigência. Não promover automaticamente para spec/.

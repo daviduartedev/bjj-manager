@@ -10,7 +10,7 @@
 | #33 | Promoções e histórico Muay Thai | implemented; automated/fixture UI checks passed; authenticated UI/human pending | commit desta issue; validation.md — T6 |
 | #34 | Turmas, presença e portal | implemented; automated checks passed; authenticated UI/human pending | commit desta issue; validation.md — T7 |
 | #35 | Painel e configurações | implemented; automated checks passed; authenticated UI/human pending | commit desta issue; validation.md — T8 |
-| #36 | Matrícula e documentos | pending | — |
+| #36 | Matrícula e documentos | implemented; automated checks passed; authenticated UI/human pending | commit desta issue; validation.md — T9 |
 | #37 | Troca segura em conta vazia | pending | — |
 | #38 | Cadastro público completo e integração | pending | — |
 

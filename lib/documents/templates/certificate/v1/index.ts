@@ -1,4 +1,5 @@
 import type { DocumentPayload } from "@/lib/documents/types";
+import { MODALITY_LABELS } from "@/lib/modalities/catalog";
 
 import { escapeHtml, formatDateBr } from "../../shared/format";
 import { buildLayout } from "../../shared/layout";
@@ -27,6 +28,11 @@ export function renderCertificateV1(payload: DocumentPayload): string {
     <div class="section body-text" style="text-align:center;font-size:12pt;margin-top:24px">
       ${escapeHtml(certificate.description)}
     </div>
+    ${
+      receiver.modality && receiver.modality !== "jiu_jitsu"
+        ? `<p class="subtitle" style="text-align:center">Certificado da academia na modalidade ${escapeHtml(MODALITY_LABELS[receiver.modality])}. Não constitui homologação ou certificação federativa.</p>`
+        : ""
+    }
 
     <div class="section body-text" style="text-align:center;margin-top:36px">
       Emitido em ${escapeHtml(formatDateBr(issuedAt))}

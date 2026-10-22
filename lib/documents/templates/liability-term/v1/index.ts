@@ -1,4 +1,5 @@
 import type { DocumentPayload } from "@/lib/documents/types";
+import { MODALITY_LABELS } from "@/lib/modalities/catalog";
 
 import { escapeHtml, formatDateBr } from "../../shared/format";
 import { buildLayout } from "../../shared/layout";
@@ -33,6 +34,8 @@ export function renderLiabilityTermV1(payload: DocumentPayload): string {
     <div class="section">
       <p class="label">Aluno(a)</p>
       <p class="value">${escapeHtml(student.fullName)}${
+        receiver.modality ? ` · ${escapeHtml(MODALITY_LABELS[receiver.modality])}` : ""
+      }${
         student.document ? ` · ${escapeHtml(student.document)}` : ""
       }${student.isMinor ? " · Menor de idade" : ""}</p>
     </div>

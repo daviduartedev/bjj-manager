@@ -73,7 +73,7 @@ export function StudentDocumentsTab({ studentId }: Props) {
               className="min-h-11 touch-manipulation"
             >
               <Link href={routeMatriculaTermoNovo(studentId)}>
-                <FileSignature className="mr-2 size-4" /> Matrícula e Termo ASLAM
+                <FileSignature className="mr-2 size-4" /> Matrícula e termo
               </Link>
             </Button>
             <Button
