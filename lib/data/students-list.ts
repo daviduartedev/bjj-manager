@@ -1,3 +1,5 @@
+import { timeAtCurrentBelt } from "@/lib/dates/duration-domain";
+import type { ReferencedGraduationFields } from "@/lib/modalities/referenced-ranks";
 import { createClient } from "@/lib/supabase/server";
 import { STUDENTS_PAGE_SIZE } from "@/lib/constants/students";
 import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
@@ -8,7 +10,7 @@ import type { GraduationRecordInput } from "@/lib/students/graduation-reference"
 import type { StudentListLifecycle } from "@/lib/students/alunos-url";
 import type { ListSortKey } from "@/lib/validations/students";
 
-export type ListStudentRow = {
+export type ListStudentRow = ReferencedGraduationFields & {
   id: string;
   full_name: string;
   kind: "adult" | "kids" | "baby";
@@ -16,8 +18,8 @@ export type ListStudentRow = {
   is_exempt: boolean;
   birth_date: string | null;
   academy_start_date: string | null;
-  current_belt_id: string;
-  current_degree: number;
+  current_belt_id: string | null;
+  current_degree: number | null;
   updated_at: string;
   belt: { slug: string; kind: "adult" | "kids" } | null;
   openPlan: {
@@ -93,8 +95,12 @@ export async function listStudentsQuery(
       is_exempt,
       birth_date,
       academy_start_date,
+      graduation_reference_id,
+      current_rank_code,
+      current_rank_date,
       current_belt_id,
       current_degree,
+      weight_kg,
       updated_at,
       belts!students_current_belt_id_fkey ( slug, kind ),
       ${studentPlansSelect},
@@ -162,10 +168,10 @@ export async function listStudentsQuery(
     const open = spArr?.find((s) => s.ended_at == null);
     const gradsRaw = raw.student_graduations as GraduationRecordInput[] | null;
     const grads = Array.isArray(gradsRaw) ? gradsRaw : [];
-    const beltId = raw.current_belt_id as string;
-    const degree = raw.current_degree as number;
-    const gradMeta = currentBeltDegreeGraduationMeta(grads, beltId, degree);
-    const graduationDurationLine = studentGraduationDurationLine(
+    const beltId = raw.current_belt_id as string | null;
+    const degree = raw.current_degree as number | null;
+    const gradMeta = beltId == null || degree == null ? null : currentBeltDegreeGraduationMeta(grads, beltId, degree);
+    const graduationDurationLine = beltId == null || degree == null ? null : studentGraduationDurationLine(
       grads,
       beltId,
       degree,
@@ -180,8 +186,11 @@ export async function listStudentsQuery(
       is_exempt: raw.is_exempt === true,
       birth_date: (raw.birth_date as string | null) ?? null,
       academy_start_date: (raw.academy_start_date as string | null) ?? null,
-      current_belt_id: raw.current_belt_id as string,
-      current_degree: raw.current_degree as number,
+      current_belt_id: beltId,
+      graduation_reference_id: raw.graduation_reference_id as string | null,
+      current_rank_code: raw.current_rank_code as string | null,
+      current_rank_date: raw.current_rank_date as string | null,
+      current_degree: degree,
       updated_at: raw.updated_at as string,
       belt: beltsRel ?? null,
       openPlan: open?.plans
@@ -192,9 +201,9 @@ export async function listStudentsQuery(
             plan_kind: open.plans.kind,
           }
         : null,
-      graduationDurationLine,
-      graduationConfiguredAtYmd: gradMeta?.configuredAtYmd ?? null,
-      graduationWeightKg: gradMeta?.weightKg ?? null,
+      graduationDurationLine: raw.graduation_reference_id ? timeAtCurrentBelt(raw.current_rank_date as string | null, todayYmd) : graduationDurationLine,
+      graduationConfiguredAtYmd: raw.graduation_reference_id ? (raw.current_rank_date as string | null) ?? null : gradMeta?.configuredAtYmd ?? null,
+      graduationWeightKg: beltId == null ? (raw.weight_kg as number | null) ?? null : gradMeta?.weightKg ?? null,
       graduationEventId: gradMeta?.graduationId ?? null,
     };
   });

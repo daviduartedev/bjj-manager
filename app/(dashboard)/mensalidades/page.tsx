@@ -7,6 +7,7 @@ import {
   parseMensalidadesFiltroQuery,
   parseMensalidadesPlanQuery,
 } from "@/lib/billing/mensalidades-filtro-url";
+import { getCurrentAccount } from "@/lib/auth";
 import { loadMensalidadesRows } from "@/lib/data/mensalidades-page";
 
 export const metadata: Metadata = {
@@ -21,8 +22,14 @@ export default async function MensalidadesPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const mesRaw = sp.mes;
   const mes = typeof mesRaw === "string" ? mesRaw : null;
+  const ctx = await getCurrentAccount();
+  const modality = ctx?.account.modality ?? "jiu_jitsu";
   const initialFilter = parseMensalidadesFiltroQuery(sp.filtro);
-  const initialPlanFilter = parseMensalidadesPlanQuery(sp.tipo);
+  const requestedPlan = parseMensalidadesPlanQuery(sp.tipo);
+  const initialPlanFilter =
+    modality !== "jiu_jitsu" && requestedPlan !== "all" && requestedPlan !== "adult"
+      ? "all"
+      : requestedPlan;
 
   const data = await loadMensalidadesRows(mes);
 
@@ -39,6 +46,7 @@ export default async function MensalidadesPage({ searchParams }: PageProps) {
         initialFilter={initialFilter}
         initialPlanFilter={initialPlanFilter}
         monthFinance={data.monthFinance}
+        modality={modality}
       />
     </PageFrame>
   );

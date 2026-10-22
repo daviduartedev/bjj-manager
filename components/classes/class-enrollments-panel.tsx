@@ -92,13 +92,13 @@ export function ClassEnrollmentsPanel({ classId, enrollments, availableStudents 
         <form onSubmit={handleEnroll} className="space-y-4 rounded-lg border p-4">
           <p className="text-sm font-medium">Inscrever aluno</p>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <Select
               value={selectedStudentId}
               onValueChange={setSelectedStudentId}
               disabled={isPending}
             >
-              <SelectTrigger className="min-h-11 flex-1">
+              <SelectTrigger aria-label="Aluno para inscrever na turma" className="min-h-11 min-w-0 flex-1">
                 <SelectValue placeholder="Selecione o aluno…" />
               </SelectTrigger>
               <SelectContent>

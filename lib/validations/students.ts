@@ -1,5 +1,9 @@
 import { z } from "zod";
+import { findReferencedRank, type ReferencedGraduationFields } from "@/lib/modalities/referenced-ranks";
+import { validateGraduatedAtNotFuture } from "@/lib/graduation/graduated-at";
 
+import type { AcademyModality } from "@/lib/modalities/catalog";
+import { getGraduationPolicy } from "@/lib/modalities/graduation-policy";
 import { calculateAge } from "@/lib/dates/age";
 import { toCalendarDateStringInAppTZ } from "@/lib/dates/parse-calendar-date";
 import { isValidCpfDigits, onlyDigits } from "@/lib/students/input-masks";
@@ -15,6 +19,26 @@ import {
 } from "@/lib/students/plan-kind";
 import type { StudentKind } from "@/lib/students/degree";
 import { weightKgSchema } from "@/lib/validations/graduations";
+
+const referencedFields = {
+  graduation_reference_id: z.string().nullish(),
+  current_rank_code: z.string().nullish(),
+  current_rank_date: z.string().nullable().optional(),
+};
+function validateReferencedFields(data: ReferencedGraduationFields & { current_belt_id?: string | null; current_degree?: number | null }, modality: AcademyModality, ctx: z.RefinementCtx) {
+  const policy = getGraduationPolicy(modality);
+  if (policy.mode === "referenced") {
+    const rank = findReferencedRank(data.graduation_reference_id, data.current_rank_code);
+    if (!rank || rank.modality !== modality || rank.referenceId !== policy.referenceId) ctx.addIssue({ code: "custom", message: "Escolha uma graduação válida desta modalidade.", path: ["current_rank_code"] });
+    if (data.current_belt_id != null || data.current_degree != null) ctx.addIssue({ code: "custom", message: "Esta modalidade não usa faixa/grau de Jiu-Jitsu.", path: ["current_rank_code"] });
+    if (data.current_rank_date !== null) {
+      const error = data.current_rank_date === undefined ? "Informe a data ou selecione data desconhecida." : validateGraduatedAtNotFuture(data.current_rank_date);
+      if (error) ctx.addIssue({ code: "custom", message: error, path: ["current_rank_date"] });
+    }
+  } else if (data.graduation_reference_id != null || data.current_rank_code != null || data.current_rank_date != null) {
+    ctx.addIssue({ code: "custom", message: "Graduação de outra modalidade.", path: ["current_rank_code"] });
+  }
+}
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida.");
 
@@ -32,20 +56,25 @@ const emptyToUndef = (v: unknown) =>
 export function buildStudentFullFormSchema(
   belts: { id: string; slug: string; kind: "adult" | "kids" }[],
   plans: { id: string; kind: PlanKind }[],
+  modality: AcademyModality = "jiu_jitsu",
 ) {
+  const policy = getGraduationPolicy(modality);
+  const ungraded = policy.mode === "none";
+  const legacyGraduation = policy.mode === "jiu_jitsu";
   const beltIds = new Set(belts.map((b) => b.id));
   const planById = new Map(plans.map((p) => [p.id, p] as const));
 
   return z
     .object({
+      ...referencedFields,
       full_name: z.string().trim().min(2, "Informe o nome."),
       birth_date: isoDate,
       academy_start_date: isoDate,
       kind: studentKindSchema,
-      current_belt_id: z.string().uuid("Escolha a faixa."),
-      current_degree: z.coerce.number().int(),
+      current_belt_id: z.string().uuid("Escolha a faixa.").nullish(),
+      current_degree: z.coerce.number().int().nullish(),
       is_exempt: z.boolean().default(false),
-      plan_id: z.string().uuid("Escolha o plano.").optional(),
+      plan_id: z.preprocess(emptyToUndef, z.string().uuid("Escolha o plano.").optional()),
       due_day: z.coerce.number().int().min(1).max(28).optional(),
       document: z.preprocess(emptyToUndef, z.string().trim().optional()),
       phone: z.preprocess(emptyToUndef, z.string().trim().optional()),
@@ -56,7 +85,11 @@ export function buildStudentFullFormSchema(
     })
     .strict()
     .superRefine((data, ctx) => {
-      if (!beltIds.has(data.current_belt_id)) {
+      validateReferencedFields(data, modality, ctx);
+      if (ungraded && (data.current_belt_id != null || data.current_degree != null)) {
+        ctx.addIssue({ code: "custom", message: "Boxe não possui graduação.", path: ["current_belt_id"] });
+      }
+      if (legacyGraduation && !beltIds.has(data.current_belt_id ?? "")) {
         ctx.addIssue({
           code: "custom",
           message: "Faixa inválida.",
@@ -64,15 +97,15 @@ export function buildStudentFullFormSchema(
         });
         return;
       }
-      const belt = belts.find((b) => b.id === data.current_belt_id)!;
-      if (!beltMatchesStudentKindForBeltRow(belt, data.kind as StudentKind)) {
+      const belt = belts.find((b) => b.id === data.current_belt_id);
+      if (belt && !beltMatchesStudentKindForBeltRow(belt, data.kind as StudentKind)) {
         ctx.addIssue({
           code: "custom",
           message: "A faixa não corresponde ao tipo de aluno.",
           path: ["current_belt_id"],
         });
       }
-      if (!isValidDegreeForBelt(belt.slug, belt.kind, data.current_degree)) {
+      if (legacyGraduation && (!belt || data.current_degree == null || !isValidDegreeForBelt(belt.slug, belt.kind, data.current_degree))) {
         ctx.addIssue({
           code: "custom",
           message: "Grau inválido para esta faixa.",
@@ -80,6 +113,11 @@ export function buildStudentFullFormSchema(
         });
       }
 
+      if (modality !== "jiu_jitsu") {
+        const age = calculateAge(data.birth_date, toCalendarDateStringInAppTZ(new Date()));
+        if (age == null || age < 18) ctx.addIssue({ code: "custom", message: "Esta modalidade atende pessoas de 18 anos ou mais.", path: ["birth_date"] });
+        if (data.kind !== "adult") ctx.addIssue({ code: "custom", message: "Selecione Adulto nesta modalidade.", path: ["kind"] });
+      }
       if (data.kind === "baby") {
         const today = toCalendarDateStringInAppTZ(new Date());
         const age = calculateAge(data.birth_date, today);
@@ -113,24 +151,22 @@ export function buildStudentFullFormSchema(
         }
       }
 
-      if (!data.plan_id) {
-        return;
-      }
-
-      const plan = planById.get(data.plan_id);
-      if (
-        !plan ||
-        !planKindMatchesStudentContext({
-          planKind: plan.kind,
-          studentKind: data.kind as StudentKind,
-          beltSlug: belt.slug,
-        })
-      ) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Plano incompatível com o tipo e a faixa do aluno.",
-          path: ["plan_id"],
-        });
+      if (data.plan_id) {
+        const plan = planById.get(data.plan_id);
+        if (
+          !plan ||
+          !planKindMatchesStudentContext({
+            planKind: plan.kind,
+            studentKind: data.kind as StudentKind,
+            beltSlug: belt?.slug,
+          })
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            message: modality !== "jiu_jitsu" ? "Escolha um plano Adulto." : "Plano incompatível com o tipo e a faixa do aluno.",
+            path: ["plan_id"],
+          });
+        }
       }
 
       if (data.document != null) {
@@ -192,7 +228,11 @@ export function buildQuickEditFormSchema(
   belts: { id: string; slug: string; kind: "adult" | "kids" }[],
   plans: { id: string; kind: PlanKind }[],
   studentKind: StudentKind,
+  modality: AcademyModality = "jiu_jitsu",
 ) {
+  const policy = getGraduationPolicy(modality);
+  const ungraded = policy.mode === "none";
+  const legacyGraduation = policy.mode === "jiu_jitsu";
   const beltIds = new Set(
     belts
       .filter((b) => beltMatchesStudentKindForBeltRow(b, studentKind))
@@ -202,17 +242,23 @@ export function buildQuickEditFormSchema(
 
   return z
     .object({
+      ...referencedFields,
       status: quickEditStatusSchema,
       is_exempt: z.boolean().default(false),
-      plan_id: z.string().uuid().optional(),
+      plan_id: z.preprocess(emptyToUndef, z.string().uuid().optional()),
       due_day: z.coerce.number().int().min(1).max(28).optional(),
-      current_belt_id: z.string().uuid(),
-      current_degree: z.coerce.number().int(),
+      current_belt_id: z.string().uuid().nullish(),
+      current_degree: z.coerce.number().int().nullish(),
       weight_kg: weightKgSchema.optional(),
     })
     .strict()
     .superRefine((data, ctx) => {
-      if (!beltIds.has(data.current_belt_id)) {
+      validateReferencedFields(data, modality, ctx);
+      if (modality !== "jiu_jitsu" && studentKind !== "adult") ctx.addIssue({ code: "custom", message: "Esta modalidade atende apenas Adulto.", path: ["plan_id"] });
+      if (ungraded && (data.current_belt_id != null || data.current_degree != null)) {
+        ctx.addIssue({ code: "custom", message: "Boxe não possui graduação.", path: ["current_belt_id"] });
+      }
+      if (legacyGraduation && !beltIds.has(data.current_belt_id ?? "")) {
         ctx.addIssue({
           code: "custom",
           message: "Faixa inválida.",
@@ -220,8 +266,8 @@ export function buildQuickEditFormSchema(
         });
         return;
       }
-      const belt = belts.find((b) => b.id === data.current_belt_id)!;
-      if (!isValidDegreeForBelt(belt.slug, belt.kind, data.current_degree)) {
+      const belt = belts.find((b) => b.id === data.current_belt_id);
+      if (legacyGraduation && (!belt || data.current_degree == null || !isValidDegreeForBelt(belt.slug, belt.kind, data.current_degree))) {
         ctx.addIssue({
           code: "custom",
           message: "Grau inválido para esta faixa.",
@@ -256,12 +302,12 @@ export function buildQuickEditFormSchema(
         !planKindMatchesStudentContext({
           planKind: plan.kind,
           studentKind,
-          beltSlug: belt.slug,
+          beltSlug: belt?.slug,
         })
       ) {
         ctx.addIssue({
           code: "custom",
-          message: "Plano incompatível com a faixa do aluno.",
+          message: modality !== "jiu_jitsu" ? "Escolha um plano Adulto." : "Plano incompatível com a faixa do aluno.",
           path: ["plan_id"],
         });
       }

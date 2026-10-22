@@ -5,7 +5,7 @@ export type StudentPortalRow = {
   id: string;
   account_id: string;
   full_name: string;
-  kind: "adult" | "kids";
+  kind: "adult" | "kids" | "baby";
   birth_date: string | null;
   user_id: string | null;
   archived_at: string | null;
@@ -61,11 +61,11 @@ export async function getStudentPortalAccessState(): Promise<StudentPortalAccess
 }
 
 export function isMinorForPortalGuardian(args: {
-  kind: "adult" | "kids";
+  kind: "adult" | "kids" | "baby";
   birth_date: string | null;
   todayYmd: string;
 }): boolean {
-  if (args.kind === "kids") return true;
+  if (args.kind === "kids" || args.kind === "baby") return true;
   if (!args.birth_date) return false;
   const birthYear = Number.parseInt(args.birth_date.slice(0, 4), 10);
   const todayYear = Number.parseInt(args.todayYmd.slice(0, 4), 10);

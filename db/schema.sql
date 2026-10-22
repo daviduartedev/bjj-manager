@@ -105,6 +105,7 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ---------- Tables ----------
 CREATE TABLE IF NOT EXISTS public.accounts (
+  modality text NOT NULL DEFAULT 'jiu_jitsu' CONSTRAINT accounts_modality_check CHECK (modality IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo')),
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   name text NOT NULL,
   legal_name text NULL,
@@ -141,6 +142,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 
 -- Elegibilidade do cadastro público. Não é autorização via raw_user_meta_data.
 CREATE TABLE IF NOT EXISTS public.academy_registration_intents (
+  modality text NOT NULL DEFAULT 'jiu_jitsu' CONSTRAINT academy_registration_intents_modality_check CHECK (modality IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo')),
   user_id uuid PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
   academy_name text NOT NULL,
   display_name text NOT NULL,
@@ -191,13 +193,34 @@ CREATE TABLE IF NOT EXISTS public.belts (
   CONSTRAINT belts_slug_unique UNIQUE (slug)
 );
 
+CREATE TABLE IF NOT EXISTS public.graduation_references (
+  id text PRIMARY KEY,
+  modality text NOT NULL CHECK (modality IN ('judo','muay_thai')),
+  title text NOT NULL,
+  source_url text NOT NULL,
+  consulted_at date NOT NULL,
+  limitation text NOT NULL
+);
+CREATE TABLE IF NOT EXISTS public.graduation_ranks (
+  reference_id text NOT NULL REFERENCES public.graduation_references(id) ON DELETE RESTRICT,
+  code text NOT NULL,
+  ordinal smallint NOT NULL CHECK (ordinal >= 0),
+  label text NOT NULL,
+  PRIMARY KEY (reference_id, code),
+  UNIQUE (reference_id, ordinal)
+);
+
 CREATE TABLE IF NOT EXISTS public.students (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
   kind public.student_kind NOT NULL,
   full_name text NOT NULL,
-  current_belt_id uuid NOT NULL REFERENCES public.belts (id) ON DELETE RESTRICT,
-  current_degree smallint NOT NULL,
+  current_belt_id uuid NULL REFERENCES public.belts (id) ON DELETE RESTRICT,
+  current_degree smallint NULL,
+  graduation_reference_id text NULL,
+  current_rank_code text NULL,
+  current_rank_date date NULL,
+  CONSTRAINT students_referenced_rank_fkey FOREIGN KEY (graduation_reference_id,current_rank_code) REFERENCES public.graduation_ranks(reference_id,code) ON DELETE RESTRICT,
   status public.student_status NOT NULL,
   birth_date date NULL,
   academy_start_date date NULL,
@@ -215,6 +238,8 @@ CREATE TABLE IF NOT EXISTS public.students (
   is_exempt boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
+  weight_kg numeric(5, 1) NULL,
+  CONSTRAINT students_weight_kg_check CHECK (weight_kg IS NULL OR weight_kg BETWEEN 20 AND 250),
   CONSTRAINT students_degree_bounds CHECK (
     current_degree >= 0
     AND current_degree <= 6
@@ -554,6 +579,7 @@ CREATE TABLE IF NOT EXISTS public.classes (
   account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
   name text NOT NULL,
   kind public.student_kind NOT NULL,
+  modality text NOT NULL CONSTRAINT classes_modality_ck CHECK (modality IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo')),
   instructor_profile_id uuid NOT NULL REFERENCES public.profiles (id) ON DELETE RESTRICT,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -708,3 +734,27 @@ CREATE INDEX IF NOT EXISTS idx_check_ins_student_id ON public.check_ins (student
 CREATE INDEX IF NOT EXISTS idx_attendances_account_id ON public.attendances (account_id);
 
 CREATE INDEX IF NOT EXISTS idx_attendances_class_session_id ON public.attendances (class_session_id);
+
+-- #32: eventos próprios, graduação atual e evento numa transação com lock da ficha.
+CREATE TABLE IF NOT EXISTS public.student_rank_promotions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_order bigint GENERATED ALWAYS AS IDENTITY UNIQUE,
+  student_id uuid NOT NULL REFERENCES public.students(id) ON DELETE RESTRICT,
+  reference_id text NOT NULL,
+  from_rank_code text NOT NULL,
+  from_rank_date date NULL,
+  to_rank_code text NOT NULL,
+  granted_on date NOT NULL,
+  was_skip boolean NOT NULL,
+  reason text NULL CHECK (reason IS NULL OR (length(btrim(reason)) BETWEEN 1 AND 2000)),
+  guidance_exceptions text[] NOT NULL DEFAULT '{}',
+  guidance_basis text NOT NULL,
+  recorded_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  FOREIGN KEY(reference_id,from_rank_code) REFERENCES public.graduation_ranks(reference_id,code),
+  FOREIGN KEY(reference_id,to_rank_code) REFERENCES public.graduation_ranks(reference_id,code),
+  CHECK (NOT was_skip OR reason IS NOT NULL),
+  CHECK (cardinality(guidance_exceptions)=0 OR reason IS NOT NULL)
+);
+CREATE INDEX IF NOT EXISTS student_rank_promotions_student_date ON public.student_rank_promotions(student_id,granted_on DESC,created_at DESC);
+ALTER TABLE public.student_rank_promotions ADD COLUMN IF NOT EXISTS event_order bigint GENERATED ALWAYS AS IDENTITY UNIQUE;

@@ -34,6 +34,7 @@ import type {
   MensalidadesStudentRow,
   MonthFinanceSummary,
 } from "@/lib/data/mensalidades-page";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import {
   buildMensalidadesListSearchParams,
   type MensalidadesClientFilterKey,
@@ -55,6 +56,7 @@ export type MensalidadesClientProps = {
   /** Hidratação a partir de `?tipo=` (plano + legado `kids`). */
   initialPlanFilter?: MensalidadesPlanFilterKey;
   monthFinance: MonthFinanceSummary;
+  modality: AcademyModality;
 };
 
 type FilterKey =
@@ -96,6 +98,7 @@ export function MensalidadesClient({
   initialFilter = "all",
   initialPlanFilter = "all",
   monthFinance,
+  modality,
 }: MensalidadesClientProps) {
   const router = useRouter();
   const rows = initialRows;
@@ -277,10 +280,14 @@ export function MensalidadesClient({
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="adult">Adulto</SelectItem>
-                  <SelectItem value="kids_1">Kids 1</SelectItem>
-                  <SelectItem value="kids_2">Kids 2</SelectItem>
-                  <SelectItem value="baby">Baby</SelectItem>
-                  <SelectItem value="kids_either">Kids 1 ou 2</SelectItem>
+                  {modality === "jiu_jitsu" ? (
+                    <>
+                      <SelectItem value="kids_1">Kids 1</SelectItem>
+                      <SelectItem value="kids_2">Kids 2</SelectItem>
+                      <SelectItem value="baby">Baby</SelectItem>
+                      <SelectItem value="kids_either">Kids 1 ou 2</SelectItem>
+                    </>
+                  ) : null}
                 </SelectContent>
               </Select>
               <div className="min-h-[1.125rem]" aria-hidden />

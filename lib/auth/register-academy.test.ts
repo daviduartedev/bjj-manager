@@ -13,6 +13,7 @@ const validInput = {
   password: "luta-longa-no-tatame",
   academyName: "Academia Casca",
   displayName: "Ana Souza",
+  modality: "jiu_jitsu",
 };
 
 describe("academySignupCallbackUrl", () => {
@@ -30,6 +31,22 @@ describe("academySignupCallbackUrl", () => {
 });
 
 describe("submitAcademyRegistration", () => {
+  it("preserva a modalidade explícita na intenção confiável sem colocá-la no metadata do Auth", async () => {
+    const signUp = vi.fn().mockResolvedValue({
+      user: { id: "jiu-jitsu-user", identities: [{ id: "identity" }] }, error: null,
+    });
+    const intents: unknown[] = [];
+    const result = await submitAcademyRegistration({ ...validInput, modality: "jiu_jitsu" }, {
+      appUrl: "https://app.casca.test", signUp,
+      recordIntent: async (intent) => { intents.push(intent); return { ok: true }; },
+    });
+    expect(result).toEqual({ ok: true, message: WAITING });
+    expect(intents).toEqual([{
+      userId: "jiu-jitsu-user", academyName: "Academia Casca", displayName: "Ana Souza", modality: "jiu_jitsu",
+    }]);
+    expect(signUp.mock.calls[0]?.[0]).not.toHaveProperty("modality");
+  });
+
   it("recusa e-mail inválido antes de chamar o Supabase", async () => {
     const signUp = vi.fn();
     const recordIntent = vi.fn();
@@ -45,6 +62,49 @@ describe("submitAcademyRegistration", () => {
     });
     expect(signUp).not.toHaveBeenCalled();
     expect(recordIntent).not.toHaveBeenCalled();
+  });
+
+  it("recusa modalidade desconhecida antes de criar um usuário e grava as quatro liberadas", async () => {
+    const signUp = vi.fn().mockResolvedValue({
+      user: { id: "sport-user", identities: [{ id: "identity" }] }, error: null,
+    });
+    const recordIntent = vi.fn().mockResolvedValue({ ok: true });
+    for (const modality of ["admin", null, "karate"]) {
+      const result = await submitAcademyRegistration({ ...validInput, modality }, {
+        appUrl: "https://app.casca.test", signUp, recordIntent,
+      });
+      expect(result.ok).toBe(false);
+    }
+    expect(signUp).not.toHaveBeenCalled();
+    for (const modality of ["jiu_jitsu", "boxing", "judo", "muay_thai"] as const) {
+      const intents: unknown[] = [];
+      const created = await submitAcademyRegistration({ ...validInput, modality }, {
+        appUrl: "https://app.casca.test",
+        signUp: vi.fn().mockResolvedValue({ user: { id: modality, identities: [{ id: "identity" }] }, error: null }),
+        recordIntent: async (intent) => { intents.push(intent); return { ok: true }; },
+      });
+      expect(created.ok).toBe(true);
+      expect(intents).toEqual([{
+        userId: modality, academyName: validInput.academyName, displayName: validInput.displayName, modality,
+      }]);
+    }
+  });
+
+  it("recusa público infantil nas modalidades de adulto antes de criar um usuário", async () => {
+    const signUp = vi.fn();
+    const result = await submitAcademyRegistration({
+      ...validInput,
+      modality: "muay_thai",
+      onboarding: {
+        city: "Campinas", cityId: "3509502", state: "SP", stage: "operating", studentRange: "1-30",
+        audiences: ["kids", "adult"], priorities: ["students"],
+      },
+    }, { appUrl: "https://app.casca.test", signUp, recordIntent: vi.fn() });
+    expect(result).toEqual({
+      ok: false,
+      fieldErrors: { "onboarding.audiences": ["Esta modalidade atende adultos de 18 anos ou mais."] },
+    });
+    expect(signUp).not.toHaveBeenCalled();
   });
 
   it("envia o perfil descritivo ao cadastro sem alterar a intenção de autorização", async () => {
@@ -64,7 +124,7 @@ describe("submitAcademyRegistration", () => {
       emailRedirectTo: "https://app.casca.test/auth/callback",
       onboarding: { ...onboarding, city: "Campinas" },
     });
-    expect(recordIntent).toHaveBeenCalledWith({ userId: "new-user", academyName: validInput.academyName, displayName: validInput.displayName });
+    expect(recordIntent).toHaveBeenCalledWith({ userId: "new-user", academyName: validInput.academyName, displayName: validInput.displayName, modality: "jiu_jitsu" });
   });
 
   it("rejects a city selection that does not exist in the selected state before creating an account", async () => {
@@ -161,6 +221,7 @@ describe("submitAcademyRegistration", () => {
       userId: "user-created",
       academyName: "Academia Casca",
       displayName: "Ana Souza",
+      modality: "jiu_jitsu",
     });
     expect(duplicateRecord).not.toHaveBeenCalled();
     expect(alreadyRegisteredRecord).not.toHaveBeenCalled();

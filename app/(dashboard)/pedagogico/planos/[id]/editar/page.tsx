@@ -6,6 +6,7 @@ import { PageFrame } from "@/components/prototype/page-frame";
 import { PlanEditor } from "@/components/lesson-plans/plan-editor";
 import { DashboardBackLink } from "@/components/layout/dashboard-back-link";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
+import { getCurrentAccount } from "@/lib/auth";
 import { loadLessonPlanDetail } from "@/lib/data/lesson-plans-page";
 import { routePedagogicoPlano } from "@/lib/routes";
 
@@ -17,8 +18,9 @@ type PageProps = { params: Promise<{ id: string }> };
 
 export default async function EditarPlanoPage({ params }: PageProps) {
   const { id } = await params;
-  const plan = await loadLessonPlanDetail(id);
+  const [plan, ctx] = await Promise.all([loadLessonPlanDetail(id), getCurrentAccount()]);
   if (!plan) notFound();
+  const modality = ctx?.account.modality ?? "jiu_jitsu";
 
   return (
     <PageFrame
@@ -31,6 +33,7 @@ export default async function EditarPlanoPage({ params }: PageProps) {
         <DashboardBackLink href={routePedagogicoPlano(plan.id)}>{plan.title}</DashboardBackLink>
         <DashboardPanel icon={BookOpen} title="Editor" subtitle="Cabeçalho, resumo e tópicos do plano">
         <PlanEditor
+          modality={modality}
           mode={{
             kind: "edit",
             lessonPlanId: plan.id,

@@ -1,3 +1,5 @@
+import type { ReferencedGraduationFields } from "@/lib/modalities/referenced-ranks";
+import type { RankPromotionRow } from "@/lib/modalities/referenced-promotion";
 import {
   formatDateBR,
   toCalendarDateStringInAppTZ,
@@ -24,7 +26,7 @@ export type ProfilePaymentRow = {
   paid_at: string | null;
 };
 
-export type StudentProfilePayload = {
+export type StudentProfilePayload = ReferencedGraduationFields & {
   id: string;
   full_name: string;
   kind: "adult" | "kids" | "baby";
@@ -38,8 +40,9 @@ export type StudentProfilePayload = {
   phone: string | null;
   email: string | null;
   notes: string | null;
-  current_belt_id: string;
-  current_degree: number;
+  current_belt_id: string | null;
+  current_degree: number | null;
+  weight_kg?: number | null;
   currentBelt: { slug: string; kind: "adult" | "kids" } | null;
   billing: {
     plan_name: string;
@@ -49,6 +52,7 @@ export type StudentProfilePayload = {
     due_day: number;
   } | null;
   graduations: ProfileGraduationRow[];
+  rankPromotions?: RankPromotionRow[];
   paymentsRecent: ProfilePaymentRow[];
   todayYmd: string;
   currentMonthFirstDay: string;

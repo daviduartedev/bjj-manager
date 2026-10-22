@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 
 import { quickUpdateStudent } from "@/actions/students";
+import { ReferencedGraduationFields } from "@/components/students/referenced-graduation-fields";
 import { AdultOrangeBeltConfirmDialog } from "@/components/students/adult-orange-belt-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
 import type { ListStudentRow } from "@/lib/data/students-list";
 import { routeAlunoEditar } from "@/lib/routes";
@@ -57,6 +59,7 @@ import {
 } from "@/lib/validations/students";
 
 type Props = {
+  modality?: AcademyModality;
   student: ListStudentRow | null;
   belts: BeltCatalogRow[];
   plans: PlanCatalogRow[];
@@ -66,11 +69,14 @@ type Props = {
 
 export function QuickEditDialog({
   student,
+  modality = "jiu_jitsu",
   belts,
   plans,
   open,
   onOpenChange,
 }: Props) {
+  const ungraded = modality === "boxing";
+  const legacyGraduation = modality === "jiu_jitsu";
   const [loading, setLoading] = useState(false);
   const [adultOrangeConfirm, setAdultOrangeConfirm] = useState<{
     beltId: string;
@@ -79,8 +85,8 @@ export function QuickEditDialog({
 
   const kind = student?.kind ?? "adult";
   const schema = useMemo(
-    () => buildQuickEditFormSchema(belts, plans, kind as StudentKind),
-    [belts, plans, kind],
+    () => buildQuickEditFormSchema(belts, plans, kind as StudentKind, modality),
+    [belts, plans, kind, modality],
   );
 
   const defaults = useMemo((): QuickEditFormValues | null => {
@@ -100,6 +106,9 @@ export function QuickEditDialog({
       due_day: student.openPlan?.due_day ?? 10,
       current_belt_id: student.current_belt_id,
       current_degree: student.current_degree,
+      graduation_reference_id: student.graduation_reference_id,
+      current_rank_code: student.current_rank_code,
+      current_rank_date: student.current_rank_date,
       weight_kg: student.graduationWeightKg ?? null,
     };
   }, [student]);
@@ -207,8 +216,7 @@ export function QuickEditDialog({
         <DialogHeader>
           <DialogTitle>Edição rápida</DialogTitle>
           <DialogDescription>
-            Ajuste situação, plano, vencimento, faixa e grau. Para nome e contactos,
-            use a ficha completa.
+            {legacyGraduation ? "Ajuste situação, plano, vencimento, faixa e grau. Para nome e contactos, use a ficha completa." : ungraded ? "Ajuste situação, plano, vencimento e peso. Para nome e contactos, use a ficha completa." : "Ajuste situação, plano, vencimento, graduação atual e peso. Para nome e contactos, use a ficha completa."}
           </DialogDescription>
         </DialogHeader>
 
@@ -331,7 +339,9 @@ export function QuickEditDialog({
                 </>
               ) : null}
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              {!legacyGraduation && !ungraded ? <ReferencedGraduationFields modality={modality} disabled={loading} /> : null}
+
+              {legacyGraduation ? <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="current_belt_id"
@@ -340,7 +350,7 @@ export function QuickEditDialog({
                       <FormLabel>Faixa</FormLabel>
                       <Select
                         disabled={loading}
-                        value={field.value}
+                        value={field.value ?? undefined}
                         onValueChange={(v) => {
                           const b = belts.find((x) => x.id === v);
                           if (!b) return;
@@ -434,7 +444,7 @@ export function QuickEditDialog({
                     </FormItem>
                   )}
                 />
-              </div>
+              </div> : null}
 
               <FormField
                 control={form.control}
@@ -455,7 +465,7 @@ export function QuickEditDialog({
                       />
                     </FormControl>
                     <FormDescription>
-                      Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar.
+                      {!legacyGraduation ? "Entre 20,0 e 250,0 kg. Guardado na ficha do aluno." : "Entre 20,0 e 250,0 kg. Guardado na graduação actual ao salvar."}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

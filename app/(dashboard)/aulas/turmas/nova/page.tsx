@@ -27,7 +27,7 @@ export default async function NovaTurmaPage() {
       <div className="space-y-8">
         <DashboardBackLink href={ROUTES.aulasTurmas}>Turmas</DashboardBackLink>
         <DashboardPanel icon={CalendarDays} title="Dados da turma">
-          <ClassForm mode={{ kind: "create" }} instructorProfileId={ctx.profile.id} />
+          <ClassForm mode={{ kind: "create" }} instructorProfileId={ctx.profile.id} modality={ctx.account.modality} />
         </DashboardPanel>
       </div>
     </PageFrame>

@@ -39,10 +39,11 @@ export default async function PainelPage() {
     );
   }
 
-  const data = await loadPainelPageData(ctx.account.name);
+  const data = await loadPainelPageData(ctx.account.name, ctx.account.modality);
 
   return (
     <PainelDashboard
+      modality={ctx.account.modality}
       displayName={ctx.profile.display_name}
       accountName={ctx.account.name}
       activeStudentCount={data.activeStudentCount}

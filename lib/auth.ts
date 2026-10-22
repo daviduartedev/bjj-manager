@@ -1,11 +1,13 @@
 import type { User } from "@supabase/supabase-js";
 
 import type { AuthRole } from "@/lib/auth/roles";
+import { isAcademyModality, type AcademyModality } from "@/lib/modalities/catalog";
 import { createClient } from "@/lib/supabase/server";
 
 export type AccountRow = {
   id: string;
   name: string;
+  modality: AcademyModality;
   legal_name: string | null;
   cnpj: string | null;
   signature_url: string | null;
@@ -67,6 +69,7 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
       accounts (
         id,
         name,
+        modality,
         legal_name,
         cnpj,
         signature_url,
@@ -88,7 +91,8 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
   const profileRow = row as ProfileWithAccount;
   const nested = profileRow.accounts;
   const accountRow = Array.isArray(nested) ? nested[0] : nested;
-  if (!accountRow) return null;
+  if (!accountRow || !isAcademyModality(accountRow.modality)) return null;
+  if (profileRow.role !== "student" && profileRow.role !== "professor") return null;
 
   const profile: ProfileRow = {
     id: profileRow.id,
@@ -96,7 +100,7 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
     account_id: profileRow.account_id,
     display_name: profileRow.display_name,
     phone: profileRow.phone ?? null,
-    role: (profileRow.role === "student" ? "student" : "professor") as AuthRole,
+    role: profileRow.role,
     created_at: profileRow.created_at,
     updated_at: profileRow.updated_at,
   };

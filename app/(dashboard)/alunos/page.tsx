@@ -21,7 +21,7 @@ export default async function AlunosPage({ searchParams }: PageProps) {
   const raw = await searchParams;
   const urlState = parseAlunosSearchParams(raw);
 
-  const [{ belts, plans }, list] = await Promise.all([
+  const [{ belts, plans, modality }, list] = await Promise.all([
     getStudentCatalog(),
     listStudentsQuery({
       q: urlState.q || undefined,
@@ -55,6 +55,7 @@ export default async function AlunosPage({ searchParams }: PageProps) {
           />
         </div>
         <StudentsList
+          modality={modality}
           rows={list.rows}
           total={list.total}
           urlState={urlState}

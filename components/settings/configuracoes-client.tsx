@@ -25,8 +25,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CnpjInput } from "@/components/settings/cnpj-input";
 import { LogoUploader } from "@/components/settings/logo-uploader";
+import { ModalitySwitchPanel } from "@/components/settings/modality-switch-panel";
 import { SignatureUploader } from "@/components/settings/signature-uploader";
 import type { SettingsPlanRow, SettingsReceiverRow } from "@/lib/data/settings-page";
+import { MODALITY_LABELS, type AcademyModality } from "@/lib/modalities/catalog";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
 import {
   digitsOnly,
@@ -44,6 +46,7 @@ import { AlertTriangle, Building2, Layers, Receipt } from "lucide-react";
 
 type Props = {
   initialAccountName: string;
+  modality: AcademyModality;
   plans: SettingsPlanRow[];
   receiver: SettingsReceiverRow;
 };
@@ -82,6 +85,10 @@ export function ConfiguracoesClient(props: Props) {
         title="Academia"
         subtitle="Nome exibido no sistema e no cabeçalho"
       >
+        <dl className="mx-auto mb-4 max-w-lg text-crm-sm">
+          <dt className="font-medium">Modalidade</dt>
+          <dd className="text-muted-foreground">{MODALITY_LABELS[props.modality]}</dd>
+        </dl>
         <Form {...accountForm}>
           <form
             onSubmit={accountForm.handleSubmit(submitAccount)}
@@ -119,6 +126,7 @@ export function ConfiguracoesClient(props: Props) {
             </div>
           </form>
         </Form>
+        <ModalitySwitchPanel current={props.modality} onSaved={() => router.refresh()} />
       </DashboardPanel>
 
       <ReceiverPanel receiver={props.receiver} onSaved={() => router.refresh()} />

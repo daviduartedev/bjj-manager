@@ -1082,7 +1082,27 @@ BEFORE UPDATE ON public.academy_registration_intents
 FOR EACH ROW
 EXECUTE FUNCTION public.prevent_clearing_academy_registration_consumption ();
 
-CREATE OR REPLACE FUNCTION public.record_academy_registration (user_id uuid, academy_name text, display_name text) RETURNS void
+-- A troca só poderá ocorrer por operação privilegiada que valide a elegibilidade.
+-- SECURITY INVOKER preserva current_user do chamador, inclusive dentro da futura RPC.
+CREATE OR REPLACE FUNCTION public.protect_account_modality () RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF NEW.modality IS DISTINCT FROM OLD.modality
+     AND current_user IN ('authenticated', 'anon') THEN
+    RAISE EXCEPTION 'academy modality requires a controlled operation' USING ERRCODE = '42501';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.protect_account_modality () FROM PUBLIC, anon, authenticated;
+DROP TRIGGER IF EXISTS accounts_protect_modality ON public.accounts;
+CREATE TRIGGER accounts_protect_modality
+BEFORE UPDATE OF modality ON public.accounts
+FOR EACH ROW EXECUTE FUNCTION public.protect_account_modality ();
+
+CREATE OR REPLACE FUNCTION public.record_academy_registration (user_id uuid, academy_name text, display_name text, modality text) RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
@@ -1090,7 +1110,13 @@ AS $$
 DECLARE
   v_academy_name text;
   v_display_name text;
+  v_modality text;
 BEGIN
+  v_modality := modality;
+  IF v_modality IS NULL OR v_modality NOT IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo') THEN
+    RAISE EXCEPTION 'invalid academy modality' USING ERRCODE = '22023';
+  END IF;
+
   v_academy_name := pg_catalog.btrim(academy_name);
   v_display_name := pg_catalog.btrim(display_name);
 
@@ -1129,20 +1155,33 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  INSERT INTO public.academy_registration_intents (user_id, academy_name, display_name)
-  VALUES (record_academy_registration.user_id, v_academy_name, v_display_name)
+  INSERT INTO public.academy_registration_intents (user_id, academy_name, display_name, modality)
+  VALUES (record_academy_registration.user_id, v_academy_name, v_display_name, v_modality)
   ON CONFLICT ON CONSTRAINT academy_registration_intents_pkey DO NOTHING;
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text) FROM anon;
-REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text) FROM authenticated;
+REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text, text) FROM anon;
+REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text, text) FROM authenticated;
 
-GRANT EXECUTE ON FUNCTION public.record_academy_registration (uuid, text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.record_academy_registration (uuid, text, text, text) TO service_role;
 
-COMMENT ON FUNCTION public.record_academy_registration (uuid, text, text) IS
+COMMENT ON FUNCTION public.record_academy_registration (uuid, text, text, text) IS
   'Grava a intenção de cadastro só para utilizador novo, sem perfil, sem aluno e sem convite. Não atualiza nomes.';
+
+-- Compatibilidade: o cadastro anterior continua criando somente Jiu-Jitsu.
+CREATE OR REPLACE FUNCTION public.record_academy_registration (user_id uuid, academy_name text, display_name text) RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  PERFORM public.record_academy_registration(user_id, academy_name, display_name, 'jiu_jitsu'::text);
+END;
+$$;
+REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.record_academy_registration (uuid, text, text) TO service_role;
 
 CREATE OR REPLACE FUNCTION public.provision_academy_for_current_user () RETURNS jsonb
 LANGUAGE plpgsql
@@ -1158,6 +1197,7 @@ DECLARE
   v_display_name text;
   v_consumed_at timestamptz;
   v_account_id uuid;
+  v_modality text;
 BEGIN
   v_uid := auth.uid();
 
@@ -1207,8 +1247,8 @@ BEGIN
   v_academy_name := NULL;
   v_display_name := NULL;
   v_consumed_at := NULL;
-  SELECT intent.academy_name, intent.display_name, intent.consumed_at
-  INTO v_academy_name, v_display_name, v_consumed_at
+  SELECT intent.academy_name, intent.display_name, intent.consumed_at, intent.modality
+  INTO v_academy_name, v_display_name, v_consumed_at, v_modality
   FROM public.academy_registration_intents AS intent
   WHERE intent.user_id = v_uid;
 
@@ -1216,8 +1256,8 @@ BEGIN
     RETURN pg_catalog.jsonb_build_object('outcome', 'ineligible', 'role', NULL);
   END IF;
 
-  INSERT INTO public.accounts (name)
-  VALUES (v_academy_name)
+  INSERT INTO public.accounts (name, modality)
+  VALUES (v_academy_name, v_modality)
   RETURNING id INTO v_account_id;
 
   INSERT INTO public.profiles (user_id, account_id, display_name, role)
@@ -1261,3 +1301,360 @@ GRANT EXECUTE ON FUNCTION public.provision_academy_for_current_user () TO authen
 COMMENT ON FUNCTION public.provision_academy_for_current_user () IS
   'Cria a academia do auth.uid() a partir da intenção ainda não consumida. Não altera conta, perfil nem preço de plano já existentes.';
 
+-- #30: catálogos somente leitura e invariantes de modalidade (033).
+ALTER TABLE public.graduation_references ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.graduation_ranks ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.graduation_references, public.graduation_ranks FROM PUBLIC, anon, authenticated;
+GRANT SELECT ON public.graduation_references, public.graduation_ranks TO authenticated;
+DROP POLICY IF EXISTS graduation_references_read ON public.graduation_references;
+CREATE POLICY graduation_references_read ON public.graduation_references FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS graduation_ranks_read ON public.graduation_ranks;
+CREATE POLICY graduation_ranks_read ON public.graduation_ranks FOR SELECT TO authenticated USING (true);
+
+
+CREATE OR REPLACE FUNCTION public.guard_student_modality () RETURNS trigger
+LANGUAGE plpgsql SET search_path = '' AS $$
+DECLARE v_modality text; v_today date;
+BEGIN
+  -- Compartilha o lock da troca controlada de modalidade (#37).
+  SELECT a.modality INTO v_modality FROM public.accounts a WHERE a.id = NEW.account_id FOR SHARE;
+  IF v_modality IS NULL THEN RAISE EXCEPTION 'student unavailable' USING ERRCODE = '42501'; END IF;
+  v_today := (pg_catalog.now() AT TIME ZONE 'America/Sao_Paulo')::date;
+  IF v_modality <> 'jiu_jitsu' AND (NEW.kind <> 'adult'::public.student_kind OR NEW.birth_date IS NULL
+     OR NEW.birth_date > (v_today - interval '18 years')::date) THEN
+    RAISE EXCEPTION 'modality requires adult aged eighteen' USING ERRCODE = '23514';
+  END IF;
+  IF v_modality IN ('judo', 'muay_thai') THEN
+    IF NEW.current_belt_id IS NOT NULL OR NEW.current_degree IS NOT NULL
+       OR NEW.graduation_reference_id IS DISTINCT FROM (CASE v_modality WHEN 'judo' THEN 'cbj-2023' ELSE 'cbmtt-19-khan' END)
+       OR NEW.current_rank_code IS NULL
+       OR NOT EXISTS (SELECT 1 FROM public.graduation_ranks r JOIN public.graduation_references ref ON ref.id=r.reference_id
+                      WHERE r.reference_id=NEW.graduation_reference_id AND r.code=NEW.current_rank_code AND ref.modality=v_modality)
+       OR NEW.current_rank_date > v_today THEN
+      RAISE EXCEPTION 'invalid referenced graduation' USING ERRCODE = '23514';
+    END IF;
+  ELSE
+    IF NEW.graduation_reference_id IS NOT NULL OR NEW.current_rank_code IS NOT NULL OR NEW.current_rank_date IS NOT NULL THEN
+      RAISE EXCEPTION 'foreign referenced graduation' USING ERRCODE = '23514';
+    END IF;
+    IF v_modality = 'boxing' THEN
+      IF NEW.current_belt_id IS NOT NULL OR NEW.current_degree IS NOT NULL THEN
+        RAISE EXCEPTION 'boxing has no graduation' USING ERRCODE = '23514';
+      END IF;
+    ELSIF NEW.current_belt_id IS NULL OR NEW.current_degree IS NULL THEN
+      RAISE EXCEPTION 'graduation required for graded sport' USING ERRCODE = '23514';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.guard_student_modality () FROM PUBLIC, anon, authenticated;
+
+-- Histórico legado recebe apenas eventos de JJ. Judô terá eventos próprios em #32.
+CREATE OR REPLACE FUNCTION public.guard_graduation_modality () RETURNS trigger
+LANGUAGE plpgsql SET search_path = '' AS $$
+DECLARE v_modality text;
+BEGIN
+  SELECT a.modality INTO v_modality FROM public.students s JOIN public.accounts a ON a.id = s.account_id WHERE s.id = NEW.student_id;
+  IF v_modality IS NULL THEN RAISE EXCEPTION 'student unavailable' USING ERRCODE = '42501'; END IF;
+  IF v_modality <> 'jiu_jitsu' THEN RAISE EXCEPTION 'legacy graduation requires jiu jitsu' USING ERRCODE = '23514'; END IF;
+  RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.guard_graduation_modality () FROM PUBLIC, anon, authenticated;
+
+CREATE OR REPLACE FUNCTION public.guard_student_plan_modality () RETURNS trigger
+LANGUAGE plpgsql SET search_path = '' AS $$
+DECLARE v_modality text; v_plan_kind public.plan_kind;
+BEGIN
+  SELECT a.modality, p.kind INTO v_modality, v_plan_kind
+  FROM public.students s JOIN public.accounts a ON a.id = s.account_id
+  JOIN public.plans p ON p.id = NEW.plan_id AND p.account_id = s.account_id WHERE s.id = NEW.student_id;
+  IF v_modality IS NULL THEN RAISE EXCEPTION 'student or plan unavailable' USING ERRCODE = '42501'; END IF;
+  IF v_modality <> 'jiu_jitsu' AND v_plan_kind <> 'adult'::public.plan_kind THEN
+    RAISE EXCEPTION 'modality requires adult plan' USING ERRCODE = '23514';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.guard_student_plan_modality () FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS students_guard_modality ON public.students;
+CREATE TRIGGER students_guard_modality BEFORE INSERT OR UPDATE ON public.students
+FOR EACH ROW EXECUTE FUNCTION public.guard_student_modality ();
+DROP TRIGGER IF EXISTS student_graduations_guard_modality ON public.student_graduations;
+CREATE TRIGGER student_graduations_guard_modality BEFORE INSERT OR UPDATE ON public.student_graduations
+FOR EACH ROW EXECUTE FUNCTION public.guard_graduation_modality ();
+DROP TRIGGER IF EXISTS student_plans_guard_modality ON public.student_plans;
+CREATE TRIGGER student_plans_guard_modality BEFORE INSERT OR UPDATE ON public.student_plans
+FOR EACH ROW EXECUTE FUNCTION public.guard_student_plan_modality ();
+
+-- #32: eventos e RPC referenciada
+ALTER TABLE public.student_rank_promotions ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.student_rank_promotions FROM PUBLIC,anon,authenticated;
+GRANT SELECT ON public.student_rank_promotions TO authenticated;
+DROP POLICY IF EXISTS student_rank_promotions_read ON public.student_rank_promotions;
+CREATE POLICY student_rank_promotions_read ON public.student_rank_promotions FOR SELECT TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.students s WHERE s.id=student_id AND s.account_id=public.current_account_id()
+    AND (public.can_manage_graduations() OR (public.can_use_portal_self() AND s.user_id=auth.uid())))
+);
+
+CREATE OR REPLACE FUNCTION public.promote_referenced_student(
+  p_student_id uuid, p_reference_id text, p_rank_code text, p_granted_on date, p_reason text DEFAULT NULL
+) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE
+  s public.students%ROWTYPE;
+  v_from smallint; v_to smallint; v_modality text;
+  v_skip boolean;
+  v_reason text := nullif(regexp_replace(p_reason,
+    '^[[:space:]' || chr(160) || chr(8199) || chr(8239) || chr(65279) || ']+|[[:space:]' || chr(160) || chr(8199) || chr(8239) || chr(65279) || ']+$', '', 'g'),'');
+  v_age integer; v_year_age integer; v_dan integer; v_min_age integer; v_months integer := 0;
+  v_exceptions text[] := '{}'; v_basis text; v_id uuid;
+BEGIN
+  IF NOT public.can_manage_graduations() OR auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'promotion unavailable' USING ERRCODE='42501';
+  END IF;
+  SELECT * INTO s FROM public.students WHERE id=p_student_id AND account_id=public.current_account_id() FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'promotion unavailable' USING ERRCODE='42501'; END IF;
+  SELECT modality INTO v_modality FROM public.accounts WHERE id=s.account_id FOR SHARE;
+  IF v_modality NOT IN ('judo','muay_thai')
+    OR p_reference_id IS DISTINCT FROM (CASE v_modality WHEN 'judo' THEN 'cbj-2023' ELSE 'cbmtt-19-khan' END)
+    OR s.graduation_reference_id IS DISTINCT FROM p_reference_id THEN
+    RAISE EXCEPTION 'invalid promotion rank' USING ERRCODE='23514';
+  END IF;
+  SELECT ordinal INTO v_from FROM public.graduation_ranks WHERE reference_id=p_reference_id AND code=s.current_rank_code;
+  SELECT ordinal INTO v_to FROM public.graduation_ranks WHERE reference_id=p_reference_id AND code=p_rank_code;
+  IF v_from IS NULL OR v_to IS NULL OR v_to <= v_from THEN
+    RAISE EXCEPTION 'promotion must advance' USING ERRCODE='23514';
+  END IF;
+  IF p_granted_on IS NULL OR p_granted_on > (now() AT TIME ZONE 'America/Sao_Paulo')::date
+    OR p_granted_on < s.current_rank_date OR p_granted_on < s.birth_date THEN
+    RAISE EXCEPTION 'invalid promotion date' USING ERRCODE='23514';
+  END IF;
+  v_skip := v_to-v_from>1;
+  IF v_modality = 'muay_thai' THEN
+    v_basis := 'CBMTT — Tabela de graduação de 19 khan; https://www.cbmtt.org.br/images/graduacoes-cbmtt.jpg; consulta 22/10/2026. A tabela não informa edição, idades ou carências. Sem equivalência declarada com IFMA 15 khan; o Casca não atribui créditos. Registro de graduação concedida, sem exame, SNG, homologação ou certificação CBMTT/IFMA. Títulos esportivos não concedem permissões de acesso.';
+  ELSE
+  v_age := extract(year FROM age(p_granted_on,s.birth_date));
+  v_year_age := extract(year FROM p_granted_on)-extract(year FROM s.birth_date);
+  -- CBJ 2023 p7 §5/tabela1: dispensa adulta nas básicas; tabela2 intermediárias permanece explícita.
+  v_basis := 'CBJ 2023, p.7, tabela 1 e §5: básicas acima de 16 anos dispensam sequência/carência; salto justificado é rastreabilidade Casca.';
+  IF v_to BETWEEN 1 AND 7 AND v_age<=16 THEN
+    v_months := (ARRAY[3,3,6,6,6,6,12])[v_to];
+    v_min_age := (ARRAY[4,5,6,7,8,9,10])[v_to];
+    v_basis := 'CBJ 2023, p.7, tabela 1, linha ' || p_rank_code || ': idade mínima ' || v_min_age
+      || ' anos por ano de nascimento (§2), interstício ' || v_months || ' meses na graduação anterior; §5 dispensa apenas acima de 16 anos.';
+    IF v_year_age < v_min_age THEN v_exceptions:=array_append(v_exceptions,'age'); END IF;
+  ELSIF v_to BETWEEN 8 AND 11 THEN
+    v_months := 12;
+    v_min_age := v_to+3;
+    v_basis := 'CBJ 2023, p.7, tabela 2, linha ' || p_rank_code || ': idade mínima ' || v_min_age || ' anos por ano de nascimento (§2), interstício 12 meses na graduação anterior.';
+    IF v_year_age < v_min_age THEN v_exceptions:=array_append(v_exceptions,'age'); END IF;
+  ELSIF v_to >= 12 THEN
+    v_dan := v_to-11;
+    v_min_age := (ARRAY[16,20,25,30,36,44,52,59,66,74])[v_dan];
+    v_months := (ARRAY[CASE WHEN v_age>20 THEN 12 ELSE 24 END,48,60,60,72,72,84,84,96,96])[v_dan];
+    v_basis := 'CBJ 2023, p.8, tabela ' || CASE WHEN v_dan<=5 THEN '3' WHEN v_dan<=7 THEN '4' ELSE '5' END
+      || ', linha ' || v_dan || 'º dan: idade mínima ' || v_min_age || ' anos; interstício ' || v_months
+      || ' meses; p.7 §2: idade por ano de nascimento, salvo 1º dan aos 16 completos; no 1º dan acima de 20 completos reduz a 1 ano.';
+    IF (CASE WHEN v_dan=1 THEN v_age ELSE v_year_age END) < v_min_age THEN v_exceptions:=array_append(v_exceptions,'age'); END IF;
+  END IF;
+  IF v_months>0 THEN
+    IF s.current_rank_date IS NULL THEN
+      v_basis:=v_basis || ' Carência indeterminável: data anterior desconhecida, sem usar matrícula.';
+    ELSIF p_granted_on < (s.current_rank_date + make_interval(months=>v_months))::date THEN
+      v_exceptions:=array_append(v_exceptions,'waiting');
+    END IF;
+    IF v_skip THEN v_basis:=v_basis || ' Salto não comprova permanência na graduação imediatamente anterior ao destino.'; END IF;
+  END IF;
+  v_basis:=v_basis || ' p.9 §§7–9: categorias/regimes especiais não aferidos pelo Casca. Orientação padrão, sem homologação, exame ou certificação.';
+  END IF;
+  IF (v_skip OR cardinality(v_exceptions)>0) AND v_reason IS NULL THEN
+    RAISE EXCEPTION 'promotion reason required' USING ERRCODE='23514';
+  END IF;
+  IF length(v_reason)>2000 THEN RAISE EXCEPTION 'promotion reason too long' USING ERRCODE='23514'; END IF;
+  UPDATE public.students SET current_rank_code=p_rank_code,current_rank_date=p_granted_on WHERE id=s.id;
+  INSERT INTO public.student_rank_promotions(student_id,reference_id,from_rank_code,from_rank_date,to_rank_code,granted_on,was_skip,reason,guidance_exceptions,guidance_basis,recorded_by)
+  VALUES(s.id,p_reference_id,s.current_rank_code,s.current_rank_date,p_rank_code,p_granted_on,v_skip,v_reason,v_exceptions,v_basis,auth.uid()) RETURNING id INTO v_id;
+  RETURN v_id;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.promote_referenced_student(uuid,text,text,date,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.promote_referenced_student(uuid,text,text,date,text) TO authenticated;
+
+
+-- #34: esporte da turma independente do público etário.
+CREATE OR REPLACE FUNCTION public.guard_class_modality() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE v_modality text;
+BEGIN
+  -- Compartilha o lock usado pela troca controlada de modalidade (#37).
+  SELECT a.modality INTO v_modality FROM public.accounts a WHERE a.id = NEW.account_id FOR SHARE;
+  IF v_modality IS NULL THEN RAISE EXCEPTION 'class account unavailable' USING ERRCODE = '23514'; END IF;
+  -- Clientes anteriores enviam apenas kind; o esporte sempre vem da academia.
+  IF TG_OP = 'INSERT' AND NEW.modality IS NULL THEN NEW.modality := v_modality; END IF;
+  IF NEW.modality IS DISTINCT FROM v_modality OR
+     (v_modality <> 'jiu_jitsu' AND NEW.kind <> 'adult'::public.student_kind) THEN
+    RAISE EXCEPTION 'incompatible class modality or audience' USING ERRCODE = '23514';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = NEW.instructor_profile_id
+    AND p.account_id = NEW.account_id AND p.role = 'professor'::public.profile_role) THEN
+    RAISE EXCEPTION 'instructor unavailable' USING ERRCODE = '23514';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.guard_class_modality() FROM PUBLIC, anon, authenticated;
+DROP TRIGGER IF EXISTS classes_guard_modality ON public.classes;
+CREATE TRIGGER classes_guard_modality BEFORE INSERT OR UPDATE ON public.classes
+FOR EACH ROW EXECUTE FUNCTION public.guard_class_modality();
+
+-- RLS limita o ator; estes guards validam também as FKs reais dentro do tenant.
+CREATE OR REPLACE FUNCTION public.guard_class_relation() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE v_modality text;
+BEGIN
+  SELECT a.modality INTO v_modality FROM public.classes c
+  JOIN public.accounts a ON a.id = c.account_id
+  WHERE c.id = NEW.class_id AND c.account_id = NEW.account_id
+    AND c.modality = a.modality
+    AND (a.modality = 'jiu_jitsu' OR c.kind = 'adult'::public.student_kind)
+  FOR SHARE OF a, c;
+  IF v_modality IS NULL THEN RAISE EXCEPTION 'class unavailable' USING ERRCODE = '23514'; END IF;
+  IF TG_TABLE_NAME = 'student_class_enrollments' THEN
+    IF NOT EXISTS (
+    SELECT 1 FROM public.students s WHERE s.id = NEW.student_id AND s.account_id = NEW.account_id
+      AND s.archived_at IS NULL AND s.removed_at IS NULL
+      AND (v_modality = 'jiu_jitsu' OR (s.kind = 'adult'::public.student_kind AND s.birth_date IS NOT NULL
+        AND s.birth_date <= ((pg_catalog.now() AT TIME ZONE 'America/Sao_Paulo')::date - interval '18 years')::date))
+    ) THEN RAISE EXCEPTION 'student unavailable' USING ERRCODE = '23514'; END IF;
+  END IF;
+  -- Não impor igualdade literal entre kind da turma e da ficha JJ:
+  -- o público Baby legado pode ter ficha kids.
+  RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.guard_class_relation() FROM PUBLIC, anon, authenticated;
+DROP TRIGGER IF EXISTS schedules_guard_class_relation ON public.class_recurring_schedules;
+CREATE TRIGGER schedules_guard_class_relation BEFORE INSERT OR UPDATE ON public.class_recurring_schedules
+FOR EACH ROW EXECUTE FUNCTION public.guard_class_relation();
+DROP TRIGGER IF EXISTS sessions_guard_class_relation ON public.class_sessions;
+CREATE TRIGGER sessions_guard_class_relation BEFORE INSERT OR UPDATE ON public.class_sessions
+FOR EACH ROW EXECUTE FUNCTION public.guard_class_relation();
+DROP TRIGGER IF EXISTS enrollments_guard_class_relation ON public.student_class_enrollments;
+CREATE TRIGGER enrollments_guard_class_relation BEFORE INSERT OR UPDATE ON public.student_class_enrollments
+FOR EACH ROW EXECUTE FUNCTION public.guard_class_relation();
+
+CREATE OR REPLACE FUNCTION public.guard_session_participant() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE v_class_id uuid; v_modality text;
+BEGIN
+  SELECT c.id, a.modality INTO v_class_id, v_modality FROM public.class_sessions cs
+  JOIN public.classes c ON c.id = cs.class_id AND c.account_id = cs.account_id
+  JOIN public.accounts a ON a.id = c.account_id
+  WHERE cs.id = NEW.class_session_id AND cs.account_id = NEW.account_id AND c.modality = a.modality
+    AND (a.modality = 'jiu_jitsu' OR c.kind = 'adult'::public.student_kind)
+  FOR SHARE OF a, c, cs;
+  IF v_class_id IS NULL OR NOT EXISTS (
+    SELECT 1 FROM public.student_class_enrollments e
+    JOIN public.students s ON s.id = e.student_id AND s.account_id = e.account_id
+    WHERE e.class_id = v_class_id AND e.student_id = NEW.student_id AND e.account_id = NEW.account_id
+      AND s.archived_at IS NULL AND s.removed_at IS NULL
+      AND (v_modality = 'jiu_jitsu' OR (s.kind = 'adult'::public.student_kind AND s.birth_date IS NOT NULL
+        AND s.birth_date <= ((pg_catalog.now() AT TIME ZONE 'America/Sao_Paulo')::date - interval '18 years')::date))
+  ) THEN RAISE EXCEPTION 'session or enrolled student unavailable' USING ERRCODE = '23514'; END IF;
+  IF TG_TABLE_NAME = 'attendances' THEN
+    IF NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = NEW.recorded_by
+      AND p.account_id = NEW.account_id AND p.role = 'professor'::public.profile_role) THEN
+      RAISE EXCEPTION 'attendance recorder unavailable' USING ERRCODE = '23514';
+    END IF;
+    IF NEW.origin = 'checkin_student'::public.attendance_origin AND NOT EXISTS (
+      SELECT 1 FROM public.check_ins ci WHERE ci.class_session_id = NEW.class_session_id
+        AND ci.student_id = NEW.student_id AND ci.account_id = NEW.account_id
+    ) THEN RAISE EXCEPTION 'check-in unavailable' USING ERRCODE = '23514'; END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.guard_session_participant() FROM PUBLIC, anon, authenticated;
+DROP TRIGGER IF EXISTS check_ins_guard_session_participant ON public.check_ins;
+CREATE TRIGGER check_ins_guard_session_participant BEFORE INSERT OR UPDATE ON public.check_ins
+FOR EACH ROW EXECUTE FUNCTION public.guard_session_participant();
+DROP TRIGGER IF EXISTS attendances_guard_session_participant ON public.attendances;
+CREATE TRIGGER attendances_guard_session_participant BEFORE INSERT OR UPDATE ON public.attendances
+FOR EACH ROW EXECUTE FUNCTION public.guard_session_participant();
+
+-- #37: pagamento e documento esperam o mesmo lock da troca de modalidade.
+CREATE OR REPLACE FUNCTION public.lock_account_for_modality_switch() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE v_account uuid;
+BEGIN
+  IF TG_TABLE_NAME = 'payments' THEN
+    SELECT s.account_id INTO v_account FROM public.students s WHERE s.id = NEW.student_id;
+  ELSE
+    v_account := NEW.account_id;
+  END IF;
+  PERFORM 1 FROM public.accounts a WHERE a.id = v_account FOR SHARE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'account unavailable' USING ERRCODE = '23514'; END IF;
+  RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.lock_account_for_modality_switch() FROM PUBLIC, anon, authenticated;
+DROP TRIGGER IF EXISTS payments_lock_account_for_modality_switch ON public.payments;
+CREATE TRIGGER payments_lock_account_for_modality_switch
+BEFORE INSERT OR UPDATE ON public.payments
+FOR EACH ROW EXECUTE FUNCTION public.lock_account_for_modality_switch();
+DROP TRIGGER IF EXISTS generated_documents_lock_account_for_modality_switch ON public.generated_documents;
+CREATE TRIGGER generated_documents_lock_account_for_modality_switch
+BEFORE INSERT OR UPDATE ON public.generated_documents
+FOR EACH ROW EXECUTE FUNCTION public.lock_account_for_modality_switch();
+
+CREATE OR REPLACE FUNCTION public.switch_academy_modality(p_target text) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+  v_account uuid;
+  v_role text;
+  v_current text;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'modality switch requires professor' USING ERRCODE = '42501';
+  END IF;
+  SELECT p.account_id, p.role::text INTO v_account, v_role
+  FROM public.profiles p WHERE p.user_id = auth.uid();
+  IF v_account IS NULL OR v_role IS DISTINCT FROM 'professor' THEN
+    RAISE EXCEPTION 'modality switch requires professor' USING ERRCODE = '42501';
+  END IF;
+  IF p_target IS NULL OR p_target NOT IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo') THEN
+    RAISE EXCEPTION 'invalid academy modality' USING ERRCODE = '22023';
+  END IF;
+
+  SELECT a.modality INTO v_current FROM public.accounts a WHERE a.id = v_account FOR UPDATE;
+  IF v_current IS NULL THEN
+    RAISE EXCEPTION 'modality switch requires professor' USING ERRCODE = '42501';
+  END IF;
+  IF v_current = p_target THEN
+    RAISE EXCEPTION 'modality already selected' USING ERRCODE = '22023';
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM public.students s WHERE s.account_id = v_account)
+     OR EXISTS (SELECT 1 FROM public.classes c WHERE c.account_id = v_account)
+     OR EXISTS (SELECT 1 FROM public.class_sessions cs WHERE cs.account_id = v_account)
+     OR EXISTS (
+       SELECT 1 FROM public.payments pay
+       JOIN public.students s ON s.id = pay.student_id
+       WHERE s.account_id = v_account
+     )
+     OR EXISTS (SELECT 1 FROM public.generated_documents d WHERE d.account_id = v_account)
+  THEN
+    RAISE EXCEPTION 'academy is not empty' USING ERRCODE = '23514';
+  END IF;
+
+  UPDATE public.accounts
+  SET modality = p_target, updated_at = pg_catalog.now()
+  WHERE id = v_account;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.switch_academy_modality(text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.switch_academy_modality(text) TO authenticated;
+COMMENT ON FUNCTION public.switch_academy_modality(text) IS
+  'Troca a modalidade só sem aluno, turma, aula, pagamento ou documento. Planos comerciais não entram na trava e não são apagados.';

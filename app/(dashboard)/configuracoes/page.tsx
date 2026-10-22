@@ -53,6 +53,7 @@ export default async function ConfiguracoesPage() {
 
         <ConfiguracoesClient
           initialAccountName={data.ctx.account.name}
+          modality={data.ctx.account.modality}
           plans={data.plans}
           receiver={data.receiver}
         />
