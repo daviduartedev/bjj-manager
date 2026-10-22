@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserRound } from "lucide-react";
 
-import { JudoBeltIllustration } from "@/components/graduation/referenced-rank-display";
+import { JudoBeltIllustration, MuayThaiKhanIllustration } from "@/components/graduation/referenced-rank-display";
 import { ReferencedGraduationReference } from "@/components/graduation/referenced-graduation-reference";
 import { referencedGraduationSummary } from "@/lib/modalities/referenced-graduation-summary";
 import { BeltIllustration } from "@/components/graduation/belt-illustration";
@@ -274,6 +274,7 @@ export function StudentProfileClient({
               <CardHeader className="pb-2">
                 <div className="flex flex-wrap items-center gap-4">
                   {rankSummary.rank?.modality === "judo" ? <JudoBeltIllustration rank={rankSummary.rank} decorative /> : null}
+                  {rankSummary.rank?.modality === "muay_thai" ? <MuayThaiKhanIllustration rank={rankSummary.rank} decorative /> : null}
                   {beltSlug && beltKind ? (
                     <BeltIllustration
                       slug={beltSlug}

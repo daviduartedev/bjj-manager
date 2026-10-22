@@ -16,10 +16,27 @@ export function JudoBeltIllustration({ rank, compact = false, decorative = false
   </svg>;
 }
 
+/** Cordão (prajioud) com a cor do khan. Duas cores formam trançado diagonal. Ilustração do Casca, sem valor federativo. */
+export function MuayThaiKhanIllustration({ rank, compact = false, decorative = false }: { rank: ReferencedRank; compact?: boolean; decorative?: boolean }) {
+  const first = colors[rank.colors[0]];
+  const second = rank.colors[1] ? colors[rank.colors[1]] : null;
+  const id = `khan-rope-${rank.code}`;
+  return <svg viewBox="0 0 160 48" width={compact ? 72 : 160} height={compact ? 24 : 48} role={decorative ? undefined : "img"} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : `Cordão de Muay Thai: ${rank.label}`} className="shrink-0 rounded bg-white">
+    <title>{`Cordão de Muay Thai: ${rank.label}`}</title>
+    <defs><clipPath id={id}><rect x="6" y="17" width="124" height="14" rx="7" /></clipPath></defs>
+    <rect x="6" y="17" width="124" height="14" rx="7" fill={first} />
+    {second ? <g clipPath={`url(#${id})`}>{Array.from({ length: 12 }, (_, i) => <path key={i} d={`M${6 + i * 12} 31 L${14 + i * 12} 17 L${20 + i * 12} 17 L${12 + i * 12} 31 Z`} fill={second} />)}</g> : null}
+    <rect x="6" y="17" width="124" height="14" rx="7" fill="none" stroke="#475569" strokeWidth="1.5" />
+    <path d="M130 24 C140 10 152 12 152 22 C152 28 144 30 140 24 M130 24 C140 38 152 36 152 26" fill="none" stroke={first} strokeWidth="5" strokeLinecap="round" />
+    <path d="M130 24 C140 10 152 12 152 22 C152 28 144 30 140 24 M130 24 C140 38 152 36 152 26" fill="none" stroke="#475569" strokeWidth="1" strokeLinecap="round" />
+  </svg>;
+}
+
 /** Reutilizado no seletor, na ficha, na lista e na apresentação do histórico. */
 export function ReferencedRankDisplay({ rank, compact = false }: { rank: ReferencedRank; compact?: boolean }) {
   return <span className="inline-flex flex-wrap items-center gap-2">
     {rank.modality === "judo" ? <JudoBeltIllustration rank={rank} compact={compact} decorative /> : null}
+    {rank.modality === "muay_thai" ? <MuayThaiKhanIllustration rank={rank} compact={compact} decorative /> : null}
     <span>{rank.label}</span>
   </span>;
 }
