@@ -1,10 +1,12 @@
-import { academyRegistrationSchema } from "@/lib/validations/academy-registration";
+import { academyRegistrationSchema, type AcademyOnboarding } from "@/lib/validations/academy-registration";
 
 export const ACADEMY_REGISTRATION_WAITING_MESSAGE =
   "Abra o link de confirmação que enviamos, neste navegador, para entrar no painel.";
 
 export const REGISTRATION_FAILED_MESSAGE =
   "Não foi possível concluir o cadastro. Tente novamente.";
+export const REGISTRATION_RATE_LIMIT_MESSAGE =
+  "O envio de confirmações atingiu o limite temporário. Aguarde alguns minutos e tente novamente.";
 
 export type AcademyRegistrationResult =
   | { ok: true; message: string }
@@ -23,10 +25,12 @@ export type SignupCallResult = {
 
 type RegistrationDeps = {
   appUrl: string;
+  validateMunicipality?: (selection: Pick<AcademyOnboarding, "state" | "cityId" | "city">) => Promise<boolean>;
   signUp: (args: {
     email: string;
     password: string;
     emailRedirectTo: string;
+    onboarding?: AcademyOnboarding;
   }) => Promise<SignupCallResult>;
   recordIntent: (args: {
     userId: string;
@@ -80,6 +84,12 @@ function indicatesExistingEmail(result: SignupCallResult): boolean {
   return Boolean(result.user?.id) && !indicatesCreatedUser(result.user);
 }
 
+function indicatesEmailRateLimit(result: SignupCallResult): boolean {
+  const code = result.error?.code ?? "";
+  const message = result.error?.message.toLowerCase() ?? "";
+  return code === "over_email_send_rate_limit" || message.includes("email rate limit");
+}
+
 /**
  * Cadastro público. A frase de espera é a mesma para e-mail novo e e-mail já
  * usado, para a resposta não dizer se a conta existe. A intenção só é gravada
@@ -96,6 +106,30 @@ export async function submitAcademyRegistration(
     return { ok: false, message: REGISTRATION_FAILED_MESSAGE };
   }
 
+  if (parsed.data.onboarding) {
+    if (!deps.validateMunicipality) {
+      return {
+        ok: false,
+        fieldErrors: { "onboarding.city": ["Não foi possível validar a cidade agora. Tente novamente."] },
+      };
+    }
+
+    try {
+      const valid = await deps.validateMunicipality(parsed.data.onboarding);
+      if (!valid) {
+        return {
+          ok: false,
+          fieldErrors: { "onboarding.city": ["Selecione uma cidade válida para o estado informado."] },
+        };
+      }
+    } catch {
+      return {
+        ok: false,
+        fieldErrors: { "onboarding.city": ["Não foi possível validar a cidade agora. Tente novamente."] },
+      };
+    }
+  }
+
   const emailRedirectTo = academySignupCallbackUrl({
     NEXT_PUBLIC_APP_URL: deps.appUrl,
   });
@@ -104,7 +138,19 @@ export async function submitAcademyRegistration(
     email: parsed.data.email,
     password: parsed.data.password,
     emailRedirectTo,
+    ...(parsed.data.onboarding ? { onboarding: parsed.data.onboarding } : {}),
   });
+
+  if (indicatesEmailRateLimit(signup)) {
+    return { ok: false, message: REGISTRATION_RATE_LIMIT_MESSAGE };
+  }
+
+  if (signup.error?.code === "weak_password") {
+    return {
+      ok: false,
+      fieldErrors: { password: ["A senha foi recusada pelos controles de segurança. Escolha outra senha."] },
+    };
+  }
 
   if (indicatesCreatedUser(signup.user)) {
     const recorded = await deps.recordIntent({

@@ -1131,7 +1131,7 @@ BEGIN
 
   INSERT INTO public.academy_registration_intents (user_id, academy_name, display_name)
   VALUES (record_academy_registration.user_id, v_academy_name, v_display_name)
-  ON CONFLICT (user_id) DO NOTHING;
+  ON CONFLICT ON CONSTRAINT academy_registration_intents_pkey DO NOTHING;
 END;
 $$;
 

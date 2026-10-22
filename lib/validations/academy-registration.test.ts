@@ -1,19 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { academyRegistrationSchema } from "./academy-registration";
+import { academyOnboardingSchema, academyRegistrationSchema } from "./academy-registration";
 
 const valid = {
   email: "ana@academia.com",
-  password: "senha-segura",
+  password: "luta-longa-no-tatame",
   academyName: "Academia Casca",
   displayName: "Ana Souza",
 };
 
 describe("academyRegistrationSchema", () => {
-  it("aceita e-mail, senha de 8 e nomes entre 2 e 80, já aparados", () => {
+  it("aceita frase-senha longa sem exigir combinação artificial de caracteres", () => {
     const parsed = academyRegistrationSchema.safeParse({
       email: "  Ana@Academia.com ",
-      password: "12345678",
+      password: "frase-senha-com-mais-de-quinze",
       academyName: "  Casca  ",
       displayName: "  Ana  ",
     });
@@ -22,7 +22,7 @@ describe("academyRegistrationSchema", () => {
     if (!parsed.success) return;
     expect(parsed.data).toEqual({
       email: "ana@academia.com",
-      password: "12345678",
+      password: "frase-senha-com-mais-de-quinze",
       academyName: "Casca",
       displayName: "Ana",
     });
@@ -39,16 +39,40 @@ describe("academyRegistrationSchema", () => {
     expect(parsed.error.flatten().fieldErrors.email?.[0]).toBe("Digite um e-mail válido.");
   });
 
-  it("recusa senha com menos de 8 caracteres", () => {
+  it("recusa senha com menos de 15 caracteres", () => {
     const parsed = academyRegistrationSchema.safeParse({
       ...valid,
-      password: "1234567",
+      password: "curta-14-chars",
     });
 
     expect(parsed.success).toBe(false);
     if (parsed.success) return;
     expect(parsed.error.flatten().fieldErrors.password?.[0]).toBe(
-      "A senha precisa ter pelo menos 8 caracteres.",
+      "A senha precisa ter pelo menos 15 caracteres.",
+    );
+  });
+
+  it("aceita 15 caracteres sem exigir classes artificiais e suporta Unicode dentro do limite do Auth", () => {
+    expect(academyRegistrationSchema.safeParse({
+      ...valid,
+      password: "a".repeat(15),
+    }).success).toBe(true);
+    expect(academyRegistrationSchema.safeParse({
+      ...valid,
+      password: "😀".repeat(15),
+    }).success).toBe(true);
+  });
+
+  it("rejeita senhas que excedem o limite de bytes do Supabase Auth", () => {
+    const parsed = academyRegistrationSchema.safeParse({
+      ...valid,
+      password: "😀".repeat(19),
+    });
+
+    expect(parsed.success).toBe(false);
+    if (parsed.success) return;
+    expect(parsed.error.flatten().fieldErrors.password?.[0]).toBe(
+      "A senha excede o limite aceito pelo provedor de autenticação.",
     );
   });
 
@@ -107,5 +131,25 @@ describe("academyRegistrationSchema", () => {
         emailRedirectTo: "https://evil.example/auth/callback",
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("academyOnboardingSchema", () => {
+  const validOnboarding = {
+    city: "Campinas",
+    cityId: "3509502",
+    state: "SP",
+    stage: "operating",
+    studentRange: "31-100",
+    audiences: ["adult"],
+    priorities: ["students"],
+  };
+
+  it("rejects a municipality code from a different state", () => {
+    const parsed = academyOnboardingSchema.safeParse({ ...validOnboarding, state: "RJ" });
+
+    expect(parsed.success).toBe(false);
+    if (parsed.success) return;
+    expect(parsed.error.issues[0]?.message).toBe("A cidade selecionada não pertence ao estado informado.");
   });
 });

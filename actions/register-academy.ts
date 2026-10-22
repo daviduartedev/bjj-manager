@@ -4,6 +4,7 @@ import {
   submitAcademyRegistration,
   type SignupCallResult,
 } from "@/lib/auth/register-academy";
+import { isBrazilianMunicipalitySelectionValid } from "@/lib/localities/ibge";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,6 +19,7 @@ export async function registerAcademy(input: unknown) {
 
   return submitAcademyRegistration(input, {
     appUrl,
+    validateMunicipality: isBrazilianMunicipalitySelectionValid,
     async signUp(args) {
       if (!admin) {
         return { user: null, error: { message: "registration unavailable" } };
@@ -27,7 +29,11 @@ export async function registerAcademy(input: unknown) {
       const { data, error } = await supabase.auth.signUp({
         email: args.email,
         password: args.password,
-        options: { emailRedirectTo: args.emailRedirectTo },
+        options: {
+          emailRedirectTo: args.emailRedirectTo,
+          // Descriptive only: eligibility still comes exclusively from the registration intent.
+          ...(args.onboarding ? { data: { academy_onboarding: args.onboarding } } : {}),
+        },
       });
 
       const identities = data.user?.identities;
