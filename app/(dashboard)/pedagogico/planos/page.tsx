@@ -4,6 +4,7 @@ import { BookOpen } from "lucide-react";
 import { PlansList } from "@/components/lesson-plans/plans-list";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { PageFrame } from "@/components/prototype/page-frame";
+import { getCurrentAccount } from "@/lib/auth";
 import { loadLessonPlansList } from "@/lib/data/lesson-plans-page";
 
 export const metadata: Metadata = {
@@ -22,9 +23,14 @@ export default async function PlanosPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const planKind = params.kind && (KIND_VALUES as readonly string[]).includes(params.kind)
+  const ctx = await getCurrentAccount();
+  const modality = ctx?.account.modality ?? "jiu_jitsu";
+  const requestedKind = params.kind && (KIND_VALUES as readonly string[]).includes(params.kind)
     ? (params.kind as (typeof KIND_VALUES)[number])
     : undefined;
+  const planKind = modality !== "jiu_jitsu" && requestedKind && requestedKind !== "adult"
+    ? undefined
+    : requestedKind;
   const status = params.status && (STATUS_VALUES as readonly string[]).includes(params.status)
     ? (params.status as (typeof STATUS_VALUES)[number])
     : undefined;
@@ -44,7 +50,7 @@ export default async function PlanosPage({
           icon={BookOpen}
           title="Planos"
         >
-          <PlansList rows={rows} />
+          <PlansList rows={rows} modality={modality} />
         </DashboardPanel>
       </div>
     </PageFrame>

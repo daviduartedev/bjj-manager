@@ -39,3 +39,8 @@ Após implementação e validação, propor atualizar modalidade/graduação, al
 - Servidor e triggers recusam modalidade, instrutor, aluno, aula, vínculo, check-in ou presença de outro tenant ou incompatíveis com a conta. Check-in continua separado da presença manual; remover presença não apaga o check-in.
 - Portal lê somente a ficha da sessão e mostra graduação JJ, nível Judô/Muay com data desconhecida explícita, ou nenhum bloco de graduação no Boxe. Aluno não opera turma.
 - Planos e mensalidades não ganham cobrança por modalidade. Propor atualização das specs de turmas/portal/schema após integração e validação humana; não promover automaticamente para spec/.
+
+## T8 / #35 — proposta após implementação
+- KPIs de alunos, carteira, recebido e aulas permanecem. O alerta de prontidão 120/365 dias e o quadro de faixas ficam só no Jiu-Jitsu.
+- Boxe não mostra distribuição nem alerta de graduação. Judô e Muay Thai mostram a graduação atual por nível, com rótulos que separam níveis da mesma cor. Data desconhecida não vira duração nem elegibilidade a partir da entrada.
+- Seletores de plano/público em mensalidades e planos de aula oferecem só Adulto fora do Jiu-Jitsu, sem apagar cadastros comerciais. Títulos esportivos não alteram permissão. Não promove estas notas automaticamente para spec/.

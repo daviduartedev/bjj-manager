@@ -31,7 +31,9 @@ export function attentionItems(props: PainelDashboardProps): AttentionItem[] {
     { reason: "Vence hoje", tone: "amber", rows: props.dueToday },
     { reason: "Atraso +14 dias", tone: "rose", rows: props.overdue14 },
     { reason: "Aniversário", tone: "violet", rows: props.birthdayToday },
-    { reason: "Faixa ou grau", tone: "sky", rows: props.graduationAlerts },
+    ...(props.modality === "jiu_jitsu"
+      ? [{ reason: "Faixa ou grau", tone: "sky" as const, rows: props.graduationAlerts }]
+      : []),
   ];
   return groups.flatMap((group) =>
     group.rows.map((row) => ({

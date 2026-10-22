@@ -149,3 +149,13 @@ Planejamento aprovado; implementação iniciada. Evidências por ticket abaixo; 
 - A app do worktree seguia em `http://localhost:3102` (IPv6 `::1`); `127.0.0.1:3102` não escuta. Postgres descartável `casca-modalidades-test` seguia em `127.0.0.1:5549`.
 - Fixture não commitada `/issue34-fixture` respondeu 200 para Boxe, Judô, Muay Thai e Jiu-Jitsu. Boxe não renderiza o bloco de graduação e informa público adulto 18+; Judô e Muay Thai renderizam a data da graduação; Jiu-Jitsu renderiza a faixa azul e não o aviso exclusivo de 18+.
 - Árvore de acessibilidade já capturada na sessão interrompida: combobox "Público" e "Aluno para inscrever na turma", com o painel de inscrição em coluna estreita. Não houve nova passagem de teclado/viewport 390 px nesta retomada; isso entra no roteiro final, não nesta prova. A fixture não substitui a jornada autenticada professor → turma → presença → portal.
+
+## T8 / #35 — 22/10/2026
+
+### TDD e verificações direcionadas
+- `pnpm exec vitest run lib/data/painel-graduation.test.ts lib/students/graduation-reference.test.ts`: **11 testes aprovados em 2 arquivos**. Jiu-Jitsu conserva o alerta de quem está na faixa desde 2024-01-01 consultado em 2025-01-05 e as faixas Branca, Azul e Cinza/Branca. Boxe com entrada em 2020 não gera alerta nem distribuição. Judô separa 9º e 10º dan vermelhos sem alerta apesar da matrícula antiga e da data nula. Muay Thai separa 16º e 19º khan dourados, também sem alerta.
+- `pnpm type-check`: aprovado.
+- Inspeção do carregador: contagens de alunos, atrasos, recebido, mix e sessões continuam nas funções anteriores, sem ramo por modalidade. Não houve migração nem alteração de permissão.
+
+### Limites
+- Smoke autenticado do painel e a passagem de teclado/mobile ficam no roteiro final. Não fecha issues antigas de evolução do painel nem a trilha React Aria.
