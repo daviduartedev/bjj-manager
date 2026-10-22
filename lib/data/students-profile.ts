@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import type { RankPromotionRow } from "@/lib/modalities/referenced-promotion";
 import {
   calculateAge,
   timeAtCurrentBelt,
@@ -87,6 +88,15 @@ export async function getStudentProfileById(
     .maybeSingle();
 
   if (stErr || !st) return null;
+
+  let rankPromotions: RankPromotionRow[] = [];
+  if (st.graduation_reference_id === "cbj-2023") {
+    const { data, error } = await supabase.from("student_rank_promotions")
+      .select("id,reference_id,from_rank_code,from_rank_date,to_rank_code,granted_on,was_skip,reason,guidance_exceptions,guidance_basis")
+      .eq("student_id", studentId).order("granted_on", { ascending: false }).order("event_order", { ascending: false });
+    if (error) throw error;
+    rankPromotions = (data ?? []) as RankPromotionRow[];
+  }
 
   const beltRel = relationOne(
     st.belts as
@@ -269,6 +279,7 @@ export async function getStudentProfileById(
     currentBelt: beltRel,
     billing,
     graduations,
+    rankPromotions,
     paymentsRecent,
     todayYmd,
     currentMonthFirstDay,

@@ -733,3 +733,27 @@ CREATE INDEX IF NOT EXISTS idx_check_ins_student_id ON public.check_ins (student
 CREATE INDEX IF NOT EXISTS idx_attendances_account_id ON public.attendances (account_id);
 
 CREATE INDEX IF NOT EXISTS idx_attendances_class_session_id ON public.attendances (class_session_id);
+
+-- #32: eventos próprios, graduação atual e evento numa transação com lock da ficha.
+CREATE TABLE IF NOT EXISTS public.student_rank_promotions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_order bigint GENERATED ALWAYS AS IDENTITY UNIQUE,
+  student_id uuid NOT NULL REFERENCES public.students(id) ON DELETE RESTRICT,
+  reference_id text NOT NULL,
+  from_rank_code text NOT NULL,
+  from_rank_date date NULL,
+  to_rank_code text NOT NULL,
+  granted_on date NOT NULL,
+  was_skip boolean NOT NULL,
+  reason text NULL CHECK (reason IS NULL OR (length(btrim(reason)) BETWEEN 1 AND 2000)),
+  guidance_exceptions text[] NOT NULL DEFAULT '{}',
+  guidance_basis text NOT NULL,
+  recorded_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  FOREIGN KEY(reference_id,from_rank_code) REFERENCES public.graduation_ranks(reference_id,code),
+  FOREIGN KEY(reference_id,to_rank_code) REFERENCES public.graduation_ranks(reference_id,code),
+  CHECK (NOT was_skip OR reason IS NOT NULL),
+  CHECK (cardinality(guidance_exceptions)=0 OR reason IS NOT NULL)
+);
+CREATE INDEX IF NOT EXISTS student_rank_promotions_student_date ON public.student_rank_promotions(student_id,granted_on DESC,created_at DESC);
+ALTER TABLE public.student_rank_promotions ADD COLUMN IF NOT EXISTS event_order bigint GENERATED ALWAYS AS IDENTITY UNIQUE;

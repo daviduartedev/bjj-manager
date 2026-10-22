@@ -1,4 +1,5 @@
 import type { ReferencedGraduationFields } from "@/lib/modalities/referenced-ranks";
+import type { RankPromotionRow } from "@/lib/modalities/referenced-promotion";
 import {
   formatDateBR,
   toCalendarDateStringInAppTZ,
@@ -51,6 +52,7 @@ export type StudentProfilePayload = ReferencedGraduationFields & {
     due_day: number;
   } | null;
   graduations: ProfileGraduationRow[];
+  rankPromotions?: RankPromotionRow[];
   paymentsRecent: ProfilePaymentRow[];
   todayYmd: string;
   currentMonthFirstDay: string;
