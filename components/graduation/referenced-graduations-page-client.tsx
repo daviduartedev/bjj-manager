@@ -18,7 +18,8 @@ export function ReferencedGraduationsPageClient({ profile }: { profile: StudentP
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const summary = referencedGraduationSummary(profile, profile.todayYmd);
-  return <PageFrame title={`Graduações — ${profile.full_name}`} emoji="🥋" icon={Award} tone="rose" context="Judô · graduação concedida">
+  const modality = summary.rank?.modality ?? "judo";
+  return <PageFrame title={`Graduações — ${profile.full_name}`} emoji="🥋" icon={Award} tone="rose" context={`${modality === "judo" ? "Judô" : "Muay Thai"} · graduação concedida`}>
     <div className="space-y-5">
       <DashboardBackLink href={routeAlunoPerfil(profile.id)}>Perfil do aluno</DashboardBackLink>
       <Card><CardContent className="space-y-3 p-4">
@@ -27,9 +28,9 @@ export function ReferencedGraduationsPageClient({ profile }: { profile: StudentP
         <p className="text-sm text-muted-foreground">{summary.dateLabel} · {summary.durationLabel}</p>
         <Button onClick={() => setOpen(true)}>Promover</Button>
       </CardContent></Card>
-      <ReferencedGraduationReference modality="judo" />
+      <ReferencedGraduationReference modality={modality} />
       <ReferencedPromotionHistory events={profile.rankPromotions ?? []} current={profile} />
-      {profile.current_rank_code && profile.birth_date ? <ReferencedPromotionDialog open={open} onOpenChange={setOpen} onSuccess={() => router.refresh()}
+      {profile.current_rank_code && profile.birth_date ? <ReferencedPromotionDialog modality={modality} open={open} onOpenChange={setOpen} onSuccess={() => router.refresh()}
         studentId={profile.id} currentCode={profile.current_rank_code} currentDate={profile.current_rank_date ?? null} birthDate={profile.birth_date} today={profile.todayYmd} /> : null}
     </div>
   </PageFrame>;

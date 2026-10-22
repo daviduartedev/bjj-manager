@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserRound } from "lucide-react";
 
-import { JudoBeltIllustration, ReferencedRankDisplay } from "@/components/graduation/referenced-rank-display";
+import { JudoBeltIllustration } from "@/components/graduation/referenced-rank-display";
 import { ReferencedGraduationReference } from "@/components/graduation/referenced-graduation-reference";
 import { referencedGraduationSummary } from "@/lib/modalities/referenced-graduation-summary";
 import { BeltIllustration } from "@/components/graduation/belt-illustration";
@@ -162,7 +162,7 @@ export function StudentProfileClient({
               <Button className="min-h-11" asChild>
                 <Link href={routeAlunoEditar(profile.id)}>Editar</Link>
               </Button>
-              {modality === "jiu_jitsu" || modality === "judo" ? <Button
+              {modality === "jiu_jitsu" || referenced ? <Button
                 type="button"
                 variant="outline"
                 className="min-h-11"
@@ -316,20 +316,15 @@ export function StudentProfileClient({
             </ProfileSurfaceCard>
           </Section>
           <Section title="Histórico">
-            {modality === "jiu_jitsu" || modality === "judo" ? <div className="flex flex-wrap items-center justify-end gap-2">
+            {modality === "jiu_jitsu" || referenced ? <div className="flex flex-wrap items-center justify-end gap-2">
               <Button variant="outline" size="sm" className="min-h-9" asChild>
                 <Link href={routeAlunoGraduacoes(profile.id)}>
                   Ver histórico completo
                 </Link>
               </Button>
             </div> : null}
-            {modality === "judo" ? <ReferencedPromotionHistory events={profile.rankPromotions ?? []} current={profile} /> : null}
-            {modality === "muay_thai" ? <ProfileSurfaceCard><CardContent className="space-y-3 p-4">
-              <p className="text-sm text-muted-foreground">Graduação preexistente informada na ficha; sem reconstrução de eventos anteriores.</p>
-              {rankSummary.rank ? <ReferencedRankDisplay rank={rankSummary.rank} compact /> : null}
-              <p className="text-sm text-muted-foreground">{rankSummary.dateLabel} · {rankSummary.durationLabel}</p>
-            </CardContent></ProfileSurfaceCard> : null}
-            {modality === "judo" ? null : recentGraduations.length === 0 ? (
+            {referenced ? <ReferencedPromotionHistory events={profile.rankPromotions ?? []} current={profile} /> : null}
+            {referenced ? null : recentGraduations.length === 0 ? (
               <ProfileSurfaceCard>
                 <CardContent className="p-8 text-center text-sm text-muted-foreground">
                   {referenced ? "Ainda não há eventos de promoção registrados." : "Ainda não há graduações registadas."}
@@ -574,7 +569,7 @@ export function StudentProfileClient({
         onSuccess={() => router.refresh()}
       /> : null}
 
-      {modality === "judo" && profile.current_rank_code && profile.birth_date ? <ReferencedPromotionDialog
+      {referenced && profile.current_rank_code && profile.birth_date ? <ReferencedPromotionDialog modality={modality}
         open={promoteOpen} onOpenChange={setPromoteOpen} onSuccess={() => router.refresh()}
         studentId={profile.id} currentCode={profile.current_rank_code} currentDate={profile.current_rank_date ?? null}
         birthDate={profile.birth_date} today={profile.todayYmd}

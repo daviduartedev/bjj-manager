@@ -1,5 +1,5 @@
 import { calculateAge, parseCalendarDate } from "@/lib/dates";
-import { findReferencedRank, JUDO_REFERENCE } from "./referenced-ranks";
+import { findReferencedRank, JUDO_REFERENCE, MUAY_THAI_REFERENCE } from "./referenced-ranks";
 
 export type RankPromotionRow = {
   id: string;
@@ -13,6 +13,18 @@ export type RankPromotionRow = {
   guidance_exceptions: string[];
   guidance_basis: string;
 };
+
+/** Muay usa somente a ordem do khan; a tabela adotada não documenta critérios de concessão. */
+export function assessReferencedPromotion(input: { modality: "judo" | "muay_thai"; fromCode: string; fromDate: string | null; toCode: string; birthDate: string; date: string }) {
+  if (input.modality === "judo") return assessJudoPromotion(input);
+  const from = findReferencedRank(MUAY_THAI_REFERENCE.id, input.fromCode);
+  const to = findReferencedRank(MUAY_THAI_REFERENCE.id, input.toCode);
+  return {
+    wasSkip: !!from && !!to && to.ordinal - from.ordinal > 1,
+    exceptions: [] as string[],
+    guidance: ["CBMTT 19 khan: a tabela adotada não informa edição, idades ou carências.", "Registre uma graduação concedida, sem exame, SNG, homologação ou certificação CBMTT/IFMA."],
+  };
+}
 
 /** Orientação padrão da edição adotada, não uma decisão de homologação. */
 export function assessJudoPromotion(input: { fromCode: string; fromDate: string | null; toCode: string; birthDate: string; date: string }) {

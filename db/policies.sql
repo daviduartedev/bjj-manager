@@ -1406,7 +1406,7 @@ DECLARE
   v_from smallint; v_to smallint; v_modality text;
   v_skip boolean;
   v_reason text := nullif(regexp_replace(p_reason,
-    '^[[:space:]' || chr(160) || chr(65279) || ']+|[[:space:]' || chr(160) || chr(65279) || ']+$', '', 'g'),'');
+    '^[[:space:]' || chr(160) || chr(8199) || chr(8239) || chr(65279) || ']+|[[:space:]' || chr(160) || chr(8199) || chr(8239) || chr(65279) || ']+$', '', 'g'),'');
   v_age integer; v_year_age integer; v_dan integer; v_min_age integer; v_months integer := 0;
   v_exceptions text[] := '{}'; v_basis text; v_id uuid;
 BEGIN
@@ -1416,7 +1416,8 @@ BEGIN
   SELECT * INTO s FROM public.students WHERE id=p_student_id AND account_id=public.current_account_id() FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'promotion unavailable' USING ERRCODE='42501'; END IF;
   SELECT modality INTO v_modality FROM public.accounts WHERE id=s.account_id FOR SHARE;
-  IF v_modality <> 'judo' OR p_reference_id IS DISTINCT FROM 'cbj-2023'
+  IF v_modality NOT IN ('judo','muay_thai')
+    OR p_reference_id IS DISTINCT FROM (CASE v_modality WHEN 'judo' THEN 'cbj-2023' ELSE 'cbmtt-19-khan' END)
     OR s.graduation_reference_id IS DISTINCT FROM p_reference_id THEN
     RAISE EXCEPTION 'invalid promotion rank' USING ERRCODE='23514';
   END IF;
@@ -1430,6 +1431,9 @@ BEGIN
     RAISE EXCEPTION 'invalid promotion date' USING ERRCODE='23514';
   END IF;
   v_skip := v_to-v_from>1;
+  IF v_modality = 'muay_thai' THEN
+    v_basis := 'CBMTT — Tabela de graduação de 19 khan; https://www.cbmtt.org.br/images/graduacoes-cbmtt.jpg; consulta 22/10/2026. A tabela não informa edição, idades ou carências. Sem equivalência declarada com IFMA 15 khan; o Casca não atribui créditos. Registro de graduação concedida, sem exame, SNG, homologação ou certificação CBMTT/IFMA. Títulos esportivos não concedem permissões de acesso.';
+  ELSE
   v_age := extract(year FROM age(p_granted_on,s.birth_date));
   v_year_age := extract(year FROM p_granted_on)-extract(year FROM s.birth_date);
   -- CBJ 2023 p7 §5/tabela1: dispensa adulta nas básicas; tabela2 intermediárias permanece explícita.
@@ -1463,6 +1467,7 @@ BEGIN
     IF v_skip THEN v_basis:=v_basis || ' Salto não comprova permanência na graduação imediatamente anterior ao destino.'; END IF;
   END IF;
   v_basis:=v_basis || ' p.9 §§7–9: categorias/regimes especiais não aferidos pelo Casca. Orientação padrão, sem homologação, exame ou certificação.';
+  END IF;
   IF (v_skip OR cardinality(v_exceptions)>0) AND v_reason IS NULL THEN
     RAISE EXCEPTION 'promotion reason required' USING ERRCODE='23514';
   END IF;

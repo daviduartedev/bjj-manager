@@ -16,7 +16,7 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const context = await getCurrentAccount();
-  if (context?.account.modality === "judo") {
+  if (context?.account.modality === "judo" || context?.account.modality === "muay_thai") {
     const profile = await getStudentProfileById(id);
     return { title: profile ? `Graduações — ${profile.full_name}` : "Graduações" };
   }
@@ -31,7 +31,7 @@ export async function generateMetadata({
 export default async function AlunoGraduacoesPage({ params }: PageProps) {
   const { id } = await params;
   const context = await getCurrentAccount();
-  if (context?.account.modality === "judo") {
+  if (context?.account.modality === "judo" || context?.account.modality === "muay_thai") {
     const profile = await getStudentProfileById(id);
     if (!profile) notFound();
     return <ReferencedGraduationsPageClient profile={profile} />;

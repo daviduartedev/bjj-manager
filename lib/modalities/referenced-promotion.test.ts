@@ -1,5 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { assessJudoPromotion } from "./referenced-promotion";
+import { assessJudoPromotion, assessReferencedPromotion } from "./referenced-promotion";
+
+describe("promoção Muay Thai pela referência CBMTT 19 khan", () => {
+  it("distingue cada avanço dourado sem inventar idade ou carência", () => {
+    for (const [fromCode, toCode] of [["khan-16", "khan-17"], ["khan-17", "khan-18"], ["khan-18", "khan-19"]]) {
+      const result = assessReferencedPromotion({ modality: "muay_thai", fromCode, fromDate: null, toCode, birthDate: "2008-01-01", date: "2026-01-01" });
+      expect(result.wasSkip).toBe(false);
+      expect(result.exceptions).toEqual([]);
+      expect(result.guidance.join(" ")).toContain("não informa edição, idades ou carências");
+      expect(result.guidance.join(" ")).toContain("sem exame, SNG, homologação ou certificação CBMTT/IFMA");
+    }
+  });
+  it("identifica salto de khan e mantém orientação CBJ exclusivamente no Judô", () => {
+    const input = { fromCode: "khan-15", fromDate: "2026-01-01", toCode: "khan-19", birthDate: "2008-01-01", date: "2026-01-02" };
+    const result = assessReferencedPromotion({ ...input, modality: "muay_thai" });
+    expect(result.wasSkip).toBe(true);
+    expect(result.exceptions).toEqual([]);
+    expect(result.guidance.join(" ")).not.toMatch(/CBJ|interstício|idade mínima/);
+    expect(assessReferencedPromotion({ ...input, modality: "judo", fromCode: "dan-1", toCode: "dan-2" }).exceptions).toEqual(["Idade abaixo da orientação padrão CBJ.", "Interstício abaixo da orientação padrão CBJ."]);
+  });
+});
 
 describe("orientação pública de promoção Judô CBJ 2023", () => {
   it("dispensa carência básica adulta e identifica salto como rastreabilidade Casca", () => {

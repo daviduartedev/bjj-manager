@@ -7,7 +7,7 @@
 | #30 | Judô com catálogo CBJ e ilustrações | implemented; automated/fixture UI checks passed; authenticated UI/human pending | commit desta issue; validation.md — T3 |
 | #31 | Muay Thai com 19 khan CBMTT | implemented; automated/fixture UI checks passed; authenticated UI/human pending | commit desta issue; validation.md — T4 |
 | #32 | Promoções e orientação Judô | implemented; automated/fixture UI checks passed; authenticated UI/human pending | commit desta issue; validation.md — T5 |
-| #33 | Promoções e histórico Muay Thai | pending | — |
+| #33 | Promoções e histórico Muay Thai | implemented; automated/fixture UI checks passed; authenticated UI/human pending | commit desta issue; validation.md — T6 |
 | #34 | Turmas, presença e portal | pending | — |
 | #35 | Painel e configurações | pending | — |
 | #36 | Matrícula e documentos | pending | — |

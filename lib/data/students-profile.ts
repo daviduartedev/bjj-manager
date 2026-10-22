@@ -90,7 +90,7 @@ export async function getStudentProfileById(
   if (stErr || !st) return null;
 
   let rankPromotions: RankPromotionRow[] = [];
-  if (st.graduation_reference_id === "cbj-2023") {
+  if (st.graduation_reference_id === "cbj-2023" || st.graduation_reference_id === "cbmtt-19-khan") {
     const { data, error } = await supabase.from("student_rank_promotions")
       .select("id,reference_id,from_rank_code,from_rank_date,to_rank_code,granted_on,was_skip,reason,guidance_exceptions,guidance_basis")
       .eq("student_id", studentId).order("granted_on", { ascending: false }).order("event_order", { ascending: false });
