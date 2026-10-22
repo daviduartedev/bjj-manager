@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { UserRound } from "lucide-react";
 
 import { JudoBeltIllustration, ReferencedRankDisplay } from "@/components/graduation/referenced-rank-display";
+import { ReferencedGraduationReference } from "@/components/graduation/referenced-graduation-reference";
 import { referencedGraduationSummary } from "@/lib/modalities/referenced-graduation-summary";
 import { BeltIllustration } from "@/components/graduation/belt-illustration";
 import { GraduationEventDialog } from "@/components/graduation/graduation-event-dialog";
@@ -295,6 +296,7 @@ export function StudentProfileClient({
                   ) : null}
                 </p>
                 {referenced ? <p><span className="font-medium text-foreground">Data da graduação: </span>{rankSummary.dateLabel}</p> : null}
+                {referenced ? <ReferencedGraduationReference modality={modality} /> : null}
                 {profile.academy_start_date ? (
                   <p>
                     <span className="font-medium text-foreground">

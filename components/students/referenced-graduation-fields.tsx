@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ReferencedRankDisplay } from "@/components/graduation/referenced-rank-display";
+import { ReferencedGraduationReference } from "@/components/graduation/referenced-graduation-reference";
 import { getGraduationPolicy } from "@/lib/modalities/graduation-policy";
-import { getReferencedRanks, JUDO_REFERENCE } from "@/lib/modalities/referenced-ranks";
+import { getReferencedRanks } from "@/lib/modalities/referenced-ranks";
 import type { AcademyModality } from "@/lib/modalities/catalog";
 import type { ReferencedGraduationFields as GraduationFields } from "@/lib/modalities/referenced-ranks";
 
@@ -20,17 +21,17 @@ export function ReferencedGraduationFields({ modality, disabled }: {
   if (policy.mode !== "referenced") return null;
   return <div className="space-y-4">
     <FormField control={rankForm.control} name="current_rank_code" render={({ field }) => <FormItem>
-      <FormLabel>Graduação atual</FormLabel>
+      <FormLabel>{modality === "muay_thai" ? "Graduação atual — khan / prajied" : "Graduação atual"}</FormLabel>
       <Select disabled={disabled} value={field.value ?? undefined} onValueChange={code => {
         field.onChange(code);
         rankForm.setValue("graduation_reference_id", policy.referenceId, { shouldDirty: true });
       }}>
-        <FormControl><SelectTrigger><SelectValue placeholder="Escolha a graduação" /></SelectTrigger></FormControl>
-        <SelectContent>{getReferencedRanks(modality).map(rank => <SelectItem key={rank.code} value={rank.code} textValue={rank.label}>
+        <FormControl><SelectTrigger className={modality === "muay_thai" ? "h-auto min-h-10 text-left [&>span]:line-clamp-none" : undefined}><SelectValue placeholder="Escolha a graduação" /></SelectTrigger></FormControl>
+        <SelectContent className={modality === "muay_thai" ? "w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]" : undefined}>{getReferencedRanks(modality).map(rank => <SelectItem key={rank.code} value={rank.code} textValue={rank.label}>
           <ReferencedRankDisplay rank={rank} compact />
         </SelectItem>)}</SelectContent>
       </Select>
-      <FormDescription>Graduação concedida anteriormente pode ser cadastrada diretamente, sem reconstruir o histórico.</FormDescription>
+      <FormDescription>{modality === "muay_thai" ? "Selecione o khan e a cor do prajied na tabela CBMTT. " : ""}Graduação concedida anteriormente pode ser cadastrada diretamente, sem reconstruir o histórico.</FormDescription>
       <FormMessage />
     </FormItem>} />
     <FormField control={rankForm.control} name="current_rank_date" render={({ field }) => <FormItem>
@@ -43,6 +44,6 @@ export function ReferencedGraduationFields({ modality, disabled }: {
       <FormDescription>A entrada na academia é independente desta data. Sem data, o tempo na graduação fica indisponível.</FormDescription>
       <FormMessage />
     </FormItem>} />
-    {modality === "judo" ? <p className="text-xs text-muted-foreground"><a href={JUDO_REFERENCE.sourceUrl} target="_blank" rel="noreferrer" className="underline">Catálogo CBJ 2023</a>. {JUDO_REFERENCE.limitation}</p> : null}
+    <ReferencedGraduationReference modality={modality} />
   </div>;
 }

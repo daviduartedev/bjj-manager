@@ -5,7 +5,7 @@
 | #28 | Introduzir modalidade e preservar Jiu-Jitsu | implemented; automated checks passed; UI/human pending | commit desta issue; validation.md — T1 |
 | #29 | Boxe sem graduação e com mensalidade | implemented; automated checks passed; UI/human pending | commit desta issue; validation.md — T2 |
 | #30 | Judô com catálogo CBJ e ilustrações | implemented; automated/fixture UI checks passed; authenticated UI/human pending | commit desta issue; validation.md — T3 |
-| #31 | Muay Thai com 19 khan CBMTT | pending | — |
+| #31 | Muay Thai com 19 khan CBMTT | implemented; automated/fixture UI checks passed; authenticated UI/human pending | commit desta issue; validation.md — T4 |
 | #32 | Promoções e orientação Judô | pending | — |
 | #33 | Promoções e histórico Muay Thai | pending | — |
 | #34 | Turmas, presença e portal | pending | — |

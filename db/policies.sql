@@ -1323,9 +1323,10 @@ BEGIN
      OR NEW.birth_date > (v_today - interval '18 years')::date) THEN
     RAISE EXCEPTION 'modality requires adult aged eighteen' USING ERRCODE = '23514';
   END IF;
-  IF v_modality = 'judo' THEN
+  IF v_modality IN ('judo', 'muay_thai') THEN
     IF NEW.current_belt_id IS NOT NULL OR NEW.current_degree IS NOT NULL
-       OR NEW.graduation_reference_id IS DISTINCT FROM 'cbj-2023' OR NEW.current_rank_code IS NULL
+       OR NEW.graduation_reference_id IS DISTINCT FROM (CASE v_modality WHEN 'judo' THEN 'cbj-2023' ELSE 'cbmtt-19-khan' END)
+       OR NEW.current_rank_code IS NULL
        OR NOT EXISTS (SELECT 1 FROM public.graduation_ranks r JOIN public.graduation_references ref ON ref.id=r.reference_id
                       WHERE r.reference_id=NEW.graduation_reference_id AND r.code=NEW.current_rank_code AND ref.modality=v_modality)
        OR NEW.current_rank_date > v_today THEN

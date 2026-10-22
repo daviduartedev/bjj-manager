@@ -1,6 +1,7 @@
 import type { AcademyModality } from "@/lib/modalities/catalog";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
 import type { StudentFullFormValues } from "@/lib/validations/students";
+import { getReferencedRanks } from "@/lib/modalities/referenced-ranks";
 
 /** Valores iniciais para novo aluno (primeiro adulto/plano adulto do catálogo). */
 export function defaultCreateStudentValues(
@@ -11,6 +12,7 @@ export function defaultCreateStudentValues(
   const today = new Date().toISOString().slice(0, 10);
   const adultBelt = belts.find((b) => b.kind === "adult");
   const adultPlan = plans.find((p) => p.kind === "adult");
+  const initialRank = getReferencedRanks(modality)[0];
   return {
     full_name: "",
     birth_date: today,
@@ -18,7 +20,7 @@ export function defaultCreateStudentValues(
     kind: "adult",
     current_belt_id: modality !== "jiu_jitsu" ? null : adultBelt?.id ?? "",
     current_degree: modality !== "jiu_jitsu" ? null : 0,
-    ...(modality === "judo" ? { graduation_reference_id: "cbj-2023", current_rank_code: "beginner", current_rank_date: null } : {}),
+    ...(initialRank ? { graduation_reference_id: initialRank.referenceId, current_rank_code: initialRank.code, current_rank_date: null } : {}),
     is_exempt: false,
     plan_id: adultPlan?.id ?? "",
     due_day: 10,

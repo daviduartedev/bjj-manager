@@ -1,5 +1,5 @@
 import type { ReferencedRank, RankColor } from "@/lib/modalities/referenced-ranks";
-const colors: Record<RankColor, string> = { white:"#ffffff",gray:"#9ca3af",blue:"#2563eb",yellow:"#facc15",orange:"#f97316",green:"#15803d",purple:"#9333ea",brown:"#854d0e",black:"#171717",red:"#dc2626" };
+const colors: Record<RankColor, string> = { white:"#ffffff",gray:"#9ca3af",blue:"#2563eb",yellow:"#facc15",orange:"#f97316",green:"#15803d",purple:"#9333ea",brown:"#854d0e",black:"#171717",red:"#dc2626",silver:"#c0c0c0",gold:"#d4af37" };
 
 /** CBJ2023 p7 §3: bicolores básicas têm cor seguinte nas duas pontas.
  * Dan6–8: segmentos vermelhos/brancos. Sem listras de grau de Jiu-Jitsu. */
