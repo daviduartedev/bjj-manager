@@ -139,6 +139,47 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   CONSTRAINT profiles_user_id_key UNIQUE (user_id)
 );
 
+-- Elegibilidade do cadastro público. Não é autorização via raw_user_meta_data.
+CREATE TABLE IF NOT EXISTS public.academy_registration_intents (
+  user_id uuid PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
+  academy_name text NOT NULL,
+  display_name text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  consumed_at timestamptz NULL,
+  account_id uuid NULL REFERENCES public.accounts (id) ON DELETE SET NULL,
+  CONSTRAINT academy_registration_intents_academy_name_ck CHECK (
+    academy_name = trim(academy_name)
+    AND length(academy_name) BETWEEN 2 AND 80
+  ),
+  CONSTRAINT academy_registration_intents_display_name_ck CHECK (
+    display_name = trim(display_name)
+    AND length(display_name) BETWEEN 2 AND 80
+  )
+);
+
+CREATE OR REPLACE FUNCTION public.prevent_clearing_academy_registration_consumption () RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF OLD.consumed_at IS NOT NULL AND NEW.consumed_at IS DISTINCT FROM OLD.consumed_at THEN
+    RAISE EXCEPTION 'academy registration consumption is permanent'
+      USING ERRCODE = '23514';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.prevent_clearing_academy_registration_consumption () FROM PUBLIC;
+
+DROP TRIGGER IF EXISTS academy_registration_intents_consumption_permanent ON public.academy_registration_intents;
+
+CREATE TRIGGER academy_registration_intents_consumption_permanent
+BEFORE UPDATE ON public.academy_registration_intents
+FOR EACH ROW
+EXECUTE FUNCTION public.prevent_clearing_academy_registration_consumption ();
+
 CREATE TABLE IF NOT EXISTS public.belts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   kind public.belt_kind NOT NULL,

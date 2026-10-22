@@ -116,9 +116,11 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse;
   }
 
-  if (user && (pathname === ROUTES.login || pathname === "/register")) {
+  if (user && (pathname === ROUTES.login || pathname === ROUTES.register)) {
     const role = await resolveAuthRole(supabase, user.id);
     if (!role) {
+      // Sessão sem perfil fica em /login. Enviá-la ao /painel faria o middleware
+      // devolvê-la para cá.
       if (pathname === ROUTES.login) return supabaseResponse;
       return redirectWithCookies(request, supabaseResponse, ROUTES.login);
     }
@@ -126,10 +128,6 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (!user && isProtectedAuthenticatedPath(pathname)) {
-    return redirectWithCookies(request, supabaseResponse, ROUTES.login);
-  }
-
-  if (!user && pathname === "/register") {
     return redirectWithCookies(request, supabaseResponse, ROUTES.login);
   }
 
