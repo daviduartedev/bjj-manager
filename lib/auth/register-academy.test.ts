@@ -30,6 +30,22 @@ describe("academySignupCallbackUrl", () => {
 });
 
 describe("submitAcademyRegistration", () => {
+  it("preserva a modalidade explícita na intenção confiável sem colocá-la no metadata do Auth", async () => {
+    const signUp = vi.fn().mockResolvedValue({
+      user: { id: "jiu-jitsu-user", identities: [{ id: "identity" }] }, error: null,
+    });
+    const intents: unknown[] = [];
+    const result = await submitAcademyRegistration({ ...validInput, modality: "jiu_jitsu" }, {
+      appUrl: "https://app.casca.test", signUp,
+      recordIntent: async (intent) => { intents.push(intent); return { ok: true }; },
+    });
+    expect(result).toEqual({ ok: true, message: WAITING });
+    expect(intents).toEqual([{
+      userId: "jiu-jitsu-user", academyName: "Academia Casca", displayName: "Ana Souza", modality: "jiu_jitsu",
+    }]);
+    expect(signUp.mock.calls[0]?.[0]).not.toHaveProperty("modality");
+  });
+
   it("recusa e-mail inválido antes de chamar o Supabase", async () => {
     const signUp = vi.fn();
     const recordIntent = vi.fn();
@@ -43,6 +59,19 @@ describe("submitAcademyRegistration", () => {
       ok: false,
       fieldErrors: { email: ["Digite um e-mail válido."] },
     });
+    expect(signUp).not.toHaveBeenCalled();
+    expect(recordIntent).not.toHaveBeenCalled();
+  });
+
+  it("recusa modalidades desconhecidas ou ainda não liberadas antes de criar um usuário", async () => {
+    const signUp = vi.fn();
+    const recordIntent = vi.fn();
+    for (const modality of ["boxing", "judo", "muay_thai", "admin", null]) {
+      const result = await submitAcademyRegistration({ ...validInput, modality }, {
+        appUrl: "https://app.casca.test", signUp, recordIntent,
+      });
+      expect(result.ok).toBe(false);
+    }
     expect(signUp).not.toHaveBeenCalled();
     expect(recordIntent).not.toHaveBeenCalled();
   });
@@ -64,7 +93,7 @@ describe("submitAcademyRegistration", () => {
       emailRedirectTo: "https://app.casca.test/auth/callback",
       onboarding: { ...onboarding, city: "Campinas" },
     });
-    expect(recordIntent).toHaveBeenCalledWith({ userId: "new-user", academyName: validInput.academyName, displayName: validInput.displayName });
+    expect(recordIntent).toHaveBeenCalledWith({ userId: "new-user", academyName: validInput.academyName, displayName: validInput.displayName, modality: "jiu_jitsu" });
   });
 
   it("rejects a city selection that does not exist in the selected state before creating an account", async () => {
@@ -161,6 +190,7 @@ describe("submitAcademyRegistration", () => {
       userId: "user-created",
       academyName: "Academia Casca",
       displayName: "Ana Souza",
+      modality: "jiu_jitsu",
     });
     expect(duplicateRecord).not.toHaveBeenCalled();
     expect(alreadyRegisteredRecord).not.toHaveBeenCalled();

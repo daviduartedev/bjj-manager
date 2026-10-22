@@ -1082,7 +1082,27 @@ BEFORE UPDATE ON public.academy_registration_intents
 FOR EACH ROW
 EXECUTE FUNCTION public.prevent_clearing_academy_registration_consumption ();
 
-CREATE OR REPLACE FUNCTION public.record_academy_registration (user_id uuid, academy_name text, display_name text) RETURNS void
+-- A troca só poderá ocorrer por operação privilegiada que valide a elegibilidade.
+-- SECURITY INVOKER preserva current_user do chamador, inclusive dentro da futura RPC.
+CREATE OR REPLACE FUNCTION public.protect_account_modality () RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF NEW.modality IS DISTINCT FROM OLD.modality
+     AND current_user IN ('authenticated', 'anon') THEN
+    RAISE EXCEPTION 'academy modality requires a controlled operation' USING ERRCODE = '42501';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.protect_account_modality () FROM PUBLIC, anon, authenticated;
+DROP TRIGGER IF EXISTS accounts_protect_modality ON public.accounts;
+CREATE TRIGGER accounts_protect_modality
+BEFORE UPDATE OF modality ON public.accounts
+FOR EACH ROW EXECUTE FUNCTION public.protect_account_modality ();
+
+CREATE OR REPLACE FUNCTION public.record_academy_registration (user_id uuid, academy_name text, display_name text, modality text) RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
@@ -1090,7 +1110,13 @@ AS $$
 DECLARE
   v_academy_name text;
   v_display_name text;
+  v_modality text;
 BEGIN
+  v_modality := modality;
+  IF v_modality IS NULL OR v_modality NOT IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo') THEN
+    RAISE EXCEPTION 'invalid academy modality' USING ERRCODE = '22023';
+  END IF;
+
   v_academy_name := pg_catalog.btrim(academy_name);
   v_display_name := pg_catalog.btrim(display_name);
 
@@ -1129,20 +1155,33 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  INSERT INTO public.academy_registration_intents (user_id, academy_name, display_name)
-  VALUES (record_academy_registration.user_id, v_academy_name, v_display_name)
+  INSERT INTO public.academy_registration_intents (user_id, academy_name, display_name, modality)
+  VALUES (record_academy_registration.user_id, v_academy_name, v_display_name, v_modality)
   ON CONFLICT ON CONSTRAINT academy_registration_intents_pkey DO NOTHING;
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text) FROM anon;
-REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text) FROM authenticated;
+REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text, text) FROM anon;
+REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text, text) FROM authenticated;
 
-GRANT EXECUTE ON FUNCTION public.record_academy_registration (uuid, text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.record_academy_registration (uuid, text, text, text) TO service_role;
 
-COMMENT ON FUNCTION public.record_academy_registration (uuid, text, text) IS
+COMMENT ON FUNCTION public.record_academy_registration (uuid, text, text, text) IS
   'Grava a intenção de cadastro só para utilizador novo, sem perfil, sem aluno e sem convite. Não atualiza nomes.';
+
+-- Compatibilidade: o cadastro anterior continua criando somente Jiu-Jitsu.
+CREATE OR REPLACE FUNCTION public.record_academy_registration (user_id uuid, academy_name text, display_name text) RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  PERFORM public.record_academy_registration(user_id, academy_name, display_name, 'jiu_jitsu'::text);
+END;
+$$;
+REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.record_academy_registration (uuid, text, text) TO service_role;
 
 CREATE OR REPLACE FUNCTION public.provision_academy_for_current_user () RETURNS jsonb
 LANGUAGE plpgsql
@@ -1158,6 +1197,7 @@ DECLARE
   v_display_name text;
   v_consumed_at timestamptz;
   v_account_id uuid;
+  v_modality text;
 BEGIN
   v_uid := auth.uid();
 
@@ -1207,8 +1247,8 @@ BEGIN
   v_academy_name := NULL;
   v_display_name := NULL;
   v_consumed_at := NULL;
-  SELECT intent.academy_name, intent.display_name, intent.consumed_at
-  INTO v_academy_name, v_display_name, v_consumed_at
+  SELECT intent.academy_name, intent.display_name, intent.consumed_at, intent.modality
+  INTO v_academy_name, v_display_name, v_consumed_at, v_modality
   FROM public.academy_registration_intents AS intent
   WHERE intent.user_id = v_uid;
 
@@ -1216,8 +1256,8 @@ BEGIN
     RETURN pg_catalog.jsonb_build_object('outcome', 'ineligible', 'role', NULL);
   END IF;
 
-  INSERT INTO public.accounts (name)
-  VALUES (v_academy_name)
+  INSERT INTO public.accounts (name, modality)
+  VALUES (v_academy_name, v_modality)
   RETURNING id INTO v_account_id;
 
   INSERT INTO public.profiles (user_id, account_id, display_name, role)
@@ -1260,4 +1300,3 @@ GRANT EXECUTE ON FUNCTION public.provision_academy_for_current_user () TO authen
 
 COMMENT ON FUNCTION public.provision_academy_for_current_user () IS
   'Cria a academia do auth.uid() a partir da intenção ainda não consumida. Não altera conta, perfil nem preço de plano já existentes.';
-

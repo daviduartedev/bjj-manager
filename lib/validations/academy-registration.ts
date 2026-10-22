@@ -58,6 +58,8 @@ export const academyRegistrationSchema = z
       .refine((value) => new TextEncoder().encode(value).length <= 72, "A senha excede o limite aceito pelo provedor de autenticação."),
     academyName: z.string().trim().min(2, academyNameMessage).max(80, academyNameMessage),
     displayName: z.string().trim().min(2, displayNameMessage).max(80, displayNameMessage),
+    // Expand compatível: as outras modalidades só serão liberadas na integração do lote.
+    modality: z.literal("jiu_jitsu").default("jiu_jitsu"),
     onboarding: academyOnboardingSchema.optional(),
   })
   .strict();

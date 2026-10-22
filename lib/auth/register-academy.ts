@@ -1,4 +1,5 @@
 import { academyRegistrationSchema, type AcademyOnboarding } from "@/lib/validations/academy-registration";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 
 export const ACADEMY_REGISTRATION_WAITING_MESSAGE =
   "Abra o link de confirmação que enviamos, neste navegador, para entrar no painel.";
@@ -36,6 +37,7 @@ type RegistrationDeps = {
     userId: string;
     academyName: string;
     displayName: string;
+    modality: AcademyModality;
   }) => Promise<{ ok: true } | { ok: false }>;
 };
 
@@ -157,6 +159,7 @@ export async function submitAcademyRegistration(
       userId: signup.user.id,
       academyName: parsed.data.academyName,
       displayName: parsed.data.displayName,
+      modality: parsed.data.modality,
     });
     if (!recorded.ok) return { ok: false, message: REGISTRATION_FAILED_MESSAGE };
     return { ok: true, message: ACADEMY_REGISTRATION_WAITING_MESSAGE };

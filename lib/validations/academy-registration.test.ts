@@ -25,6 +25,7 @@ describe("academyRegistrationSchema", () => {
       password: "frase-senha-com-mais-de-quinze",
       academyName: "Casca",
       displayName: "Ana",
+      modality: "jiu_jitsu",
     });
   });
 

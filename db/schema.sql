@@ -105,6 +105,7 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ---------- Tables ----------
 CREATE TABLE IF NOT EXISTS public.accounts (
+  modality text NOT NULL DEFAULT 'jiu_jitsu' CONSTRAINT accounts_modality_check CHECK (modality IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo')),
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   name text NOT NULL,
   legal_name text NULL,
@@ -141,6 +142,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 
 -- Elegibilidade do cadastro público. Não é autorização via raw_user_meta_data.
 CREATE TABLE IF NOT EXISTS public.academy_registration_intents (
+  modality text NOT NULL DEFAULT 'jiu_jitsu' CONSTRAINT academy_registration_intents_modality_check CHECK (modality IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo')),
   user_id uuid PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
   academy_name text NOT NULL,
   display_name text NOT NULL,
