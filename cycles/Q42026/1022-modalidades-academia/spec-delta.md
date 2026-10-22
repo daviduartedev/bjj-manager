@@ -49,3 +49,7 @@ Após implementação e validação, propor atualizar modalidade/graduação, al
 - Novas emissões de matrícula nas modalidades novas usam o nome da academia e o esporte, sem ASLAM nem Jiu-Jitsu, e recusam termo de menor. O Jiu-Jitsu e os payloads já gravados sem modalidade continuam no texto histórico.
 - Comprovante cita a modalidade quando ela está no payload. Certificado genérico continua sem faixa; nas modalidades novas declara que não há homologação federativa. Recibo e numeração não mudam.
 - O PDF já armazenado é o snapshot. Reemitir ou assinar um payload antigo não reescreve o texto para outra modalidade. A spec antiga que exigia faixa no certificado não corresponde ao certificado genérico já entregue; esta nota não promove essa exigência. Não promover automaticamente para spec/.
+
+## T10 / #37 — proposta após implementação
+- A modalidade só muda por `switch_academy_modality`, chamada pelo professor da própria academia, com a conta travada e sem aluno (inclusive removido), turma, aula, pagamento ou documento.
+- Plano comercial, nome e preço permanecem. A troca não cria aluno nem mensalidade. Cancelar na configuração não grava. Não promover automaticamente para spec/.

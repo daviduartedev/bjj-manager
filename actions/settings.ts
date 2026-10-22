@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import { mapBillingActionError } from "@/lib/billing/action-errors";
+import { getCurrentAccount } from "@/lib/auth";
+import { isAcademyModality } from "@/lib/modalities/catalog";
 import { ROUTES } from "@/lib/routes";
 import {
   BRANDING_BUCKET,
@@ -279,4 +281,32 @@ export async function updateProfile(input: unknown): Promise<SettingsActionResul
   } catch (e) {
     return { ok: false, error: mapBillingActionError(e) };
   }
+}
+
+export async function switchAcademyModality(target: unknown): Promise<SettingsActionResult> {
+  const context = await getCurrentAccount();
+  if (context?.profile.role !== "professor") {
+    return { ok: false, error: "Só o professor da academia pode trocar a modalidade." };
+  }
+  if (!isAcademyModality(target) || target === context.account.modality) {
+    return { ok: false, error: "Escolha outra modalidade da academia." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("switch_academy_modality", { p_target: target });
+  if (error) {
+    if (error.message.includes("academy is not empty")) {
+      return {
+        ok: false,
+        error: "A academia já tem aluno, turma, aula, pagamento ou documento. A modalidade não foi alterada.",
+      };
+    }
+    return { ok: false, error: "Não foi possível trocar a modalidade. Atualize a página e tente novamente." };
+  }
+
+  revalidatePath(ROUTES.configuracoes);
+  revalidatePath(ROUTES.painel);
+  revalidatePath(ROUTES.alunos);
+  revalidatePath(ROUTES.aulasTurmas);
+  return { ok: true };
 }

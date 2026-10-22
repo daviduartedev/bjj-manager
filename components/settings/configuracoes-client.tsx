@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CnpjInput } from "@/components/settings/cnpj-input";
 import { LogoUploader } from "@/components/settings/logo-uploader";
+import { ModalitySwitchPanel } from "@/components/settings/modality-switch-panel";
 import { SignatureUploader } from "@/components/settings/signature-uploader";
 import type { SettingsPlanRow, SettingsReceiverRow } from "@/lib/data/settings-page";
 import { MODALITY_LABELS, type AcademyModality } from "@/lib/modalities/catalog";
@@ -125,6 +126,7 @@ export function ConfiguracoesClient(props: Props) {
             </div>
           </form>
         </Form>
+        <ModalitySwitchPanel current={props.modality} onSaved={() => router.refresh()} />
       </DashboardPanel>
 
       <ReceiverPanel receiver={props.receiver} onSaved={() => router.refresh()} />

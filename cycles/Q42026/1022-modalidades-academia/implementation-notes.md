@@ -90,3 +90,7 @@ Seletores de tipo em mensalidades e planos de aula mostram Kids/Baby só no Jiu-
 ## T9 / #36 — documentos
 
 O payload passa a guardar `receiver.modality`, lida da conta no servidor. Ausência do campo significa documento já emitido: matrícula, comprovante, certificado e termo reapresentam o texto anterior. Jiu-Jitsu novo continua com as cláusulas ASLAM e o título de atleta de Jiu-Jitsu. Boxe, Judô e Muay Thai usam o nome real da academia, o esporte no título e uma cláusula de adulto sem certificação federativa. Termo de menor nessas modalidades é recusado na montagem do payload e de novo no render. O certificado genérico não pede faixa; só as modalidades novas acrescentam a frase de que não há homologação. Numeração, idempotência, download do PDF armazenado e o fluxo de assinatura permanecem. RLS de documento não foi alterada. O rótulo do botão deixou de dizer ASLAM.
+
+## T10 / #37 — troca
+
+A configuração mostra a modalidade atual, os outros três destinos e os efeitos antes de gravar. Cancelar limpa a confirmação. A action só segue se a sessão for de professor e o destino for uma modalidade diferente. A RPC trava a conta com `FOR UPDATE`. Aluno, turma, aula, pagamento e documento travam a mesma linha com `FOR SHARE`, então uma escrita concorrente ou espera a troca e nasce no esporte novo, ou segura a conta e faz a troca enxergar o registro e recusar. Update direto continua bloqueado. Planos não entram na contagem e não são apagados nem recriados. As migrações 037 e 038 ficaram só no Postgres descartável local, para a corrida enxergar os locks.
