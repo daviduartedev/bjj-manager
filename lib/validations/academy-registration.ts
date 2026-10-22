@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { ACADEMY_MODALITIES, type AcademyModality } from "@/lib/modalities/catalog";
+
 const academyNameMessage = "O nome da academia precisa ter entre 2 e 80 caracteres.";
 const displayNameMessage = "O seu nome precisa ter entre 2 e 80 caracteres.";
 
@@ -44,6 +46,15 @@ export const academyOnboardingSchema = z.object({
 
 export type AcademyOnboarding = z.infer<typeof academyOnboardingSchema>;
 
+export function registrationAudienceIssue(value: {
+  modality: AcademyModality;
+  onboarding?: { audiences: readonly string[] } | null;
+}): string | null {
+  if (value.modality === "jiu_jitsu" || !value.onboarding) return null;
+  if (value.onboarding.audiences.every((audience) => audience === "adult")) return null;
+  return "Esta modalidade atende adultos de 18 anos ou mais.";
+}
+
 /** Payload do cadastro público. Rejeita papel, id e redirect enviados pelo cliente. */
 export const academyRegistrationSchema = z
   .object({
@@ -58,8 +69,7 @@ export const academyRegistrationSchema = z
       .refine((value) => new TextEncoder().encode(value).length <= 72, "A senha excede o limite aceito pelo provedor de autenticação."),
     academyName: z.string().trim().min(2, academyNameMessage).max(80, academyNameMessage),
     displayName: z.string().trim().min(2, displayNameMessage).max(80, displayNameMessage),
-    // Expand compatível: as outras modalidades só serão liberadas na integração do lote.
-    modality: z.literal("jiu_jitsu").default("jiu_jitsu"),
+    modality: z.enum(ACADEMY_MODALITIES, { errorMap: () => ({ message: "Selecione a modalidade da academia." }) }),
     onboarding: academyOnboardingSchema.optional(),
   })
   .strict();

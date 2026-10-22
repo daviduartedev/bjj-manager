@@ -1,4 +1,4 @@
-import { academyRegistrationSchema, type AcademyOnboarding } from "@/lib/validations/academy-registration";
+import { academyRegistrationSchema, registrationAudienceIssue, type AcademyOnboarding } from "@/lib/validations/academy-registration";
 import type { AcademyModality } from "@/lib/modalities/catalog";
 
 export const ACADEMY_REGISTRATION_WAITING_MESSAGE =
@@ -106,6 +106,11 @@ export async function submitAcademyRegistration(
     const fieldErrors = fieldErrorsFromZod(parsed.error);
     if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
     return { ok: false, message: REGISTRATION_FAILED_MESSAGE };
+  }
+
+  const audienceIssue = registrationAudienceIssue(parsed.data);
+  if (audienceIssue) {
+    return { ok: false, fieldErrors: { "onboarding.audiences": [audienceIssue] } };
   }
 
   if (parsed.data.onboarding) {

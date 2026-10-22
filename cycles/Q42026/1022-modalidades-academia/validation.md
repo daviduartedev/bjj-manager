@@ -174,3 +174,12 @@ Planejamento aprovado; implementação iniciada. Evidências por ticket abaixo; 
 - `node scripts/validate-modality-switch.cjs` com `CASCA_TEST_DATABASE_URL` no Postgres descartável: **PASS**. Academia vazia troca e conserva nome e preço do plano. Aluno removido, turma, aula, pagamento e documento recusam com a modalidade intacta. Aluno, usuário sem perfil e update direto não trocam. Professor de outra academia não altera a primeira. Na corrida, a troca espera a turma e recusa; a turma que espera a troca não fica gravada no esporte anterior.
 - `pnpm type-check`: aprovado.
 - 037 e 038 foram aplicadas só nesse banco local. Nada foi migrado em produção. A tela autenticada fica no roteiro final.
+
+## T11 / #38 — 22/10/2026
+
+### TDD e verificações direcionadas
+- `pnpm exec vitest run lib/auth/register-academy.test.ts lib/validations/academy-registration.test.ts`: **24 testes aprovados em 2 arquivos**. As quatro modalidades são gravadas na intenção e não vão para o metadata. Valor ausente ou desconhecido é recusado antes do cadastro. Muay Thai com público Kids é recusado antes de criar usuário. Jiu-Jitsu continua aceitando Kids.
+- `pnpm type-check`: aprovado.
+- `pnpm test` no fim do lote: **388 aprovados, 1 falha pré-existente** em `lib/marketing/landing-photos.test.ts`. A coluna do vídeo procura a palavra “Alunos” nos 2500 caracteres depois de `lp-system-video-copy`; o rótulo está no array acima desse trecho, desde o commit de landing `9483239`, anterior a este lote. Nenhum arquivo de marketing foi alterado aqui.
+- `pnpm lint`: sem avisos nem erros.
+- Não houve migração. A comparação de backfill segue o script de #28: linhas antigas permanecem Jiu-Jitsu; um segundo `record_academy_registration` não troca a intenção já gravada. A provisão existente copia `intent.modality` para a conta. Jornada de confirmação de e-mail fica no roteiro final.

@@ -12,6 +12,6 @@
 | #35 | Painel e configurações | implemented; automated checks passed; authenticated UI/human pending | commit desta issue; validation.md — T8 |
 | #36 | Matrícula e documentos | implemented; automated checks passed; authenticated UI/human pending | commit desta issue; validation.md — T9 |
 | #37 | Troca segura em conta vazia | implemented; automated checks passed; authenticated UI/human pending | commit desta issue; validation.md — T10 |
-| #38 | Cadastro público completo e integração | pending | — |
+| #38 | Cadastro público completo e integração | implemented; automated checks passed; authenticated UI/human pending | commit desta issue; validation.md — T11 |
 
 Estados distinguem código implementado, testes executados e validação real pendente. Não declarar RLS/atomicidade provados sem banco real. Validação humana final pendente.

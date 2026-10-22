@@ -12,6 +12,7 @@ import { registerAcademy } from "@/actions/register-academy";
 import { CascaButton, CascaComboBoxField, CascaSelectField, CascaTextField, type CascaOption } from "@/components/ui/react-aria-controls";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
+import { ACADEMY_MODALITIES, MODALITY_LABELS, type AcademyModality } from "@/lib/modalities/catalog";
 import { academyRegistrationSchema, academyOnboardingSchema, BRAZIL_STATES, BRAZIL_STATE_NAMES } from "@/lib/validations/academy-registration";
 
 import { ResendConfirmationForm } from "../resend-confirmation-form";
@@ -25,7 +26,7 @@ const STEPS = [
   { title: "Responsável", description: "Escolha o acesso do responsável pela academia. O próximo passo será confirmar o e-mail.", icon: ShieldCheck },
 ];
 const STEP_FIELDS: FieldPath<RegistrationValues>[][] = [
-  ["academyName", "onboarding.state", "onboarding.city", "onboarding.cityId", "onboarding.stage"],
+  ["academyName", "modality", "onboarding.state", "onboarding.city", "onboarding.cityId", "onboarding.stage"],
   ["onboarding.studentRange", "onboarding.audiences", "onboarding.priorities"],
   ["displayName", "email", "password"],
 ];
@@ -33,6 +34,16 @@ const STATE_OPTIONS: CascaOption[] = BRAZIL_STATES.map((state) => ({
   id: state,
   label: `${state} — ${BRAZIL_STATE_NAMES[state]}`,
 }));
+const MODALITY_OPTIONS: CascaOption[] = ACADEMY_MODALITIES.map((modality) => ({
+  id: modality,
+  label: MODALITY_LABELS[modality],
+}));
+const MODALITY_HINT: Record<AcademyModality, string> = {
+  jiu_jitsu: "Adulto e infantil, com faixas e graduações.",
+  boxing: "Adultos de 18 anos ou mais, sem faixa.",
+  judo: "Adultos de 18 anos ou mais, com o catálogo CBJ.",
+  muay_thai: "Adultos de 18 anos ou mais, com os 19 khan da CBMTT.",
+};
 const AUDIENCES = [
   { value: "baby", label: "Baby", description: "Primeiros passos no tatame", emoji: "🐣" },
   { value: "kids", label: "Kids", description: "Crianças e adolescentes", emoji: "🥋" },
@@ -88,12 +99,15 @@ export function RegisterForm() {
     resolver: zodResolver(wizardSchema),
     defaultValues: {
       academyName: "", displayName: "", email: "", password: "",
+      modality: "" as RegistrationValues["modality"],
       onboarding: { city: "", cityId: "", state: "" as RegistrationValues["onboarding"]["state"], audiences: [], priorities: [] },
     },
     mode: "onSubmit",
   });
 
   const selectedState = form.watch("onboarding.state");
+  const selectedModality = form.watch("modality");
+  const adultOnly = Boolean(selectedModality) && selectedModality !== "jiu_jitsu";
   const selectedCity = form.watch("onboarding.city");
   const selectedCityId = form.watch("onboarding.cityId");
   const cityQuery = selectedCity.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
@@ -151,7 +165,7 @@ export function RegisterForm() {
         toast.error(result.message);
       } else {
         const fields = Object.keys(result.fieldErrors);
-        if (fields.includes("academyName") || fields.includes("onboarding")) setStep(0);
+        if (fields.includes("academyName") || fields.includes("modality") || fields.includes("onboarding")) setStep(0);
         for (const [key, messages] of Object.entries(result.fieldErrors)) {
           if (messages[0]) form.setError(key as FieldPath<RegistrationValues>, { message: messages[0] });
         }
@@ -184,7 +198,7 @@ export function RegisterForm() {
       return;
     }
     await form.handleSubmit(submit, (errors) => {
-        if (errors.academyName || errors.onboarding?.city || errors.onboarding?.cityId || errors.onboarding?.state || errors.onboarding?.stage) setStep(0);
+        if (errors.academyName || errors.modality || errors.onboarding?.city || errors.onboarding?.cityId || errors.onboarding?.state || errors.onboarding?.stage) setStep(0);
       else if (errors.onboarding) setStep(1);
     })(event);
   }
@@ -294,7 +308,17 @@ export function RegisterForm() {
                         </div>
                       </fieldset><FormMessage />
                     </FormItem>} />
-                    <div className="flex items-start gap-3 border-t border-border pt-5 text-sm text-muted-foreground"><GraduationCap className="size-5 shrink-0 text-primary" aria-hidden /><p>Modalidade: <strong className="font-medium text-foreground">Jiu-Jitsu</strong><br />Adulto e infantil, com suas faixas e graduações.</p></div>
+                    <FormField control={form.control} name="modality" render={({ field, fieldState }) => <CascaSelectField
+                      label="Modalidade" value={field.value ?? ""} options={MODALITY_OPTIONS} placeholder="Selecione a modalidade"
+                      onChange={(value) => {
+                        const next = value as AcademyModality;
+                        field.onChange(next);
+                        if (next !== "jiu_jitsu") form.setValue("onboarding.audiences", ["adult"], { shouldDirty: true, shouldValidate: true });
+                      }}
+                      isRequired isInvalid={fieldState.invalid} errorMessage={fieldState.error?.message}
+                      className="max-w-md"
+                    />} />
+                    {selectedModality ? <p className="text-sm text-muted-foreground">{MODALITY_HINT[selectedModality]}</p> : null}
                   </div>}
 
                   {step === 1 && <div className="space-y-7">
@@ -305,11 +329,11 @@ export function RegisterForm() {
                     </FormItem>} />
                     <FormField control={form.control} name="onboarding.audiences" render={({ field }) => <FormItem>
                       <fieldset><legend className="mb-1 text-base font-semibold">Quem treina ou vai treinar na academia?</legend>
-                        <p className="mb-4 text-sm text-muted-foreground">Selecione todos os públicos que fazem parte do seu espaço.</p>
-                        <div className="grid gap-3 sm:grid-cols-3">{AUDIENCES.map(option => (
+                        <p className="mb-4 text-sm text-muted-foreground">{adultOnly ? "Esta modalidade atende adultos de 18 anos ou mais." : "Selecione todos os públicos que fazem parte do seu espaço."}</p>
+                        <div className="grid gap-3 sm:grid-cols-3">{AUDIENCES.filter((option) => !adultOnly || option.value === "adult").map(option => (
                           <label key={option.value} className={cn("relative flex cursor-pointer items-start gap-3 rounded-md border p-4 focus-within:ring-2 focus-within:ring-ring", field.value.includes(option.value) ? "border-primary bg-primary/5" : "border-border hover:bg-background")}>
                             <input ref={field.ref} type="checkbox" name={field.name} checked={field.value.includes(option.value)} onChange={event => field.onChange(event.target.checked ? [...field.value, option.value] : field.value.filter(value => value !== option.value))} className="mt-1 size-4 shrink-0 accent-bjj-red" />
-                            <span><span className="flex items-center gap-2 font-medium"><span aria-hidden className="text-xl">{option.emoji}</span>{option.label}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{option.description}</span></span>
+                            <span><span className="flex items-center gap-2 font-medium"><span aria-hidden className="text-xl">{option.emoji}</span>{option.label}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{adultOnly ? "18 anos ou mais" : option.description}</span></span>
                           </label>
                         ))}</div>
                       </fieldset><FormMessage />
@@ -334,8 +358,8 @@ export function RegisterForm() {
                     </div>
                     <div className="rounded-md border border-border bg-background p-5">
                       <p className="flex items-center gap-2 font-semibold"><Building2 className="size-5 text-primary" aria-hidden />{form.getValues("academyName")}</p>
-                      <p className="mt-2 text-sm text-muted-foreground">{form.getValues("onboarding.city")} / {form.getValues("onboarding.state")} · Jiu-Jitsu</p>
-                      <p className="mt-4 border-t border-border pt-4 text-sm leading-6 text-muted-foreground">Depois de confirmar o e-mail neste navegador, você entra como professor no painel. A academia começa com os planos Baby, Kids 1, Kids 2 e Adulto.</p>
+                      <p className="mt-2 text-sm text-muted-foreground">{form.getValues("onboarding.city")} / {form.getValues("onboarding.state")} · {selectedModality ? MODALITY_LABELS[selectedModality] : "Modalidade não escolhida"}</p>
+                      <p className="mt-4 border-t border-border pt-4 text-sm leading-6 text-muted-foreground">Depois de confirmar o e-mail neste navegador, você entra como professor no painel. {selectedModality === "jiu_jitsu" ? "A academia começa com os planos Baby, Kids 1, Kids 2 e Adulto." : "O atendimento é adulto, de 18 anos ou mais. Os planos comerciais padrão permanecem; a rotina não abre Kids nem Baby."}</p>
                     </div>
                   </div>}
                   </fieldset>

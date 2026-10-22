@@ -53,3 +53,7 @@ Após implementação e validação, propor atualizar modalidade/graduação, al
 ## T10 / #37 — proposta após implementação
 - A modalidade só muda por `switch_academy_modality`, chamada pelo professor da própria academia, com a conta travada e sem aluno (inclusive removido), turma, aula, pagamento ou documento.
 - Plano comercial, nome e preço permanecem. A troca não cria aluno nem mensalidade. Cancelar na configuração não grava. Não promover automaticamente para spec/.
+
+## T11 / #38 — proposta após implementação
+- O cadastro público exige uma das quatro modalidades já integradas. A escolha entra na intenção, sobrevive à confirmação idempotente e vira a modalidade da academia na primeira entrada. Metadata do Auth continua sem autorizar.
+- Fora do Jiu-Jitsu, o perfil descritivo só aceita público adulto, de 18 anos ou mais. Academias já gravadas permanecem com a modalidade do backfill. Não promover automaticamente para spec/.

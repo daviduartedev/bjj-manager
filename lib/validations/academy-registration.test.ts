@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { academyOnboardingSchema, academyRegistrationSchema } from "./academy-registration";
+import { academyOnboardingSchema, academyRegistrationSchema, registrationAudienceIssue } from "./academy-registration";
 
 const valid = {
   email: "ana@academia.com",
   password: "luta-longa-no-tatame",
   academyName: "Academia Casca",
   displayName: "Ana Souza",
+  modality: "jiu_jitsu",
 };
 
 describe("academyRegistrationSchema", () => {
@@ -16,6 +17,7 @@ describe("academyRegistrationSchema", () => {
       password: "frase-senha-com-mais-de-quinze",
       academyName: "  Casca  ",
       displayName: "  Ana  ",
+      modality: "jiu_jitsu",
     });
 
     expect(parsed.success).toBe(true);
@@ -111,6 +113,25 @@ describe("academyRegistrationSchema", () => {
     });
 
     expect(parsed.success).toBe(true);
+  });
+
+  it("exige uma das quatro modalidades e recusa público infantil fora do Jiu-Jitsu", () => {
+    expect(academyRegistrationSchema.safeParse(valid).success).toBe(true);
+    for (const modality of ["boxing", "judo", "muay_thai"] as const) {
+      expect(academyRegistrationSchema.safeParse({ ...valid, modality }).success).toBe(true);
+    }
+    expect(academyRegistrationSchema.safeParse({ ...valid, modality: undefined }).success).toBe(false);
+    expect(academyRegistrationSchema.safeParse({ ...valid, modality: "karate" }).success).toBe(false);
+    const onboarding = {
+      city: "Campinas", cityId: "3509502", state: "SP", stage: "operating", studentRange: "1-30",
+      audiences: ["kids"], priorities: ["students"],
+    };
+    expect(academyRegistrationSchema.safeParse({ ...valid, modality: "jiu_jitsu", onboarding }).success).toBe(true);
+    const boxing = academyRegistrationSchema.safeParse({ ...valid, modality: "boxing", onboarding });
+    expect(boxing.success).toBe(true);
+    if (!boxing.success) return;
+    expect(registrationAudienceIssue(boxing.data)).toBe("Esta modalidade atende adultos de 18 anos ou mais.");
+    expect(registrationAudienceIssue({ ...boxing.data, onboarding: { ...onboarding, audiences: ["adult"] } })).toBeNull();
   });
 
   it("recusa papel, user id e redirect vindos do cliente", () => {

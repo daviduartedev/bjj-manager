@@ -94,3 +94,7 @@ O payload passa a guardar `receiver.modality`, lida da conta no servidor. Ausên
 ## T10 / #37 — troca
 
 A configuração mostra a modalidade atual, os outros três destinos e os efeitos antes de gravar. Cancelar limpa a confirmação. A action só segue se a sessão for de professor e o destino for uma modalidade diferente. A RPC trava a conta com `FOR UPDATE`. Aluno, turma, aula, pagamento e documento travam a mesma linha com `FOR SHARE`, então uma escrita concorrente ou espera a troca e nasce no esporte novo, ou segura a conta e faz a troca enxergar o registro e recusar. Update direto continua bloqueado. Planos não entram na contagem e não são apagados nem recriados. As migrações 037 e 038 ficaram só no Postgres descartável local, para a corrida enxergar os locks.
+
+## T11 / #38 — escolha pública
+
+O formulário deixa de fixar Jiu-Jitsu. A pessoa escolhe Jiu-Jitsu, Boxe, Judô ou Muay Thai antes de criar a conta. O servidor recusa valor ausente ou desconhecido e não grava a modalidade no metadata do Auth. A intenção já existente não é reescrita por um segundo envio. A provisão copia a modalidade da intenção para a academia. No perfil descritivo, Boxe, Judô e Muay Thai só seguem com público adulto. O catálogo comercial criado na primeira entrada permanece o mesmo; a rotina dessas modalidades não abre Kids nem Baby. Não houve migração nova: o backfill de #28 continua Jiu-Jitsu e a trava de valores já aceitava as quatro.

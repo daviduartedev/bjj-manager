@@ -13,6 +13,7 @@ const validInput = {
   password: "luta-longa-no-tatame",
   academyName: "Academia Casca",
   displayName: "Ana Souza",
+  modality: "jiu_jitsu",
 };
 
 describe("academySignupCallbackUrl", () => {
@@ -63,17 +64,47 @@ describe("submitAcademyRegistration", () => {
     expect(recordIntent).not.toHaveBeenCalled();
   });
 
-  it("recusa modalidades desconhecidas ou ainda não liberadas antes de criar um usuário", async () => {
-    const signUp = vi.fn();
-    const recordIntent = vi.fn();
-    for (const modality of ["boxing", "judo", "muay_thai", "admin", null]) {
+  it("recusa modalidade desconhecida antes de criar um usuário e grava as quatro liberadas", async () => {
+    const signUp = vi.fn().mockResolvedValue({
+      user: { id: "sport-user", identities: [{ id: "identity" }] }, error: null,
+    });
+    const recordIntent = vi.fn().mockResolvedValue({ ok: true });
+    for (const modality of ["admin", null, "karate"]) {
       const result = await submitAcademyRegistration({ ...validInput, modality }, {
         appUrl: "https://app.casca.test", signUp, recordIntent,
       });
       expect(result.ok).toBe(false);
     }
     expect(signUp).not.toHaveBeenCalled();
-    expect(recordIntent).not.toHaveBeenCalled();
+    for (const modality of ["jiu_jitsu", "boxing", "judo", "muay_thai"] as const) {
+      const intents: unknown[] = [];
+      const created = await submitAcademyRegistration({ ...validInput, modality }, {
+        appUrl: "https://app.casca.test",
+        signUp: vi.fn().mockResolvedValue({ user: { id: modality, identities: [{ id: "identity" }] }, error: null }),
+        recordIntent: async (intent) => { intents.push(intent); return { ok: true }; },
+      });
+      expect(created.ok).toBe(true);
+      expect(intents).toEqual([{
+        userId: modality, academyName: validInput.academyName, displayName: validInput.displayName, modality,
+      }]);
+    }
+  });
+
+  it("recusa público infantil nas modalidades de adulto antes de criar um usuário", async () => {
+    const signUp = vi.fn();
+    const result = await submitAcademyRegistration({
+      ...validInput,
+      modality: "muay_thai",
+      onboarding: {
+        city: "Campinas", cityId: "3509502", state: "SP", stage: "operating", studentRange: "1-30",
+        audiences: ["kids", "adult"], priorities: ["students"],
+      },
+    }, { appUrl: "https://app.casca.test", signUp, recordIntent: vi.fn() });
+    expect(result).toEqual({
+      ok: false,
+      fieldErrors: { "onboarding.audiences": ["Esta modalidade atende adultos de 18 anos ou mais."] },
+    });
+    expect(signUp).not.toHaveBeenCalled();
   });
 
   it("envia o perfil descritivo ao cadastro sem alterar a intenção de autorização", async () => {
