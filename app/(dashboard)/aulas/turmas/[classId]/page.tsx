@@ -57,10 +57,11 @@ export default async function TurmaDetailPage({ params }: Props) {
       <div className="space-y-8">
       <DashboardBackLink href={ROUTES.aulasTurmas}>Turmas</DashboardBackLink>
 
-      <DashboardPanel icon={CalendarDays} title="Dados da turma" subtitle="Nome e modalidade">
+      <DashboardPanel icon={CalendarDays} title="Dados da turma" subtitle="Nome, modalidade e público">
         <ClassForm
           mode={{ kind: "edit", classId: classDetail.id }}
           instructorProfileId={ctx.profile.id}
+          modality={ctx.account.modality}
           initial={{ name: classDetail.name, kind: classDetail.kind }}
         />
       </DashboardPanel>

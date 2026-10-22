@@ -136,3 +136,16 @@ Planejamento aprovado; implementação iniciada. Evidências por ticket abaixo; 
 - Skills playwright-cli/playwright-best-practices; sessão separada `casca-issue33`, componentes reais em `/muay-promotion-fixture` de localhost:3102, dados sintéticos sem sessão/submissão/acesso remoto. Diálogo exibe16atual e opções17/18/19 com khan/título distintos;17sem motivo obrigatório, End/Tab escolhe19e exige justificativa. FonteCBMTT/limites/exame/SNG/homologação/certificação visíveis; sem campoJJ/orientaçãoCBJ.
 - Histórico mostra18e17como eventos distintos, salto/motivo e origem15com data desconhecida; reload sintético conserva a apresentação. Chromium390e1280px sem overflow; diálogo mobile x12/largura366, rolagem alcança Registrar promoção/Cancelar; nenhum erro de console observado. Screenshots desktop/mobile inspecionadas visualmente emTemp.
 - Fixture e arquivo gerado específico `.next/types/app/muay-promotion-fixture/page.ts` removidos. Logs/snapshots próprios movidos para `Temp/casca-issue33-browser-20261022`; screenshots `Temp/casca-issue33-mobile.png`/`casca-issue33-desktop.png`, fora doGit. Esta prova não equivale à jornada autenticada UI→action→TEST e reload de dados reais; coordenador fará com Marcos Muay DVD. Suíte integral/build/revisão/DVD e confirmação humana continuam pendentes. Sem implementação #34+ ou liberação pública antes de #38.
+
+## T7 / #34 — 22/10/2026
+
+### TDD e verificações direcionadas
+- Costuras já escritas no diff retomado, sem alargar a bateria: `createClass`/`updateClass` e `getOwnStudentPortalProfile`. Fake só na fronteira sessão/Supabase.
+- `pnpm exec vitest run lib/classes/modality-actions.test.ts lib/data/student-portal-profile.test.ts`: **9 testes aprovados em 2 arquivos**. Cobre as quatro modalidades, modalidade forjada, público kids fora do Jiu-Jitsu, instrutor aluno ou de outra academia, operação de aluno, edição fora do tenant, ficha própria, professor e ficha arquivada.
+- `pnpm type-check`: aprovado.
+- `node scripts/validate-modality-classes.cjs --apply-migration` com `CASCA_TEST_DATABASE_URL` explícita em loopback:5549/casca_test: **aprovado**. Guard exige loopback e banco `_test`; não lê `.env`. Aplica e reaplica 037 na transação e termina em ROLLBACK. Quatro esportes persistem turma, horário, sessão, vínculo, check-in e presença manual em separado; remover presença conserva o check-in; aluno lê a própria ficha e a própria presença e não opera turma; professor de outro tenant e referências cruzadas são recusados; Jiu-Jitsu kids/Baby permanece.
+
+### UI efêmera e limites
+- A app do worktree seguia em `http://localhost:3102` (IPv6 `::1`); `127.0.0.1:3102` não escuta. Postgres descartável `casca-modalidades-test` seguia em `127.0.0.1:5549`.
+- Fixture não commitada `/issue34-fixture` respondeu 200 para Boxe, Judô, Muay Thai e Jiu-Jitsu. Boxe não renderiza o bloco de graduação e informa público adulto 18+; Judô e Muay Thai renderizam a data da graduação; Jiu-Jitsu renderiza a faixa azul e não o aviso exclusivo de 18+.
+- Árvore de acessibilidade já capturada na sessão interrompida: combobox "Público" e "Aluno para inscrever na turma", com o painel de inscrição em coluna estreita. Não houve nova passagem de teclado/viewport 390 px nesta retomada; isso entra no roteiro final, não nesta prova. A fixture não substitui a jornada autenticada professor → turma → presença → portal.

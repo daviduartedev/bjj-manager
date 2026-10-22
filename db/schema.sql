@@ -579,6 +579,7 @@ CREATE TABLE IF NOT EXISTS public.classes (
   account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
   name text NOT NULL,
   kind public.student_kind NOT NULL,
+  modality text NOT NULL CONSTRAINT classes_modality_ck CHECK (modality IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo')),
   instructor_profile_id uuid NOT NULL REFERENCES public.profiles (id) ON DELETE RESTRICT,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),

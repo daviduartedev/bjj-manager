@@ -33,3 +33,9 @@ Após implementação e validação, propor atualizar modalidade/graduação, al
 - Evento conserva graduação e data de origem inclusiveNULL; nova data concedida atualiza ficha e histórico juntos. Falha de evento reverte a ficha; chamadas concorrentes reavaliam o estado após o lock. API de histórico permanece append-only e leitura respeita professor do tenant/aluno próprio; títulos/honrarias não alteram acesso.
 - Perfil e histórico completo mostram khan/cores/títulos, datas, salto e motivo, com estado preexistente desconhecido explícito. Referência/fonte/consulta e limites ficam visíveis: sem critérios CBMTT de idade/carência inventados, sem prontidão/créditos/equivalência declarada IFMA15, sem exame/SNG/homologação/certificação CBMTT/IFMA. OrientaçãoCBJ permanece apenas noJudô.
 - Propor atualização das specs de graduação/perfil/schema/segurança após integração e validação humana; não promover automaticamente estas notas para spec/ nem liberar cadastro público antes de #38.
+
+## T7 / #34 — proposta após implementação
+- Turma persiste o esporte da academia, distinto do público `kind`. Novas modalidades só aceitam público Adulto; Jiu-Jitsu conserva adulto/kids/baby, inclusive ficha kids em turma Baby.
+- Servidor e triggers recusam modalidade, instrutor, aluno, aula, vínculo, check-in ou presença de outro tenant ou incompatíveis com a conta. Check-in continua separado da presença manual; remover presença não apaga o check-in.
+- Portal lê somente a ficha da sessão e mostra graduação JJ, nível Judô/Muay com data desconhecida explícita, ou nenhum bloco de graduação no Boxe. Aluno não opera turma.
+- Planos e mensalidades não ganham cobrança por modalidade. Propor atualização das specs de turmas/portal/schema após integração e validação humana; não promover automaticamente para spec/.

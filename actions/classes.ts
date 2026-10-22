@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentAccount } from "@/lib/auth";
 import { expandSessionsForSchedules } from "@/lib/classes/session-generator";
 import { mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";
-import { ROUTES } from "@/lib/routes";
+import { ROUTES, routeAulasTurma } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/server";
 import {
   classSchema,
@@ -49,6 +49,7 @@ async function assertProfileInAccount(
     .select("id")
     .eq("id", profileId)
     .eq("account_id", accountId)
+    .eq("role", "professor")
     .maybeSingle();
 
   if (error || !data) {
@@ -88,6 +89,11 @@ export async function createClass(input: unknown): Promise<ClassActionResult> {
 
   const supabase = await createClient();
 
+  if ((parsed.data.modality && parsed.data.modality !== ctx.account.modality) ||
+      (ctx.account.modality !== "jiu_jitsu" && parsed.data.kind !== "adult")) {
+    return { ok: false, error: "Modalidade ou público incompatível com esta academia." };
+  }
+
   const instructorError = await assertProfileInAccount(
     supabase,
     parsed.data.instructorProfileId,
@@ -101,6 +107,7 @@ export async function createClass(input: unknown): Promise<ClassActionResult> {
       account_id: ctx.profile.account_id,
       name: parsed.data.name,
       kind: parsed.data.kind,
+      modality: ctx.account.modality,
       instructor_profile_id: parsed.data.instructorProfileId,
     })
     .select("id")
@@ -128,6 +135,11 @@ export async function updateClass(input: unknown): Promise<ClassActionResult> {
 
   const supabase = await createClient();
 
+  if ((parsed.data.modality && parsed.data.modality !== ctx.account.modality) ||
+      (ctx.account.modality !== "jiu_jitsu" && parsed.data.kind !== "adult")) {
+    return { ok: false, error: "Modalidade ou público incompatível com esta academia." };
+  }
+
   const instructorError = await assertProfileInAccount(
     supabase,
     parsed.data.instructorProfileId,
@@ -135,16 +147,19 @@ export async function updateClass(input: unknown): Promise<ClassActionResult> {
   );
   if (instructorError) return instructorError;
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("classes")
     .update({
       name: parsed.data.name,
       kind: parsed.data.kind,
+      modality: ctx.account.modality,
       instructor_profile_id: parsed.data.instructorProfileId,
       updated_at: new Date().toISOString(),
     })
     .eq("id", parsed.data.classId)
-    .eq("account_id", ctx.profile.account_id);
+    .eq("account_id", ctx.profile.account_id)
+    .select("id")
+    .maybeSingle();
 
   if (error) {
     return {
@@ -153,7 +168,10 @@ export async function updateClass(input: unknown): Promise<ClassActionResult> {
     };
   }
 
+  if (!data) return { ok: false, error: "Turma não encontrada ou sem permissão." };
+
   revalidatePath(ROUTES.aulasTurmas);
+  revalidatePath(routeAulasTurma(parsed.data.classId));
   return { ok: true };
 }
 
@@ -223,6 +241,7 @@ export async function addRecurringSchedule(input: unknown): Promise<ClassActionR
   }
 
   revalidatePath(ROUTES.aulas);
+  revalidatePath(routeAulasTurma(parsed.data.classId));
   return { ok: true, id: scheduleData.id as string };
 }
 
@@ -298,6 +317,7 @@ export async function enrollStudent(input: unknown): Promise<ClassActionResult> 
   }
 
   revalidatePath(ROUTES.aulasTurmas);
+  revalidatePath(routeAulasTurma(parsed.data.classId));
   return { ok: true };
 }
 
@@ -326,5 +346,6 @@ export async function unenrollStudent(input: unknown): Promise<ClassActionResult
   }
 
   revalidatePath(ROUTES.aulasTurmas);
+  revalidatePath(routeAulasTurma(parsed.data.classId));
   return { ok: true };
 }
