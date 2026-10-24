@@ -357,3 +357,15 @@ export function projectStorefrontCards(
 ): StorefrontCard[] {
   return listedStorefrontProducts(products).map((product) => projectStorefrontCard(product, ctx));
 }
+
+function foldStorefrontSearch(value: string): string {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
+
+export function filterStorefrontByName<T extends { name: string }>(
+  products: readonly T[],
+  query: string,
+): T[] {
+  const needle = foldStorefrontSearch(query);
+  return products.filter((product) => foldStorefrontSearch(product.name).includes(needle));
+}

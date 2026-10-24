@@ -4,6 +4,7 @@ import {
   allocateSlug,
   canCopyStorefrontLink,
   canPublishStorefront,
+  filterStorefrontByName,
   normalizeStorefrontDescription,
   projectStorefrontCard,
   projectStorefrontCatalog,
@@ -785,5 +786,36 @@ describe("normalizeStorefrontDescription", () => {
       ok: false,
       error: "A descrição pode ter no máximo 500 caracteres.",
     });
+  });
+});
+
+describe("filterStorefrontByName", () => {
+  const products = [
+    { name: "Kimono", description: "tecido pesado" },
+    { name: "Faixa", description: "kimono de competição" },
+  ];
+
+  it("mantém Kimono e descarta Faixa quando a busca é kimo", () => {
+    expect(filterStorefrontByName(products, "kimo").map((product) => product.name)).toEqual([
+      "Kimono",
+    ]);
+  });
+
+  it("encontra Kimono quando a busca é KÍMONO, dobrando acento dos dois lados", () => {
+    expect(filterStorefrontByName([{ name: "Kimono" }], "KÍMONO")).toEqual([{ name: "Kimono" }]);
+    expect(filterStorefrontByName([{ name: "Kímono" }], "kimono")).toEqual([{ name: "Kímono" }]);
+  });
+
+  it("ignora a descrição quando a busca só aparece nela", () => {
+    expect(filterStorefrontByName(products, "kimono de competição")).toEqual([]);
+    expect(filterStorefrontByName(products, "tecido pesado")).toEqual([]);
+  });
+
+  it("devolve a mesma lista na mesma ordem quando a busca está vazia", () => {
+    expect(filterStorefrontByName(products, "")).toEqual(products);
+  });
+
+  it("devolve lista vazia quando nada combina", () => {
+    expect(filterStorefrontByName(products, "rash")).toEqual([]);
   });
 });

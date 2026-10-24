@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { cache } from "react";
 
-import { StorefrontSizePicker } from "@/components/storefront/storefront-size-picker";
+import { StorefrontProductList } from "@/components/storefront/storefront-product-list";
 import { resolvePublicAppOrigin } from "@/lib/app-url";
 import { getCurrentAccount } from "@/lib/auth";
 import { normalizePhoneE164 } from "@/lib/documents/whatsapp";
@@ -215,25 +215,12 @@ export default async function LojaPage({
       {access === "empty" ? (
         <p className="mt-6 text-base">Nenhum produto no momento</p>
       ) : (
-        <ul className="mt-8 flex flex-col gap-6">
-          {products.map((product, index) => (
-            <li key={`${product.name}-${index}`} className="border-t border-border pt-6">
-              <h2 className="text-lg font-semibold tracking-tight">{product.name}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{product.audienceLabel}</p>
-              {product.description ? (
-                <p className="mt-2 whitespace-pre-wrap text-base">{product.description}</p>
-              ) : null}
-              <StorefrontSizePicker
-                name={product.name}
-                chips={product.chips}
-                initialChipIndex={product.initialChipIndex}
-                academyName={account.name}
-                storeUrl={storeUrl}
-                whatsappE164={whatsappE164}
-              />
-            </li>
-          ))}
-        </ul>
+        <StorefrontProductList
+          products={products}
+          academyName={account.name}
+          storeUrl={storeUrl}
+          whatsappE164={whatsappE164}
+        />
       )}
     </main>
   );
