@@ -369,3 +369,62 @@ export function filterStorefrontByName<T extends { name: string }>(
   const needle = foldStorefrontSearch(query);
   return products.filter((product) => foldStorefrontSearch(product.name).includes(needle));
 }
+
+const STOREFRONT_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+const STOREFRONT_PHOTO_MAX_COUNT = 6;
+
+const PHOTO_EXT = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+} as const;
+
+export function checkStorefrontPhoto(
+  file: { size: number; type: string },
+  existingCount: number,
+): { ok: true; ext: "jpg" | "png" | "webp" } | { ok: false; error: string } {
+  if (existingCount >= STOREFRONT_PHOTO_MAX_COUNT) {
+    return { ok: false, error: "Cada produto aceita no máximo 6 fotos." };
+  }
+  if (file.size === 0) {
+    return { ok: false, error: "Arquivo vazio." };
+  }
+  if (file.size > STOREFRONT_PHOTO_MAX_BYTES) {
+    return { ok: false, error: "A foto pode ter no máximo 5 MB." };
+  }
+  const ext = PHOTO_EXT[file.type as keyof typeof PHOTO_EXT];
+  if (!ext) {
+    return { ok: false, error: "Use JPEG, PNG ou WebP." };
+  }
+  return { ok: true, ext };
+}
+
+export function reorderStorefrontPhotos<T extends { id: string }>(
+  photos: readonly T[],
+  orderedIds: readonly string[],
+): T[] {
+  if (orderedIds.length !== photos.length) return [...photos];
+  const byId = new Map(photos.map((photo) => [photo.id, photo]));
+  const next: T[] = [];
+  const seen = new Set<string>();
+  for (const id of orderedIds) {
+    const photo = byId.get(id);
+    if (!photo || seen.has(id)) return [...photos];
+    seen.add(id);
+    next.push(photo);
+  }
+  return next;
+}
+
+export function storefrontCover(
+  photos: readonly { url: string }[],
+  logoUrl: string | null,
+): { urls: string[]; fallback: "logo" | "none" } {
+  if (photos.length > 0) {
+    return { urls: photos.map((photo) => photo.url), fallback: "none" };
+  }
+  if (logoUrl) {
+    return { urls: [], fallback: "logo" };
+  }
+  return { urls: [], fallback: "none" };
+}

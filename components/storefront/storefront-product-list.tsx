@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { StorefrontPhotoFrame } from "@/components/storefront/storefront-photo-frame";
 import { StorefrontSizePicker } from "@/components/storefront/storefront-size-picker";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,16 +10,22 @@ import {
   type StorefrontCard,
 } from "@/lib/storefront/storefront";
 
+export type StorefrontPublicCard = StorefrontCard & {
+  cover: { urls: string[]; fallback: "logo" | "none" };
+};
+
 export function StorefrontProductList({
   products,
   academyName,
   storeUrl,
   whatsappE164,
+  logoSrc,
 }: {
-  products: readonly StorefrontCard[];
+  products: readonly StorefrontPublicCard[];
   academyName: string;
   storeUrl: string;
   whatsappE164: string | null;
+  logoSrc: string | null;
 }) {
   const [query, setQuery] = useState("");
   const visible = filterStorefrontByName(products, query);
@@ -41,7 +48,12 @@ export function StorefrontProductList({
         <ul className="mt-8 flex flex-col gap-6">
           {visible.map((product, index) => (
             <li key={`${product.name}-${index}`} className="border-t border-border pt-6">
-              <h2 className="text-lg font-semibold tracking-tight">{product.name}</h2>
+              <StorefrontPhotoFrame
+                urls={product.cover.urls}
+                fallback={product.cover.fallback}
+                logoSrc={logoSrc}
+              />
+              <h2 className="mt-4 text-lg font-semibold tracking-tight">{product.name}</h2>
               <p className="mt-1 text-sm text-muted-foreground">{product.audienceLabel}</p>
               {product.description ? (
                 <p className="mt-2 whitespace-pre-wrap text-base">{product.description}</p>

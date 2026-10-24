@@ -4,12 +4,15 @@ import {
   allocateSlug,
   canCopyStorefrontLink,
   canPublishStorefront,
+  checkStorefrontPhoto,
   filterStorefrontByName,
   normalizeStorefrontDescription,
   projectStorefrontCard,
   projectStorefrontCatalog,
+  reorderStorefrontPhotos,
   resolveStorefrontAccess,
   slugifyAcademyName,
+  storefrontCover,
   storefrontListingWarning,
   storefrontPath,
   validateSlugChange,
@@ -785,6 +788,100 @@ describe("normalizeStorefrontDescription", () => {
     expect(normalizeStorefrontDescription(`  ${"a".repeat(501)}  `)).toEqual({
       ok: false,
       error: "A descrição pode ter no máximo 500 caracteres.",
+    });
+  });
+});
+
+const FIVE_MB = 5 * 1024 * 1024;
+
+describe("checkStorefrontPhoto", () => {
+  it("aceita image/jpeg de 1000 bytes quando ainda não há fotos", () => {
+    expect(checkStorefrontPhoto({ size: 1000, type: "image/jpeg" }, 0)).toEqual({
+      ok: true,
+      ext: "jpg",
+    });
+  });
+
+  it("aceita image/png", () => {
+    expect(checkStorefrontPhoto({ size: 1000, type: "image/png" }, 0)).toEqual({
+      ok: true,
+      ext: "png",
+    });
+  });
+
+  it("aceita image/webp", () => {
+    expect(checkStorefrontPhoto({ size: 1000, type: "image/webp" }, 0)).toEqual({
+      ok: true,
+      ext: "webp",
+    });
+  });
+
+  it("recusa image/gif", () => {
+    expect(checkStorefrontPhoto({ size: 1000, type: "image/gif" }, 0)).toEqual({
+      ok: false,
+      error: "Use JPEG, PNG ou WebP.",
+    });
+  });
+
+  it("recusa arquivo vazio", () => {
+    expect(checkStorefrontPhoto({ size: 0, type: "image/jpeg" }, 0)).toEqual({
+      ok: false,
+      error: "Arquivo vazio.",
+    });
+  });
+
+  it("recusa arquivo acima de 5 MB", () => {
+    expect(checkStorefrontPhoto({ size: FIVE_MB + 1, type: "image/jpeg" }, 0)).toEqual({
+      ok: false,
+      error: "A foto pode ter no máximo 5 MB.",
+    });
+  });
+
+  it("recusa a sétima foto", () => {
+    expect(checkStorefrontPhoto({ size: 1000, type: "image/jpeg" }, 6)).toEqual({
+      ok: false,
+      error: "Cada produto aceita no máximo 6 fotos.",
+    });
+  });
+});
+
+describe("reorderStorefrontPhotos", () => {
+  const photos = [{ id: "a" }, { id: "b" }, { id: "c" }];
+
+  it("coloca o id pedido na primeira posição, que é a capa", () => {
+    expect(reorderStorefrontPhotos(photos, ["c", "a", "b"])).toEqual([
+      { id: "c" },
+      { id: "a" },
+      { id: "b" },
+    ]);
+  });
+
+  it("devolve a lista original quando algum id é desconhecido", () => {
+    expect(reorderStorefrontPhotos(photos, ["c", "missing", "a"])).toEqual(photos);
+  });
+});
+
+describe("storefrontCover", () => {
+  it("devolve as urls das fotos e não usa a logo", () => {
+    expect(
+      storefrontCover([{ url: "https://foto-1" }, { url: "https://foto-2" }], "https://logo"),
+    ).toEqual({
+      urls: ["https://foto-1", "https://foto-2"],
+      fallback: "none",
+    });
+  });
+
+  it("usa a logo quando não há fotos", () => {
+    expect(storefrontCover([], "https://logo")).toEqual({
+      urls: [],
+      fallback: "logo",
+    });
+  });
+
+  it("não inventa imagem quando não há fotos nem logo", () => {
+    expect(storefrontCover([], null)).toEqual({
+      urls: [],
+      fallback: "none",
     });
   });
 });

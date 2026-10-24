@@ -11,6 +11,7 @@ import {
   updateProduct,
   updateProductVariant,
 } from "@/actions/products";
+import { ProductPhotoEditor } from "@/components/products/product-photo-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
@@ -31,7 +32,6 @@ import type {
   ProductRow,
   VariantLine,
 } from "@/lib/data/products-page";
-import { getProductHeroVisual } from "@/lib/products/product-visuals";
 import { storefrontListingWarning } from "@/lib/storefront/storefront";
 import { cn } from "@/lib/utils";
 import { Filter, Package, X } from "lucide-react";
@@ -62,10 +62,7 @@ function parseReaisToCents(raw: string): number | null | "invalid" {
 
 export function ProductEditorCard({ product }: Props) {
   const router = useRouter();
-  const visual = useMemo(
-    () => getProductHeroVisual(product.code, product.name),
-    [product.code, product.name],
-  );
+  const coverUrl = product.photos[0]?.url ?? null;
 
   const [nameDraft, setNameDraft] = useState(product.name);
   const [descriptionDraft, setDescriptionDraft] = useState(product.description ?? "");
@@ -249,18 +246,17 @@ export function ProductEditorCard({ product }: Props) {
                     "relative isolate size-24 overflow-hidden rounded-xl border border-border/80 bg-muted/30 sm:size-28",
                   )}
                 >
-                  <Image
-                    src={visual.src}
-                    alt={visual.alt}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 96px, 112px"
-                    priority={false}
-                  />
+                  {coverUrl ? (
+                    <Image
+                      src={coverUrl}
+                      alt=""
+                      fill
+                      unoptimized
+                      className="object-cover"
+                      sizes="112px"
+                    />
+                  ) : null}
                 </div>
-                <p className="max-w-[6.5rem] text-center text-[0.6rem] leading-tight text-muted-foreground sm:max-w-[7rem] sm:text-left sm:text-[0.65rem]">
-                  {visual.credit}
-                </p>
               </div>
 
               <div className="min-w-0 flex-1 space-y-3">
@@ -399,6 +395,8 @@ export function ProductEditorCard({ product }: Props) {
               </div>
             </div>
             </header>
+
+            <ProductPhotoEditor productId={product.id} photos={product.photos} />
 
             {/* Bloco 2 — filtro de tamanhos */}
             <section className="space-y-4 rounded-2xl border border-bjj-blue/20 bg-gradient-to-br from-bjj-blue/[0.05] to-transparent p-4 sm:p-5">

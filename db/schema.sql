@@ -440,6 +440,22 @@ CREATE TABLE IF NOT EXISTS public.product_variants (
   CONSTRAINT product_variants_line_check CHECK (line IN ('unisex', 'feminine'))
 );
 
+CREATE TABLE IF NOT EXISTS public.product_photos (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id uuid NOT NULL REFERENCES public.products (id) ON DELETE CASCADE,
+  storage_path text NOT NULL,
+  sort_order integer NOT NULL,
+  CONSTRAINT product_photos_product_sort_unique UNIQUE (product_id, sort_order),
+  CONSTRAINT product_photos_storage_path_not_blank CHECK (length(btrim(storage_path)) > 0),
+  CONSTRAINT product_photos_sort_order_non_negative CHECK (sort_order >= 0)
+);
+
+COMMENT ON TABLE public.product_photos IS
+  'Fotos do produto, compartilhadas por todos os tamanhos. A menor sort_order é a capa.';
+
+CREATE INDEX IF NOT EXISTS idx_product_photos_product_id
+  ON public.product_photos (product_id);
+
 CREATE TABLE IF NOT EXISTS public.reservations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,

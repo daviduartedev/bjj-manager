@@ -705,6 +705,32 @@ WITH
     )
   );
 
+-- ---------- product_photos (só o professor da conta do produto) ----------
+ALTER TABLE public.product_photos ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS product_photos_professor_all ON public.product_photos;
+
+CREATE POLICY product_photos_professor_all ON public.product_photos
+FOR ALL TO authenticated
+USING (
+  public.can_manage_students()
+  AND EXISTS (
+    SELECT 1
+    FROM public.products AS product
+    WHERE product.id = product_photos.product_id
+      AND product.account_id = public.current_account_id()
+  )
+)
+WITH CHECK (
+  public.can_manage_students()
+  AND EXISTS (
+    SELECT 1
+    FROM public.products AS product
+    WHERE product.id = product_photos.product_id
+      AND product.account_id = public.current_account_id()
+  )
+);
+
 CREATE POLICY product_variants_student_select ON public.product_variants FOR SELECT TO authenticated USING (
   public.current_profile_role () = 'student'::public.profile_role
   AND EXISTS (
@@ -1300,14 +1326,17 @@ GRANT EXECUTE ON FUNCTION public.storefront_account (text) TO anon, authenticate
 COMMENT ON FUNCTION public.storefront_account (text) IS
   'Leitura pública da loja: só id, nome, logo, slug, publicação e WhatsApp do endereço pedido.';
 
-CREATE OR REPLACE FUNCTION public.storefront_products (p_slug text)
+DROP FUNCTION IF EXISTS public.storefront_products (text);
+
+CREATE FUNCTION public.storefront_products (p_slug text)
 RETURNS TABLE (
   name text,
   description text,
   audience text,
   active boolean,
   catalog_visible boolean,
-  variants jsonb
+  variants jsonb,
+  photo_paths jsonb
 )
 LANGUAGE sql
 STABLE
@@ -1329,7 +1358,15 @@ AS $$
         'line', variant.line
       )
       ORDER BY variant.sort_order, variant.size_label
-    ) AS variants
+    ) AS variants,
+    COALESCE(
+      (
+        SELECT jsonb_agg(photo.storage_path ORDER BY photo.sort_order)
+        FROM public.product_photos AS photo
+        WHERE photo.product_id = product.id
+      ),
+      '[]'::jsonb
+    ) AS photo_paths
   FROM public.accounts AS account
   INNER JOIN public.products AS product
     ON product.account_id = account.id
@@ -1366,7 +1403,7 @@ REVOKE ALL ON FUNCTION public.storefront_products (text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.storefront_products (text) TO anon, authenticated;
 
 COMMENT ON FUNCTION public.storefront_products (text) IS
-  'Produtos da loja daquele slug, sem código interno. A página projeta elegibilidade, preço inicial e não mostra estoque.';
+  'Produtos da loja daquele slug, sem código interno. Inclui caminhos de foto só desses produtos. A página assina os caminhos depois de projetar o catálogo.';
 
 CREATE OR REPLACE FUNCTION public.storefront_logo_public (object_name text) RETURNS boolean
 LANGUAGE sql
@@ -1388,6 +1425,38 @@ GRANT EXECUTE ON FUNCTION public.storefront_logo_public (text) TO anon, authenti
 
 COMMENT ON FUNCTION public.storefront_logo_public (text) IS
   'Verdadeiro só quando o objeto é a logo de uma loja já publicada.';
+
+CREATE OR REPLACE FUNCTION public.storefront_product_photo_public (object_name text) RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.product_photos AS photo
+    INNER JOIN public.products AS product
+      ON product.id = photo.product_id
+    INNER JOIN public.accounts AS account
+      ON account.id = product.account_id
+    WHERE photo.storage_path = object_name
+      AND account.storefront_published = true
+      AND product.active = true
+      AND product.catalog_visible = true
+      AND EXISTS (
+        SELECT 1
+        FROM public.product_variants AS priced
+        WHERE priced.product_id = product.id
+          AND priced.price_cents > 0
+      )
+  );
+$$;
+
+REVOKE ALL ON FUNCTION public.storefront_product_photo_public (text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.storefront_product_photo_public (text) TO anon, authenticated;
+
+COMMENT ON FUNCTION public.storefront_product_photo_public (text) IS
+  'Verdadeiro só quando o objeto é foto de um produto que já entra na loja publicada.';
 
 CREATE OR REPLACE FUNCTION public.provision_academy_for_current_user () RETURNS jsonb
 LANGUAGE plpgsql

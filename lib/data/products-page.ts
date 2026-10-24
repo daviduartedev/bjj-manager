@@ -1,4 +1,7 @@
+import { BRANDING_BUCKET } from "@/lib/settings/branding-upload";
 import { createClient } from "@/lib/supabase/server";
+
+const PHOTO_SIGN_TTL_SECONDS = 60 * 60;
 
 export type ProductAudience = "unisex" | "masculine" | "feminine";
 export type VariantLine = "unisex" | "feminine";
@@ -12,6 +15,12 @@ export type ProductVariantRow = {
   line: VariantLine;
 };
 
+export type ProductPhotoRow = {
+  id: string;
+  sort_order: number;
+  url: string | null;
+};
+
 export type ProductRow = {
   id: string;
   code: string;
@@ -22,6 +31,13 @@ export type ProductRow = {
   sort_order: number;
   audience: ProductAudience;
   variants: ProductVariantRow[];
+  photos: ProductPhotoRow[];
+};
+
+type ProductPhotoRaw = {
+  id: string;
+  storage_path?: string | null;
+  sort_order?: number | null;
 };
 
 type ProductRowRaw = {
@@ -39,7 +55,32 @@ type ProductRowRaw = {
         price_cents?: number | string | null;
       })[]
     | null;
+  product_photos?: ProductPhotoRaw[] | null;
 };
+
+const SELECT_WITH_PHOTOS = `
+      id,
+      code,
+      name,
+      active,
+      description,
+      catalog_visible,
+      sort_order,
+      audience,
+      product_variants (
+        id,
+        size_label,
+        stock_quantity,
+        price_cents,
+        sort_order,
+        line
+      ),
+      product_photos (
+        id,
+        storage_path,
+        sort_order
+      )
+    `;
 
 const SELECT_WITH_STOREFRONT = `
       id,
@@ -127,6 +168,26 @@ export function isLikelyMissingProducts003Columns(err: unknown): boolean {
   return mentionsAudience || mentionsLine;
 }
 
+export function isLikelyMissingProductPhotos(err: unknown): boolean {
+  const text = [
+    (err as { message?: string })?.message,
+    (err as { details?: string })?.details,
+    (err as { hint?: string })?.hint,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (!text.includes("product_photos")) return false;
+  return (
+    text.includes("does not exist") ||
+    text.includes("could not find") ||
+    text.includes("unknown column") ||
+    text.includes("schema cache") ||
+    text.includes("relationship")
+  );
+}
+
 export function isLikelyMissingCatalogVisibleColumn(err: unknown): boolean {
   const text = [
     (err as { message?: string })?.message,
@@ -155,7 +216,11 @@ function readPriceCents(value: unknown): number | null {
   return null;
 }
 
-function normalizeRows(rows: ProductRowRaw[]): ProductRow[] {
+type DraftProduct = Omit<ProductRow, "photos"> & {
+  photos: (ProductPhotoRow & { storagePath: string | null })[];
+};
+
+function normalizeRows(rows: ProductRowRaw[]): DraftProduct[] {
   const byProductId = new Map<string, ProductRowRaw>();
   for (const row of rows) {
     if (!byProductId.has(row.id)) {
@@ -187,6 +252,11 @@ function normalizeRows(rows: ProductRowRaw[]): ProductRow[] {
         ? row.audience
         : "unisex";
 
+    const photoById = new Map<string, ProductPhotoRaw>();
+    for (const photo of row.product_photos ?? []) {
+      if (photo?.id && !photoById.has(photo.id)) photoById.set(photo.id, photo);
+    }
+
     return {
       id: row.id,
       code: row.code,
@@ -200,21 +270,72 @@ function normalizeRows(rows: ProductRowRaw[]): ProductRow[] {
         (a, b) =>
           a.sort_order - b.sort_order || a.size_label.localeCompare(b.size_label),
       ),
+      photos: [...photoById.values()]
+        .sort(
+          (a, b) =>
+            (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.id.localeCompare(b.id),
+        )
+        .map((photo) => ({
+          id: photo.id,
+          sort_order: photo.sort_order ?? 0,
+          url: null as string | null,
+          storagePath: typeof photo.storage_path === "string" ? photo.storage_path : null,
+        })),
     };
   });
+}
+
+async function signProductPhotos(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  rows: DraftProduct[],
+): Promise<ProductRow[]> {
+  return Promise.all(
+    rows.map(async (row) => ({
+      ...row,
+      photos: await Promise.all(
+        row.photos.map(async (photo) => {
+          let url: string | null = null;
+          if (photo.storagePath) {
+            if (/^https?:\/\//i.test(photo.storagePath)) {
+              url = photo.storagePath;
+            } else {
+              const { data } = await supabase.storage
+                .from(BRANDING_BUCKET)
+                .createSignedUrl(photo.storagePath, PHOTO_SIGN_TTL_SECONDS);
+              url = data?.signedUrl ?? null;
+            }
+          }
+          return { id: photo.id, sort_order: photo.sort_order, url };
+        }),
+      ),
+    })),
+  );
 }
 
 export async function loadProductsPageData(): Promise<ProductRow[]> {
   const supabase = await createClient();
 
-  const modern = await supabase
+  const withPhotos = await supabase
     .from("products")
-    .select(SELECT_WITH_STOREFRONT)
+    .select(SELECT_WITH_PHOTOS)
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true });
 
+  if (!withPhotos.error) {
+    return signProductPhotos(supabase, normalizeRows((withPhotos.data ?? []) as ProductRowRaw[]));
+  }
+
+  const modern =
+    isLikelyMissingProductPhotos(withPhotos.error)
+      ? await supabase
+          .from("products")
+          .select(SELECT_WITH_STOREFRONT)
+          .order("sort_order", { ascending: true })
+          .order("name", { ascending: true })
+      : withPhotos;
+
   if (!modern.error) {
-    return normalizeRows((modern.data ?? []) as ProductRowRaw[]);
+    return signProductPhotos(supabase, normalizeRows((modern.data ?? []) as ProductRowRaw[]));
   }
 
   if (isLikelyMissingCatalogVisibleColumn(modern.error)) {
@@ -225,7 +346,10 @@ export async function loadProductsPageData(): Promise<ProductRow[]> {
       .order("name", { ascending: true });
 
     if (!withoutFlag.error) {
-      return normalizeRows((withoutFlag.data ?? []) as ProductRowRaw[]);
+      return signProductPhotos(
+        supabase,
+        normalizeRows((withoutFlag.data ?? []) as ProductRowRaw[]),
+      );
     }
 
     if (isLikelyMissingProducts003Columns(withoutFlag.error)) {
@@ -241,7 +365,10 @@ export async function loadProductsPageData(): Promise<ProductRow[]> {
         .order("name", { ascending: true });
 
       if (!legacy.error) {
-        return normalizeRows((legacy.data ?? []) as ProductRowRaw[]);
+        return signProductPhotos(
+          supabase,
+          normalizeRows((legacy.data ?? []) as ProductRowRaw[]),
+        );
       }
     }
 
@@ -261,7 +388,7 @@ export async function loadProductsPageData(): Promise<ProductRow[]> {
       .order("name", { ascending: true });
 
     if (!legacy.error) {
-      return normalizeRows((legacy.data ?? []) as ProductRowRaw[]);
+      return signProductPhotos(supabase, normalizeRows((legacy.data ?? []) as ProductRowRaw[]));
     }
   }
 

@@ -2,17 +2,22 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { cache } from "react";
 
-import { StorefrontProductList } from "@/components/storefront/storefront-product-list";
+import {
+  StorefrontProductList,
+  type StorefrontPublicCard,
+} from "@/components/storefront/storefront-product-list";
 import { resolvePublicAppOrigin } from "@/lib/app-url";
 import { getCurrentAccount } from "@/lib/auth";
 import { normalizePhoneE164 } from "@/lib/documents/whatsapp";
 import { BRANDING_BUCKET } from "@/lib/settings/branding-upload";
 import {
+  projectStorefrontCard,
   projectStorefrontCards,
   resolveStorefrontAccess,
+  storefrontCover,
   storefrontPath,
   type StorefrontAccess,
-  type StorefrontCard,
+  type StorefrontCardContext,
   type StorefrontProductInput,
   type StorefrontVariantInput,
 } from "@/lib/storefront/storefront";
@@ -86,9 +91,21 @@ function safeJson(value: string): unknown {
   }
 }
 
-function readStorefrontProductRows(data: unknown): StorefrontProductInput[] {
+type StorefrontProductRow = StorefrontProductInput & { photoPaths: string[] };
+
+function readPhotoPaths(value: unknown): string[] {
+  const raw = typeof value === "string" ? safeJson(value) : value;
+  if (!Array.isArray(raw)) return [];
+  const paths: string[] = [];
+  for (const item of raw) {
+    if (typeof item === "string" && item.trim() !== "") paths.push(item);
+  }
+  return paths;
+}
+
+function readStorefrontProductRows(data: unknown): StorefrontProductRow[] {
   if (!Array.isArray(data)) return [];
-  const products: StorefrontProductInput[] = [];
+  const products: StorefrontProductRow[] = [];
   for (const row of data) {
     if (!row || typeof row !== "object") continue;
     const record = row as Record<string, unknown>;
@@ -107,21 +124,46 @@ function readStorefrontProductRows(data: unknown): StorefrontProductInput[] {
       description: typeof record.description === "string" ? record.description : null,
       audience: record.audience,
       variants: readStorefrontVariants(record.variants),
+      photoPaths: readPhotoPaths(record.photo_paths),
     });
   }
   return products;
 }
 
-async function storefrontLogoSrc(
+async function signStorefrontObject(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  logoUrl: string | null,
+  objectPath: string | null,
 ): Promise<string | null> {
-  if (!logoUrl) return null;
-  if (/^https?:\/\//i.test(logoUrl)) return logoUrl;
+  if (!objectPath) return null;
+  if (/^https?:\/\//i.test(objectPath)) return objectPath;
   const { data } = await supabase.storage
     .from(BRANDING_BUCKET)
-    .createSignedUrl(logoUrl, LOGO_SIGN_TTL_SECONDS);
+    .createSignedUrl(objectPath, LOGO_SIGN_TTL_SECONDS);
   return data?.signedUrl ?? null;
+}
+
+async function projectPublicCards(
+  rows: readonly StorefrontProductRow[],
+  ctx: StorefrontCardContext,
+  logoSrc: string | null,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+): Promise<StorefrontPublicCard[]> {
+  const projected = rows.filter((row) => projectStorefrontCards([row], ctx).length > 0);
+  projected.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+
+  return Promise.all(
+    projected.map(async (row) => {
+      const signed = await Promise.all(row.photoPaths.map((path) => signStorefrontObject(supabase, path)));
+      const urls = signed.filter((url): url is string => url != null);
+      return {
+        ...projectStorefrontCard(row, ctx),
+        cover: storefrontCover(
+          urls.map((url) => ({ url })),
+          logoSrc,
+        ),
+      };
+    }),
+  );
 }
 
 const loadStorefrontPage = cache(async (slug: string) => {
@@ -138,32 +180,36 @@ const loadStorefrontPage = cache(async (slug: string) => {
   );
 
   const storeUrl = `${resolvePublicAppOrigin()}${storefrontPath(slug)}`;
-  let products: StorefrontCard[] = [];
+  const cardCtx: StorefrontCardContext = {
+    academyName: account?.name ?? "",
+    storeUrl,
+    whatsappE164,
+  };
+  let rows: StorefrontProductRow[] = [];
   if (canLoadProducts && account) {
     const listed = await supabase.rpc("storefront_products", { p_slug: slug });
     if (listed.error) throw listed.error;
-    products = projectStorefrontCards(readStorefrontProductRows(listed.data), {
-      academyName: account.name,
-      storeUrl,
-      whatsappE164,
-    });
+    rows = readStorefrontProductRows(listed.data);
   }
+  const projectedCount = projectStorefrontCards(rows, cardCtx).length;
 
   const access: StorefrontAccess = resolveStorefrontAccess({
     slugFound: account !== null,
     published: account?.storefront_published ?? false,
     whatsappE164,
-    eligibleProductCount: products.length,
+    eligibleProductCount: projectedCount,
     preview,
   });
   const logoSrc =
-    access === "not_found" ? null : await storefrontLogoSrc(supabase, account?.logo_url ?? null);
+    access === "not_found" ? null : await signStorefrontObject(supabase, account?.logo_url ?? null);
+  const products =
+    access === "catalog" ? await projectPublicCards(rows, cardCtx, logoSrc, supabase) : [];
 
   return {
     access,
     account,
     logoSrc,
-    products: access === "catalog" ? products : [],
+    products,
     storeUrl,
     whatsappE164,
   };
@@ -193,14 +239,14 @@ export default async function LojaPage({
 
   if (access === "not_found" || !account) {
     return (
-      <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-6">
+      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6">
         <h1 className="text-2xl font-semibold tracking-tight">Loja não encontrada</h1>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col px-6 py-10">
+    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-6 py-10">
       {logoSrc ? (
         <Image
           src={logoSrc}
@@ -220,6 +266,7 @@ export default async function LojaPage({
           academyName={account.name}
           storeUrl={storeUrl}
           whatsappE164={whatsappE164}
+          logoSrc={logoSrc}
         />
       )}
     </main>
