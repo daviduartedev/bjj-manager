@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   modality text NOT NULL DEFAULT 'jiu_jitsu' CONSTRAINT accounts_modality_check CHECK (modality IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo')),
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   name text NOT NULL,
+  slug text NOT NULL,
   legal_name text NULL,
   cnpj text NULL,
   signature_url text NULL,
@@ -125,8 +126,47 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   ),
   CONSTRAINT accounts_pix_holder_name_not_blank CHECK (
     pix_holder_name IS NULL OR length(trim(pix_holder_name)) > 0
+  ),
+  CONSTRAINT accounts_slug_format_ck CHECK (
+    char_length(slug) BETWEEN 3 AND 40
+    AND slug ~ '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'
+    AND slug NOT IN (
+      'loja',
+      'painel',
+      'portal',
+      'login',
+      'admin',
+      'api',
+      'produtos',
+      'termos',
+      'privacidade',
+      'configuracoes'
+    )
   )
 );
+
+-- CREATE TABLE IF NOT EXISTS não acrescenta coluna em contas já existentes.
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS slug text;
+
+DO $$ BEGIN
+  ALTER TABLE public.accounts
+    ADD CONSTRAINT accounts_slug_format_ck CHECK (
+      char_length(slug) BETWEEN 3 AND 40
+      AND slug ~ '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'
+      AND slug NOT IN (
+        'loja',
+        'painel',
+        'portal',
+        'login',
+        'admin',
+        'api',
+        'produtos',
+        'termos',
+        'privacidade',
+        'configuracoes'
+      )
+    );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
@@ -645,6 +685,8 @@ CREATE TABLE IF NOT EXISTS public.attendances (
 );
 
 -- ---------- Indexes ----------
+CREATE UNIQUE INDEX IF NOT EXISTS accounts_slug_lower_uidx ON public.accounts (lower(slug));
+
 CREATE INDEX IF NOT EXISTS idx_students_account_id ON public.students (account_id);
 
 CREATE INDEX IF NOT EXISTS idx_payments_student_reference ON public.payments (student_id, reference_month);

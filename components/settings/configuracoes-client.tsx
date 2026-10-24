@@ -2,12 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { updatePlan } from "@/actions/billing";
-import { updateAccount, updateReceiver } from "@/actions/settings";
+import { updateAccount, updateAccountSlug, updateReceiver } from "@/actions/settings";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
@@ -30,6 +30,7 @@ import { SignatureUploader } from "@/components/settings/signature-uploader";
 import type { SettingsPlanRow, SettingsReceiverRow } from "@/lib/data/settings-page";
 import { MODALITY_LABELS, type AcademyModality } from "@/lib/modalities/catalog";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
+import { storefrontPath, validateSlugChange } from "@/lib/storefront/storefront";
 import {
   digitsOnly,
   maskCnpj,
@@ -46,6 +47,7 @@ import { AlertTriangle, Building2, Layers, Receipt } from "lucide-react";
 
 type Props = {
   initialAccountName: string;
+  initialSlug: string;
   modality: AcademyModality;
   plans: SettingsPlanRow[];
   receiver: SettingsReceiverRow;
@@ -126,6 +128,7 @@ export function ConfiguracoesClient(props: Props) {
             </div>
           </form>
         </Form>
+        <StorefrontAddressForm initialSlug={props.initialSlug} onSaved={() => router.refresh()} />
         <ModalitySwitchPanel current={props.modality} onSaved={() => router.refresh()} />
       </DashboardPanel>
 
@@ -152,6 +155,105 @@ export function ConfiguracoesClient(props: Props) {
         </div>
       </DashboardPanel>
     </div>
+  );
+}
+
+function StorefrontAddressForm({
+  initialSlug,
+  onSaved,
+}: {
+  initialSlug: string;
+  onSaved: () => void;
+}) {
+  const [next, setNext] = useState(initialSlug);
+  const [confirmed, setConfirmed] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    setNext(initialSlug);
+    setConfirmed(false);
+  }, [initialSlug]);
+
+  const preview = validateSlugChange({
+    next,
+    current: initialSlug,
+    takenByOthers: [],
+    confirmed: true,
+  });
+  const nextSlug = preview.ok ? preview.slug : null;
+  const changing = nextSlug !== null && nextSlug !== initialSlug;
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const decision = validateSlugChange({
+      next,
+      current: initialSlug,
+      takenByOthers: [],
+      confirmed,
+    });
+    if (!decision.ok) {
+      toast.error(decision.error);
+      return;
+    }
+
+    setPending(true);
+    const result = await updateAccountSlug({ next, confirmed });
+    setPending(false);
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Endereço da loja atualizado.");
+    setConfirmed(false);
+    onSaved();
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="mx-auto mt-8 flex max-w-lg flex-col gap-4 border-t border-border pt-6">
+      <div className="space-y-1">
+        <p className="text-crm-sm font-medium">Endereço da loja</p>
+        <p className="text-crm-sm text-muted-foreground">
+          Endereço atual:{" "}
+          <span className="font-medium text-foreground">{storefrontPath(initialSlug)}</span>
+        </p>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="storefront-slug">Novo endereço</Label>
+        <Input
+          id="storefront-slug"
+          value={next}
+          maxLength={200}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          onChange={(event) => {
+            setNext(event.target.value);
+            setConfirmed(false);
+          }}
+        />
+        {changing && nextSlug ? (
+          <p className="text-crm-xs text-muted-foreground">Vai ficar {storefrontPath(nextSlug)}</p>
+        ) : null}
+      </div>
+      {changing ? (
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="confirm-storefront-slug"
+            checked={confirmed}
+            disabled={pending}
+            onCheckedChange={(value) => setConfirmed(value === true)}
+          />
+          <Label htmlFor="confirm-storefront-slug" className="cursor-pointer font-normal leading-snug">
+            Confirmo a troca do endereço. O endereço anterior deixa de abrir.
+          </Label>
+        </div>
+      ) : null}
+      <div className={formActionsClass}>
+        <Button type="submit" className={primaryActionClass} disabled={pending}>
+          {pending ? "Salvando…" : "Salvar endereço"}
+        </Button>
+      </div>
+    </form>
   );
 }
 

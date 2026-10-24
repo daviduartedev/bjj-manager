@@ -13,8 +13,10 @@ import {
   type BrandingAccountColumn,
   type BrandingKind,
 } from "@/lib/settings/branding-upload";
+import { validateSlugChange } from "@/lib/storefront/storefront";
 import {
   updateAccountSchema,
+  updateAccountSlugSchema,
   updateProfileSchema,
   updateReceiverSchema,
 } from "@/lib/validations/settings";
@@ -176,6 +178,83 @@ export async function updateAccount(input: unknown): Promise<SettingsActionResul
     revalidatePath(ROUTES.configuracoes);
     revalidatePath(ROUTES.perfil);
     revalidatePath(ROUTES.painel);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
+
+export async function updateAccountSlug(input: unknown): Promise<SettingsActionResult> {
+  try {
+    const parsed = updateAccountSlugSchema.safeParse(input);
+    if (!parsed.success) {
+      const msg =
+        Object.values(parsed.error.flatten().fieldErrors).flat()[0] ??
+        "Verifique o endereço da loja.";
+      return { ok: false, error: msg };
+    }
+
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "Sessão inválida." };
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("account_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!profile?.account_id) {
+      return { ok: false, error: "Conta não encontrada." };
+    }
+
+    const { data: account, error: readError } = await supabase
+      .from("accounts")
+      .select("slug")
+      .eq("id", profile.account_id)
+      .maybeSingle();
+
+    if (readError) throw readError;
+    const currentSlug = account && typeof account.slug === "string" ? account.slug : null;
+    if (!currentSlug) return { ok: false, error: "Conta não encontrada." };
+
+    const decision = validateSlugChange({
+      next: parsed.data.next,
+      current: currentSlug,
+      takenByOthers: [],
+      confirmed: parsed.data.confirmed,
+    });
+    if (!decision.ok) return decision;
+
+    if (decision.slug === currentSlug) {
+      revalidatePath(ROUTES.configuracoes);
+      return { ok: true };
+    }
+
+    const { error } = await supabase
+      .from("accounts")
+      .update({
+        slug: decision.slug,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", profile.account_id);
+
+    if (error) {
+      if (error.code === "23505") {
+        const taken = validateSlugChange({
+          next: decision.slug,
+          current: currentSlug,
+          takenByOthers: [decision.slug],
+          confirmed: true,
+        });
+        if (!taken.ok) return taken;
+      }
+      throw error;
+    }
+
+    revalidatePath(ROUTES.configuracoes);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: mapBillingActionError(e) };

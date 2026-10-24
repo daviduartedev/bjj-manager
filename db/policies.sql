@@ -1183,6 +1183,91 @@ $$;
 REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.record_academy_registration (uuid, text, text) TO service_role;
 
+CREATE OR REPLACE FUNCTION public.allocate_academy_slug (name text) RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_base text;
+  v_candidate text;
+  v_head text;
+  v_suffix text;
+  v_n integer := 1;
+  v_reserved text[] := ARRAY[
+    'loja', 'painel', 'portal', 'login', 'admin', 'api',
+    'produtos', 'termos', 'privacidade', 'configuracoes'
+  ];
+BEGIN
+  v_base := pg_catalog.lower(
+    pg_catalog.translate(
+      coalesce(name, ''),
+      'ÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇÑáàâãäéèêëíìîïóòôõöúùûüçñ',
+      'AAAAAEEEEIIIIOOOOOUUUUCNaaaaaeeeeiiiiooooouuuucn'
+    )
+  );
+  v_base := pg_catalog.regexp_replace(v_base, '[^a-z0-9]+', '-', 'g');
+  v_base := pg_catalog.regexp_replace(v_base, '^-+|-+$', '', 'g');
+  v_base := pg_catalog.regexp_replace(pg_catalog.left(v_base, 40), '-+$', '');
+
+  IF pg_catalog.char_length(v_base) < 3 THEN
+    v_base := 'academia';
+  END IF;
+
+  v_candidate := v_base;
+  WHILE v_candidate = ANY (v_reserved)
+     OR pg_catalog.char_length(v_candidate) < 3
+     OR pg_catalog.char_length(v_candidate) > 40
+     OR v_candidate !~ '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'
+     OR EXISTS (
+       SELECT 1
+       FROM public.accounts AS account
+       WHERE pg_catalog.lower(account.slug) = v_candidate
+     )
+  LOOP
+    v_n := v_n + 1;
+    v_suffix := '-' || v_n::text;
+    v_head := pg_catalog.regexp_replace(
+      pg_catalog.left(v_base, 40 - pg_catalog.char_length(v_suffix)),
+      '-+$',
+      ''
+    );
+    v_candidate := v_head || v_suffix;
+    IF v_n > 1000 THEN
+      RAISE EXCEPTION 'could not allocate academy slug' USING ERRCODE = '23505';
+    END IF;
+  END LOOP;
+
+  RETURN v_candidate;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.allocate_academy_slug (text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.allocate_academy_slug (text) TO service_role;
+
+COMMENT ON FUNCTION public.allocate_academy_slug (text) IS
+  'Slug da academia: minúsculas, hífens, 3–40, sufixo -2/-3 se reservado ou ocupado.';
+
+CREATE OR REPLACE FUNCTION public.assign_account_slug () RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  IF NEW.slug IS NULL OR pg_catalog.btrim(NEW.slug) = '' THEN
+    NEW.slug := public.allocate_academy_slug(NEW.name);
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.assign_account_slug () FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS accounts_assign_slug ON public.accounts;
+CREATE TRIGGER accounts_assign_slug
+BEFORE INSERT ON public.accounts
+FOR EACH ROW EXECUTE FUNCTION public.assign_account_slug ();
+
 CREATE OR REPLACE FUNCTION public.provision_academy_for_current_user () RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1256,8 +1341,8 @@ BEGIN
     RETURN pg_catalog.jsonb_build_object('outcome', 'ineligible', 'role', NULL);
   END IF;
 
-  INSERT INTO public.accounts (name, modality)
-  VALUES (v_academy_name, v_modality)
+  INSERT INTO public.accounts (name, modality, slug)
+  VALUES (v_academy_name, v_modality, public.allocate_academy_slug(v_academy_name))
   RETURNING id INTO v_account_id;
 
   INSERT INTO public.profiles (user_id, account_id, display_name, role)
