@@ -147,3 +147,110 @@ export function canCopyStorefrontLink(access: StorefrontAccess): boolean {
 export function storefrontPath(slug: string): string {
   return `/loja/${slug}`;
 }
+
+const DESCRIPTION_MAX_LENGTH = 500;
+
+const DESCRIPTION_TOO_LONG_ERROR = "A descrição pode ter no máximo 500 caracteres.";
+
+const LISTING_WARNING = "Este produto não entra na loja.";
+
+const AUDIENCE_LABEL = {
+  masculine: "Masculino",
+  feminine: "Feminino",
+  unisex: "Unissex",
+} as const;
+
+const brlFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+
+export type StorefrontVariantInput = {
+  sizeLabel: string;
+  priceCents: number | null;
+  stockQuantity: number;
+  sortOrder: number;
+  line: "unisex" | "feminine";
+};
+
+export type StorefrontProductInput = {
+  name: string;
+  active: boolean;
+  catalogVisible: boolean;
+  description: string | null;
+  audience: "unisex" | "masculine" | "feminine";
+  variants: StorefrontVariantInput[];
+};
+
+export type StorefrontCatalogProduct = {
+  name: string;
+  audienceLabel: "Masculino" | "Feminino" | "Unissex";
+  description: string | null;
+  priceLabel: string | null;
+  initialSizeLabel: string | null;
+};
+
+export function normalizeStorefrontDescription(
+  value: string,
+): { ok: true; description: string | null } | { ok: false; error: string } {
+  const description = value.trim();
+  if (description.length > DESCRIPTION_MAX_LENGTH) {
+    return { ok: false, error: DESCRIPTION_TOO_LONG_ERROR };
+  }
+  return { ok: true, description: description === "" ? null : description };
+}
+
+function hasPriceAboveZero(product: StorefrontProductInput): boolean {
+  return product.variants.some((variant) => (variant.priceCents ?? 0) > 0);
+}
+
+export function storefrontListingWarning(product: StorefrontProductInput): string | null {
+  if (!product.catalogVisible) return null;
+  if (!product.active || !hasPriceAboveZero(product)) return LISTING_WARNING;
+  return null;
+}
+
+function compareVariants(a: StorefrontVariantInput, b: StorefrontVariantInput): number {
+  if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+  return a.sizeLabel.localeCompare(b.sizeLabel, "pt-BR");
+}
+
+function initialPricedVariant(
+  variants: readonly StorefrontVariantInput[],
+): StorefrontVariantInput | null {
+  const available = variants.filter(
+    (variant) => (variant.priceCents ?? 0) > 0 && variant.stockQuantity > 0,
+  );
+  available.sort(compareVariants);
+  return available[0] ?? null;
+}
+
+function descriptionForCard(description: string | null): string | null {
+  if (description == null) return null;
+  const trimmed = description.trim();
+  return trimmed === "" ? null : trimmed;
+}
+
+export function projectStorefrontCatalog(products: readonly StorefrontProductInput[]): {
+  products: StorefrontCatalogProduct[];
+} {
+  const listed = products.filter(
+    (product) => product.active && product.catalogVisible && hasPriceAboveZero(product),
+  );
+  listed.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+
+  return {
+    products: listed.map((product) => {
+      const initial = initialPricedVariant(product.variants);
+      const priceCents = initial?.priceCents;
+      return {
+        name: product.name,
+        audienceLabel: AUDIENCE_LABEL[product.audience],
+        description: descriptionForCard(product.description),
+        priceLabel:
+          priceCents != null && priceCents > 0 ? brlFormatter.format(priceCents / 100) : null,
+        initialSizeLabel: initial?.sizeLabel ?? null,
+      };
+    }),
+  };
+}

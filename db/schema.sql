@@ -402,6 +402,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   active boolean NOT NULL DEFAULT true,
   description text NULL,
   portal_visible boolean NOT NULL DEFAULT false,
+  catalog_visible boolean NOT NULL DEFAULT false,
   sort_order integer NOT NULL DEFAULT 0,
   audience text NOT NULL DEFAULT 'unisex',
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -413,6 +414,12 @@ CREATE TABLE IF NOT EXISTS public.products (
     audience IN ('unisex', 'masculine', 'feminine')
   )
 );
+
+ALTER TABLE public.products
+ADD COLUMN IF NOT EXISTS catalog_visible boolean NOT NULL DEFAULT false;
+
+COMMENT ON COLUMN public.products.catalog_visible IS
+  'Quando verdadeiro, o produto pode entrar na loja pública se estiver ativo e tiver tamanho com preço acima de zero.';
 
 CREATE TABLE IF NOT EXISTS public.product_variants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),

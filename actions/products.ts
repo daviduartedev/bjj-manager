@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentAccount } from "@/lib/auth";
 import { mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";
 import { ROUTES } from "@/lib/routes";
+import { normalizeStorefrontDescription } from "@/lib/storefront/storefront";
 import { createClient } from "@/lib/supabase/server";
 import {
   createProductSchema,
@@ -33,6 +34,11 @@ function fieldErrorsFromZod(err: {
 
 function friendlyError(e: unknown): string {
   return mapDatabaseErrorToUserMessage(e) ?? "Não foi possível salvar. Tente novamente.";
+}
+
+function revalidateProductViews() {
+  revalidatePath(ROUTES.produtos);
+  revalidatePath("/loja", "layout");
 }
 
 export async function createProduct(input: unknown): Promise<ProductActionResult> {
@@ -68,7 +74,7 @@ export async function createProduct(input: unknown): Promise<ProductActionResult
 
     if (error) throw error;
 
-    revalidatePath(ROUTES.produtos);
+    revalidateProductViews();
     return { ok: true };
   } catch (e) {
     return { ok: false, error: friendlyError(e) };
@@ -108,6 +114,16 @@ export async function updateProduct(input: unknown): Promise<ProductActionResult
     if (parsed.data.audience !== undefined) {
       patch.audience = parsed.data.audience;
     }
+    if (parsed.data.description !== undefined) {
+      const description = normalizeStorefrontDescription(parsed.data.description);
+      if (!description.ok) {
+        return { ok: false, error: description.error };
+      }
+      patch.description = description.description;
+    }
+    if (parsed.data.catalogVisible !== undefined) {
+      patch.catalog_visible = parsed.data.catalogVisible;
+    }
 
     const { error } = await supabase
       .from("products")
@@ -117,7 +133,7 @@ export async function updateProduct(input: unknown): Promise<ProductActionResult
 
     if (error) throw error;
 
-    revalidatePath(ROUTES.produtos);
+    revalidateProductViews();
     return { ok: true };
   } catch (e) {
     return { ok: false, error: friendlyError(e) };
@@ -179,12 +195,13 @@ export async function createProductVariant(
       stock_quantity: parsed.data.stockQuantity,
       sort_order: sortOrder,
       line: lineDefault,
+      price_cents: parsed.data.priceCents ?? null,
       updated_at: new Date().toISOString(),
     });
 
     if (error) throw error;
 
-    revalidatePath(ROUTES.produtos);
+    revalidateProductViews();
     return { ok: true };
   } catch (e) {
     return { ok: false, error: friendlyError(e) };
@@ -226,6 +243,9 @@ export async function updateProductVariant(
     if (parsed.data.line !== undefined) {
       patch.line = parsed.data.line;
     }
+    if (parsed.data.priceCents !== undefined) {
+      patch.price_cents = parsed.data.priceCents;
+    }
 
     const { data: variantRow, error: vErr } = await supabase
       .from("product_variants")
@@ -256,7 +276,7 @@ export async function updateProductVariant(
 
     if (error) throw error;
 
-    revalidatePath(ROUTES.produtos);
+    revalidateProductViews();
     return { ok: true };
   } catch (e) {
     return { ok: false, error: friendlyError(e) };
@@ -315,7 +335,7 @@ export async function deleteProductVariant(
 
     if (error) throw error;
 
-    revalidatePath(ROUTES.produtos);
+    revalidateProductViews();
     return { ok: true };
   } catch (e) {
     return { ok: false, error: friendlyError(e) };

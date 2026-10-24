@@ -4,10 +4,14 @@ import {
   allocateSlug,
   canCopyStorefrontLink,
   canPublishStorefront,
+  normalizeStorefrontDescription,
+  projectStorefrontCatalog,
   resolveStorefrontAccess,
   slugifyAcademyName,
+  storefrontListingWarning,
   storefrontPath,
   validateSlugChange,
+  type StorefrontProductInput,
 } from "./storefront";
 
 describe("slugifyAcademyName", () => {
@@ -308,5 +312,249 @@ describe("canCopyStorefrontLink", () => {
 describe("storefrontPath", () => {
   it("monta o caminho público da loja", () => {
     expect(storefrontPath("alianca-centro")).toBe("/loja/alianca-centro");
+  });
+});
+
+function storefrontProduct(
+  overrides: Partial<StorefrontProductInput> & Pick<StorefrontProductInput, "name">,
+): StorefrontProductInput {
+  return {
+    active: true,
+    catalogVisible: true,
+    description: null,
+    audience: "unisex",
+    variants: [
+      {
+        sizeLabel: "A1",
+        priceCents: 18990,
+        stockQuantity: 2,
+        sortOrder: 1,
+        line: "unisex",
+      },
+    ],
+    ...overrides,
+  };
+}
+
+describe("projectStorefrontCatalog", () => {
+  it("omite inativos, sem marcação, sem preço e com preço zero", () => {
+    const catalog = projectStorefrontCatalog([
+      storefrontProduct({ name: "Inativo", active: false }),
+      storefrontProduct({ name: "Sem marca", catalogVisible: false }),
+      storefrontProduct({
+        name: "Sem preço",
+        variants: [
+          {
+            sizeLabel: "A1",
+            priceCents: null,
+            stockQuantity: 4,
+            sortOrder: 1,
+            line: "unisex",
+          },
+        ],
+      }),
+      storefrontProduct({
+        name: "Preço zero",
+        variants: [
+          {
+            sizeLabel: "A1",
+            priceCents: 0,
+            stockQuantity: 4,
+            sortOrder: 1,
+            line: "unisex",
+          },
+        ],
+      }),
+      storefrontProduct({ name: "Kimono", audience: "masculine", description: "Trama pesada" }),
+    ]);
+
+    expect(catalog.products).toEqual([
+      {
+        name: "Kimono",
+        audienceLabel: "Masculino",
+        description: "Trama pesada",
+        priceLabel: "R$\u00a0189,90",
+        initialSizeLabel: "A1",
+      },
+    ]);
+  });
+
+  it("mostra o preço do primeiro tamanho com preço e estoque acima de zero", () => {
+    const catalog = projectStorefrontCatalog([
+      storefrontProduct({
+        name: "Kimono",
+        audience: "masculine",
+        description: "Trama pesada",
+        variants: [
+          {
+            sizeLabel: "A2",
+            priceCents: 19990,
+            stockQuantity: 0,
+            sortOrder: 2,
+            line: "unisex",
+          },
+          {
+            sizeLabel: "A1",
+            priceCents: 18990,
+            stockQuantity: 2,
+            sortOrder: 1,
+            line: "unisex",
+          },
+        ],
+      }),
+    ]);
+
+    expect(catalog.products).toEqual([
+      {
+        name: "Kimono",
+        audienceLabel: "Masculino",
+        description: "Trama pesada",
+        priceLabel: "R$\u00a0189,90",
+        initialSizeLabel: "A1",
+      },
+    ]);
+  });
+
+  it("desempata pelo nome do tamanho quando a ordem é a mesma", () => {
+    const catalog = projectStorefrontCatalog([
+      storefrontProduct({
+        name: "Kimono",
+        variants: [
+          {
+            sizeLabel: "M",
+            priceCents: 10000,
+            stockQuantity: 2,
+            sortOrder: 1,
+            line: "unisex",
+          },
+          {
+            sizeLabel: "A1",
+            priceCents: 25000,
+            stockQuantity: 2,
+            sortOrder: 1,
+            line: "unisex",
+          },
+        ],
+      }),
+    ]);
+
+    expect(catalog.products[0]?.initialSizeLabel).toBe("A1");
+    expect(catalog.products[0]?.priceLabel).toBe("R$\u00a0250,00");
+  });
+
+  it("ordena Kimono antes de Rash Guard", () => {
+    const catalog = projectStorefrontCatalog([
+      storefrontProduct({ name: "Rash Guard", audience: "feminine", description: null }),
+      storefrontProduct({ name: "Kimono", audience: "unisex", description: "Azul" }),
+    ]);
+
+    expect(catalog.products.map((product) => product.name)).toEqual(["Kimono", "Rash Guard"]);
+    expect(catalog.products[0]?.audienceLabel).toBe("Unissex");
+    expect(catalog.products[1]?.audienceLabel).toBe("Feminino");
+  });
+
+  it("lista o produto esgotado sem preço quando nenhum tamanho precificado tem estoque", () => {
+    const catalog = projectStorefrontCatalog([
+      storefrontProduct({
+        name: "Kimono",
+        audience: "unisex",
+        description: "   ",
+        variants: [
+          {
+            sizeLabel: "A2",
+            priceCents: 19990,
+            stockQuantity: 0,
+            sortOrder: 2,
+            line: "feminine",
+          },
+          {
+            sizeLabel: "A1",
+            priceCents: 18990,
+            stockQuantity: 0,
+            sortOrder: 1,
+            line: "unisex",
+          },
+        ],
+      }),
+    ]);
+
+    expect(catalog.products).toEqual([
+      {
+        name: "Kimono",
+        audienceLabel: "Unissex",
+        description: null,
+        priceLabel: null,
+        initialSizeLabel: null,
+      },
+    ]);
+  });
+});
+
+describe("storefrontListingWarning", () => {
+  it("avisa quando a vitrine está ligada e o produto não entra na loja", () => {
+    expect(
+      storefrontListingWarning(
+        storefrontProduct({
+          name: "Kimono",
+          catalogVisible: true,
+          active: false,
+        }),
+      ),
+    ).toBe("Este produto não entra na loja.");
+
+    expect(
+      storefrontListingWarning(
+        storefrontProduct({
+          name: "Kimono",
+          catalogVisible: true,
+          active: true,
+          variants: [
+            {
+              sizeLabel: "A1",
+              priceCents: 0,
+              stockQuantity: 3,
+              sortOrder: 1,
+              line: "unisex",
+            },
+          ],
+        }),
+      ),
+    ).toBe("Este produto não entra na loja.");
+  });
+
+  it("não avisa quando a marcação está desligada ou o produto entra na loja", () => {
+    expect(
+      storefrontListingWarning(
+        storefrontProduct({
+          name: "Kimono",
+          catalogVisible: false,
+          active: false,
+          variants: [],
+        }),
+      ),
+    ).toBeNull();
+
+    expect(storefrontListingWarning(storefrontProduct({ name: "Kimono" }))).toBeNull();
+  });
+});
+
+describe("normalizeStorefrontDescription", () => {
+  it("corta espaços e guarda vazio como nulo", () => {
+    expect(normalizeStorefrontDescription("  Kimono azul  ")).toEqual({
+      ok: true,
+      description: "Kimono azul",
+    });
+    expect(normalizeStorefrontDescription("   ")).toEqual({ ok: true, description: null });
+  });
+
+  it("recusa descrição acima de 500 caracteres", () => {
+    expect(normalizeStorefrontDescription("a".repeat(500))).toEqual({
+      ok: true,
+      description: "a".repeat(500),
+    });
+    expect(normalizeStorefrontDescription(`  ${"a".repeat(501)}  `)).toEqual({
+      ok: false,
+      error: "A descrição pode ter no máximo 500 caracteres.",
+    });
   });
 });
