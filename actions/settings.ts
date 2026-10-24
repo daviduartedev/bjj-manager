@@ -13,12 +13,13 @@ import {
   type BrandingAccountColumn,
   type BrandingKind,
 } from "@/lib/settings/branding-upload";
-import { validateSlugChange } from "@/lib/storefront/storefront";
+import { canPublishStorefront, storefrontPath, validateSlugChange } from "@/lib/storefront/storefront";
 import {
   updateAccountSchema,
   updateAccountSlugSchema,
   updateProfileSchema,
   updateReceiverSchema,
+  updateStorefrontPublicationSchema,
 } from "@/lib/validations/settings";
 import { createClient } from "@/lib/supabase/server";
 
@@ -255,6 +256,58 @@ export async function updateAccountSlug(input: unknown): Promise<SettingsActionR
     }
 
     revalidatePath(ROUTES.configuracoes);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
+
+export async function updateStorefrontPublication(input: unknown): Promise<SettingsActionResult> {
+  try {
+    const parsed = updateStorefrontPublicationSchema.safeParse(input);
+    if (!parsed.success) {
+      const msg =
+        Object.values(parsed.error.flatten().fieldErrors).flat()[0] ??
+        "Verifique o WhatsApp da loja.";
+      return { ok: false, error: msg };
+    }
+
+    const context = await getCurrentAccount();
+    if (!context || context.profile.role !== "professor") {
+      return { ok: false, error: "Só o professor da academia pode publicar a loja." };
+    }
+
+    const supabase = await createClient();
+    const { data: account, error: readError } = await supabase
+      .from("accounts")
+      .select("slug, storefront_published")
+      .eq("id", context.account.id)
+      .maybeSingle();
+
+    if (readError) throw readError;
+    const currentSlug = account && typeof account.slug === "string" ? account.slug : null;
+    if (!currentSlug) return { ok: false, error: "Conta não encontrada." };
+
+    const decision = canPublishStorefront({
+      published: parsed.data.published,
+      whatsappRaw: parsed.data.whatsapp,
+      currentlyPublished: account?.storefront_published === true,
+    });
+    if (!decision.ok) return decision;
+
+    const { error } = await supabase
+      .from("accounts")
+      .update({
+        storefront_whatsapp: decision.whatsappE164,
+        storefront_published: decision.published,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", context.account.id);
+
+    if (error) throw error;
+
+    revalidatePath(ROUTES.configuracoes);
+    revalidatePath(storefrontPath(currentSlug));
     return { ok: true };
   } catch (e) {
     return { ok: false, error: mapBillingActionError(e) };

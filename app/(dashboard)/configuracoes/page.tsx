@@ -5,8 +5,10 @@ import { Settings } from "lucide-react";
 import { ConfiguracoesClient } from "@/components/settings/configuracoes-client";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
 import { PageFrame } from "@/components/prototype/page-frame";
+import { resolvePublicAppOrigin } from "@/lib/app-url";
 import { loadSettingsPageData } from "@/lib/data/settings-page";
 import { ROUTES } from "@/lib/routes";
+import { storefrontPath } from "@/lib/storefront/storefront";
 
 export const metadata: Metadata = {
   title: "Configurações",
@@ -54,6 +56,9 @@ export default async function ConfiguracoesPage() {
         <ConfiguracoesClient
           initialAccountName={data.ctx.account.name}
           initialSlug={data.ctx.account.slug}
+          initialStorefrontWhatsapp={data.ctx.account.storefront_whatsapp}
+          initialStorefrontPublished={data.ctx.account.storefront_published}
+          storefrontUrl={`${resolvePublicAppOrigin()}${storefrontPath(data.ctx.account.slug)}`}
           modality={data.ctx.account.modality}
           plans={data.plans}
           receiver={data.receiver}

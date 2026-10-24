@@ -1,17 +1,18 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { updatePlan } from "@/actions/billing";
-import { updateAccount, updateAccountSlug, updateReceiver } from "@/actions/settings";
+import { updateAccount, updateAccountSlug, updateReceiver, updateStorefrontPublication } from "@/actions/settings";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
-import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
+import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { EmptyState } from "@/components/layout/empty-state";
 import {
   Form,
@@ -30,7 +31,14 @@ import { SignatureUploader } from "@/components/settings/signature-uploader";
 import type { SettingsPlanRow, SettingsReceiverRow } from "@/lib/data/settings-page";
 import { MODALITY_LABELS, type AcademyModality } from "@/lib/modalities/catalog";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
-import { storefrontPath, validateSlugChange } from "@/lib/storefront/storefront";
+import { normalizePhoneE164 } from "@/lib/documents/whatsapp";
+import {
+  canCopyStorefrontLink,
+  canPublishStorefront,
+  resolveStorefrontAccess,
+  storefrontPath,
+  validateSlugChange,
+} from "@/lib/storefront/storefront";
 import {
   digitsOnly,
   maskCnpj,
@@ -48,6 +56,9 @@ import { AlertTriangle, Building2, Layers, Receipt } from "lucide-react";
 type Props = {
   initialAccountName: string;
   initialSlug: string;
+  initialStorefrontWhatsapp: string | null;
+  initialStorefrontPublished: boolean;
+  storefrontUrl: string;
   modality: AcademyModality;
   plans: SettingsPlanRow[];
   receiver: SettingsReceiverRow;
@@ -129,6 +140,13 @@ export function ConfiguracoesClient(props: Props) {
           </form>
         </Form>
         <StorefrontAddressForm initialSlug={props.initialSlug} onSaved={() => router.refresh()} />
+        <StorefrontPublicationForm
+          initialSlug={props.initialSlug}
+          initialWhatsapp={props.initialStorefrontWhatsapp}
+          initialPublished={props.initialStorefrontPublished}
+          storefrontUrl={props.storefrontUrl}
+          onSaved={() => router.refresh()}
+        />
         <ModalitySwitchPanel current={props.modality} onSaved={() => router.refresh()} />
       </DashboardPanel>
 
@@ -251,6 +269,132 @@ function StorefrontAddressForm({
       <div className={formActionsClass}>
         <Button type="submit" className={primaryActionClass} disabled={pending}>
           {pending ? "Salvando…" : "Salvar endereço"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function StorefrontPublicationForm({
+  initialSlug,
+  initialWhatsapp,
+  initialPublished,
+  storefrontUrl,
+  onSaved,
+}: {
+  initialSlug: string;
+  initialWhatsapp: string | null;
+  initialPublished: boolean;
+  storefrontUrl: string;
+  onSaved: () => void;
+}) {
+  const [whatsapp, setWhatsapp] = useState(initialWhatsapp ?? "");
+  const [published, setPublished] = useState(initialPublished);
+  const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    setWhatsapp(initialWhatsapp ?? "");
+    setPublished(initialPublished);
+  }, [initialWhatsapp, initialPublished]);
+
+  const anonymousAccess = resolveStorefrontAccess({
+    slugFound: true,
+    published: initialPublished,
+    whatsappE164: normalizePhoneE164(initialWhatsapp),
+    eligibleProductCount: 0,
+    preview: false,
+  });
+  const copyEnabled = canCopyStorefrontLink(anonymousAccess);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const decision = canPublishStorefront({
+      published,
+      whatsappRaw: whatsapp,
+      currentlyPublished: initialPublished,
+    });
+    if (!decision.ok) {
+      toast.error(decision.error);
+      return;
+    }
+
+    setPending(true);
+    const result = await updateStorefrontPublication({ whatsapp, published });
+    setPending(false);
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Loja atualizada.");
+    onSaved();
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(storefrontUrl);
+      toast.success("Link copiado.");
+    } catch {
+      toast.error("Não foi possível copiar o link.");
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="mx-auto mt-8 flex max-w-lg flex-col gap-4 border-t border-border pt-6">
+      <div className="space-y-1">
+        <p className="text-crm-sm font-medium">Publicação da loja</p>
+        <p className="break-all text-crm-sm text-muted-foreground">{storefrontUrl}</p>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="storefront-whatsapp">WhatsApp da loja</Label>
+        <Input
+          id="storefront-whatsapp"
+          value={whatsapp}
+          inputMode="tel"
+          autoComplete="tel"
+          maxLength={40}
+          placeholder="11987654321"
+          onChange={(event) => setWhatsapp(event.target.value)}
+        />
+      </div>
+      <div className="flex items-center justify-between gap-4">
+        <Label htmlFor="storefront-published" className="cursor-pointer">
+          Loja publicada
+        </Label>
+        <button
+          id="storefront-published"
+          type="button"
+          role="switch"
+          aria-checked={published}
+          disabled={pending}
+          onClick={() => setPublished((current) => !current)}
+          className={cn(
+            "relative h-7 w-12 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50",
+            published ? "bg-primary" : "bg-muted",
+          )}
+        >
+          <span
+            className={cn(
+              "absolute top-1 size-5 rounded-full bg-background shadow transition-transform",
+              published ? "translate-x-6" : "translate-x-1",
+            )}
+          />
+        </button>
+      </div>
+      <div className={formActionsClass}>
+        <Button
+          type="button"
+          variant="outline"
+          className={secondaryActionClass}
+          disabled={!copyEnabled || pending}
+          onClick={() => void copyLink()}
+        >
+          Copiar link
+        </Button>
+        <Button type="button" variant="outline" className={secondaryActionClass} asChild>
+          <Link href={storefrontPath(initialSlug)}>Ver prévia</Link>
+        </Button>
+        <Button type="submit" className={primaryActionClass} disabled={pending}>
+          {pending ? "Salvando…" : "Salvar loja"}
         </Button>
       </div>
     </form>

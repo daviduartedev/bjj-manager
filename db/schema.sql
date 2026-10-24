@@ -109,6 +109,8 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   name text NOT NULL,
   slug text NOT NULL,
+  storefront_whatsapp text NULL,
+  storefront_published boolean NOT NULL DEFAULT false,
   legal_name text NULL,
   cnpj text NULL,
   signature_url text NULL,
@@ -142,11 +144,19 @@ CREATE TABLE IF NOT EXISTS public.accounts (
       'privacidade',
       'configuracoes'
     )
+  ),
+  CONSTRAINT accounts_storefront_whatsapp_digits_ck CHECK (
+    storefront_whatsapp IS NULL OR storefront_whatsapp ~ '^[0-9]{10,}$'
+  ),
+  CONSTRAINT accounts_storefront_published_whatsapp_ck CHECK (
+    storefront_published = false OR storefront_whatsapp IS NOT NULL
   )
 );
 
 -- CREATE TABLE IF NOT EXISTS não acrescenta coluna em contas já existentes.
 ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS slug text;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS storefront_whatsapp text;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS storefront_published boolean NOT NULL DEFAULT false;
 
 DO $$ BEGIN
   ALTER TABLE public.accounts
@@ -165,6 +175,20 @@ DO $$ BEGIN
         'privacidade',
         'configuracoes'
       )
+    );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE public.accounts
+    ADD CONSTRAINT accounts_storefront_whatsapp_digits_ck CHECK (
+      storefront_whatsapp IS NULL OR storefront_whatsapp ~ '^[0-9]{10,}$'
+    );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE public.accounts
+    ADD CONSTRAINT accounts_storefront_published_whatsapp_ck CHECK (
+      storefront_published = false OR storefront_whatsapp IS NOT NULL
     );
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 

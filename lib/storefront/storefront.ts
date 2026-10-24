@@ -1,3 +1,5 @@
+import { normalizePhoneE164 } from "@/lib/documents/whatsapp";
+
 const SLUG_MAX_LENGTH = 40;
 
 const RESERVED_SLUGS = new Set([
@@ -24,6 +26,14 @@ const INVALID_SLUG_ERROR =
 const RESERVED_SLUG_ERROR = "Este endereço está reservado.";
 
 const TAKEN_SLUG_ERROR = "Este endereço já está em uso.";
+
+const PUBLISH_WHATSAPP_ERROR = "Informe um WhatsApp válido para publicar a loja.";
+
+const CLEAR_WHATSAPP_ERROR = "Despublique a loja antes de apagar o WhatsApp.";
+
+const INVALID_WHATSAPP_ERROR = "Informe um WhatsApp válido.";
+
+export type StorefrontAccess = "not_found" | "empty" | "catalog";
 
 export function slugifyAcademyName(name: string): string {
   const stripped = name.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -87,9 +97,51 @@ export function validateSlugChange(input: {
   return { ok: true, slug };
 }
 
-export function resolveStorefrontAccess(input: { slugFound: boolean }): "not_found" {
-  if (input.slugFound) return "not_found";
-  return "not_found";
+export function resolveStorefrontAccess(input: {
+  slugFound: boolean;
+  published: boolean;
+  whatsappE164: string | null;
+  eligibleProductCount: number;
+  preview: boolean;
+}): StorefrontAccess {
+  if (!input.slugFound) return "not_found";
+
+  if (input.preview) {
+    return input.eligibleProductCount === 0 ? "empty" : "catalog";
+  }
+
+  if (!input.published || input.whatsappE164 == null) return "not_found";
+
+  return input.eligibleProductCount === 0 ? "empty" : "catalog";
+}
+
+export function canPublishStorefront(input: {
+  published: boolean;
+  whatsappRaw: string | null;
+  currentlyPublished: boolean;
+}):
+  | { ok: true; whatsappE164: string | null; published: boolean }
+  | { ok: false; error: string } {
+  const whatsappE164 = normalizePhoneE164(input.whatsappRaw);
+  const raw = (input.whatsappRaw ?? "").trim();
+
+  if (input.currentlyPublished && whatsappE164 == null) {
+    return { ok: false, error: CLEAR_WHATSAPP_ERROR };
+  }
+
+  if (input.published && whatsappE164 == null) {
+    return { ok: false, error: PUBLISH_WHATSAPP_ERROR };
+  }
+
+  if (whatsappE164 == null && raw !== "") {
+    return { ok: false, error: INVALID_WHATSAPP_ERROR };
+  }
+
+  return { ok: true, whatsappE164, published: input.published };
+}
+
+export function canCopyStorefrontLink(access: StorefrontAccess): boolean {
+  return access !== "not_found";
 }
 
 export function storefrontPath(slug: string): string {

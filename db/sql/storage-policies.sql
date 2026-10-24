@@ -31,6 +31,7 @@ drop policy if exists "lesson-plans update own account" on storage.objects;
 drop policy if exists "lesson-plans delete own account" on storage.objects;
 
 drop policy if exists "branding read own account"   on storage.objects;
+drop policy if exists "branding read published storefront logo" on storage.objects;
 drop policy if exists "branding insert own account" on storage.objects;
 drop policy if exists "branding update own account" on storage.objects;
 drop policy if exists "branding delete own account" on storage.objects;
@@ -132,6 +133,14 @@ create policy "branding delete own account" on storage.objects
   using (
     bucket_id = 'branding-dev'
     and (storage.foldername(name))[1] = public.current_account_id()::text
+  );
+
+-- Logo da loja publicada, para o visitante anônimo. A assinatura continua privada.
+create policy "branding read published storefront logo" on storage.objects
+  for select to anon, authenticated
+  using (
+    bucket_id = 'branding-dev'
+    and public.storefront_logo_public(name)
   );
 
 -- Verificação rápida (deve listar 12 linhas: 3 buckets x 4 ops)

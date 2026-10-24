@@ -1268,6 +1268,59 @@ CREATE TRIGGER accounts_assign_slug
 BEFORE INSERT ON public.accounts
 FOR EACH ROW EXECUTE FUNCTION public.assign_account_slug ();
 
+CREATE OR REPLACE FUNCTION public.storefront_account (p_slug text)
+RETURNS TABLE (
+  id uuid,
+  name text,
+  logo_url text,
+  slug text,
+  storefront_published boolean,
+  storefront_whatsapp text
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT
+    account.id,
+    account.name,
+    account.logo_url,
+    account.slug,
+    account.storefront_published,
+    account.storefront_whatsapp
+  FROM public.accounts AS account
+  WHERE pg_catalog.lower(account.slug) = pg_catalog.lower(pg_catalog.btrim(p_slug))
+  LIMIT 1;
+$$;
+
+REVOKE ALL ON FUNCTION public.storefront_account (text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.storefront_account (text) TO anon, authenticated;
+
+COMMENT ON FUNCTION public.storefront_account (text) IS
+  'Leitura pública da loja: só id, nome, logo, slug, publicação e WhatsApp do endereço pedido.';
+
+CREATE OR REPLACE FUNCTION public.storefront_logo_public (object_name text) RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.accounts AS account
+    WHERE account.storefront_published = true
+      AND account.logo_url IS NOT NULL
+      AND account.logo_url = object_name
+  );
+$$;
+
+REVOKE ALL ON FUNCTION public.storefront_logo_public (text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.storefront_logo_public (text) TO anon, authenticated;
+
+COMMENT ON FUNCTION public.storefront_logo_public (text) IS
+  'Verdadeiro só quando o objeto é a logo de uma loja já publicada.';
+
 CREATE OR REPLACE FUNCTION public.provision_academy_for_current_user () RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
