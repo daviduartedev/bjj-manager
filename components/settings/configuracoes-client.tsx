@@ -297,6 +297,8 @@ function StorefrontPublicationForm({
     setPublished(initialPublished);
   }, [initialWhatsapp, initialPublished]);
 
+  const phoneOk = normalizePhoneE164(whatsapp) != null;
+
   const anonymousAccess = resolveStorefrontAccess({
     slugFound: true,
     published: initialPublished,
@@ -353,7 +355,11 @@ function StorefrontPublicationForm({
           autoComplete="tel"
           maxLength={40}
           placeholder="11987654321"
-          onChange={(event) => setWhatsapp(event.target.value)}
+          onChange={(event) => {
+            const next = event.target.value;
+            setWhatsapp(next);
+            if (normalizePhoneE164(next) == null) setPublished(false);
+          }}
         />
       </div>
       <div className="flex items-center justify-between gap-4">
@@ -365,8 +371,11 @@ function StorefrontPublicationForm({
           type="button"
           role="switch"
           aria-checked={published}
-          disabled={pending}
-          onClick={() => setPublished((current) => !current)}
+          disabled={pending || !phoneOk}
+          onClick={() => {
+            if (!phoneOk) return;
+            setPublished((current) => !current);
+          }}
           className={cn(
             "relative h-7 w-12 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50",
             published ? "bg-primary" : "bg-muted",

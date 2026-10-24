@@ -67,12 +67,18 @@ export function StorefrontSizePicker({
         </div>
       ) : null}
       {selected ? <p className="mt-3 text-base font-medium">{selected.priceLabel}</p> : null}
-      {href ? (
-        <Button asChild className="mt-4">
-          <a href={href} target="_blank" rel="noopener noreferrer">
+      {selected?.available ? (
+        href ? (
+          <Button asChild className="mt-4">
+            <a href={href} target="_blank" rel="noopener noreferrer">
+              Chamar no WhatsApp
+            </a>
+          </Button>
+        ) : (
+          <Button type="button" className="mt-4" disabled>
             Chamar no WhatsApp
-          </a>
-        </Button>
+          </Button>
+        )
       ) : null}
     </div>
   );

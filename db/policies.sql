@@ -1317,6 +1317,19 @@ AS $$
     account.storefront_whatsapp
   FROM public.accounts AS account
   WHERE pg_catalog.lower(account.slug) = pg_catalog.lower(pg_catalog.btrim(p_slug))
+    AND (
+      (
+        account.storefront_published = true
+        AND account.storefront_whatsapp ~ '^[0-9]{10,15}$'
+      )
+      OR EXISTS (
+        SELECT 1
+        FROM public.profiles AS profile
+        WHERE profile.user_id = auth.uid()
+          AND profile.account_id = account.id
+          AND profile.role = 'professor'::public.profile_role
+      )
+    )
   LIMIT 1;
 $$;
 
@@ -1324,7 +1337,7 @@ REVOKE ALL ON FUNCTION public.storefront_account (text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.storefront_account (text) TO anon, authenticated;
 
 COMMENT ON FUNCTION public.storefront_account (text) IS
-  'Leitura pública da loja: só id, nome, logo, slug, publicação e WhatsApp do endereço pedido.';
+  'Loja publicada com WhatsApp válido, ou a prévia do professor daquela academia.';
 
 DROP FUNCTION IF EXISTS public.storefront_products (text);
 
@@ -1349,15 +1362,23 @@ AS $$
     product.audience,
     product.active,
     product.catalog_visible,
-    jsonb_agg(
-      jsonb_build_object(
-        'size_label', variant.size_label,
-        'price_cents', variant.price_cents,
-        'stock_quantity', variant.stock_quantity,
-        'sort_order', variant.sort_order,
-        'line', variant.line
+    (
+      SELECT COALESCE(
+        jsonb_agg(
+          jsonb_build_object(
+            'size_label', variant.size_label,
+            'price_cents', variant.price_cents,
+            'in_stock', variant.stock_quantity > 0,
+            'sort_order', variant.sort_order,
+            'line', variant.line
+          )
+          ORDER BY variant.sort_order, variant.size_label
+        ),
+        '[]'::jsonb
       )
-      ORDER BY variant.sort_order, variant.size_label
+      FROM public.product_variants AS variant
+      WHERE variant.product_id = product.id
+        AND variant.price_cents > 0
     ) AS variants,
     COALESCE(
       (
@@ -1370,8 +1391,6 @@ AS $$
   FROM public.accounts AS account
   INNER JOIN public.products AS product
     ON product.account_id = account.id
-  INNER JOIN public.product_variants AS variant
-    ON variant.product_id = product.id
   WHERE pg_catalog.lower(account.slug) = pg_catalog.lower(pg_catalog.btrim(p_slug))
     AND product.active = true
     AND product.catalog_visible = true
@@ -1382,28 +1401,25 @@ AS $$
         AND priced.price_cents > 0
     )
     AND (
-      account.storefront_published = true
+      (
+        account.storefront_published = true
+        AND account.storefront_whatsapp ~ '^[0-9]{10,15}$'
+      )
       OR EXISTS (
         SELECT 1
         FROM public.profiles AS profile
         WHERE profile.user_id = auth.uid()
           AND profile.account_id = account.id
+          AND profile.role = 'professor'::public.profile_role
       )
-    )
-  GROUP BY
-    product.id,
-    product.name,
-    product.description,
-    product.audience,
-    product.active,
-    product.catalog_visible;
+    );
 $$;
 
 REVOKE ALL ON FUNCTION public.storefront_products (text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.storefront_products (text) TO anon, authenticated;
 
 COMMENT ON FUNCTION public.storefront_products (text) IS
-  'Produtos da loja daquele slug, sem código interno. Inclui caminhos de foto só desses produtos. A página assina os caminhos depois de projetar o catálogo.';
+  'Produtos da loja daquele slug, sem código interno e sem quantidade em estoque. Foto só desses produtos.';
 
 CREATE OR REPLACE FUNCTION public.storefront_logo_public (object_name text) RETURNS boolean
 LANGUAGE sql

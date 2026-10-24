@@ -75,7 +75,7 @@ function readStorefrontVariants(value: unknown): StorefrontVariantInput[] {
     variants.push({
       sizeLabel: record.size_label,
       priceCents: readCents(record.price_cents),
-      stockQuantity: readCount(record.stock_quantity),
+      stockQuantity: record.in_stock === true ? 1 : 0,
       sortOrder: readCount(record.sort_order),
       line: record.line === "feminine" ? "feminine" : "unisex",
     });
@@ -173,7 +173,12 @@ const loadStorefrontPage = cache(async (slug: string) => {
 
   const account = readStorefrontAccount(data);
   const session = account ? await getCurrentAccount() : null;
-  const preview = Boolean(account && session && session.profile.account_id === account.id);
+  const preview = Boolean(
+    account &&
+      session &&
+      session.profile.role === "professor" &&
+      session.profile.account_id === account.id,
+  );
   const whatsappE164 = normalizePhoneE164(account?.storefront_whatsapp ?? null);
   const canLoadProducts = Boolean(
     account && (preview || (account.storefront_published && whatsappE164 != null)),
