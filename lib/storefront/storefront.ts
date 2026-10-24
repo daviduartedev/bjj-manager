@@ -1,4 +1,4 @@
-import { normalizePhoneE164 } from "@/lib/documents/whatsapp";
+import { buildWhatsAppShareUrl, normalizePhoneE164 } from "@/lib/documents/whatsapp";
 
 const SLUG_MAX_LENGTH = 40;
 
@@ -190,6 +190,27 @@ export type StorefrontCatalogProduct = {
   initialSizeLabel: string | null;
 };
 
+export type StorefrontCardContext = {
+  academyName: string;
+  storeUrl: string;
+  whatsappE164: string | null;
+};
+
+export type StorefrontChip = {
+  label: string;
+  priceLabel: string;
+  available: boolean;
+};
+
+export type StorefrontCard = {
+  name: string;
+  audienceLabel: "Masculino" | "Feminino" | "Unissex";
+  description: string | null;
+  chips: StorefrontChip[];
+  initialChipIndex: number | null;
+  whatsappHref: string | null;
+};
+
 export function normalizeStorefrontDescription(
   value: string,
 ): { ok: true; description: string | null } | { ok: false; error: string } {
@@ -231,16 +252,91 @@ function descriptionForCard(description: string | null): string | null {
   return trimmed === "" ? null : trimmed;
 }
 
-export function projectStorefrontCatalog(products: readonly StorefrontProductInput[]): {
-  products: StorefrontCatalogProduct[];
-} {
+function formatPriceCents(cents: number): string {
+  return brlFormatter.format(cents / 100);
+}
+
+function chipLabel(variant: StorefrontVariantInput): string {
+  if (variant.line === "feminine") return `${variant.sizeLabel} · Feminino`;
+  return variant.sizeLabel;
+}
+
+function storefrontWhatsAppMessage(args: {
+  name: string;
+  tamanho: string;
+  priceLabel: string;
+  academyName: string;
+  storeUrl: string;
+}): string {
+  return `Olá! Quero 1× ${args.name} — ${args.tamanho}. Valor: ${args.priceLabel}. Vi na loja ${args.academyName}: ${args.storeUrl}`;
+}
+
+export function storefrontChipWhatsAppHref(args: {
+  whatsappE164: string | null;
+  name: string;
+  tamanho: string;
+  priceLabel: string;
+  academyName: string;
+  storeUrl: string;
+}): string | null {
+  const phoneE164 = normalizePhoneE164(args.whatsappE164);
+  if (!phoneE164) return null;
+  return buildWhatsAppShareUrl({
+    phoneE164,
+    message: storefrontWhatsAppMessage(args),
+  });
+}
+
+export function projectStorefrontCard(
+  product: StorefrontProductInput,
+  ctx: StorefrontCardContext,
+): StorefrontCard {
+  const visible = product.variants.filter((variant) => (variant.priceCents ?? 0) > 0);
+  visible.sort(compareVariants);
+
+  const chips: StorefrontChip[] = visible.map((variant) => ({
+    label: chipLabel(variant),
+    priceLabel: formatPriceCents(variant.priceCents ?? 0),
+    available: variant.stockQuantity > 0,
+  }));
+  const found = chips.findIndex((chip) => chip.available);
+  const initialChipIndex = found === -1 ? null : found;
+  const initial = initialChipIndex == null ? null : chips[initialChipIndex];
+
+  return {
+    name: product.name,
+    audienceLabel: AUDIENCE_LABEL[product.audience],
+    description: descriptionForCard(product.description),
+    chips,
+    initialChipIndex,
+    whatsappHref: initial
+      ? storefrontChipWhatsAppHref({
+          whatsappE164: ctx.whatsappE164,
+          name: product.name,
+          tamanho: initial.label,
+          priceLabel: initial.priceLabel,
+          academyName: ctx.academyName,
+          storeUrl: ctx.storeUrl,
+        })
+      : null,
+  };
+}
+
+function listedStorefrontProducts(
+  products: readonly StorefrontProductInput[],
+): StorefrontProductInput[] {
   const listed = products.filter(
     (product) => product.active && product.catalogVisible && hasPriceAboveZero(product),
   );
   listed.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  return listed;
+}
 
+export function projectStorefrontCatalog(products: readonly StorefrontProductInput[]): {
+  products: StorefrontCatalogProduct[];
+} {
   return {
-    products: listed.map((product) => {
+    products: listedStorefrontProducts(products).map((product) => {
       const initial = initialPricedVariant(product.variants);
       const priceCents = initial?.priceCents;
       return {
@@ -248,9 +344,16 @@ export function projectStorefrontCatalog(products: readonly StorefrontProductInp
         audienceLabel: AUDIENCE_LABEL[product.audience],
         description: descriptionForCard(product.description),
         priceLabel:
-          priceCents != null && priceCents > 0 ? brlFormatter.format(priceCents / 100) : null,
+          priceCents != null && priceCents > 0 ? formatPriceCents(priceCents) : null,
         initialSizeLabel: initial?.sizeLabel ?? null,
       };
     }),
   };
+}
+
+export function projectStorefrontCards(
+  products: readonly StorefrontProductInput[],
+  ctx: StorefrontCardContext,
+): StorefrontCard[] {
+  return listedStorefrontProducts(products).map((product) => projectStorefrontCard(product, ctx));
 }

@@ -2,14 +2,17 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { cache } from "react";
 
+import { StorefrontSizePicker } from "@/components/storefront/storefront-size-picker";
+import { resolvePublicAppOrigin } from "@/lib/app-url";
 import { getCurrentAccount } from "@/lib/auth";
 import { normalizePhoneE164 } from "@/lib/documents/whatsapp";
 import { BRANDING_BUCKET } from "@/lib/settings/branding-upload";
 import {
-  projectStorefrontCatalog,
+  projectStorefrontCards,
   resolveStorefrontAccess,
+  storefrontPath,
   type StorefrontAccess,
-  type StorefrontCatalogProduct,
+  type StorefrontCard,
   type StorefrontProductInput,
   type StorefrontVariantInput,
 } from "@/lib/storefront/storefront";
@@ -134,11 +137,16 @@ const loadStorefrontPage = cache(async (slug: string) => {
     account && (preview || (account.storefront_published && whatsappE164 != null)),
   );
 
-  let products: StorefrontCatalogProduct[] = [];
-  if (canLoadProducts) {
+  const storeUrl = `${resolvePublicAppOrigin()}${storefrontPath(slug)}`;
+  let products: StorefrontCard[] = [];
+  if (canLoadProducts && account) {
     const listed = await supabase.rpc("storefront_products", { p_slug: slug });
     if (listed.error) throw listed.error;
-    products = projectStorefrontCatalog(readStorefrontProductRows(listed.data)).products;
+    products = projectStorefrontCards(readStorefrontProductRows(listed.data), {
+      academyName: account.name,
+      storeUrl,
+      whatsappE164,
+    });
   }
 
   const access: StorefrontAccess = resolveStorefrontAccess({
@@ -151,7 +159,14 @@ const loadStorefrontPage = cache(async (slug: string) => {
   const logoSrc =
     access === "not_found" ? null : await storefrontLogoSrc(supabase, account?.logo_url ?? null);
 
-  return { access, account, logoSrc, products: access === "catalog" ? products : [] };
+  return {
+    access,
+    account,
+    logoSrc,
+    products: access === "catalog" ? products : [],
+    storeUrl,
+    whatsappE164,
+  };
 });
 
 export async function generateMetadata({
@@ -173,7 +188,8 @@ export default async function LojaPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { access, account, logoSrc, products } = await loadStorefrontPage(slug);
+  const { access, account, logoSrc, products, storeUrl, whatsappE164 } =
+    await loadStorefrontPage(slug);
 
   if (access === "not_found" || !account) {
     return (
@@ -207,9 +223,14 @@ export default async function LojaPage({
               {product.description ? (
                 <p className="mt-2 whitespace-pre-wrap text-base">{product.description}</p>
               ) : null}
-              {product.priceLabel ? (
-                <p className="mt-3 text-base font-medium">{product.priceLabel}</p>
-              ) : null}
+              <StorefrontSizePicker
+                name={product.name}
+                chips={product.chips}
+                initialChipIndex={product.initialChipIndex}
+                academyName={account.name}
+                storeUrl={storeUrl}
+                whatsappE164={whatsappE164}
+              />
             </li>
           ))}
         </ul>

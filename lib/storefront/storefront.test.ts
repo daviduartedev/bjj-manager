@@ -5,6 +5,7 @@ import {
   canCopyStorefrontLink,
   canPublishStorefront,
   normalizeStorefrontDescription,
+  projectStorefrontCard,
   projectStorefrontCatalog,
   resolveStorefrontAccess,
   slugifyAcademyName,
@@ -487,6 +488,234 @@ describe("projectStorefrontCatalog", () => {
         initialSizeLabel: null,
       },
     ]);
+  });
+});
+
+const KIMONO_WHATSAPP_MESSAGE =
+  "Olá! Quero 1× Kimono — A1. Valor: R$\u00a0189,90. Vi na loja Aliança Centro: https://app.aslam.com.br/loja/alianca-centro";
+
+const KIMONO_WHATSAPP_HREF =
+  "https://wa.me/5511987654321?text=Ol%C3%A1!%20Quero%201%C3%97%20Kimono%20%E2%80%94%20A1.%20Valor%3A%20R%24%C2%A0189%2C90.%20Vi%20na%20loja%20Alian%C3%A7a%20Centro%3A%20https%3A%2F%2Fapp.aslam.com.br%2Floja%2Falianca-centro";
+
+describe("projectStorefrontCard", () => {
+  const ctx = {
+    academyName: "Aliança Centro",
+    storeUrl: "https://app.aslam.com.br/loja/alianca-centro",
+    whatsappE164: "5511987654321",
+  };
+
+  it("abre o WhatsApp do primeiro tamanho com estoque, com a frase exata", () => {
+    const card = projectStorefrontCard(
+      storefrontProduct({
+        name: "Kimono",
+        audience: "masculine",
+        description: "Trama pesada",
+        variants: [
+          {
+            sizeLabel: "A2",
+            priceCents: 19990,
+            stockQuantity: 0,
+            sortOrder: 2,
+            line: "unisex",
+          },
+          {
+            sizeLabel: "A1",
+            priceCents: 18990,
+            stockQuantity: 2,
+            sortOrder: 1,
+            line: "unisex",
+          },
+        ],
+      }),
+      ctx,
+    );
+
+    expect(card).toEqual({
+      name: "Kimono",
+      audienceLabel: "Masculino",
+      description: "Trama pesada",
+      chips: [
+        { label: "A1", priceLabel: "R$\u00a0189,90", available: true },
+        { label: "A2", priceLabel: "R$\u00a0199,90", available: false },
+      ],
+      initialChipIndex: 0,
+      whatsappHref: KIMONO_WHATSAPP_HREF,
+    });
+    expect(new URL(card.whatsappHref ?? "").searchParams.get("text")).toBe(KIMONO_WHATSAPP_MESSAGE);
+  });
+
+  it("ordena os chips por sortOrder e depois pelo tamanho em pt-BR", () => {
+    const card = projectStorefrontCard(
+      storefrontProduct({
+        name: "Kimono",
+        variants: [
+          {
+            sizeLabel: "M",
+            priceCents: 10000,
+            stockQuantity: 1,
+            sortOrder: 2,
+            line: "unisex",
+          },
+          {
+            sizeLabel: "P",
+            priceCents: 9000,
+            stockQuantity: 1,
+            sortOrder: 1,
+            line: "unisex",
+          },
+          {
+            sizeLabel: "G",
+            priceCents: 11000,
+            stockQuantity: 1,
+            sortOrder: 1,
+            line: "unisex",
+          },
+        ],
+      }),
+      ctx,
+    );
+
+    expect(card.chips.map((chip) => chip.label)).toEqual(["G", "P", "M"]);
+    expect(card.initialChipIndex).toBe(0);
+  });
+
+  it("marca Feminino no chip da linha feminina e deixa o unissex só com o tamanho", () => {
+    const card = projectStorefrontCard(
+      storefrontProduct({
+        name: "Kimono",
+        variants: [
+          {
+            sizeLabel: "M",
+            priceCents: 12000,
+            stockQuantity: 1,
+            sortOrder: 2,
+            line: "feminine",
+          },
+          {
+            sizeLabel: "P",
+            priceCents: 10000,
+            stockQuantity: 1,
+            sortOrder: 1,
+            line: "unisex",
+          },
+        ],
+      }),
+      ctx,
+    );
+
+    expect(card.chips.map((chip) => chip.label)).toEqual(["P", "M · Feminino"]);
+  });
+
+  it("omite tamanho com preço zero ou vazio", () => {
+    const card = projectStorefrontCard(
+      storefrontProduct({
+        name: "Kimono",
+        variants: [
+          {
+            sizeLabel: "A0",
+            priceCents: 0,
+            stockQuantity: 5,
+            sortOrder: 0,
+            line: "unisex",
+          },
+          {
+            sizeLabel: "A1",
+            priceCents: null,
+            stockQuantity: 5,
+            sortOrder: 1,
+            line: "unisex",
+          },
+          {
+            sizeLabel: "A2",
+            priceCents: 15000,
+            stockQuantity: 1,
+            sortOrder: 2,
+            line: "unisex",
+          },
+        ],
+      }),
+      ctx,
+    );
+
+    expect(card.chips).toEqual([
+      { label: "A2", priceLabel: "R$\u00a0150,00", available: true },
+    ]);
+  });
+
+  it("seleciona o primeiro tamanho que sobrou com estoque e mantém o esgotado visível", () => {
+    const card = projectStorefrontCard(
+      storefrontProduct({
+        name: "Kimono",
+        variants: [
+          {
+            sizeLabel: "A1",
+            priceCents: 18990,
+            stockQuantity: 0,
+            sortOrder: 1,
+            line: "unisex",
+          },
+          {
+            sizeLabel: "A2",
+            priceCents: 19990,
+            stockQuantity: 3,
+            sortOrder: 2,
+            line: "unisex",
+          },
+        ],
+      }),
+      ctx,
+    );
+
+    expect(card.chips).toEqual([
+      { label: "A1", priceLabel: "R$\u00a0189,90", available: false },
+      { label: "A2", priceLabel: "R$\u00a0199,90", available: true },
+    ]);
+    expect(card.initialChipIndex).toBe(1);
+    expect(card.whatsappHref).toBe(
+      "https://wa.me/5511987654321?text=Ol%C3%A1!%20Quero%201%C3%97%20Kimono%20%E2%80%94%20A2.%20Valor%3A%20R%24%C2%A0199%2C90.%20Vi%20na%20loja%20Alian%C3%A7a%20Centro%3A%20https%3A%2F%2Fapp.aslam.com.br%2Floja%2Falianca-centro",
+    );
+  });
+
+  it("não chama no WhatsApp quando o telefone é nulo", () => {
+    const card = projectStorefrontCard(storefrontProduct({ name: "Kimono" }), {
+      ...ctx,
+      whatsappE164: null,
+    });
+
+    expect(card.initialChipIndex).toBe(0);
+    expect(card.whatsappHref).toBeNull();
+  });
+
+  it("não seleciona nem chama quando todos os tamanhos visíveis estão esgotados", () => {
+    const card = projectStorefrontCard(
+      storefrontProduct({
+        name: "Kimono",
+        variants: [
+          {
+            sizeLabel: "A1",
+            priceCents: 18990,
+            stockQuantity: 0,
+            sortOrder: 1,
+            line: "unisex",
+          },
+          {
+            sizeLabel: "A2",
+            priceCents: 19990,
+            stockQuantity: 0,
+            sortOrder: 2,
+            line: "feminine",
+          },
+        ],
+      }),
+      ctx,
+    );
+
+    expect(card.chips).toEqual([
+      { label: "A1", priceLabel: "R$\u00a0189,90", available: false },
+      { label: "A2 · Feminino", priceLabel: "R$\u00a0199,90", available: false },
+    ]);
+    expect(card.initialChipIndex).toBeNull();
+    expect(card.whatsappHref).toBeNull();
   });
 });
 
