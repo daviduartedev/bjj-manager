@@ -1321,19 +1321,6 @@ AS $$
     account.storefront_theme
   FROM public.accounts AS account
   WHERE pg_catalog.lower(account.slug) = pg_catalog.lower(pg_catalog.btrim(p_slug))
-    AND (
-      (
-        account.storefront_published = true
-        AND account.storefront_whatsapp ~ '^[0-9]{10,15}$'
-      )
-      OR EXISTS (
-        SELECT 1
-        FROM public.profiles AS profile
-        WHERE profile.user_id = auth.uid()
-          AND profile.account_id = account.id
-          AND profile.role = 'professor'::public.profile_role
-      )
-    )
   LIMIT 1;
 $$;
 
@@ -1341,7 +1328,7 @@ REVOKE ALL ON FUNCTION public.storefront_account (text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.storefront_account (text) TO anon, authenticated;
 
 COMMENT ON FUNCTION public.storefront_account (text) IS
-  'Loja publicada com WhatsApp válido, ou a prévia do professor daquela academia, incluindo as cores.';
+  'Catálogo público daquele endereço, inclusive as cores.';
 
 DROP FUNCTION IF EXISTS public.storefront_products (text);
 
@@ -1401,19 +1388,6 @@ AS $$
       SELECT 1
       FROM public.product_variants AS sized
       WHERE sized.product_id = product.id
-    )
-    AND (
-      (
-        account.storefront_published = true
-        AND account.storefront_whatsapp ~ '^[0-9]{10,15}$'
-      )
-      OR EXISTS (
-        SELECT 1
-        FROM public.profiles AS profile
-        WHERE profile.user_id = auth.uid()
-          AND profile.account_id = account.id
-          AND profile.role = 'professor'::public.profile_role
-      )
     );
 $$;
 
@@ -1432,8 +1406,7 @@ AS $$
   SELECT EXISTS (
     SELECT 1
     FROM public.accounts AS account
-    WHERE account.storefront_published = true
-      AND account.logo_url IS NOT NULL
+    WHERE account.logo_url IS NOT NULL
       AND account.logo_url = object_name
   );
 $$;
@@ -1442,7 +1415,7 @@ REVOKE ALL ON FUNCTION public.storefront_logo_public (text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.storefront_logo_public (text) TO anon, authenticated;
 
 COMMENT ON FUNCTION public.storefront_logo_public (text) IS
-  'Verdadeiro só quando o objeto é a logo de uma loja já publicada.';
+  'Verdadeiro quando o objeto é a logo de uma academia.';
 
 CREATE OR REPLACE FUNCTION public.storefront_product_photo_public (object_name text) RETURNS boolean
 LANGUAGE sql
@@ -1458,7 +1431,6 @@ AS $$
     INNER JOIN public.accounts AS account
       ON account.id = product.account_id
     WHERE photo.storage_path = object_name
-      AND account.storefront_published = true
       AND product.active = true
       AND product.catalog_visible = true
       AND EXISTS (
@@ -1473,7 +1445,7 @@ REVOKE ALL ON FUNCTION public.storefront_product_photo_public (text) FROM PUBLIC
 GRANT EXECUTE ON FUNCTION public.storefront_product_photo_public (text) TO anon, authenticated;
 
 COMMENT ON FUNCTION public.storefront_product_photo_public (text) IS
-  'Verdadeiro só quando o objeto é foto de um produto que já entra na loja publicada.';
+  'Verdadeiro quando o objeto é foto de um produto do catálogo.';
 
 CREATE OR REPLACE FUNCTION public.provision_academy_for_current_user () RETURNS jsonb
 LANGUAGE plpgsql

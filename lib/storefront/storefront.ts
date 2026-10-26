@@ -105,13 +105,6 @@ export function resolveStorefrontAccess(input: {
   preview: boolean;
 }): StorefrontAccess {
   if (!input.slugFound) return "not_found";
-
-  if (input.preview) {
-    return input.eligibleProductCount === 0 ? "empty" : "catalog";
-  }
-
-  if (!input.published || input.whatsappE164 == null) return "not_found";
-
   return input.eligibleProductCount === 0 ? "empty" : "catalog";
 }
 

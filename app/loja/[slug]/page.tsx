@@ -8,7 +8,6 @@ import {
   type StorefrontPublicCard,
 } from "@/components/storefront/storefront-product-list";
 import { resolvePublicAppOrigin } from "@/lib/app-url";
-import { getCurrentAccount } from "@/lib/auth";
 import { normalizePhoneE164 } from "@/lib/documents/whatsapp";
 import { BRANDING_BUCKET } from "@/lib/settings/branding-upload";
 import {
@@ -178,17 +177,8 @@ const loadStorefrontPage = cache(async (slug: string) => {
   if (error) throw error;
 
   const account = readStorefrontAccount(data);
-  const session = account ? await getCurrentAccount() : null;
-  const preview = Boolean(
-    account &&
-      session &&
-      session.profile.role === "professor" &&
-      session.profile.account_id === account.id,
-  );
   const whatsappE164 = normalizePhoneE164(account?.storefront_whatsapp ?? null);
-  const canLoadProducts = Boolean(
-    account && (preview || (account.storefront_published && whatsappE164 != null)),
-  );
+  const canLoadProducts = account != null;
 
   const storeUrl = `${resolvePublicAppOrigin()}${storefrontPath(slug)}`;
   const cardCtx: StorefrontCardContext = {
@@ -209,7 +199,7 @@ const loadStorefrontPage = cache(async (slug: string) => {
     published: account?.storefront_published ?? false,
     whatsappE164,
     eligibleProductCount: projectedCount,
-    preview,
+    preview: false,
   });
   const logoSrc =
     access === "not_found" ? null : await signStorefrontObject(supabase, account?.logo_url ?? null);

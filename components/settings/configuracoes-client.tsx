@@ -390,6 +390,9 @@ function StorefrontPublicationForm({
       <div className="space-y-1">
         <p className="text-crm-sm font-medium">Publicação do catálogo de produtos</p>
         <p className="break-all text-crm-sm text-muted-foreground">{storefrontUrl}</p>
+        <p className="text-crm-sm text-muted-foreground">
+          Este endereço é público. Quem não está logado vê os produtos marcados para o catálogo.
+        </p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="storefront-whatsapp">WhatsApp do catálogo de produtos</Label>
