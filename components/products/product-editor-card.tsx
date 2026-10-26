@@ -194,7 +194,9 @@ export function ProductEditorCard({ product }: Props) {
         setCatalogVisible(!checked);
         return;
       }
-      toast.success(checked ? "Produto na vitrine." : "Produto fora da vitrine.");
+      toast.success(
+        checked ? "Produto no catálogo de produtos." : "Produto fora do catálogo de produtos.",
+      );
       router.refresh();
     } finally {
       setSavingCatalog(false);
@@ -327,7 +329,7 @@ export function ProductEditorCard({ product }: Props) {
                     onChange={(e) => setDescriptionDraft(e.target.value)}
                     maxLength={500}
                     disabled={savingProduct}
-                    placeholder="Opcional. Aparece no card da loja."
+                    placeholder="Opcional. Aparece no card do catálogo de produtos."
                   />
                 </div>
                 <div className="space-y-2">
@@ -371,7 +373,7 @@ export function ProductEditorCard({ product }: Props) {
                       onCheckedChange={(v) => void toggleCatalogVisible(v === true)}
                     />
                     <span className="cursor-pointer font-normal leading-snug">
-                      Mostrar na vitrine
+                      Mostrar no catálogo de produtos
                     </span>
                   </label>
                 </div>

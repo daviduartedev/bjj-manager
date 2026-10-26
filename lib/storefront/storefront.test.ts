@@ -243,7 +243,7 @@ describe("canPublishStorefront", () => {
       }),
     ).toEqual({
       ok: false,
-      error: "Informe um WhatsApp válido para publicar a loja.",
+      error: "Informe um WhatsApp válido para publicar o catálogo de produtos.",
     });
   });
 
@@ -256,7 +256,7 @@ describe("canPublishStorefront", () => {
       }),
     ).toEqual({
       ok: false,
-      error: "Despublique a loja antes de apagar o WhatsApp.",
+      error: "Despublique o catálogo de produtos antes de apagar o WhatsApp.",
     });
   });
 
@@ -344,7 +344,7 @@ function storefrontProduct(
 }
 
 describe("projectStorefrontCatalog", () => {
-  it("omite inativos, sem marcação, sem preço e com preço zero", () => {
+  it("omite inativos e sem marcação, e lista tamanho sem preço", () => {
     const catalog = projectStorefrontCatalog([
       storefrontProduct({ name: "Inativo", active: false }),
       storefrontProduct({ name: "Sem marca", catalogVisible: false }),
@@ -383,10 +383,24 @@ describe("projectStorefrontCatalog", () => {
         priceLabel: "R$\u00a0189,90",
         initialSizeLabel: "A1",
       },
+      {
+        name: "Preço zero",
+        audienceLabel: "Unissex",
+        description: null,
+        priceLabel: "A combinar",
+        initialSizeLabel: "A1",
+      },
+      {
+        name: "Sem preço",
+        audienceLabel: "Unissex",
+        description: null,
+        priceLabel: "A combinar",
+        initialSizeLabel: "A1",
+      },
     ]);
   });
 
-  it("mostra o preço do primeiro tamanho com preço e estoque acima de zero", () => {
+  it("mostra o preço do primeiro tamanho com estoque acima de zero", () => {
     const catalog = projectStorefrontCatalog([
       storefrontProduct({
         name: "Kimono",
@@ -498,10 +512,10 @@ describe("projectStorefrontCatalog", () => {
 });
 
 const KIMONO_WHATSAPP_MESSAGE =
-  "Olá! Quero 1× Kimono — A1. Valor: R$\u00a0189,90. Vi na loja Aliança Centro: https://app.aslam.com.br/loja/alianca-centro";
+  "Olá! Quero 1× Kimono — A1. Valor: R$\u00a0189,90. Vi no catálogo de produtos Aliança Centro: https://app.aslam.com.br/loja/alianca-centro";
 
 const KIMONO_WHATSAPP_HREF =
-  "https://wa.me/5511987654321?text=Ol%C3%A1!%20Quero%201%C3%97%20Kimono%20%E2%80%94%20A1.%20Valor%3A%20R%24%C2%A0189%2C90.%20Vi%20na%20loja%20Alian%C3%A7a%20Centro%3A%20https%3A%2F%2Fapp.aslam.com.br%2Floja%2Falianca-centro";
+  "https://wa.me/5511987654321?text=Ol%C3%A1!%20Quero%201%C3%97%20Kimono%20%E2%80%94%20A1.%20Valor%3A%20R%24%C2%A0189%2C90.%20Vi%20no%20cat%C3%A1logo%20de%20produtos%20Alian%C3%A7a%20Centro%3A%20https%3A%2F%2Fapp.aslam.com.br%2Floja%2Falianca-centro";
 
 describe("projectStorefrontCard", () => {
   const ctx = {
@@ -612,7 +626,7 @@ describe("projectStorefrontCard", () => {
     expect(card.chips.map((chip) => chip.label)).toEqual(["P", "M · Feminino"]);
   });
 
-  it("omite tamanho com preço zero ou vazio", () => {
+  it("mostra tamanho sem preço como a combinar", () => {
     const card = projectStorefrontCard(
       storefrontProduct({
         name: "Kimono",
@@ -644,6 +658,8 @@ describe("projectStorefrontCard", () => {
     );
 
     expect(card.chips).toEqual([
+      { label: "A0", priceLabel: "A combinar", available: true },
+      { label: "A1", priceLabel: "A combinar", available: true },
       { label: "A2", priceLabel: "R$\u00a0150,00", available: true },
     ]);
   });
@@ -678,7 +694,7 @@ describe("projectStorefrontCard", () => {
     ]);
     expect(card.initialChipIndex).toBe(1);
     expect(card.whatsappHref).toBe(
-      "https://wa.me/5511987654321?text=Ol%C3%A1!%20Quero%201%C3%97%20Kimono%20%E2%80%94%20A2.%20Valor%3A%20R%24%C2%A0199%2C90.%20Vi%20na%20loja%20Alian%C3%A7a%20Centro%3A%20https%3A%2F%2Fapp.aslam.com.br%2Floja%2Falianca-centro",
+      "https://wa.me/5511987654321?text=Ol%C3%A1!%20Quero%201%C3%97%20Kimono%20%E2%80%94%20A2.%20Valor%3A%20R%24%C2%A0199%2C90.%20Vi%20no%20cat%C3%A1logo%20de%20produtos%20Alian%C3%A7a%20Centro%3A%20https%3A%2F%2Fapp.aslam.com.br%2Floja%2Falianca-centro",
     );
   });
 
@@ -726,7 +742,7 @@ describe("projectStorefrontCard", () => {
 });
 
 describe("storefrontListingWarning", () => {
-  it("avisa quando a vitrine está ligada e o produto não entra na loja", () => {
+  it("avisa quando o produto está inativo ou sem tamanho", () => {
     expect(
       storefrontListingWarning(
         storefrontProduct({
@@ -735,7 +751,18 @@ describe("storefrontListingWarning", () => {
           active: false,
         }),
       ),
-    ).toBe("Este produto não entra na loja.");
+    ).toBe("Ative o produto para ele aparecer no catálogo de produtos.");
+
+    expect(
+      storefrontListingWarning(
+        storefrontProduct({
+          name: "Kimono",
+          catalogVisible: true,
+          active: true,
+          variants: [],
+        }),
+      ),
+    ).toBe("Cadastre um tamanho para ele aparecer no catálogo de produtos.");
 
     expect(
       storefrontListingWarning(
@@ -754,7 +781,7 @@ describe("storefrontListingWarning", () => {
           ],
         }),
       ),
-    ).toBe("Este produto não entra na loja.");
+    ).toBeNull();
   });
 
   it("não avisa quando a marcação está desligada ou o produto entra na loja", () => {

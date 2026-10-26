@@ -18,6 +18,7 @@ describe("student portal route helpers", () => {
 
   it("detects operational paths", () => {
     expect(isOperationalAreaPath("/painel")).toBe(true);
+    expect(isOperationalAreaPath("/catalogo")).toBe(true);
     expect(isOperationalAreaPath("/alunos/abc/editar")).toBe(true);
     expect(isOperationalAreaPath("/portal")).toBe(false);
   });

@@ -11,12 +11,12 @@ export default function PrivacidadePage() {
   return (
     <MarketingLegalLayout title="Política de Privacidade" updated="19 de setembro de 2026">
       <p>
-        Esta política descreve como o Casca, produto da Utopia, trata dados pessoais no contexto da gestão de academias de jiu-jitsu, em linha com a Lei Geral de Proteção de Dados (Lei 13.709/2018).
+        Esta política descreve como o Casca trata dados pessoais no contexto da gestão de academias de jiu-jitsu, em linha com a Lei Geral de Proteção de Dados (Lei 13.709/2018).
       </p>
 
       <h2>Quem controla os dados</h2>
       <p>
-        A academia que usa o Casca é, em regra, a controladora dos dados dos seus alunos, responsáveis e colaboradores. A Utopia trata esses dados como operadora, para prestar o software, na medida das instruções da academia e da operação técnica da plataforma.
+        A academia que usa o Casca é, em regra, a controladora dos dados dos seus alunos, responsáveis e colaboradores. O Casca trata esses dados para prestar o software, na medida das instruções da academia e da operação técnica da plataforma.
       </p>
 
       <h2>Que dados entram no Casca</h2>
@@ -38,7 +38,7 @@ export default function PrivacidadePage() {
 
       <h2>Conservação e direitos</h2>
       <p>
-        Os dados permanecem enquanto a conta da academia estiver ativa e pelo prazo adicional exigido por lei. Titulares podem solicitar acesso, correção, eliminação e informação sobre o tratamento junto da academia controladora e, quando aplicável, junto da Utopia em utopia.app.br.
+        Os dados permanecem enquanto a conta da academia estiver ativa e pelo prazo adicional exigido por lei. Titulares podem solicitar acesso, correção, eliminação e informação sobre o tratamento junto da academia controladora.
       </p>
 
       <h2>Segurança</h2>

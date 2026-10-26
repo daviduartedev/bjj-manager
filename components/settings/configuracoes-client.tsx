@@ -75,11 +75,6 @@ import { AlertTriangle, Building2, Layers, Receipt } from "lucide-react";
 
 type Props = {
   initialAccountName: string;
-  initialSlug: string;
-  initialStorefrontWhatsapp: string | null;
-  initialStorefrontPublished: boolean;
-  initialStorefrontTheme: unknown;
-  storefrontUrl: string;
   modality: AcademyModality;
   plans: SettingsPlanRow[];
   receiver: SettingsReceiverRow;
@@ -163,15 +158,6 @@ export function ConfiguracoesClient(props: Props) {
             </div>
           </form>
         </Form>
-        <StorefrontAddressForm initialSlug={props.initialSlug} onSaved={() => router.refresh()} />
-        <StorefrontPublicationForm
-          initialSlug={props.initialSlug}
-          initialWhatsapp={props.initialStorefrontWhatsapp}
-          initialPublished={props.initialStorefrontPublished}
-          storefrontUrl={props.storefrontUrl}
-          onSaved={() => router.refresh()}
-        />
-        <StorefrontThemeForm academyName={props.initialAccountName} initialTheme={props.initialStorefrontTheme} onSaved={() => router.refresh()} />
         <ModalitySwitchPanel current={props.modality} onSaved={() => router.refresh()} />
       </DashboardPanel>
 
@@ -202,6 +188,35 @@ export function ConfiguracoesClient(props: Props) {
           ) : null}
         </div>
       </DashboardPanel>
+    </div>
+  );
+}
+
+export function CatalogoClient(props: {
+  initialAccountName: string;
+  initialSlug: string;
+  initialStorefrontWhatsapp: string | null;
+  initialStorefrontPublished: boolean;
+  initialStorefrontTheme: unknown;
+  storefrontUrl: string;
+}) {
+  const router = useRouter();
+
+  return (
+    <div className="space-y-8">
+      <StorefrontAddressForm initialSlug={props.initialSlug} onSaved={() => router.refresh()} />
+      <StorefrontPublicationForm
+        initialSlug={props.initialSlug}
+        initialWhatsapp={props.initialStorefrontWhatsapp}
+        initialPublished={props.initialStorefrontPublished}
+        storefrontUrl={props.storefrontUrl}
+        onSaved={() => router.refresh()}
+      />
+      <StorefrontThemeForm
+        academyName={props.initialAccountName}
+        initialTheme={props.initialStorefrontTheme}
+        onSaved={() => router.refresh()}
+      />
     </div>
   );
 }
@@ -251,7 +266,7 @@ function StorefrontAddressForm({
       toast.error(result.error);
       return;
     }
-    toast.success("Endereço da loja atualizado.");
+    toast.success("Endereço do catálogo de produtos atualizado.");
     setConfirmed(false);
     onSaved();
   }
@@ -259,7 +274,7 @@ function StorefrontAddressForm({
   return (
     <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
       <div className="space-y-1">
-        <p className="text-crm-sm font-medium">Endereço da loja</p>
+        <p className="text-crm-sm font-medium">Endereço do catálogo de produtos</p>
         <p className="text-crm-sm text-muted-foreground">
           Endereço atual:{" "}
           <span className="font-medium text-foreground">{storefrontPath(initialSlug)}</span>
@@ -357,7 +372,7 @@ function StorefrontPublicationForm({
       toast.error(result.error);
       return;
     }
-    toast.success("Loja atualizada.");
+    toast.success("Catálogo de produtos atualizado.");
     onSaved();
   }
 
@@ -373,11 +388,11 @@ function StorefrontPublicationForm({
   return (
     <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
       <div className="space-y-1">
-        <p className="text-crm-sm font-medium">Publicação da loja</p>
+        <p className="text-crm-sm font-medium">Publicação do catálogo de produtos</p>
         <p className="break-all text-crm-sm text-muted-foreground">{storefrontUrl}</p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="storefront-whatsapp">WhatsApp da loja</Label>
+        <Label htmlFor="storefront-whatsapp">WhatsApp do catálogo de produtos</Label>
         <Input
           id="storefront-whatsapp"
           value={whatsapp}
@@ -394,7 +409,7 @@ function StorefrontPublicationForm({
       </div>
       <div className="flex items-center justify-between gap-4">
         <Label htmlFor="storefront-published" className="cursor-pointer">
-          Loja publicada
+          Catálogo de produtos publicado
         </Label>
         <button
           id="storefront-published"
@@ -433,7 +448,7 @@ function StorefrontPublicationForm({
           <Link href={storefrontPath(initialSlug)}>Ver prévia</Link>
         </Button>
         <Button type="submit" className={primaryActionClass} disabled={pending}>
-          {pending ? "Salvando…" : "Salvar loja"}
+          {pending ? "Salvando…" : "Salvar catálogo"}
         </Button>
       </div>
     </form>
@@ -547,14 +562,14 @@ function StorefrontThemeForm({
       toast.error(result.error);
       return;
     }
-    toast.success("Cores da loja atualizadas.");
+    toast.success("Cores do catálogo de produtos atualizadas.");
     onSaved();
   }
 
   return (
     <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
       <div className="space-y-1">
-        <p className="text-crm-sm font-medium">Cores da loja</p>
+        <p className="text-crm-sm font-medium">Cores do catálogo de produtos</p>
         <p className="text-crm-sm text-muted-foreground">
           Cabeçalho, rodapé, fundo, cards e botão. O padrão é {STOREFRONT_THEME_DEFAULTS.pageBackground}.
         </p>

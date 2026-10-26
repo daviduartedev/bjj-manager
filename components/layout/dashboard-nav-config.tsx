@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Package,
   Settings,
+  Store,
   Users,
   Wallet,
 } from "lucide-react";
@@ -36,6 +37,7 @@ export const MAIN_NAV_ITEMS: MainNavItem[] = [
     dataTour: "tour-matriculas-termos",
   },
   { href: ROUTES.produtos, label: "Produtos", icon: Package, dataTour: "tour-produtos" },
+  { href: ROUTES.catalogo, label: "Catálogo de produtos", icon: Store, dataTour: "tour-catalogo" },
   { href: ROUTES.configuracoes, label: "Configurações", icon: Settings, dataTour: "tour-configuracoes" },
 ];
 
