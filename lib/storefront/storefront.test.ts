@@ -12,9 +12,11 @@ import {
   reorderStorefrontPhotos,
   resolveStorefrontAccess,
   slugifyAcademyName,
+  parseStorefrontTheme,
   storefrontCover,
   storefrontListingWarning,
   storefrontPath,
+  storefrontThemeDefaults,
   validateSlugChange,
   type StorefrontProductInput,
 } from "./storefront";
@@ -914,5 +916,27 @@ describe("filterStorefrontByName", () => {
 
   it("devolve lista vazia quando nada combina", () => {
     expect(filterStorefrontByName(products, "rash")).toEqual([]);
+  });
+});
+
+describe("parseStorefrontTheme", () => {
+  it("devolve o padrão quando a academia ainda não escolheu cores", () => {
+    const parsed = parseStorefrontTheme({});
+    expect(parsed).toEqual({ ok: true, theme: storefrontThemeDefaults() });
+  });
+
+  it("troca só o fundo da página e mantém o restante", () => {
+    const parsed = parseStorefrontTheme({ pageBackground: "#112233" });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.theme.pageBackground).toBe("#112233");
+    expect(parsed.theme.headerBackground).toBe("#ffffff");
+  });
+
+  it("recusa cor fora de #RRGGBB", () => {
+    expect(parseStorefrontTheme({ accent: "red" })).toEqual({
+      ok: false,
+      error: "Use cores no formato #RRGGBB.",
+    });
   });
 });

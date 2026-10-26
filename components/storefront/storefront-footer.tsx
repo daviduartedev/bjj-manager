@@ -4,8 +4,8 @@ import { LogoMark } from "@/components/brand/logo-mark";
 
 export function StorefrontFooter() {
   return (
-    <footer className="mt-auto border-t border-border">
-      <div className="mx-auto flex max-w-lg items-center justify-between gap-4 px-6 py-4">
+    <footer className="mt-auto border-t border-[var(--store-border)] bg-[var(--store-footer)] text-[var(--store-footer-text)]">
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-2 py-3">
         <Link href="/" aria-label="Casca" className="inline-flex">
           <LogoMark height={18} />
         </Link>

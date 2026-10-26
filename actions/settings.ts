@@ -13,7 +13,12 @@ import {
   type BrandingAccountColumn,
   type BrandingKind,
 } from "@/lib/settings/branding-upload";
-import { canPublishStorefront, storefrontPath, validateSlugChange } from "@/lib/storefront/storefront";
+import {
+  canPublishStorefront,
+  parseStorefrontTheme,
+  storefrontPath,
+  validateSlugChange,
+} from "@/lib/storefront/storefront";
 import {
   updateAccountSchema,
   updateAccountSlugSchema,
@@ -308,6 +313,35 @@ export async function updateStorefrontPublication(input: unknown): Promise<Setti
 
     revalidatePath(ROUTES.configuracoes);
     revalidatePath(storefrontPath(currentSlug));
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: mapBillingActionError(e) };
+  }
+}
+
+export async function updateStorefrontTheme(input: unknown): Promise<SettingsActionResult> {
+  try {
+    const parsed = parseStorefrontTheme(input);
+    if (!parsed.ok) return parsed;
+
+    const context = await getCurrentAccount();
+    if (!context || context.profile.role !== "professor") {
+      return { ok: false, error: "Só o professor da academia pode personalizar a loja." };
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("accounts")
+      .update({
+        storefront_theme: parsed.theme,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", context.account.id);
+
+    if (error) throw error;
+
+    revalidatePath(ROUTES.configuracoes);
+    revalidatePath(storefrontPath(context.account.slug));
     return { ok: true };
   } catch (e) {
     return { ok: false, error: mapBillingActionError(e) };

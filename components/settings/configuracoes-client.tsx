@@ -8,7 +8,13 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { updatePlan } from "@/actions/billing";
-import { updateAccount, updateAccountSlug, updateReceiver, updateStorefrontPublication } from "@/actions/settings";
+import {
+  updateAccount,
+  updateAccountSlug,
+  updateReceiver,
+  updateStorefrontPublication,
+  updateStorefrontTheme,
+} from "@/actions/settings";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardPanel } from "@/components/layout/dashboard-panel";
@@ -35,9 +41,15 @@ import { normalizePhoneE164 } from "@/lib/documents/whatsapp";
 import {
   canCopyStorefrontLink,
   canPublishStorefront,
+  parseStorefrontTheme,
   resolveStorefrontAccess,
+  STOREFRONT_THEME_DEFAULTS,
   storefrontPath,
+  storefrontThemeDefaults,
+  storefrontThemeStyle,
   validateSlugChange,
+  type StorefrontTheme,
+  type StorefrontThemeKey,
 } from "@/lib/storefront/storefront";
 import {
   digitsOnly,
@@ -58,6 +70,7 @@ type Props = {
   initialSlug: string;
   initialStorefrontWhatsapp: string | null;
   initialStorefrontPublished: boolean;
+  initialStorefrontTheme: unknown;
   storefrontUrl: string;
   modality: AcademyModality;
   plans: SettingsPlanRow[];
@@ -98,14 +111,14 @@ export function ConfiguracoesClient(props: Props) {
         title="Academia"
         subtitle="Nome exibido no sistema e no cabeçalho"
       >
-        <dl className="mx-auto mb-4 max-w-lg text-crm-sm">
+        <dl className="mb-4 text-crm-sm">
           <dt className="font-medium">Modalidade</dt>
           <dd className="text-muted-foreground">{MODALITY_LABELS[props.modality]}</dd>
         </dl>
         <Form {...accountForm}>
           <form
             onSubmit={accountForm.handleSubmit(submitAccount)}
-            className="mx-auto flex max-w-lg flex-col gap-4"
+            className="flex flex-col gap-4"
           >
             <FormField
               control={accountForm.control}
@@ -147,6 +160,7 @@ export function ConfiguracoesClient(props: Props) {
           storefrontUrl={props.storefrontUrl}
           onSaved={() => router.refresh()}
         />
+        <StorefrontThemeForm academyName={props.initialAccountName} initialTheme={props.initialStorefrontTheme} onSaved={() => router.refresh()} />
         <ModalitySwitchPanel current={props.modality} onSaved={() => router.refresh()} />
       </DashboardPanel>
 
@@ -227,7 +241,7 @@ function StorefrontAddressForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto mt-8 flex max-w-lg flex-col gap-4 border-t border-border pt-6">
+    <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
       <div className="space-y-1">
         <p className="text-crm-sm font-medium">Endereço da loja</p>
         <p className="text-crm-sm text-muted-foreground">
@@ -341,7 +355,7 @@ function StorefrontPublicationForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto mt-8 flex max-w-lg flex-col gap-4 border-t border-border pt-6">
+    <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
       <div className="space-y-1">
         <p className="text-crm-sm font-medium">Publicação da loja</p>
         <p className="break-all text-crm-sm text-muted-foreground">{storefrontUrl}</p>
@@ -404,6 +418,170 @@ function StorefrontPublicationForm({
         </Button>
         <Button type="submit" className={primaryActionClass} disabled={pending}>
           {pending ? "Salvando…" : "Salvar loja"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+const STOREFRONT_THEME_FIELDS: { key: StorefrontThemeKey; label: string }[] = [
+  { key: "pageBackground", label: "Fundo da página" },
+  { key: "pageText", label: "Texto da página" },
+  { key: "headerBackground", label: "Fundo do cabeçalho" },
+  { key: "headerText", label: "Texto do cabeçalho" },
+  { key: "footerBackground", label: "Fundo do rodapé" },
+  { key: "footerText", label: "Texto do rodapé" },
+  { key: "cardBackground", label: "Fundo do card" },
+  { key: "cardText", label: "Texto do card" },
+  { key: "mutedText", label: "Texto secundário" },
+  { key: "border", label: "Bordas" },
+  { key: "accent", label: "Botão" },
+  { key: "accentText", label: "Texto do botão" },
+];
+
+function StorefrontThemePreview({ academyName, theme }: { academyName: string; theme: StorefrontTheme }) {
+  const valid = Object.fromEntries(
+    Object.entries(theme).filter(([, value]) => /^#[0-9a-fA-F]{6}$/.test(value)),
+  );
+  const style = storefrontThemeStyle({ ...storefrontThemeDefaults(), ...valid });
+  return (
+    <div className="lg:sticky lg:top-4 lg:self-start">
+      <p className="mb-2 text-crm-sm text-muted-foreground">Prévia ao vivo</p>
+      <div
+        style={style}
+        className="overflow-hidden rounded-lg border border-border bg-[var(--store-page)] text-[var(--store-text)]"
+      >
+        <div className="border-b border-[var(--store-border)] bg-[var(--store-header)] px-3 py-4 text-center text-[var(--store-header-text)]">
+          <p className="text-base font-semibold">{academyName}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-1 p-1">
+          {[
+            { name: "Kimono Training", price: "R$ 189,90" },
+            { name: "Faixa branca", price: "R$ 49,90" },
+          ].map((item) => (
+            <div
+              key={item.name}
+              className="overflow-hidden rounded-md border border-[var(--store-border)] bg-[var(--store-card)] text-[var(--store-card-text)]"
+            >
+              <div className="grid aspect-[3/2] place-items-center bg-[var(--store-muted)]/20 text-[11px] text-[var(--store-muted)]">
+                Foto
+              </div>
+              <div className="space-y-1.5 p-2">
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="truncate text-xs font-medium">{item.name}</p>
+                  <p className="text-xs font-semibold">{item.price}</p>
+                </div>
+                <p className="text-[11px] text-[var(--store-muted)]">Unissex</p>
+                <div className="flex gap-1">
+                  <span className="rounded border border-[var(--store-accent)] bg-[var(--store-accent)] px-1.5 text-[11px] text-[var(--store-accent-text)]">
+                    A1
+                  </span>
+                  <span className="rounded border border-[var(--store-border)] px-1.5 text-[11px]">A2</span>
+                </div>
+                <div className="rounded bg-[var(--store-accent)] py-1.5 text-center text-[11px] font-medium text-[var(--store-accent-text)]">
+                  Chamar no WhatsApp
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-[var(--store-border)] bg-[var(--store-footer)] px-3 py-2 text-[11px] text-[var(--store-footer-text)]">
+          Termos · Privacidade
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StorefrontThemeForm({
+  academyName,
+  initialTheme,
+  onSaved,
+}: {
+  academyName: string;
+  initialTheme: unknown;
+  onSaved: () => void;
+}) {
+  const parsed = parseStorefrontTheme(initialTheme);
+  const [theme, setTheme] = useState<StorefrontTheme>(
+    parsed.ok ? parsed.theme : storefrontThemeDefaults(),
+  );
+  const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    const next = parseStorefrontTheme(initialTheme);
+    if (next.ok) setTheme(next.theme);
+  }, [initialTheme]);
+
+  function setColor(key: StorefrontThemeKey, value: string) {
+    setTheme((current) => ({ ...current, [key]: value }));
+  }
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const decision = parseStorefrontTheme(theme);
+    if (!decision.ok) {
+      toast.error(decision.error);
+      return;
+    }
+    setPending(true);
+    const result = await updateStorefrontTheme(decision.theme);
+    setPending(false);
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Cores da loja atualizadas.");
+    onSaved();
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
+      <div className="space-y-1">
+        <p className="text-crm-sm font-medium">Cores da loja</p>
+        <p className="text-crm-sm text-muted-foreground">
+          Cabeçalho, rodapé, fundo, cards e botão. O padrão é {STOREFRONT_THEME_DEFAULTS.pageBackground}.
+        </p>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid content-start gap-3">
+          {STOREFRONT_THEME_FIELDS.map((field) => (
+            <div key={field.key} className="flex items-center gap-3">
+              <Label htmlFor={`store-theme-${field.key}`} className="w-40 shrink-0">
+                {field.label}
+              </Label>
+              <input
+                id={`store-theme-${field.key}`}
+                type="color"
+                value={theme[field.key]}
+                aria-label={field.label}
+                onChange={(event) => setColor(field.key, event.target.value)}
+                className="h-10 w-14 cursor-pointer rounded-md border border-border bg-transparent"
+              />
+              <Input
+                value={theme[field.key]}
+                spellCheck={false}
+                maxLength={7}
+                onChange={(event) => setColor(field.key, event.target.value)}
+                className="font-mono uppercase"
+              />
+            </div>
+          ))}
+        </div>
+        <StorefrontThemePreview academyName={academyName} theme={theme} />
+      </div>
+      <div className={formActionsClass}>
+        <Button
+          type="button"
+          variant="outline"
+          className={secondaryActionClass}
+          disabled={pending}
+          onClick={() => setTheme(storefrontThemeDefaults())}
+        >
+          Restaurar padrão
+        </Button>
+        <Button type="submit" className={primaryActionClass} disabled={pending}>
+          {pending ? "Salvando…" : "Salvar cores"}
         </Button>
       </div>
     </form>

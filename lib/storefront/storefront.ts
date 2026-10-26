@@ -416,6 +416,73 @@ export function reorderStorefrontPhotos<T extends { id: string }>(
   return next;
 }
 
+export const STOREFRONT_THEME_DEFAULTS = {
+  pageBackground: "#f4f4f5",
+  pageText: "#18181b",
+  headerBackground: "#ffffff",
+  headerText: "#18181b",
+  footerBackground: "#ffffff",
+  footerText: "#3f3f46",
+  cardBackground: "#ffffff",
+  cardText: "#18181b",
+  mutedText: "#71717a",
+  border: "#e4e4e7",
+  accent: "#18181b",
+  accentText: "#fafafa",
+} as const;
+
+export type StorefrontThemeKey = keyof typeof STOREFRONT_THEME_DEFAULTS;
+export type StorefrontTheme = Record<StorefrontThemeKey, string>;
+
+const STOREFRONT_THEME_KEYS = Object.keys(STOREFRONT_THEME_DEFAULTS) as StorefrontThemeKey[];
+const STOREFRONT_HEX = /^#[0-9a-fA-F]{6}$/;
+
+export function storefrontThemeDefaults(): StorefrontTheme {
+  return { ...STOREFRONT_THEME_DEFAULTS };
+}
+
+export function parseStorefrontTheme(
+  input: unknown,
+): { ok: true; theme: StorefrontTheme } | { ok: false; error: string } {
+  const theme = storefrontThemeDefaults();
+  if (input == null) return { ok: true, theme };
+  if (typeof input !== "object" || Array.isArray(input)) {
+    return { ok: false, error: "A aparência da loja está inválida." };
+  }
+  const record = input as Record<string, unknown>;
+  for (const key of Object.keys(record)) {
+    if (!STOREFRONT_THEME_KEYS.includes(key as StorefrontThemeKey)) {
+      return { ok: false, error: "A aparência da loja tem um campo desconhecido." };
+    }
+  }
+  for (const key of STOREFRONT_THEME_KEYS) {
+    const value = record[key];
+    if (value == null || value === "") continue;
+    if (typeof value !== "string" || !STOREFRONT_HEX.test(value)) {
+      return { ok: false, error: "Use cores no formato #RRGGBB." };
+    }
+    theme[key] = value.toLowerCase();
+  }
+  return { ok: true, theme };
+}
+
+export function storefrontThemeStyle(theme: StorefrontTheme): Record<string, string> {
+  return {
+    "--store-page": theme.pageBackground,
+    "--store-text": theme.pageText,
+    "--store-header": theme.headerBackground,
+    "--store-header-text": theme.headerText,
+    "--store-footer": theme.footerBackground,
+    "--store-footer-text": theme.footerText,
+    "--store-card": theme.cardBackground,
+    "--store-card-text": theme.cardText,
+    "--store-muted": theme.mutedText,
+    "--store-border": theme.border,
+    "--store-accent": theme.accent,
+    "--store-accent-text": theme.accentText,
+  };
+}
+
 export function storefrontCover(
   photos: readonly { url: string }[],
   logoUrl: string | null,

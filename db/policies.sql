@@ -1294,14 +1294,17 @@ CREATE TRIGGER accounts_assign_slug
 BEFORE INSERT ON public.accounts
 FOR EACH ROW EXECUTE FUNCTION public.assign_account_slug ();
 
-CREATE OR REPLACE FUNCTION public.storefront_account (p_slug text)
+DROP FUNCTION IF EXISTS public.storefront_account (text);
+
+CREATE FUNCTION public.storefront_account (p_slug text)
 RETURNS TABLE (
   id uuid,
   name text,
   logo_url text,
   slug text,
   storefront_published boolean,
-  storefront_whatsapp text
+  storefront_whatsapp text,
+  storefront_theme jsonb
 )
 LANGUAGE sql
 STABLE
@@ -1314,7 +1317,8 @@ AS $$
     account.logo_url,
     account.slug,
     account.storefront_published,
-    account.storefront_whatsapp
+    account.storefront_whatsapp,
+    account.storefront_theme
   FROM public.accounts AS account
   WHERE pg_catalog.lower(account.slug) = pg_catalog.lower(pg_catalog.btrim(p_slug))
     AND (
@@ -1337,7 +1341,7 @@ REVOKE ALL ON FUNCTION public.storefront_account (text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.storefront_account (text) TO anon, authenticated;
 
 COMMENT ON FUNCTION public.storefront_account (text) IS
-  'Loja publicada com WhatsApp válido, ou a prévia do professor daquela academia.';
+  'Loja publicada com WhatsApp válido, ou a prévia do professor daquela academia, incluindo as cores.';
 
 DROP FUNCTION IF EXISTS public.storefront_products (text);
 

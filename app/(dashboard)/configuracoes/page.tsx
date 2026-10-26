@@ -9,6 +9,7 @@ import { resolvePublicAppOrigin } from "@/lib/app-url";
 import { loadSettingsPageData } from "@/lib/data/settings-page";
 import { ROUTES } from "@/lib/routes";
 import { storefrontPath } from "@/lib/storefront/storefront";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Configurações",
@@ -58,6 +59,7 @@ export default async function ConfiguracoesPage() {
           initialSlug={data.ctx.account.slug}
           initialStorefrontWhatsapp={data.ctx.account.storefront_whatsapp}
           initialStorefrontPublished={data.ctx.account.storefront_published}
+          initialStorefrontTheme={await loadStorefrontTheme(data.ctx.account.id)}
           storefrontUrl={`${resolvePublicAppOrigin()}${storefrontPath(data.ctx.account.slug)}`}
           modality={data.ctx.account.modality}
           plans={data.plans}
@@ -66,4 +68,15 @@ export default async function ConfiguracoesPage() {
       </div>
     </PageFrame>
   );
+}
+
+async function loadStorefrontTheme(accountId: string): Promise<unknown> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("accounts")
+    .select("storefront_theme")
+    .eq("id", accountId)
+    .maybeSingle();
+  if (error || !data) return {};
+  return data.storefront_theme ?? {};
 }

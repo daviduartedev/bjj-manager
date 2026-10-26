@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   slug text NOT NULL,
   storefront_whatsapp text NULL,
   storefront_published boolean NOT NULL DEFAULT false,
+  storefront_theme jsonb NOT NULL DEFAULT '{}'::jsonb,
   legal_name text NULL,
   cnpj text NULL,
   signature_url text NULL,
@@ -157,6 +158,7 @@ CREATE TABLE IF NOT EXISTS public.accounts (
 ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS slug text;
 ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS storefront_whatsapp text;
 ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS storefront_published boolean NOT NULL DEFAULT false;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS storefront_theme jsonb NOT NULL DEFAULT '{}'::jsonb;
 
 DO $$ BEGIN
   ALTER TABLE public.accounts

@@ -26,7 +26,13 @@ DROP POLICY IF EXISTS product_photos_professor_all ON public.product_photos;
 CREATE POLICY product_photos_professor_all ON public.product_photos
 FOR ALL TO authenticated
 USING (
-  public.can_manage_students()
+  EXISTS (
+    SELECT 1
+    FROM public.profiles AS profile
+    WHERE profile.user_id = auth.uid()
+      AND profile.role::text = 'professor'
+      AND profile.account_id = public.current_account_id()
+  )
   AND EXISTS (
     SELECT 1
     FROM public.products AS product
@@ -35,7 +41,13 @@ USING (
   )
 )
 WITH CHECK (
-  public.can_manage_students()
+  EXISTS (
+    SELECT 1
+    FROM public.profiles AS profile
+    WHERE profile.user_id = auth.uid()
+      AND profile.role::text = 'professor'
+      AND profile.account_id = public.current_account_id()
+  )
   AND EXISTS (
     SELECT 1
     FROM public.products AS product

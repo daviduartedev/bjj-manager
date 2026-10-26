@@ -44,7 +44,9 @@ $$;
 COMMENT ON FUNCTION public.storefront_account (text) IS
   'Loja publicada com WhatsApp válido, ou a prévia do professor daquela academia.';
 
-CREATE OR REPLACE FUNCTION public.storefront_products (p_slug text)
+DROP FUNCTION IF EXISTS public.storefront_products (text);
+
+CREATE FUNCTION public.storefront_products (p_slug text)
 RETURNS TABLE (
   name text,
   description text,
@@ -117,6 +119,9 @@ AS $$
       )
     );
 $$;
+
+REVOKE ALL ON FUNCTION public.storefront_products (text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.storefront_products (text) TO anon, authenticated;
 
 COMMENT ON FUNCTION public.storefront_products (text) IS
   'Produtos da loja daquele slug, sem código interno e sem quantidade em estoque. Foto só desses produtos.';

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { cache } from "react";
 
+import { StorefrontFooter } from "@/components/storefront/storefront-footer";
 import {
   StorefrontProductList,
   type StorefrontPublicCard,
@@ -11,11 +12,14 @@ import { getCurrentAccount } from "@/lib/auth";
 import { normalizePhoneE164 } from "@/lib/documents/whatsapp";
 import { BRANDING_BUCKET } from "@/lib/settings/branding-upload";
 import {
+  parseStorefrontTheme,
   projectStorefrontCard,
   projectStorefrontCards,
   resolveStorefrontAccess,
   storefrontCover,
   storefrontPath,
+  storefrontThemeDefaults,
+  storefrontThemeStyle,
   type StorefrontAccess,
   type StorefrontCardContext,
   type StorefrontProductInput,
@@ -32,6 +36,7 @@ type StorefrontAccountRow = {
   slug: string;
   storefront_published: boolean;
   storefront_whatsapp: string | null;
+  storefront_theme: unknown;
 };
 
 function readStorefrontAccount(data: unknown): StorefrontAccountRow | null {
@@ -47,6 +52,7 @@ function readStorefrontAccount(data: unknown): StorefrontAccountRow | null {
     storefront_published: record.storefront_published === true,
     storefront_whatsapp:
       typeof record.storefront_whatsapp === "string" ? record.storefront_whatsapp : null,
+    storefront_theme: record.storefront_theme ?? {},
   };
 }
 
@@ -241,39 +247,54 @@ export default async function LojaPage({
   const { slug } = await params;
   const { access, account, logoSrc, products, storeUrl, whatsappE164 } =
     await loadStorefrontPage(slug);
-
-  if (access === "not_found" || !account) {
-    return (
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Loja não encontrada</h1>
-      </main>
-    );
-  }
+  const theme = parseStorefrontTheme(account?.storefront_theme ?? {});
+  const themeStyle = storefrontThemeStyle(theme.ok ? theme.theme : storefrontThemeDefaults());
 
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-6 py-10">
-      {logoSrc ? (
-        <Image
-          src={logoSrc}
-          alt=""
-          width={192}
-          height={64}
-          unoptimized
-          className="mb-4 h-16 w-auto max-w-full object-contain"
-        />
-      ) : null}
-      <h1 className="text-2xl font-semibold tracking-tight">{account.name}</h1>
-      {access === "empty" ? (
-        <p className="mt-6 text-base">Nenhum produto no momento</p>
+    <div
+      className="flex min-h-dvh flex-col bg-[var(--store-page)] text-[var(--store-text)]"
+      style={themeStyle}
+    >
+      {access === "not_found" || !account ? (
+        <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6">
+          <h1 className="text-2xl font-semibold tracking-tight">Loja não encontrada</h1>
+        </main>
       ) : (
-        <StorefrontProductList
-          products={products}
-          academyName={account.name}
-          storeUrl={storeUrl}
-          whatsappE164={whatsappE164}
-          logoSrc={logoSrc}
-        />
+        <>
+          <header className="border-b border-[var(--store-border)] bg-[var(--store-header)] text-[var(--store-header-text)]">
+            <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center gap-2 px-2 py-5 text-center sm:py-8">
+              {logoSrc ? (
+                <Image
+                  src={logoSrc}
+                  alt={account.name}
+                  width={480}
+                  height={160}
+                  unoptimized
+                  priority
+                  className="h-24 w-auto max-w-full object-contain sm:h-36"
+                />
+              ) : null}
+              <h1 className={logoSrc ? "text-lg font-semibold tracking-tight" : "text-3xl font-semibold tracking-tight"}>
+                {account.name}
+              </h1>
+            </div>
+          </header>
+          <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-0.5 py-1">
+            {access === "empty" ? (
+              <p className="text-base">Nenhum produto no momento</p>
+            ) : (
+              <StorefrontProductList
+                products={products}
+                academyName={account.name}
+                storeUrl={storeUrl}
+                whatsappE164={whatsappE164}
+                logoSrc={logoSrc}
+              />
+            )}
+          </main>
+        </>
       )}
-    </main>
+      <StorefrontFooter />
+    </div>
   );
 }

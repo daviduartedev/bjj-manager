@@ -1,10 +1,5 @@
-import { StorefrontFooter } from "@/components/storefront/storefront-footer";
+import type { ReactNode } from "react";
 
-export default function LojaLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-dvh flex-col">
-      {children}
-      <StorefrontFooter />
-    </div>
-  );
+export default function LojaLayout({ children }: { children: ReactNode }) {
+  return children;
 }
