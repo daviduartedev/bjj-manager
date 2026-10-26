@@ -462,6 +462,7 @@ const STOREFRONT_THEME_FIELDS: { key: StorefrontThemeKey; label: string }[] = [
   { key: "headerText", label: "Texto do cabeçalho" },
   { key: "cardBackground", label: "Fundo do card" },
   { key: "cardText", label: "Texto do card" },
+  { key: "productTitle", label: "Título do produto" },
   { key: "mutedText", label: "Texto secundário" },
   { key: "border", label: "Bordas" },
   { key: "accent", label: "Botão" },
@@ -500,7 +501,7 @@ function StorefrontThemePreview({ academyName, theme }: { academyName: string; t
               </div>
               <div className="space-y-1.5 p-2">
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className="truncate text-xs font-medium">{item.name}</p>
+                  <p className="truncate text-xs font-semibold text-[var(--store-title)]">{item.name}</p>
                   <p className="text-xs font-semibold">{item.price}</p>
                 </div>
                 <p className="text-[11px] text-[var(--store-muted)]">Unissex</p>

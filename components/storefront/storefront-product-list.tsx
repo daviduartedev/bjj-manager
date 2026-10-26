@@ -5,8 +5,10 @@ import { useState } from "react";
 import { Button, Input, SearchField, ToggleButton, ToggleButtonGroup } from "react-aria-components";
 
 import {
-  filterStorefrontByName,
+  filterStorefrontProducts,
+  STOREFRONT_AUDIENCE_FILTERS,
   storefrontChipWhatsAppHref,
+  type StorefrontAudienceFilter,
   type StorefrontCard,
 } from "@/lib/storefront/storefront";
 
@@ -26,24 +28,50 @@ export function StorefrontProductList({
   ...store
 }: { products: readonly StorefrontPublicCard[] } & StoreContext) {
   const [query, setQuery] = useState("");
-  const visible = filterStorefrontByName(products, query);
+  const [audience, setAudience] = useState<StorefrontAudienceFilter>("Todos");
+  const visible = filterStorefrontProducts(products, query, audience);
 
   return (
     <>
-      <SearchField
-        aria-label="Buscar produto"
-        value={query}
-        onChange={setQuery}
-        className="px-1 py-2 sm:max-w-sm"
-      >
-        <Input
-          placeholder="Buscar produto"
-          autoComplete="off"
-          className="w-full rounded-md border border-[var(--store-border)] bg-[var(--store-card)] px-3 py-2 text-sm text-[var(--store-card-text)] outline-none placeholder:text-[var(--store-muted)] focus:ring-2 focus:ring-[var(--store-accent)]"
-        />
-      </SearchField>
+      <div className="flex flex-col items-end gap-2 px-1 py-2 sm:flex-row sm:justify-end">
+        <ToggleButtonGroup
+          aria-label="Filtrar público"
+          selectionMode="single"
+          disallowEmptySelection
+          selectedKeys={[audience]}
+          onSelectionChange={(keys) => {
+            const first = [...keys][0];
+            if (typeof first === "string") setAudience(first as StorefrontAudienceFilter);
+          }}
+          className="flex flex-wrap justify-end gap-1"
+        >
+          {STOREFRONT_AUDIENCE_FILTERS.map((filter) => (
+            <ToggleButton
+              key={filter}
+              id={filter}
+              className="rounded-md border border-[var(--store-border)] bg-[var(--store-card)] px-2.5 py-1.5 text-sm text-[var(--store-card-text)] outline-none data-[selected]:border-[var(--store-accent)] data-[selected]:bg-[var(--store-accent)] data-[selected]:text-[var(--store-accent-text)] data-[focus-visible]:ring-2 data-[focus-visible]:ring-[var(--store-accent)]"
+            >
+              {filter}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+        <SearchField
+          aria-label="Buscar produto"
+          value={query}
+          onChange={setQuery}
+          className="w-full sm:w-64"
+        >
+          <Input
+            placeholder="Buscar produto"
+            autoComplete="off"
+            className="w-full rounded-md border border-[var(--store-border)] bg-[var(--store-card)] px-3 py-2 text-sm text-[var(--store-card-text)] outline-none placeholder:text-[var(--store-muted)] focus:ring-2 focus:ring-[var(--store-accent)]"
+          />
+        </SearchField>
+      </div>
       {visible.length === 0 ? (
-        <p className="px-1 py-8 text-sm text-[var(--store-muted)]">Nenhum produto com esse nome</p>
+        <p className="px-1 py-8 text-right text-sm text-[var(--store-muted)]">
+          {query.trim() === "" ? "Nenhum produto neste filtro" : "Nenhum produto com esse nome"}
+        </p>
       ) : (
         <ul className="grid grid-cols-2 gap-1 px-1 pb-2 md:grid-cols-3 xl:grid-cols-4">
           {visible.map((product, index) => (
@@ -137,10 +165,10 @@ function StorefrontTile({
           <Image src={fallbackLogo} alt="" fill unoptimized className="object-contain p-10" sizes="25vw" />
         ) : null}
       </div>
-      <div className="flex flex-col px-2 py-2 md:absolute md:inset-x-0 md:bottom-0 md:bg-[var(--store-card)]/95 md:backdrop-blur">
+      <div className="flex flex-col bg-[var(--store-card)] px-2 py-2 md:absolute md:inset-x-0 md:bottom-0">
         <div className="flex items-baseline justify-between gap-2">
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-medium">{product.name}</h2>
+            <h2 className="truncate text-sm font-semibold text-[var(--store-title)]">{product.name}</h2>
             <p className="text-xs text-[var(--store-muted)]">{product.audienceLabel}</p>
           </div>
           <span className="shrink-0 text-sm font-semibold">{selected?.priceLabel ?? "—"}</span>
