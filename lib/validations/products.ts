@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { normalizeStorefrontDescription } from "@/lib/storefront/storefront";
+
 export const productNameSchema = z
   .string()
   .trim()
@@ -20,6 +22,19 @@ export const productStockQuantitySchema = z.coerce
 
 export const productAudienceSchema = z.enum(["unisex", "masculine", "feminine"]);
 
+export const productPriceCentsSchema = z
+  .number()
+  .int("Use um valor em centavos.")
+  .min(0, "O preço não pode ser negativo.")
+  .max(1_000_000_000, "Preço muito alto.");
+
+export const storefrontDescriptionSchema = z.string().superRefine((value, ctx) => {
+  const normalized = normalizeStorefrontDescription(value);
+  if (!normalized.ok) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: normalized.error });
+  }
+});
+
 export const variantLineSchema = z.enum(["unisex", "feminine"]);
 
 export const createProductSchema = z
@@ -34,13 +49,17 @@ export const updateProductSchema = z
     name: productNameSchema.optional(),
     active: z.boolean().optional(),
     audience: productAudienceSchema.optional(),
+    description: storefrontDescriptionSchema.optional(),
+    catalogVisible: z.boolean().optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
     if (
       data.name === undefined &&
       data.active === undefined &&
-      data.audience === undefined
+      data.audience === undefined &&
+      data.description === undefined &&
+      data.catalogVisible === undefined
     ) {
       ctx.addIssue({
         code: "custom",
@@ -56,6 +75,7 @@ export const createProductVariantSchema = z
     sizeLabel: productSizeLabelSchema,
     stockQuantity: productStockQuantitySchema.optional().default(0),
     line: variantLineSchema.optional(),
+    priceCents: productPriceCentsSchema.nullable().optional(),
   })
   .strict();
 
@@ -65,13 +85,15 @@ export const updateProductVariantSchema = z
     sizeLabel: productSizeLabelSchema.optional(),
     stockQuantity: productStockQuantitySchema.optional(),
     line: variantLineSchema.optional(),
+    priceCents: productPriceCentsSchema.nullable().optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
     if (
       data.sizeLabel === undefined &&
       data.stockQuantity === undefined &&
-      data.line === undefined
+      data.line === undefined &&
+      data.priceCents === undefined
     ) {
       ctx.addIssue({
         code: "custom",

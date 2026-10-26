@@ -66,7 +66,7 @@ const nextConfig = {
   ],
   experimental: {
     serverActions: {
-      bodySizeLimit: "1mb",
+      bodySizeLimit: "6mb", // uma foto da loja pode ter 5 MB
       ...(serverActionsAllowedOrigins.length > 0
         ? { allowedOrigins: serverActionsAllowedOrigins }
         : {}),

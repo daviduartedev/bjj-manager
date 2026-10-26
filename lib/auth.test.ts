@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
 
 const account = {
-  id: "academy-from-profile", name: "Academia teste", modality: "jiu_jitsu",
+  id: "academy-from-profile", name: "Academia teste", slug: "academia-teste",
+  storefront_whatsapp: null, storefront_published: false, modality: "jiu_jitsu",
   legal_name: null, cnpj: null, signature_url: null, logo_url: null,
   created_at: "2026-01-01", updated_at: "2026-01-01",
 };

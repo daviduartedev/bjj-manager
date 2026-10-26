@@ -705,6 +705,32 @@ WITH
     )
   );
 
+-- ---------- product_photos (só o professor da conta do produto) ----------
+ALTER TABLE public.product_photos ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS product_photos_professor_all ON public.product_photos;
+
+CREATE POLICY product_photos_professor_all ON public.product_photos
+FOR ALL TO authenticated
+USING (
+  public.can_manage_students()
+  AND EXISTS (
+    SELECT 1
+    FROM public.products AS product
+    WHERE product.id = product_photos.product_id
+      AND product.account_id = public.current_account_id()
+  )
+)
+WITH CHECK (
+  public.can_manage_students()
+  AND EXISTS (
+    SELECT 1
+    FROM public.products AS product
+    WHERE product.id = product_photos.product_id
+      AND product.account_id = public.current_account_id()
+  )
+);
+
 CREATE POLICY product_variants_student_select ON public.product_variants FOR SELECT TO authenticated USING (
   public.current_profile_role () = 'student'::public.profile_role
   AND EXISTS (
@@ -1183,6 +1209,275 @@ $$;
 REVOKE ALL ON FUNCTION public.record_academy_registration (uuid, text, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.record_academy_registration (uuid, text, text) TO service_role;
 
+CREATE OR REPLACE FUNCTION public.allocate_academy_slug (name text) RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_base text;
+  v_candidate text;
+  v_head text;
+  v_suffix text;
+  v_n integer := 1;
+  v_reserved text[] := ARRAY[
+    'loja', 'painel', 'portal', 'login', 'admin', 'api',
+    'produtos', 'termos', 'privacidade', 'configuracoes'
+  ];
+BEGIN
+  v_base := pg_catalog.lower(
+    pg_catalog.translate(
+      coalesce(name, ''),
+      'ÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇÑáàâãäéèêëíìîïóòôõöúùûüçñ',
+      'AAAAAEEEEIIIIOOOOOUUUUCNaaaaaeeeeiiiiooooouuuucn'
+    )
+  );
+  v_base := pg_catalog.regexp_replace(v_base, '[^a-z0-9]+', '-', 'g');
+  v_base := pg_catalog.regexp_replace(v_base, '^-+|-+$', '', 'g');
+  v_base := pg_catalog.regexp_replace(pg_catalog.left(v_base, 40), '-+$', '');
+
+  IF pg_catalog.char_length(v_base) < 3 THEN
+    v_base := 'academia';
+  END IF;
+
+  v_candidate := v_base;
+  WHILE v_candidate = ANY (v_reserved)
+     OR pg_catalog.char_length(v_candidate) < 3
+     OR pg_catalog.char_length(v_candidate) > 40
+     OR v_candidate !~ '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'
+     OR EXISTS (
+       SELECT 1
+       FROM public.accounts AS account
+       WHERE pg_catalog.lower(account.slug) = v_candidate
+     )
+  LOOP
+    v_n := v_n + 1;
+    v_suffix := '-' || v_n::text;
+    v_head := pg_catalog.regexp_replace(
+      pg_catalog.left(v_base, 40 - pg_catalog.char_length(v_suffix)),
+      '-+$',
+      ''
+    );
+    v_candidate := v_head || v_suffix;
+    IF v_n > 1000 THEN
+      RAISE EXCEPTION 'could not allocate academy slug' USING ERRCODE = '23505';
+    END IF;
+  END LOOP;
+
+  RETURN v_candidate;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.allocate_academy_slug (text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.allocate_academy_slug (text) TO service_role;
+
+COMMENT ON FUNCTION public.allocate_academy_slug (text) IS
+  'Slug da academia: minúsculas, hífens, 3–40, sufixo -2/-3 se reservado ou ocupado.';
+
+CREATE OR REPLACE FUNCTION public.assign_account_slug () RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  IF NEW.slug IS NULL OR pg_catalog.btrim(NEW.slug) = '' THEN
+    NEW.slug := public.allocate_academy_slug(NEW.name);
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.assign_account_slug () FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS accounts_assign_slug ON public.accounts;
+CREATE TRIGGER accounts_assign_slug
+BEFORE INSERT ON public.accounts
+FOR EACH ROW EXECUTE FUNCTION public.assign_account_slug ();
+
+DROP FUNCTION IF EXISTS public.storefront_account (text);
+
+CREATE FUNCTION public.storefront_account (p_slug text)
+RETURNS TABLE (
+  id uuid,
+  name text,
+  logo_url text,
+  slug text,
+  storefront_published boolean,
+  storefront_whatsapp text,
+  storefront_theme jsonb
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT
+    account.id,
+    account.name,
+    account.logo_url,
+    account.slug,
+    account.storefront_published,
+    account.storefront_whatsapp,
+    account.storefront_theme
+  FROM public.accounts AS account
+  WHERE pg_catalog.lower(account.slug) = pg_catalog.lower(pg_catalog.btrim(p_slug))
+    AND (
+      (
+        account.storefront_published = true
+        AND account.storefront_whatsapp ~ '^[0-9]{10,15}$'
+      )
+      OR EXISTS (
+        SELECT 1
+        FROM public.profiles AS profile
+        WHERE profile.user_id = auth.uid()
+          AND profile.account_id = account.id
+          AND profile.role = 'professor'::public.profile_role
+      )
+    )
+  LIMIT 1;
+$$;
+
+REVOKE ALL ON FUNCTION public.storefront_account (text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.storefront_account (text) TO anon, authenticated;
+
+COMMENT ON FUNCTION public.storefront_account (text) IS
+  'Loja publicada com WhatsApp válido, ou a prévia do professor daquela academia, incluindo as cores.';
+
+DROP FUNCTION IF EXISTS public.storefront_products (text);
+
+CREATE FUNCTION public.storefront_products (p_slug text)
+RETURNS TABLE (
+  name text,
+  description text,
+  audience text,
+  active boolean,
+  catalog_visible boolean,
+  variants jsonb,
+  photo_paths jsonb
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT
+    product.name,
+    product.description,
+    product.audience,
+    product.active,
+    product.catalog_visible,
+    (
+      SELECT COALESCE(
+        jsonb_agg(
+          jsonb_build_object(
+            'size_label', variant.size_label,
+            'price_cents', variant.price_cents,
+            'in_stock', variant.stock_quantity > 0,
+            'sort_order', variant.sort_order,
+            'line', variant.line
+          )
+          ORDER BY variant.sort_order, variant.size_label
+        ),
+        '[]'::jsonb
+      )
+      FROM public.product_variants AS variant
+      WHERE variant.product_id = product.id
+        AND variant.price_cents > 0
+    ) AS variants,
+    COALESCE(
+      (
+        SELECT jsonb_agg(photo.storage_path ORDER BY photo.sort_order)
+        FROM public.product_photos AS photo
+        WHERE photo.product_id = product.id
+      ),
+      '[]'::jsonb
+    ) AS photo_paths
+  FROM public.accounts AS account
+  INNER JOIN public.products AS product
+    ON product.account_id = account.id
+  WHERE pg_catalog.lower(account.slug) = pg_catalog.lower(pg_catalog.btrim(p_slug))
+    AND product.active = true
+    AND product.catalog_visible = true
+    AND EXISTS (
+      SELECT 1
+      FROM public.product_variants AS priced
+      WHERE priced.product_id = product.id
+        AND priced.price_cents > 0
+    )
+    AND (
+      (
+        account.storefront_published = true
+        AND account.storefront_whatsapp ~ '^[0-9]{10,15}$'
+      )
+      OR EXISTS (
+        SELECT 1
+        FROM public.profiles AS profile
+        WHERE profile.user_id = auth.uid()
+          AND profile.account_id = account.id
+          AND profile.role = 'professor'::public.profile_role
+      )
+    );
+$$;
+
+REVOKE ALL ON FUNCTION public.storefront_products (text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.storefront_products (text) TO anon, authenticated;
+
+COMMENT ON FUNCTION public.storefront_products (text) IS
+  'Produtos da loja daquele slug, sem código interno e sem quantidade em estoque. Foto só desses produtos.';
+
+CREATE OR REPLACE FUNCTION public.storefront_logo_public (object_name text) RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.accounts AS account
+    WHERE account.storefront_published = true
+      AND account.logo_url IS NOT NULL
+      AND account.logo_url = object_name
+  );
+$$;
+
+REVOKE ALL ON FUNCTION public.storefront_logo_public (text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.storefront_logo_public (text) TO anon, authenticated;
+
+COMMENT ON FUNCTION public.storefront_logo_public (text) IS
+  'Verdadeiro só quando o objeto é a logo de uma loja já publicada.';
+
+CREATE OR REPLACE FUNCTION public.storefront_product_photo_public (object_name text) RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.product_photos AS photo
+    INNER JOIN public.products AS product
+      ON product.id = photo.product_id
+    INNER JOIN public.accounts AS account
+      ON account.id = product.account_id
+    WHERE photo.storage_path = object_name
+      AND account.storefront_published = true
+      AND product.active = true
+      AND product.catalog_visible = true
+      AND EXISTS (
+        SELECT 1
+        FROM public.product_variants AS priced
+        WHERE priced.product_id = product.id
+          AND priced.price_cents > 0
+      )
+  );
+$$;
+
+REVOKE ALL ON FUNCTION public.storefront_product_photo_public (text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.storefront_product_photo_public (text) TO anon, authenticated;
+
+COMMENT ON FUNCTION public.storefront_product_photo_public (text) IS
+  'Verdadeiro só quando o objeto é foto de um produto que já entra na loja publicada.';
+
 CREATE OR REPLACE FUNCTION public.provision_academy_for_current_user () RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1256,8 +1551,8 @@ BEGIN
     RETURN pg_catalog.jsonb_build_object('outcome', 'ineligible', 'role', NULL);
   END IF;
 
-  INSERT INTO public.accounts (name, modality)
-  VALUES (v_academy_name, v_modality)
+  INSERT INTO public.accounts (name, modality, slug)
+  VALUES (v_academy_name, v_modality, public.allocate_academy_slug(v_academy_name))
   RETURNING id INTO v_account_id;
 
   INSERT INTO public.profiles (user_id, account_id, display_name, role)

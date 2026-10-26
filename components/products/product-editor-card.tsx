@@ -11,6 +11,7 @@ import {
   updateProduct,
   updateProductVariant,
 } from "@/actions/products";
+import { ProductPhotoEditor } from "@/components/products/product-photo-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
@@ -18,6 +19,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -30,7 +32,7 @@ import type {
   ProductRow,
   VariantLine,
 } from "@/lib/data/products-page";
-import { getProductHeroVisual } from "@/lib/products/product-visuals";
+import { storefrontListingWarning } from "@/lib/storefront/storefront";
 import { cn } from "@/lib/utils";
 import { Filter, Package, X } from "lucide-react";
 
@@ -38,19 +40,39 @@ type Props = {
   product: ProductRow;
 };
 
+function centsToReaisInput(cents: number | null): string {
+  if (cents == null) return "";
+  return (cents / 100).toFixed(2).replace(".", ",");
+}
+
+function parseReaisToCents(raw: string): number | null | "invalid" {
+  const trimmed = raw.trim();
+  if (trimmed === "") return null;
+  let normalized = trimmed.replace(/\s/g, "").replace(/^R\$/i, "");
+  if (normalized.includes(",")) {
+    normalized = normalized.replace(/\./g, "").replace(",", ".");
+  }
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return "invalid";
+  const reais = Number(normalized);
+  if (!Number.isFinite(reais)) return "invalid";
+  const cents = Math.round(reais * 100);
+  if (cents > 1_000_000_000) return "invalid";
+  return cents;
+}
+
 export function ProductEditorCard({ product }: Props) {
   const router = useRouter();
-  const visual = useMemo(
-    () => getProductHeroVisual(product.code, product.name),
-    [product.code, product.name],
-  );
+  const coverUrl = product.photos[0]?.url ?? null;
 
   const [nameDraft, setNameDraft] = useState(product.name);
+  const [descriptionDraft, setDescriptionDraft] = useState(product.description ?? "");
   const [audienceDraft, setAudienceDraft] = useState<ProductAudience>(
     product.audience,
   );
   const [active, setActive] = useState(product.active);
+  const [catalogVisible, setCatalogVisible] = useState(product.catalog_visible);
   const [savingProduct, setSavingProduct] = useState(false);
+  const [savingCatalog, setSavingCatalog] = useState(false);
 
   const [sizeQuery, setSizeQuery] = useState("");
   const [chipSize, setChipSize] = useState<string | null>(null);
@@ -58,6 +80,7 @@ export function ProductEditorCard({ product }: Props) {
 
   const [newSize, setNewSize] = useState("");
   const [newStock, setNewStock] = useState(0);
+  const [newPrice, setNewPrice] = useState("");
   const [newLine, setNewLine] = useState<VariantLine>(
     product.audience === "feminine" ? "feminine" : "unisex",
   );
@@ -65,10 +88,19 @@ export function ProductEditorCard({ product }: Props) {
 
   useEffect(() => {
     setNameDraft(product.name);
+    setDescriptionDraft(product.description ?? "");
     setAudienceDraft(product.audience);
     setActive(product.active);
+    setCatalogVisible(product.catalog_visible);
     setNewLine(product.audience === "feminine" ? "feminine" : "unisex");
-  }, [product.id, product.name, product.audience, product.active]);
+  }, [
+    product.id,
+    product.name,
+    product.description,
+    product.audience,
+    product.active,
+    product.catalog_visible,
+  ]);
 
   const sizeChips = useMemo(() => {
     const labels = [...new Set(product.variants.map((v) => v.size_label))];
@@ -106,6 +138,8 @@ export function ProductEditorCard({ product }: Props) {
   async function saveProductMeta() {
     setSavingProduct(true);
     try {
+      const descriptionChanged =
+        descriptionDraft.trim() !== (product.description ?? "").trim();
       const r = await updateProduct({
         productId: product.id,
         name:
@@ -114,6 +148,7 @@ export function ProductEditorCard({ product }: Props) {
             : undefined,
         audience:
           audienceDraft !== product.audience ? audienceDraft : undefined,
+        description: descriptionChanged ? descriptionDraft : undefined,
       });
       if (!r.ok) {
         toast.error(r.error);
@@ -140,6 +175,46 @@ export function ProductEditorCard({ product }: Props) {
     toast.success(checked ? "Produto ativado." : "Produto desativado.");
     router.refresh();
   }
+
+  async function toggleCatalogVisible(checked: boolean) {
+    setCatalogVisible(checked);
+    setSavingCatalog(true);
+    try {
+      const r = await updateProduct({
+        productId: product.id,
+        catalogVisible: checked,
+      });
+      if (!r.ok) {
+        toast.error(r.error);
+        setCatalogVisible(!checked);
+        return;
+      }
+      toast.success(checked ? "Produto na vitrine." : "Produto fora da vitrine.");
+      router.refresh();
+    } finally {
+      setSavingCatalog(false);
+    }
+  }
+
+  const listingWarning = storefrontListingWarning({
+    name: product.name,
+    active,
+    catalogVisible,
+    description: descriptionDraft.trim() === "" ? null : descriptionDraft.trim(),
+    audience: audienceDraft,
+    variants: product.variants.map((variant) => ({
+      sizeLabel: variant.size_label,
+      priceCents: variant.price_cents,
+      stockQuantity: variant.stock_quantity,
+      sortOrder: variant.sort_order,
+      line: variant.line,
+    })),
+  });
+
+  const identificationDirty =
+    nameDraft.trim() !== product.name.trim() ||
+    audienceDraft !== product.audience ||
+    descriptionDraft.trim() !== (product.description ?? "").trim();
 
   const variantCount = product.variants.length;
   const stockTotal = product.variants.reduce(
@@ -171,18 +246,17 @@ export function ProductEditorCard({ product }: Props) {
                     "relative isolate size-24 overflow-hidden rounded-xl border border-border/80 bg-muted/30 sm:size-28",
                   )}
                 >
-                  <Image
-                    src={visual.src}
-                    alt={visual.alt}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 96px, 112px"
-                    priority={false}
-                  />
+                  {coverUrl ? (
+                    <Image
+                      src={coverUrl}
+                      alt=""
+                      fill
+                      unoptimized
+                      className="object-cover"
+                      sizes="112px"
+                    />
+                  ) : null}
                 </div>
-                <p className="max-w-[6.5rem] text-center text-[0.6rem] leading-tight text-muted-foreground sm:max-w-[7rem] sm:text-left sm:text-[0.65rem]">
-                  {visual.credit}
-                </p>
               </div>
 
               <div className="min-w-0 flex-1 space-y-3">
@@ -233,6 +307,17 @@ export function ProductEditorCard({ product }: Props) {
                     disabled={savingProduct}
                   />
                 </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor={`prod-description-${product.id}`}>Descrição</Label>
+                  <Textarea
+                    id={`prod-description-${product.id}`}
+                    value={descriptionDraft}
+                    onChange={(e) => setDescriptionDraft(e.target.value)}
+                    maxLength={500}
+                    disabled={savingProduct}
+                    placeholder="Opcional. Aparece no card da loja."
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor={`prod-audience-${product.id}`}>Público / corte</Label>
                   <Select
@@ -254,33 +339,54 @@ export function ProductEditorCard({ product }: Props) {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-end gap-3 pb-1">
-                  <Checkbox
-                    id={`prod-active-${product.id}`}
-                    checked={active}
-                    disabled={savingProduct}
-                    onCheckedChange={(v) => void toggleActive(v === true)}
-                    className="size-5"
-                  />
-                  <Label
-                    htmlFor={`prod-active-${product.id}`}
-                    className="cursor-pointer font-normal leading-snug"
-                  >
-                    Ativo na gestão
-                  </Label>
+                <div className="flex flex-col justify-end gap-3 pb-1">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      id={`prod-active-${product.id}`}
+                      checked={active}
+                      disabled={savingProduct}
+                      onCheckedChange={(v) => void toggleActive(v === true)}
+                      className="size-5"
+                    />
+                    <Label
+                      htmlFor={`prod-active-${product.id}`}
+                      className="cursor-pointer font-normal leading-snug"
+                    >
+                      Ativo na gestão
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      id={`prod-catalog-${product.id}`}
+                      checked={catalogVisible}
+                      disabled={savingProduct || savingCatalog}
+                      onCheckedChange={(v) => void toggleCatalogVisible(v === true)}
+                      className="size-5"
+                    />
+                    <Label
+                      htmlFor={`prod-catalog-${product.id}`}
+                      className="cursor-pointer font-normal leading-snug"
+                    >
+                      Mostrar na vitrine
+                    </Label>
+                  </div>
                 </div>
               </div>
+              {listingWarning ? (
+                <p
+                  role="status"
+                  className="rounded-lg border border-bjj-yellow/40 bg-bjj-yellow/10 px-3 py-2 text-crm-sm text-foreground"
+                >
+                  {listingWarning}
+                </p>
+              ) : null}
 
               <div className={formActionsClass}>
               <Button
                 type="button"
                 variant="secondary"
                 className={primaryActionClass}
-                disabled={
-                  savingProduct ||
-                  (nameDraft.trim() === product.name.trim() &&
-                    audienceDraft === product.audience)
-                }
+                disabled={savingProduct || !identificationDirty}
                 onClick={() => void saveProductMeta()}
               >
                 {savingProduct ? "Salvando…" : "Salvar identificação"}
@@ -289,6 +395,8 @@ export function ProductEditorCard({ product }: Props) {
               </div>
             </div>
             </header>
+
+            <ProductPhotoEditor productId={product.id} photos={product.photos} />
 
             {/* Bloco 2 — filtro de tamanhos */}
             <section className="space-y-4 rounded-2xl border border-bjj-blue/20 bg-gradient-to-br from-bjj-blue/[0.05] to-transparent p-4 sm:p-5">
@@ -392,13 +500,14 @@ export function ProductEditorCard({ product }: Props) {
                 </p>
               ) : (
                 <div className="overflow-x-auto rounded-xl border border-border/80">
-                  <table className="w-full min-w-[520px] text-left text-crm-sm">
+                  <table className="w-full min-w-[640px] text-left text-crm-sm">
                     <thead>
                       <tr className="border-b border-border bg-muted/50 text-crm-xs uppercase tracking-wide text-muted-foreground">
                         <th className="px-3 py-2.5 font-medium sm:px-4">Tamanho</th>
                         {product.audience === "feminine" ? (
                           <th className="px-3 py-2.5 font-medium sm:px-4">Linha</th>
                         ) : null}
+                        <th className="px-3 py-2.5 font-medium sm:px-4">Preço (R$)</th>
                         <th className="px-3 py-2.5 font-medium sm:px-4">Qtd</th>
                         <th className="px-3 py-2.5 font-medium sm:px-4 text-right">
                           Ações
@@ -423,7 +532,7 @@ export function ProductEditorCard({ product }: Props) {
                   Novo tamanho
                 </p>
                 <div className="grid gap-3 sm:grid-cols-12 sm:items-end">
-                  <div className="space-y-2 sm:col-span-4">
+                  <div className="space-y-2 sm:col-span-3">
                     <Label htmlFor={`new-size-${product.id}`}>Tamanho</Label>
                     <Input
                       id={`new-size-${product.id}`}
@@ -453,7 +562,19 @@ export function ProductEditorCard({ product }: Props) {
                       </Select>
                     </div>
                   ) : null}
-                  <div className="space-y-2 sm:col-span-3">
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor={`new-price-${product.id}`}>Preço (R$)</Label>
+                    <Input
+                      id={`new-price-${product.id}`}
+                      inputMode="decimal"
+                      value={newPrice}
+                      onChange={(e) => setNewPrice(e.target.value)}
+                      placeholder="189,90"
+                      disabled={addingVariant}
+                      aria-label="Preço em reais"
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor={`new-stock-${product.id}`}>Qtd inicial</Label>
                     <Input
                       id={`new-stock-${product.id}`}
@@ -476,10 +597,16 @@ export function ProductEditorCard({ product }: Props) {
                             Number.isFinite(newStock) && newStock >= 0
                               ? Math.floor(newStock)
                               : 0;
+                          const priceCents = parseReaisToCents(newPrice);
+                          if (priceCents === "invalid") {
+                            toast.error("Informe o preço em reais.");
+                            return;
+                          }
                           const r = await createProductVariant({
                             productId: product.id,
                             sizeLabel: newSize.trim(),
                             stockQuantity: qty,
+                            priceCents,
                             line:
                               product.audience === "feminine"
                                 ? newLine
@@ -492,6 +619,7 @@ export function ProductEditorCard({ product }: Props) {
                           toast.success("Tamanho adicionado.");
                           setNewSize("");
                           setNewStock(0);
+                          setNewPrice("");
                           router.refresh();
                         } finally {
                           setAddingVariant(false);
@@ -518,16 +646,23 @@ function VariantTableRow(props: {
   const { variant, showLine } = props;
   const [sizeDraft, setSizeDraft] = useState(variant.size_label);
   const [stockDraft, setStockDraft] = useState(variant.stock_quantity);
+  const [priceDraft, setPriceDraft] = useState(centsToReaisInput(variant.price_cents));
   const [lineDraft, setLineDraft] = useState<VariantLine>(variant.line);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     setSizeDraft(variant.size_label);
     setStockDraft(variant.stock_quantity);
+    setPriceDraft(centsToReaisInput(variant.price_cents));
     setLineDraft(variant.line);
-  }, [variant.id, variant.size_label, variant.stock_quantity, variant.line]);
+  }, [variant.id, variant.size_label, variant.stock_quantity, variant.price_cents, variant.line]);
 
   async function saveVariant() {
+    const priceCents = parseReaisToCents(priceDraft);
+    if (priceCents === "invalid") {
+      toast.error("Informe o preço em reais.");
+      return;
+    }
     setBusy(true);
     try {
       const r = await updateProductVariant({
@@ -536,6 +671,7 @@ function VariantTableRow(props: {
           sizeDraft.trim() === variant.size_label ? undefined : sizeDraft.trim(),
         stockQuantity:
           stockDraft === variant.stock_quantity ? undefined : stockDraft,
+        priceCents: priceCents === variant.price_cents ? undefined : priceCents,
         line: lineDraft === variant.line ? undefined : lineDraft,
       });
       if (!r.ok) {
@@ -572,10 +708,13 @@ function VariantTableRow(props: {
     }
   }
 
+  const parsedPrice = parseReaisToCents(priceDraft);
   const dirty =
     sizeDraft.trim() !== variant.size_label ||
     stockDraft !== variant.stock_quantity ||
-    lineDraft !== variant.line;
+    lineDraft !== variant.line ||
+    parsedPrice === "invalid" ||
+    parsedPrice !== variant.price_cents;
 
   const stock = variant.stock_quantity;
   const rowTone =
@@ -613,6 +752,17 @@ function VariantTableRow(props: {
           </Select>
         </td>
       ) : null}
+      <td className="px-3 py-2 align-middle sm:px-4">
+        <Input
+          inputMode="decimal"
+          className="h-10 w-[min(100%,7rem)] tabular-nums"
+          value={priceDraft}
+          onChange={(e) => setPriceDraft(e.target.value)}
+          disabled={busy}
+          placeholder="189,90"
+          aria-label="Preço em reais"
+        />
+      </td>
       <td className="px-3 py-2 align-middle sm:px-4">
         <Input
           type="number"

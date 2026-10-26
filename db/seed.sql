@@ -7,11 +7,12 @@
 
 -- ---------- Dev academy + default plans (Kids 1 / Kids 2 / Adulto / Baby) ----------
 INSERT INTO
-  public.accounts (id, name)
+  public.accounts (id, name, slug)
 VALUES
   (
     '00000000-0000-4000-8000-000000000001'::uuid,
-    'Academia (seed dev)'
+    'Academia (seed dev)',
+    'academia-seed-dev'
   )
 ON CONFLICT (id) DO NOTHING;
 

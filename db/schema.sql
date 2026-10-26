@@ -108,6 +108,10 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   modality text NOT NULL DEFAULT 'jiu_jitsu' CONSTRAINT accounts_modality_check CHECK (modality IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo')),
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   name text NOT NULL,
+  slug text NOT NULL,
+  storefront_whatsapp text NULL,
+  storefront_published boolean NOT NULL DEFAULT false,
+  storefront_theme jsonb NOT NULL DEFAULT '{}'::jsonb,
   legal_name text NULL,
   cnpj text NULL,
   signature_url text NULL,
@@ -125,8 +129,70 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   ),
   CONSTRAINT accounts_pix_holder_name_not_blank CHECK (
     pix_holder_name IS NULL OR length(trim(pix_holder_name)) > 0
+  ),
+  CONSTRAINT accounts_slug_format_ck CHECK (
+    char_length(slug) BETWEEN 3 AND 40
+    AND slug ~ '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'
+    AND slug NOT IN (
+      'loja',
+      'painel',
+      'portal',
+      'login',
+      'admin',
+      'api',
+      'produtos',
+      'termos',
+      'privacidade',
+      'configuracoes'
+    )
+  ),
+  CONSTRAINT accounts_storefront_whatsapp_digits_ck CHECK (
+    storefront_whatsapp IS NULL OR storefront_whatsapp ~ '^[0-9]{10,}$'
+  ),
+  CONSTRAINT accounts_storefront_published_whatsapp_ck CHECK (
+    storefront_published = false OR storefront_whatsapp IS NOT NULL
   )
 );
+
+-- CREATE TABLE IF NOT EXISTS não acrescenta coluna em contas já existentes.
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS slug text;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS storefront_whatsapp text;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS storefront_published boolean NOT NULL DEFAULT false;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS storefront_theme jsonb NOT NULL DEFAULT '{}'::jsonb;
+
+DO $$ BEGIN
+  ALTER TABLE public.accounts
+    ADD CONSTRAINT accounts_slug_format_ck CHECK (
+      char_length(slug) BETWEEN 3 AND 40
+      AND slug ~ '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'
+      AND slug NOT IN (
+        'loja',
+        'painel',
+        'portal',
+        'login',
+        'admin',
+        'api',
+        'produtos',
+        'termos',
+        'privacidade',
+        'configuracoes'
+      )
+    );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE public.accounts
+    ADD CONSTRAINT accounts_storefront_whatsapp_digits_ck CHECK (
+      storefront_whatsapp IS NULL OR storefront_whatsapp ~ '^[0-9]{10,}$'
+    );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE public.accounts
+    ADD CONSTRAINT accounts_storefront_published_whatsapp_ck CHECK (
+      storefront_published = false OR storefront_whatsapp IS NOT NULL
+    );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
@@ -338,6 +404,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   active boolean NOT NULL DEFAULT true,
   description text NULL,
   portal_visible boolean NOT NULL DEFAULT false,
+  catalog_visible boolean NOT NULL DEFAULT false,
   sort_order integer NOT NULL DEFAULT 0,
   audience text NOT NULL DEFAULT 'unisex',
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -349,6 +416,12 @@ CREATE TABLE IF NOT EXISTS public.products (
     audience IN ('unisex', 'masculine', 'feminine')
   )
 );
+
+ALTER TABLE public.products
+ADD COLUMN IF NOT EXISTS catalog_visible boolean NOT NULL DEFAULT false;
+
+COMMENT ON COLUMN public.products.catalog_visible IS
+  'Quando verdadeiro, o produto pode entrar na loja pública se estiver ativo e tiver tamanho com preço acima de zero.';
 
 CREATE TABLE IF NOT EXISTS public.product_variants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
@@ -368,6 +441,22 @@ CREATE TABLE IF NOT EXISTS public.product_variants (
   ),
   CONSTRAINT product_variants_line_check CHECK (line IN ('unisex', 'feminine'))
 );
+
+CREATE TABLE IF NOT EXISTS public.product_photos (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id uuid NOT NULL REFERENCES public.products (id) ON DELETE CASCADE,
+  storage_path text NOT NULL,
+  sort_order integer NOT NULL,
+  CONSTRAINT product_photos_product_sort_unique UNIQUE (product_id, sort_order),
+  CONSTRAINT product_photos_storage_path_not_blank CHECK (length(btrim(storage_path)) > 0),
+  CONSTRAINT product_photos_sort_order_non_negative CHECK (sort_order >= 0)
+);
+
+COMMENT ON TABLE public.product_photos IS
+  'Fotos do produto, compartilhadas por todos os tamanhos. A menor sort_order é a capa.';
+
+CREATE INDEX IF NOT EXISTS idx_product_photos_product_id
+  ON public.product_photos (product_id);
 
 CREATE TABLE IF NOT EXISTS public.reservations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
@@ -645,6 +734,8 @@ CREATE TABLE IF NOT EXISTS public.attendances (
 );
 
 -- ---------- Indexes ----------
+CREATE UNIQUE INDEX IF NOT EXISTS accounts_slug_lower_uidx ON public.accounts (lower(slug));
+
 CREATE INDEX IF NOT EXISTS idx_students_account_id ON public.students (account_id);
 
 CREATE INDEX IF NOT EXISTS idx_payments_student_reference ON public.payments (student_id, reference_month);
