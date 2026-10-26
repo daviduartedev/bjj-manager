@@ -460,8 +460,6 @@ const STOREFRONT_THEME_FIELDS: { key: StorefrontThemeKey; label: string }[] = [
   { key: "pageText", label: "Texto da página" },
   { key: "headerBackground", label: "Fundo do cabeçalho" },
   { key: "headerText", label: "Texto do cabeçalho" },
-  { key: "footerBackground", label: "Fundo do rodapé" },
-  { key: "footerText", label: "Texto do rodapé" },
   { key: "cardBackground", label: "Fundo do card" },
   { key: "cardText", label: "Texto do card" },
   { key: "mutedText", label: "Texto secundário" },
@@ -482,8 +480,11 @@ function StorefrontThemePreview({ academyName, theme }: { academyName: string; t
         style={style}
         className="overflow-hidden rounded-lg border border-border bg-[var(--store-page)] text-[var(--store-text)]"
       >
-        <div className="border-b border-[var(--store-border)] bg-[var(--store-header)] px-3 py-4 text-center text-[var(--store-header-text)]">
-          <p className="text-base font-semibold">{academyName}</p>
+        <div className="flex items-center justify-between gap-2 border-b border-[var(--store-border)] bg-[var(--store-header)] px-2 py-2 text-[var(--store-header-text)]">
+          <p className="truncate text-xs font-semibold">{academyName}</p>
+          <span className="rounded bg-[var(--store-accent)] px-2 py-1 text-[10px] font-medium text-[var(--store-accent-text)]">
+            WhatsApp
+          </span>
         </div>
         <div className="grid grid-cols-2 gap-1 p-1">
           {[
@@ -516,8 +517,9 @@ function StorefrontThemePreview({ academyName, theme }: { academyName: string; t
             </div>
           ))}
         </div>
-        <div className="border-t border-[var(--store-border)] bg-[var(--store-footer)] px-3 py-2 text-[11px] text-[var(--store-footer-text)]">
-          Termos · Privacidade
+        <div className="flex items-center justify-between bg-black px-2 py-1.5 text-[10px] text-white">
+          <span>Casca</span>
+          <span>Termos · Privacidade</span>
         </div>
       </div>
     </div>
@@ -571,7 +573,7 @@ function StorefrontThemeForm({
       <div className="space-y-1">
         <p className="text-crm-sm font-medium">Cores do catálogo de produtos</p>
         <p className="text-crm-sm text-muted-foreground">
-          Cabeçalho, rodapé, fundo, cards e botão. O padrão é {STOREFRONT_THEME_DEFAULTS.pageBackground}.
+          Cabeçalho, fundo, cards e botão. O rodapé permanece preto. O padrão é {STOREFRONT_THEME_DEFAULTS.pageBackground}.
         </p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
