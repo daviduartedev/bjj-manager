@@ -262,21 +262,40 @@ export default async function LojaPage({
       ) : (
         <>
           <header className="border-b border-[var(--store-border)] bg-[var(--store-header)] text-[var(--store-header-text)]">
-            <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center gap-2 px-2 py-5 text-center sm:py-8">
-              {logoSrc ? (
-                <Image
-                  src={logoSrc}
-                  alt={account.name}
-                  width={480}
-                  height={160}
-                  unoptimized
-                  priority
-                  className="h-24 w-auto max-w-full object-contain sm:h-36"
-                />
-              ) : null}
-              <h1 className={logoSrc ? "text-lg font-semibold tracking-tight" : "text-3xl font-semibold tracking-tight"}>
-                {account.name}
-              </h1>
+            <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center justify-between gap-3 px-3 sm:h-16">
+              <div className="flex min-w-0 items-center gap-2">
+                {logoSrc ? (
+                  <Image
+                    src={logoSrc}
+                    alt=""
+                    width={160}
+                    height={48}
+                    unoptimized
+                    priority
+                    className="h-9 w-auto max-w-[7.5rem] object-contain sm:h-11 sm:max-w-[9rem]"
+                  />
+                ) : null}
+                <h1 className="truncate text-sm font-semibold tracking-tight sm:text-base">
+                  {account.name}
+                </h1>
+              </div>
+              {whatsappE164 ? (
+                <a
+                  href={`https://wa.me/${whatsappE164}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex shrink-0 items-center justify-center rounded-md bg-[var(--store-accent)] px-3 py-1.5 text-sm font-medium text-[var(--store-accent-text)]"
+                >
+                  WhatsApp
+                </a>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  className="inline-flex shrink-0 items-center justify-center rounded-md bg-[var(--store-accent)] px-3 py-1.5 text-sm font-medium text-[var(--store-accent-text)] opacity-40"
+                >
+                  WhatsApp
+                </span>
+              )}
             </div>
           </header>
           <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-0.5 py-1">
