@@ -9,9 +9,9 @@ export function Toaster(props: ToasterProps) {
       toastOptions={{
         classNames: {
           toast:
-            "rounded-none border border-border bg-popover text-popover-foreground shadow-md",
-          title: "text-foreground",
-          description: "text-muted-foreground",
+            "min-w-[22rem] rounded-none border border-border bg-popover px-5 py-4 text-base text-popover-foreground shadow-lg",
+          title: "text-base font-medium text-foreground",
+          description: "text-base text-muted-foreground",
           actionButton:
             "rounded-none bg-primary text-primary-foreground",
           cancelButton:

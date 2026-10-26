@@ -234,7 +234,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const { access, account } = await loadStorefrontPage(slug);
   return {
-    title: access === "not_found" || !account ? "Loja não encontrada" : account.name,
+    title: access === "not_found" || !account ? "Catálogo não encontrado" : account.name,
     robots: { index: false, follow: false },
   };
 }
@@ -257,7 +257,7 @@ export default async function LojaPage({
     >
       {access === "not_found" || !account ? (
         <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6">
-          <h1 className="text-2xl font-semibold tracking-tight">Loja não encontrada</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Catálogo não encontrado</h1>
         </main>
       ) : (
         <>

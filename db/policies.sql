@@ -1382,7 +1382,6 @@ AS $$
       )
       FROM public.product_variants AS variant
       WHERE variant.product_id = product.id
-        AND variant.price_cents > 0
     ) AS variants,
     COALESCE(
       (
@@ -1400,9 +1399,8 @@ AS $$
     AND product.catalog_visible = true
     AND EXISTS (
       SELECT 1
-      FROM public.product_variants AS priced
-      WHERE priced.product_id = product.id
-        AND priced.price_cents > 0
+      FROM public.product_variants AS sized
+      WHERE sized.product_id = product.id
     )
     AND (
       (
@@ -1465,9 +1463,8 @@ AS $$
       AND product.catalog_visible = true
       AND EXISTS (
         SELECT 1
-        FROM public.product_variants AS priced
-        WHERE priced.product_id = product.id
-          AND priced.price_cents > 0
+        FROM public.product_variants AS sized
+        WHERE sized.product_id = product.id
       )
   );
 $$;
