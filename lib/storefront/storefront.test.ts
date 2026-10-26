@@ -147,19 +147,19 @@ describe("resolveStorefrontAccess", () => {
     ).toBe("not_found");
   });
 
-  it("devolve not_found para uma loja não publicada vista por um visitante anônimo", () => {
+  it("mostra o catálogo ao visitante anônimo mesmo sem publicação", () => {
     expect(
       resolveStorefrontAccess({
         slugFound: true,
         published: false,
-        whatsappE164: "5511987654321",
+        whatsappE164: null,
         eligibleProductCount: 2,
         preview: false,
       }),
-    ).toBe("not_found");
+    ).toBe("catalog");
   });
 
-  it("devolve not_found quando a loja publicada não tem WhatsApp válido", () => {
+  it("mostra o catálogo ao visitante anônimo sem WhatsApp válido", () => {
     expect(
       resolveStorefrontAccess({
         slugFound: true,
@@ -168,7 +168,7 @@ describe("resolveStorefrontAccess", () => {
         eligibleProductCount: 4,
         preview: false,
       }),
-    ).toBe("not_found");
+    ).toBe("catalog");
   });
 
   it("devolve empty para a loja publicada sem produtos elegíveis", () => {
