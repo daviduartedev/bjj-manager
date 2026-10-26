@@ -1,15 +1,16 @@
+import type { ReferencedGraduationFields } from "@/lib/modalities/referenced-ranks";
 import { createClient } from "@/lib/supabase/server";
 import { currentBeltDegreeGraduationMeta } from "@/lib/students/graduation-current-since";
 
-export type StudentEditRow = {
+export type StudentEditRow = ReferencedGraduationFields & {
   id: string;
   full_name: string;
   kind: "adult" | "kids" | "baby";
   status: string;
   birth_date: string | null;
   academy_start_date: string | null;
-  current_belt_id: string;
-  current_degree: number;
+  current_belt_id: string | null;
+  current_degree: number | null;
   document: string | null;
   phone: string | null;
   guardian_phone: string | null;
@@ -37,8 +38,12 @@ export async function getStudentByIdForEdit(
       status,
       birth_date,
       academy_start_date,
+      graduation_reference_id,
+      current_rank_code,
+      current_rank_date,
       current_belt_id,
       current_degree,
+      weight_kg,
       document,
       phone,
       guardian_phone,
@@ -70,7 +75,7 @@ export async function getStudentByIdForEdit(
         weight_kg: number | null;
       }[]
     | null;
-  const gradMeta = currentBeltDegreeGraduationMeta(
+  const gradMeta = data.current_belt_id == null ? null : currentBeltDegreeGraduationMeta(
     (gradsRaw ?? []).map((g) => ({
       id: g.id,
       resulting_belt_id: g.resulting_belt_id,
@@ -90,6 +95,9 @@ export async function getStudentByIdForEdit(
     birth_date: data.birth_date,
     academy_start_date: data.academy_start_date,
     current_belt_id: data.current_belt_id,
+    graduation_reference_id: data.graduation_reference_id as string | null,
+    current_rank_code: data.current_rank_code as string | null,
+    current_rank_date: data.current_rank_date as string | null,
     current_degree: data.current_degree,
     document: data.document,
     phone: data.phone,
@@ -100,7 +108,7 @@ export async function getStudentByIdForEdit(
     openPlanId: open?.id ?? null,
     plan_id: open?.plan_id ?? null,
     due_day: open?.due_day ?? null,
-    graduationWeightKg: gradMeta?.weightKg ?? null,
+    graduationWeightKg: data.current_belt_id == null ? data.weight_kg : gradMeta?.weightKg ?? null,
     graduationEventId: gradMeta?.graduationId ?? null,
   };
 }

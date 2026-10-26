@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { planKindLabels } from "@/lib/i18n/domain-enums";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 
 import type {
   CertificatePayload,
@@ -19,6 +20,7 @@ import type { EnrollmentLiabilityDraftInput } from "./templates/enrollment-liabi
 type AccountForReceiver = {
   id: string;
   name: string;
+  modality: AcademyModality;
   legal_name: string | null;
   cnpj: string | null;
   signature_url: string | null;
@@ -52,7 +54,8 @@ export class PayloadBuildError extends Error {
       | "PAYMENT_NOT_PAID"
       | "ACCOUNT_NOT_FOUND"
       | "NO_OPEN_PLAN"
-      | "GUARDIAN_REQUIRED",
+      | "GUARDIAN_REQUIRED"
+      | "ADULT_ONLY",
     message?: string,
   ) {
     super(message ?? code);
@@ -62,6 +65,7 @@ export class PayloadBuildError extends Error {
 function buildReceiver(account: AccountForReceiver): ReceiverInfo {
   return {
     academyName: account.name,
+    modality: account.modality,
     legalName: account.legal_name,
     cnpj: account.cnpj,
     signaturePath: account.signature_url,
@@ -75,7 +79,7 @@ async function getAccount(
 ): Promise<AccountForReceiver> {
   const { data, error } = await client
     .from("accounts")
-    .select("id, name, legal_name, cnpj, signature_url, logo_url")
+    .select("id, name, modality, legal_name, cnpj, signature_url, logo_url")
     .eq("id", accountId)
     .maybeSingle();
   if (error) throw error;
@@ -325,6 +329,12 @@ export async function buildEnrollmentLiabilityFormPayload(
   ]);
 
   const minor = isMinorOnDate(student.birth_date);
+  if (account.modality !== "jiu_jitsu" && minor) {
+    throw new PayloadBuildError(
+      "ADULT_ONLY",
+      "Esta modalidade atende adultos de 18 anos ou mais.",
+    );
+  }
   const variant = minor ? "minor" : "adult";
 
   if (minor && !args.draft.guardian) {

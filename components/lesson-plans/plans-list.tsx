@@ -27,6 +27,7 @@ import {
 import type { LessonPlanListRow } from "@/lib/data/lesson-plans-page";
 import { formatDateTimeBR } from "@/lib/documents/formatters";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import { ROUTES, routePedagogicoPlano } from "@/lib/routes";
 import { BookOpen } from "lucide-react";
 
@@ -53,7 +54,7 @@ function formatMonthLabelBR(monthYYYYMM: string): string {
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 
-export function PlansList({ rows }: { rows: LessonPlanListRow[] }) {
+export function PlansList({ rows, modality }: { rows: LessonPlanListRow[]; modality: AcademyModality }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -111,7 +112,7 @@ export function PlansList({ rows }: { rows: LessonPlanListRow[] }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {KIND_OPTIONS.map((o) => (
+                {(modality === "jiu_jitsu" ? KIND_OPTIONS : KIND_OPTIONS.filter((option) => option.value === "all" || option.value === "adult")).map((o) => (
                   <SelectItem key={o.value} value={o.value}>
                     {o.label}
                   </SelectItem>

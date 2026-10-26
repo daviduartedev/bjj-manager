@@ -76,7 +76,9 @@ function renderHeader(args: {
   const academy = args.receiver.legalName ?? args.receiver.academyName;
   const cnpj = args.receiver.cnpj
     ? `CNPJ ${escapeHtml(formatCnpjMask(args.receiver.cnpj))}`
-    : "Associação de Lutas e Artes Marciais — ASLAM";
+    : args.receiver.modality && args.receiver.modality !== "jiu_jitsu"
+      ? escapeHtml(args.receiver.academyName)
+      : "Associação de Lutas e Artes Marciais — ASLAM";
 
   const logoImg = args.logoDataUrl
     ? `<img class="aslam-logo" src="${args.logoDataUrl}" alt="${escapeHtml(academy)}" />`
@@ -231,6 +233,8 @@ export type AdultTemplateData = {
   };
   signaturePlace: string;
   clauses: string;
+  documentTitle?: string;
+  practiceLabel?: string;
   signatureImageDataUrl?: string | null;
 };
 
@@ -249,7 +253,7 @@ export function renderAdultTemplate(data: AdultTemplateData): string {
         documentNumber: data.documentNumber,
         issuedAt: data.issuedAt,
       })}
-      <h1 class="aslam-title">Matrícula e Termo de Responsabilidade de Atleta de Jiu-Jitsu</h1>
+      <h1 class="aslam-title">${escapeHtml(data.documentTitle ?? "Matrícula e Termo de Responsabilidade de Atleta de Jiu-Jitsu")}</h1>
 
       <section class="aslam-section">
         <h2 class="aslam-section-title">Dados do praticante</h2>
@@ -275,7 +279,7 @@ export function renderAdultTemplate(data: AdultTemplateData): string {
       </section>
 
       <p class="aslam-intro">
-        Eu, abaixo identificado(a), declaro estar ciente dos riscos inerentes à prática do Jiu-Jitsu
+        Eu, abaixo identificado(a), declaro estar ciente dos riscos inerentes à ${data.practiceLabel ? `prática de ${escapeHtml(data.practiceLabel)}` : "prática do Jiu-Jitsu"}
         na ${escapeHtml(data.academyName)} e concordo com os termos de responsabilidade a seguir:
       </p>
 

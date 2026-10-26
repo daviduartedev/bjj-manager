@@ -97,13 +97,23 @@ export function PainelDashboard(props: PainelDashboardProps) {
           iconClass="bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-100"
           label="Alunos ativos"
           value={String(props.activeStudentCount)}
-          chip={`${props.distributionAdult.length + props.distributionKids.length} faixas`}
-          chipHint="com aluno ativo"
+          chip={
+            props.modality === "jiu_jitsu"
+              ? `${props.distributionAdult.length + props.distributionKids.length} faixas`
+              : props.modality === "boxing"
+                ? "ativos"
+                : `${props.distributionAdult.length} níveis`
+          }
+          chipHint={props.modality === "boxing" ? "na academia" : "com aluno ativo"}
           chipClass={pillTone.sky}
-          bars={[...props.distributionAdult, ...props.distributionKids].slice(0, 6).map((slice) => ({
-            value: slice.count,
-            color: beltDistributionBarColor(slice.slug, slice.kind),
-          }))}
+          bars={
+            props.modality === "boxing"
+              ? []
+              : [...props.distributionAdult, ...props.distributionKids].slice(0, 6).map((slice) => ({
+                  value: slice.count,
+                  color: slice.barColor ?? beltDistributionBarColor(slice.slug, slice.kind),
+                }))
+          }
         />
         ) : null}
         {show("received") ? (
@@ -127,8 +137,8 @@ export function PainelDashboard(props: PainelDashboardProps) {
           href={routeAlunosActivos()}
           icon={<Award className="size-4" aria-hidden />}
           iconClass="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-100"
-          label="Alertas de graduação"
-          value={String(props.graduationAlertCount)}
+          label={props.modality === "jiu_jitsu" ? "Alertas de graduação" : "Aniversários"}
+          value={String(props.modality === "jiu_jitsu" ? props.graduationAlertCount : props.birthdayToday.length)}
           bars={[
             { value: props.graduationAlertCount, color: "hsl(var(--status-info))" },
           ]}
@@ -147,18 +157,23 @@ export function PainelDashboard(props: PainelDashboardProps) {
         />
       ) : null}
 
-      {showAttention || showBelts ? (
+      {showAttention || (showBelts && props.modality !== "boxing") ? (
       <section
         className={cn(
           "mt-3 grid grid-cols-1 items-stretch gap-3 min-[520px]:mt-4 min-[520px]:gap-4",
-          showAttention && showBelts && "md:grid-cols-2 xl:grid-cols-5",
+          showAttention && showBelts && props.modality !== "boxing" && "md:grid-cols-2 xl:grid-cols-5",
         )}
       >
         {showAttention ? (
-          <AttentionBoard items={attention} className={showBelts ? "xl:col-span-3" : undefined} />
+          <AttentionBoard
+            items={attention}
+            modality={props.modality}
+            className={showBelts && props.modality !== "boxing" ? "xl:col-span-3" : "xl:col-span-5"}
+          />
         ) : null}
-        {showBelts ? (
+        {showBelts && props.modality !== "boxing" ? (
           <BeltBarsCard
+            modality={props.modality}
             adult={props.distributionAdult}
             kids={props.distributionKids}
             className={showAttention ? "xl:col-span-2" : undefined}
@@ -247,7 +262,11 @@ function MiniBars(props: { rows: { value: number; color: string }[] }) {
   );
 }
 
-function AttentionBoard(props: { items: ReturnType<typeof attentionItems>; className?: string }) {
+function AttentionBoard(props: {
+  items: ReturnType<typeof attentionItems>;
+  modality: PainelDashboardProps["modality"];
+  className?: string;
+}) {
   const groups = [
     {
       reason: "Vence hoje",
@@ -264,11 +283,13 @@ function AttentionBoard(props: { items: ReturnType<typeof attentionItems>; class
       label: "Aniversário",
       hint: "Aluno ativo que faz aniversário hoje.",
     },
-    {
-      reason: "Faixa ou grau",
-      label: "Faixa ou grau",
-      hint: "Aluno activo que atingiu o critério de prontidão da academia.",
-    },
+    ...(props.modality === "jiu_jitsu"
+      ? [{
+          reason: "Faixa ou grau" as const,
+          label: "Faixa ou grau",
+          hint: "Aluno ativo que atingiu o critério de prontidão da academia.",
+        }]
+      : []),
   ] as const;
   const firstWithRows = groups.findIndex((group) => props.items.some((item) => item.reason === group.reason));
   const [reason, setReason] = useState<(typeof groups)[number]["reason"]>(
@@ -359,15 +380,18 @@ function AttentionBoard(props: { items: ReturnType<typeof attentionItems>; class
 }
 
 function BeltBarsCard(props: {
+  modality: PainelDashboardProps["modality"];
   adult: PainelDashboardProps["distributionAdult"];
   kids: PainelDashboardProps["distributionKids"];
   className?: string;
 }) {
+  const referenced = props.modality === "judo" || props.modality === "muay_thai";
   const [kind, setKind] = useState<"adult" | "kids">(props.adult.length > 0 ? "adult" : "kids");
-  const slices = kind === "adult" ? props.adult : props.kids;
+  const slices = referenced || kind === "adult" ? props.adult : props.kids;
   const max = Math.max(1, ...slices.map((slice) => slice.count));
-  const empty =
-    kind === "adult"
+  const empty = referenced
+    ? "Sem graduação atual registrada."
+    : kind === "adult"
       ? "Sem alunos adultos ativos com faixa registrada."
       : "Sem alunos kids ativos com faixa registrada.";
 
@@ -375,10 +399,10 @@ function BeltBarsCard(props: {
     <div className={cn(card, "flex h-full min-w-0 flex-col p-4 sm:p-5", props.className)}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold">Faixas</h2>
+          <h2 className="text-base font-semibold">{referenced ? "Graduação atual" : "Faixas"}</h2>
           <p className="mt-1 text-xs text-muted-foreground">Alunos ativos. Pessoas.</p>
         </div>
-        <div className="inline-flex rounded-full bg-[#f3f4f6] p-1 dark:bg-muted" role="tablist" aria-label="Quadro de faixas">
+        {referenced ? null : <div className="inline-flex rounded-full bg-[#f3f4f6] p-1 dark:bg-muted" role="tablist" aria-label="Quadro de faixas">
           {(
             [
               ["adult", "Adulto"],
@@ -399,7 +423,7 @@ function BeltBarsCard(props: {
               {label}
             </button>
           ))}
-        </div>
+        </div>}
       </div>
       {slices.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">{empty}</p>
@@ -408,18 +432,31 @@ function BeltBarsCard(props: {
           {slices.map((slice) => {
             const width = slice.count <= 0 ? 0 : Math.max(8, Math.round((slice.count / max) * 100));
             return (
-              <li key={slice.beltId} className="grid grid-cols-[minmax(0,5.75rem)_minmax(0,1fr)_auto] items-center gap-2">
-                <span className="truncate text-xs text-foreground">{slice.label}</span>
-                <span className="relative block h-3 min-w-0 overflow-hidden rounded-full bg-[#f3f4f6] dark:bg-muted">
+              <li key={slice.beltId} className={referenced ? "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2" : "grid grid-cols-[minmax(0,5.75rem)_minmax(0,1fr)_auto] items-center gap-2"}>
+                <span className={referenced ? "break-words text-xs text-foreground" : "truncate text-xs text-foreground"}>{slice.label}</span>
+                {referenced ? null : <span className="relative block h-3 min-w-0 overflow-hidden rounded-full bg-[#f3f4f6] dark:bg-muted">
                   <span
                     className="absolute inset-y-0 left-0 rounded-full"
                     style={{
                       width: `${Math.min(100, width)}%`,
-                      background: beltDistributionBarColor(slice.slug, slice.kind),
+                      background: slice.barColor ?? beltDistributionBarColor(slice.slug, slice.kind),
+                      boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.12)",
                     }}
                   />
-                </span>
+                </span>}
                 <span className="text-xs tabular-nums text-muted-foreground">{slice.count}</span>
+                {referenced ? (
+                  <span className="col-span-2 h-3 overflow-hidden rounded-full bg-[#f3f4f6] dark:bg-muted">
+                    <span
+                      className="block h-full rounded-full"
+                      style={{
+                        width: `${width}%`,
+                        background: slice.barColor ?? "#64748b",
+                        boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.12)",
+                      }}
+                    />
+                  </span>
+                ) : null}
               </li>
             );
           })}

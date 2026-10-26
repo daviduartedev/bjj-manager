@@ -105,8 +105,13 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ---------- Tables ----------
 CREATE TABLE IF NOT EXISTS public.accounts (
+  modality text NOT NULL DEFAULT 'jiu_jitsu' CONSTRAINT accounts_modality_check CHECK (modality IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo')),
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   name text NOT NULL,
+  slug text NOT NULL,
+  storefront_whatsapp text NULL,
+  storefront_published boolean NOT NULL DEFAULT false,
+  storefront_theme jsonb NOT NULL DEFAULT '{}'::jsonb,
   legal_name text NULL,
   cnpj text NULL,
   signature_url text NULL,
@@ -127,11 +132,73 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   CONSTRAINT accounts_pix_holder_name_not_blank CHECK (
     pix_holder_name IS NULL OR length(trim(pix_holder_name)) > 0
   ),
+  CONSTRAINT accounts_slug_format_ck CHECK (
+    char_length(slug) BETWEEN 3 AND 40
+    AND slug ~ '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'
+    AND slug NOT IN (
+      'loja',
+      'painel',
+      'portal',
+      'login',
+      'admin',
+      'api',
+      'produtos',
+      'termos',
+      'privacidade',
+      'configuracoes'
+    )
+  ),
+  CONSTRAINT accounts_storefront_whatsapp_digits_ck CHECK (
+    storefront_whatsapp IS NULL OR storefront_whatsapp ~ '^[0-9]{10,}$'
+  ),
+  CONSTRAINT accounts_storefront_published_whatsapp_ck CHECK (
+    storefront_published = false OR storefront_whatsapp IS NOT NULL
+  ),
   CONSTRAINT accounts_readiness_kids_degree_months_ck CHECK (
     readiness_kids_degree_months IS NULL
     OR readiness_kids_degree_months IN (1, 3, 4)
   )
 );
+
+-- CREATE TABLE IF NOT EXISTS não acrescenta coluna em contas já existentes.
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS slug text;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS storefront_whatsapp text;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS storefront_published boolean NOT NULL DEFAULT false;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS storefront_theme jsonb NOT NULL DEFAULT '{}'::jsonb;
+
+DO $$ BEGIN
+  ALTER TABLE public.accounts
+    ADD CONSTRAINT accounts_slug_format_ck CHECK (
+      char_length(slug) BETWEEN 3 AND 40
+      AND slug ~ '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'
+      AND slug NOT IN (
+        'loja',
+        'painel',
+        'portal',
+        'login',
+        'admin',
+        'api',
+        'produtos',
+        'termos',
+        'privacidade',
+        'configuracoes'
+      )
+    );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE public.accounts
+    ADD CONSTRAINT accounts_storefront_whatsapp_digits_ck CHECK (
+      storefront_whatsapp IS NULL OR storefront_whatsapp ~ '^[0-9]{10,}$'
+    );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE public.accounts
+    ADD CONSTRAINT accounts_storefront_published_whatsapp_ck CHECK (
+      storefront_published = false OR storefront_whatsapp IS NOT NULL
+    );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
@@ -146,6 +213,48 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   CONSTRAINT profiles_user_id_key UNIQUE (user_id)
 );
 
+-- Elegibilidade do cadastro público. Não é autorização via raw_user_meta_data.
+CREATE TABLE IF NOT EXISTS public.academy_registration_intents (
+  modality text NOT NULL DEFAULT 'jiu_jitsu' CONSTRAINT academy_registration_intents_modality_check CHECK (modality IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo')),
+  user_id uuid PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
+  academy_name text NOT NULL,
+  display_name text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  consumed_at timestamptz NULL,
+  account_id uuid NULL REFERENCES public.accounts (id) ON DELETE SET NULL,
+  CONSTRAINT academy_registration_intents_academy_name_ck CHECK (
+    academy_name = trim(academy_name)
+    AND length(academy_name) BETWEEN 2 AND 80
+  ),
+  CONSTRAINT academy_registration_intents_display_name_ck CHECK (
+    display_name = trim(display_name)
+    AND length(display_name) BETWEEN 2 AND 80
+  )
+);
+
+CREATE OR REPLACE FUNCTION public.prevent_clearing_academy_registration_consumption () RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF OLD.consumed_at IS NOT NULL AND NEW.consumed_at IS DISTINCT FROM OLD.consumed_at THEN
+    RAISE EXCEPTION 'academy registration consumption is permanent'
+      USING ERRCODE = '23514';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.prevent_clearing_academy_registration_consumption () FROM PUBLIC;
+
+DROP TRIGGER IF EXISTS academy_registration_intents_consumption_permanent ON public.academy_registration_intents;
+
+CREATE TRIGGER academy_registration_intents_consumption_permanent
+BEFORE UPDATE ON public.academy_registration_intents
+FOR EACH ROW
+EXECUTE FUNCTION public.prevent_clearing_academy_registration_consumption ();
+
 CREATE TABLE IF NOT EXISTS public.belts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   kind public.belt_kind NOT NULL,
@@ -157,13 +266,34 @@ CREATE TABLE IF NOT EXISTS public.belts (
   CONSTRAINT belts_slug_unique UNIQUE (slug)
 );
 
+CREATE TABLE IF NOT EXISTS public.graduation_references (
+  id text PRIMARY KEY,
+  modality text NOT NULL CHECK (modality IN ('judo','muay_thai')),
+  title text NOT NULL,
+  source_url text NOT NULL,
+  consulted_at date NOT NULL,
+  limitation text NOT NULL
+);
+CREATE TABLE IF NOT EXISTS public.graduation_ranks (
+  reference_id text NOT NULL REFERENCES public.graduation_references(id) ON DELETE RESTRICT,
+  code text NOT NULL,
+  ordinal smallint NOT NULL CHECK (ordinal >= 0),
+  label text NOT NULL,
+  PRIMARY KEY (reference_id, code),
+  UNIQUE (reference_id, ordinal)
+);
+
 CREATE TABLE IF NOT EXISTS public.students (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
   kind public.student_kind NOT NULL,
   full_name text NOT NULL,
-  current_belt_id uuid NOT NULL REFERENCES public.belts (id) ON DELETE RESTRICT,
-  current_degree smallint NOT NULL,
+  current_belt_id uuid NULL REFERENCES public.belts (id) ON DELETE RESTRICT,
+  current_degree smallint NULL,
+  graduation_reference_id text NULL,
+  current_rank_code text NULL,
+  current_rank_date date NULL,
+  CONSTRAINT students_referenced_rank_fkey FOREIGN KEY (graduation_reference_id,current_rank_code) REFERENCES public.graduation_ranks(reference_id,code) ON DELETE RESTRICT,
   status public.student_status NOT NULL,
   birth_date date NULL,
   academy_start_date date NULL,
@@ -181,6 +311,8 @@ CREATE TABLE IF NOT EXISTS public.students (
   is_exempt boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
+  weight_kg numeric(5, 1) NULL,
+  CONSTRAINT students_weight_kg_check CHECK (weight_kg IS NULL OR weight_kg BETWEEN 20 AND 250),
   CONSTRAINT students_degree_bounds CHECK (
     current_degree >= 0
     AND current_degree <= 6
@@ -279,6 +411,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   active boolean NOT NULL DEFAULT true,
   description text NULL,
   portal_visible boolean NOT NULL DEFAULT false,
+  catalog_visible boolean NOT NULL DEFAULT false,
   sort_order integer NOT NULL DEFAULT 0,
   audience text NOT NULL DEFAULT 'unisex',
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -290,6 +423,12 @@ CREATE TABLE IF NOT EXISTS public.products (
     audience IN ('unisex', 'masculine', 'feminine')
   )
 );
+
+ALTER TABLE public.products
+ADD COLUMN IF NOT EXISTS catalog_visible boolean NOT NULL DEFAULT false;
+
+COMMENT ON COLUMN public.products.catalog_visible IS
+  'Quando verdadeiro, o produto pode entrar na loja pública se estiver ativo e tiver tamanho com preço acima de zero.';
 
 CREATE TABLE IF NOT EXISTS public.product_variants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
@@ -309,6 +448,22 @@ CREATE TABLE IF NOT EXISTS public.product_variants (
   ),
   CONSTRAINT product_variants_line_check CHECK (line IN ('unisex', 'feminine'))
 );
+
+CREATE TABLE IF NOT EXISTS public.product_photos (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id uuid NOT NULL REFERENCES public.products (id) ON DELETE CASCADE,
+  storage_path text NOT NULL,
+  sort_order integer NOT NULL,
+  CONSTRAINT product_photos_product_sort_unique UNIQUE (product_id, sort_order),
+  CONSTRAINT product_photos_storage_path_not_blank CHECK (length(btrim(storage_path)) > 0),
+  CONSTRAINT product_photos_sort_order_non_negative CHECK (sort_order >= 0)
+);
+
+COMMENT ON TABLE public.product_photos IS
+  'Fotos do produto, compartilhadas por todos os tamanhos. A menor sort_order é a capa.';
+
+CREATE INDEX IF NOT EXISTS idx_product_photos_product_id
+  ON public.product_photos (product_id);
 
 CREATE TABLE IF NOT EXISTS public.reservations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
@@ -520,6 +675,7 @@ CREATE TABLE IF NOT EXISTS public.classes (
   account_id uuid NOT NULL REFERENCES public.accounts (id) ON DELETE CASCADE,
   name text NOT NULL,
   kind public.student_kind NOT NULL,
+  modality text NOT NULL CONSTRAINT classes_modality_ck CHECK (modality IN ('jiu_jitsu', 'boxing', 'muay_thai', 'judo')),
   instructor_profile_id uuid NOT NULL REFERENCES public.profiles (id) ON DELETE RESTRICT,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -585,6 +741,8 @@ CREATE TABLE IF NOT EXISTS public.attendances (
 );
 
 -- ---------- Indexes ----------
+CREATE UNIQUE INDEX IF NOT EXISTS accounts_slug_lower_uidx ON public.accounts (lower(slug));
+
 CREATE INDEX IF NOT EXISTS idx_students_account_id ON public.students (account_id);
 
 CREATE INDEX IF NOT EXISTS idx_payments_student_reference ON public.payments (student_id, reference_month);
@@ -674,3 +832,27 @@ CREATE INDEX IF NOT EXISTS idx_check_ins_student_id ON public.check_ins (student
 CREATE INDEX IF NOT EXISTS idx_attendances_account_id ON public.attendances (account_id);
 
 CREATE INDEX IF NOT EXISTS idx_attendances_class_session_id ON public.attendances (class_session_id);
+
+-- #32: eventos próprios, graduação atual e evento numa transação com lock da ficha.
+CREATE TABLE IF NOT EXISTS public.student_rank_promotions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_order bigint GENERATED ALWAYS AS IDENTITY UNIQUE,
+  student_id uuid NOT NULL REFERENCES public.students(id) ON DELETE RESTRICT,
+  reference_id text NOT NULL,
+  from_rank_code text NOT NULL,
+  from_rank_date date NULL,
+  to_rank_code text NOT NULL,
+  granted_on date NOT NULL,
+  was_skip boolean NOT NULL,
+  reason text NULL CHECK (reason IS NULL OR (length(btrim(reason)) BETWEEN 1 AND 2000)),
+  guidance_exceptions text[] NOT NULL DEFAULT '{}',
+  guidance_basis text NOT NULL,
+  recorded_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  FOREIGN KEY(reference_id,from_rank_code) REFERENCES public.graduation_ranks(reference_id,code),
+  FOREIGN KEY(reference_id,to_rank_code) REFERENCES public.graduation_ranks(reference_id,code),
+  CHECK (NOT was_skip OR reason IS NOT NULL),
+  CHECK (cardinality(guidance_exceptions)=0 OR reason IS NOT NULL)
+);
+CREATE INDEX IF NOT EXISTS student_rank_promotions_student_date ON public.student_rank_promotions(student_id,granted_on DESC,created_at DESC);
+ALTER TABLE public.student_rank_promotions ADD COLUMN IF NOT EXISTS event_order bigint GENERATED ALWAYS AS IDENTITY UNIQUE;

@@ -28,7 +28,7 @@ export async function generateMetadata({
 
 export default async function EditarAlunoPage({ params }: PageProps) {
   const { id } = await params;
-  const [{ belts, plans }, student] = await Promise.all([
+  const [{ belts, plans, modality }, student] = await Promise.all([
     getStudentCatalog(),
     getStudentByIdForEdit(id),
   ]);
@@ -42,6 +42,9 @@ export default async function EditarAlunoPage({ params }: PageProps) {
     kind: student.kind,
     current_belt_id: student.current_belt_id,
     current_degree: student.current_degree,
+    graduation_reference_id: student.graduation_reference_id,
+    current_rank_code: student.current_rank_code,
+    current_rank_date: student.current_rank_date,
     is_exempt: student.is_exempt,
     plan_id: student.plan_id ?? "",
     due_day: student.due_day ?? 10,
@@ -72,9 +75,10 @@ export default async function EditarAlunoPage({ params }: PageProps) {
         className="mx-auto w-full max-w-3xl"
         icon={FilePenLine}
         title="Ficha completa"
-        subtitle="Atualize dados pessoais, faixa e vínculo de plano"
+        subtitle={modality === "boxing" ? "Atualize dados pessoais e vínculo de plano" : "Atualize dados pessoais, faixa e vínculo de plano"}
       >
         <StudentForm
+          modality={modality}
           belts={belts}
           plans={plans}
           mode="edit"

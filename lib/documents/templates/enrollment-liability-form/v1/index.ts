@@ -1,4 +1,5 @@
 import type { DocumentPayload } from "@/lib/documents/types";
+import { MODALITY_LABELS } from "@/lib/modalities/catalog";
 
 import { buildLayout } from "../../shared/layout";
 import { ASLAM_ADULT_CLAUSES, ASLAM_MINOR_CLAUSES } from "./clauses";
@@ -25,6 +26,17 @@ export function renderEnrollmentLiabilityFormV1(payload: DocumentPayload): strin
 
   const academyName = receiver.legalName ?? receiver.academyName;
   const logoDataUrl = payload.data.logoImageDataUrl ?? null;
+  const modality = receiver.modality ?? "jiu_jitsu";
+  if (modality !== "jiu_jitsu" && variant === "minor") {
+    throw new Error("Esta modalidade não emite termo de menor.");
+  }
+  const sport = MODALITY_LABELS[modality];
+  const clauses = modality === "jiu_jitsu"
+    ? variant === "minor" ? ASLAM_MINOR_CLAUSES : ASLAM_ADULT_CLAUSES
+    : `Declaro que pratico ${sport} na ${academyName} e que tenho 18 anos ou mais. Reconheço os riscos da atividade física, inclusive lesões, e isento ${academyName} de responsabilidade por danos decorrentes da prática, na medida permitida pela lei. Concordo com as mensalidades combinadas com a academia. Este termo registra a matrícula. Não constitui homologação, filiação ou certificação de confederação ou federação.`;
+  const adultTitle = modality === "jiu_jitsu"
+    ? undefined
+    : `Matrícula e Termo de Responsabilidade de Atleta de ${sport}`;
 
   const body =
     variant === "minor"
@@ -45,7 +57,7 @@ export function renderEnrollmentLiabilityFormV1(payload: DocumentPayload): strin
             medicalConditions: student.medicalConditions,
           },
           signaturePlace,
-          clauses: ASLAM_MINOR_CLAUSES,
+          clauses,
           signatureImageDataUrl: signatureImageDataUrl ?? null,
         })
       : renderAdultTemplate({
@@ -67,7 +79,9 @@ export function renderEnrollmentLiabilityFormV1(payload: DocumentPayload): strin
             medicalConditions: student.medicalConditions,
           },
           signaturePlace,
-          clauses: ASLAM_ADULT_CLAUSES,
+          clauses,
+          documentTitle: adultTitle,
+          practiceLabel: modality === "jiu_jitsu" ? undefined : sport,
           signatureImageDataUrl: signatureImageDataUrl ?? null,
         });
 

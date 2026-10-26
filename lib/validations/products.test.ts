@@ -36,6 +36,23 @@ describe("updateProductSchema", () => {
     });
     expect(r.success).toBe(true);
   });
+
+  it("aceita descrição e a marcação da vitrine", () => {
+    const r = updateProductSchema.safeParse({
+      productId: "00000000-0000-4000-8000-000000000001",
+      description: "  Kimono azul  ",
+      catalogVisible: true,
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("rejeita descrição acima de 500 caracteres", () => {
+    const r = updateProductSchema.safeParse({
+      productId: "00000000-0000-4000-8000-000000000001",
+      description: "a".repeat(501),
+    });
+    expect(r.success).toBe(false);
+  });
 });
 
 describe("createProductVariantSchema", () => {
@@ -72,6 +89,19 @@ describe("updateProductVariantSchema", () => {
       line: "feminine",
     });
     expect(r.success).toBe(true);
+  });
+
+  it("aceita preço vazio ou zero e recusa preço negativo", () => {
+    const id = "00000000-0000-4000-8000-000000000002";
+    expect(updateProductVariantSchema.safeParse({ variantId: id, priceCents: null }).success).toBe(
+      true,
+    );
+    expect(updateProductVariantSchema.safeParse({ variantId: id, priceCents: 0 }).success).toBe(
+      true,
+    );
+    expect(updateProductVariantSchema.safeParse({ variantId: id, priceCents: -1 }).success).toBe(
+      false,
+    );
   });
 });
 

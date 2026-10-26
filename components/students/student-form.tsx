@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { createStudent, updateStudent } from "@/actions/students";
+import { ReferencedGraduationFields } from "@/components/students/referenced-graduation-fields";
 import { AdultOrangeBeltConfirmDialog } from "@/components/students/adult-orange-belt-confirm-dialog";
 import { IsentoConfirmDialog } from "@/components/students/isento-confirm-dialog";
 import { StudentFormProgress } from "@/components/students/student-form-progress";
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
 import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -67,6 +69,7 @@ import {
 } from "@/lib/validations/students";
 
 type Props = {
+  modality?: AcademyModality;
   belts: BeltCatalogRow[];
   plans: PlanCatalogRow[];
   mode: "create" | "edit";
@@ -80,12 +83,15 @@ const LAST_STEP = STUDENT_FORM_STEPS.length - 1;
 export function StudentForm({
   belts,
   plans,
+  modality = "jiu_jitsu",
   mode,
   studentId,
   defaultValues,
   graduationEventId: _graduationEventId = null,
 }: Props) {
   const router = useRouter();
+  const ungraded = modality === "boxing";
+  const legacyGraduation = modality === "jiu_jitsu";
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
   const [entryYearDraft, setEntryYearDraft] = useState(() =>
@@ -100,8 +106,8 @@ export function StudentForm({
   } | null>(null);
 
   const schema = useMemo(
-    () => buildStudentFullFormSchema(belts, plans),
-    [belts, plans],
+    () => buildStudentFullFormSchema(belts, plans, modality),
+    [belts, plans, modality],
   );
 
   const form = useForm<StudentFullFormValues>({
@@ -159,7 +165,7 @@ export function StudentForm({
       ),
     [plans, kind, selectedBelt?.slug],
   );
-  const isWhiteBelt = selectedBelt
+  const isWhiteBelt = legacyGraduation && selectedBelt
     ? isWhiteBeltSlug(selectedBelt.slug)
     : false;
 
@@ -408,6 +414,16 @@ export function StudentForm({
               )}
             />
 
+            {!legacyGraduation && !ungraded ? (
+              <div className="sm:col-span-2">
+                <ReferencedGraduationFields modality={modality} disabled={loading} />
+              </div>
+            ) : null}
+            {ungraded ? (
+              <p className="text-sm text-muted-foreground sm:col-span-2">Boxe não possui graduação.</p>
+            ) : null}
+            {legacyGraduation ? (
+            <>
             <FormField
               control={form.control}
               name="current_belt_id"
@@ -416,7 +432,7 @@ export function StudentForm({
                   <FormLabel>Faixa</FormLabel>
                   <Select
                     disabled={loading}
-                    value={field.value}
+                    value={field.value ?? undefined}
                     onValueChange={(v) => {
                       const b = belts.find((x) => x.id === v);
                       if (!b) return;
@@ -513,8 +529,10 @@ export function StudentForm({
                 )}
               />
             ) : null}
+            </>
+            ) : null}
 
-            {mode === "edit" || kind === "baby" ? (
+            {mode === "edit" || kind === "baby" || !legacyGraduation ? (
               <FormField
                 control={form.control}
                 name="weight_kg"

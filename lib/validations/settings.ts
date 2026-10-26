@@ -36,6 +36,26 @@ export const updateAccountSchema = z
   })
   .strict();
 
+/** Transporte do formulário. A decisão do slug fica em validateSlugChange. */
+export const updateAccountSlugSchema = z
+  .object({
+    next: z.string().trim().max(200, "Endereço demasiado longo."),
+    confirmed: z.boolean(),
+  })
+  .strict();
+
+export type UpdateAccountSlugInput = z.infer<typeof updateAccountSlugSchema>;
+
+/** Transporte do formulário. A decisão de publicar fica em canPublishStorefront. */
+export const updateStorefrontPublicationSchema = z
+  .object({
+    whatsapp: z.string().trim().max(40, "Telefone demasiado longo."),
+    published: z.boolean(),
+  })
+  .strict();
+
+export type UpdateStorefrontPublicationInput = z.infer<typeof updateStorefrontPublicationSchema>;
+
 /** Receiver data (CFG-6): aceita CNPJ mascarado ou só dígitos; servidor armazena 14 dígitos. */
 export const updateReceiverSchema = z
   .object({

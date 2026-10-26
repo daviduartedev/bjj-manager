@@ -157,6 +157,8 @@ function mapBuildError(err: unknown): string {
         return "O aluno precisa de um plano activo.";
       case "GUARDIAN_REQUIRED":
         return "Informe os dados do responsável legal.";
+      case "ADULT_ONLY":
+        return "Esta modalidade atende adultos de 18 anos ou mais.";
       case "ACCOUNT_NOT_FOUND":
         return "Conta não encontrada.";
     }

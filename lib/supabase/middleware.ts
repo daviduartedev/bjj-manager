@@ -103,6 +103,12 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (pathname === LEGACY_DASHBOARD_PREFIX || pathname.startsWith(`${LEGACY_DASHBOARD_PREFIX}/`)) {
+    if (user) {
+      const role = await resolveAuthRole(supabase, user.id);
+      if (!role) {
+        return redirectWithCookies(request, supabaseResponse, ROUTES.login);
+      }
+    }
     const url = request.nextUrl.clone();
     url.pathname = ROUTES.painel;
     const redirectResponse = NextResponse.redirect(url);
@@ -110,8 +116,14 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse;
   }
 
-  if (user && (pathname === ROUTES.login || pathname === "/register")) {
+  if (user && (pathname === ROUTES.login || pathname === ROUTES.register)) {
     const role = await resolveAuthRole(supabase, user.id);
+    if (!role) {
+      // Sessão sem perfil fica em /login. Enviá-la ao /painel faria o middleware
+      // devolvê-la para cá.
+      if (pathname === ROUTES.login) return supabaseResponse;
+      return redirectWithCookies(request, supabaseResponse, ROUTES.login);
+    }
     return redirectWithCookies(request, supabaseResponse, postLoginPathForRole(role));
   }
 
@@ -119,12 +131,12 @@ export async function updateSession(request: NextRequest) {
     return redirectWithCookies(request, supabaseResponse, ROUTES.login);
   }
 
-  if (!user && pathname === "/register") {
-    return redirectWithCookies(request, supabaseResponse, ROUTES.login);
-  }
-
   if (user && (isStudentPortalPath(pathname) || isOperationalAreaPath(pathname))) {
     const role = await resolveAuthRole(supabase, user.id);
+
+    if (!role) {
+      return redirectWithCookies(request, supabaseResponse, ROUTES.login);
+    }
 
     if (isStudentPortalPath(pathname) && !isStudentRole(role)) {
       return redirectWithCookies(request, supabaseResponse, ROUTES.painel);

@@ -8,6 +8,7 @@ import {
 import { listUpcomingSessions, type UpcomingSessionRow } from "@/lib/data/classes-page";
 import { loadMensalidadesRows } from "@/lib/data/mensalidades-page";
 import type { MonthFinanceSummary } from "@/lib/data/mensalidades-month-summary";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import { isBirthdayToday } from "@/lib/painel/birthday-utils";
 import { countBillingMix, type PainelBillingMix } from "@/lib/painel/billing-mix";
 import {
@@ -16,7 +17,6 @@ import {
   resolveDegreeStart,
   type GraduationRecordInput,
 } from "@/lib/students/graduation-reference";
-import { beltLabelPt } from "@/lib/students/belt-labels";
 import {
   meetsReadinessAlert,
   type ReadinessCriterion,
@@ -26,19 +26,13 @@ import {
   type PaymentReminderRow,
 } from "@/lib/painel/payment-reminders";
 
-export type PainelAttentionRow = {
-  studentId: string;
-  fullName: string;
-};
+import {
+  buildPainelGraduationView,
+  type PainelAttentionRow,
+  type PainelDistributionSlice,
+} from "./painel-graduation";
 
-export type PainelDistributionSlice = {
-  beltId: string;
-  slug: string;
-  kind: "adult" | "kids";
-  ordinal: number;
-  label: string;
-  count: number;
-};
+export type { PainelAttentionRow, PainelDistributionSlice };
 
 type BeltEmbed = {
   id: string;
@@ -71,8 +65,11 @@ type StudentPainelRow = {
   removed_at: string | null;
   birth_date: string | null;
   academy_start_date: string | null;
-  current_belt_id: string;
-  current_degree: number;
+  current_belt_id: string | null;
+  current_degree: number | null;
+  graduation_reference_id: string | null;
+  current_rank_code: string | null;
+  current_rank_date: string | null;
   belts: BeltEmbed | BeltEmbed[] | null;
   student_graduations: GraduationRecordInput[] | null;
   student_plans: StudentPlanEmbed[] | null;
@@ -125,39 +122,9 @@ function toRevenueForecastStudent(
   };
 }
 
-function buildDistribution(
-  students: StudentPainelRow[],
-  kind: "adult" | "kids",
-): PainelDistributionSlice[] {
-  const map = new Map<
-    string,
-    { belt: BeltEmbed; count: number }
-  >();
-  for (const s of students) {
-    if (s.kind !== kind) continue;
-    const belt = unwrapBelt(s.belts);
-    if (!belt) continue;
-    const prev = map.get(belt.id);
-    if (prev) prev.count += 1;
-    else map.set(belt.id, { belt, count: 1 });
-  }
-  const slices: PainelDistributionSlice[] = [];
-  for (const { belt, count } of map.values()) {
-    slices.push({
-      beltId: belt.id,
-      slug: belt.slug,
-      kind: belt.kind,
-      ordinal: belt.ordinal,
-      label: beltLabelPt(belt.slug, belt.kind),
-      count,
-    });
-  }
-  slices.sort((a, b) => a.ordinal - b.ordinal);
-  return slices;
-}
-
 export async function loadPainelPageData(
   academyName: string,
+  modality: AcademyModality,
   criterion: ReadinessCriterion,
 ): Promise<{
   todayYmd: string;
@@ -198,6 +165,9 @@ export async function loadPainelPageData(
         academy_start_date,
         current_belt_id,
         current_degree,
+        graduation_reference_id,
+        current_rank_code,
+        current_rank_date,
         belts!students_current_belt_id_fkey ( id, slug, kind, ordinal ),
         student_graduations ( resulting_belt_id, resulting_degree, graduated_at ),
         student_plans ( custom_price_cents, ended_at, plans ( price_cents ) ),
@@ -251,33 +221,50 @@ export async function loadPainelPageData(
     }
   }
 
-  const graduationAlerts: PainelAttentionRow[] = [];
-  for (const s of students) {
-    const grads = (s.student_graduations ?? []) as GraduationRecordInput[];
-    const beltR = resolveBeltStart(grads, s.current_belt_id, s.academy_start_date);
-    const degR = resolveDegreeStart(
-      grads,
-      s.current_belt_id,
-      s.current_degree,
-      s.academy_start_date,
-    );
-    const belt = unwrapBelt(s.belts);
-    const studentKind =
-      s.kind === "baby" ? "baby" : s.kind === "kids" ? "kids" : "adult";
-    if (
-      meetsReadinessAlert({
-        criterion,
-        beltSlug: belt?.slug ?? "",
-        beltKind: belt?.kind ?? (studentKind === "adult" ? "adult" : "kids"),
-        studentKind,
-        beltStartYmd: beltR.startYmd,
-        degreeStartYmd: degR.startYmd,
-        todayYmd,
-      })
-    ) {
-      graduationAlerts.push({ studentId: s.id, fullName: s.full_name });
-    }
-  }
+  const graduation = buildPainelGraduationView(
+    modality,
+    todayYmd,
+    students.map((student) => ({
+      id: student.id,
+      fullName: student.full_name,
+      kind: student.kind,
+      academyStartDate: student.academy_start_date,
+      currentBelt: unwrapBelt(student.belts),
+      currentDegree: student.current_degree,
+      graduations: student.student_graduations ?? [],
+      graduationReferenceId: student.graduation_reference_id,
+      currentRankCode: student.current_rank_code,
+      currentRankDate: student.current_rank_date,
+    })),
+  );
+  const graduationAlerts: PainelAttentionRow[] =
+    modality === "jiu_jitsu"
+      ? students.flatMap((student) => {
+          if (!student.current_belt_id || student.current_degree == null) return [];
+          const grads = (student.student_graduations ?? []) as GraduationRecordInput[];
+          const beltStart = resolveBeltStart(grads, student.current_belt_id, student.academy_start_date);
+          const degreeStart = resolveDegreeStart(
+            grads,
+            student.current_belt_id,
+            student.current_degree,
+            student.academy_start_date,
+          );
+          const belt = unwrapBelt(student.belts);
+          const studentKind =
+            student.kind === "baby" ? "baby" : student.kind === "kids" ? "kids" : "adult";
+          return meetsReadinessAlert({
+            criterion,
+            beltSlug: belt?.slug ?? "",
+            beltKind: belt?.kind ?? (studentKind === "adult" ? "adult" : "kids"),
+            studentKind,
+            beltStartYmd: beltStart.startYmd,
+            degreeStartYmd: degreeStart.startYmd,
+            todayYmd,
+          })
+            ? [{ studentId: student.id, fullName: student.full_name }]
+            : [];
+        })
+      : graduation.alerts;
 
   return {
     todayYmd,
@@ -303,8 +290,8 @@ export async function loadPainelPageData(
       referenceMonth,
     ),
     graduationAlerts,
-    distributionAdult: buildDistribution(students, "adult"),
-    distributionKids: buildDistribution(students, "kids"),
+    distributionAdult: graduation.distributionAdult,
+    distributionKids: graduation.distributionKids,
     monthFinance,
     forecastCents: sumMonthlyRevenueForecast(
       students.map((row) => toRevenueForecastStudent(row, referenceMonth)),

@@ -1,11 +1,16 @@
 import type { User } from "@supabase/supabase-js";
 
 import type { AuthRole } from "@/lib/auth/roles";
+import { isAcademyModality, type AcademyModality } from "@/lib/modalities/catalog";
 import { createClient } from "@/lib/supabase/server";
 
 export type AccountRow = {
   id: string;
   name: string;
+  slug: string;
+  storefront_whatsapp: string | null;
+  storefront_published: boolean;
+  modality: AcademyModality;
   legal_name: string | null;
   cnpj: string | null;
   signature_url: string | null;
@@ -68,6 +73,10 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
       accounts (
         id,
         name,
+        slug,
+        storefront_whatsapp,
+        storefront_published,
+        modality,
         legal_name,
         cnpj,
         signature_url,
@@ -91,6 +100,10 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
       accounts (
         id,
         name,
+        slug,
+        storefront_whatsapp,
+        storefront_published,
+        modality,
         legal_name,
         cnpj,
         signature_url,
@@ -125,7 +138,8 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
   const profileRow = row as ProfileWithAccount;
   const nested = profileRow.accounts;
   const accountRow = Array.isArray(nested) ? nested[0] : nested;
-  if (!accountRow) return null;
+  if (!accountRow || !isAcademyModality(accountRow.modality)) return null;
+  if (profileRow.role !== "student" && profileRow.role !== "professor") return null;
 
   const profile: ProfileRow = {
     id: profileRow.id,
@@ -133,7 +147,7 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
     account_id: profileRow.account_id,
     display_name: profileRow.display_name,
     phone: profileRow.phone ?? null,
-    role: (profileRow.role === "student" ? "student" : "professor") as AuthRole,
+    role: profileRow.role,
     painel_hidden_blocks: Array.isArray(profileRow.painel_hidden_blocks)
       ? profileRow.painel_hidden_blocks
       : [],
@@ -144,6 +158,10 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
   const account: AccountRow = {
     id: accountRow.id,
     name: accountRow.name,
+    slug: accountRow.slug,
+    storefront_whatsapp: accountRow.storefront_whatsapp ?? null,
+    storefront_published: accountRow.storefront_published === true,
+    modality: accountRow.modality,
     legal_name: accountRow.legal_name ?? null,
     cnpj: accountRow.cnpj ?? null,
     signature_url: accountRow.signature_url ?? null,

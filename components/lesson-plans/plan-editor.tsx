@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { planKindLabels } from "@/lib/i18n/domain-enums";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import { routePedagogicoPlano } from "@/lib/routes";
 import { formActionsClass, primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import type {
@@ -36,6 +37,7 @@ type Mode =
 
 type Props = {
   mode: Mode;
+  modality: AcademyModality;
   initial?: {
     planKind: "adult" | "kids_1" | "kids_2";
     referenceMonth: string;
@@ -63,7 +65,7 @@ function emptyItem(): LessonPlanItem {
   return { id: genId(), text: "" };
 }
 
-export function PlanEditor({ mode, initial }: Props) {
+export function PlanEditor({ mode, modality, initial }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -219,8 +221,14 @@ export function PlanEditor({ mode, initial }: Props) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="adult">{planKindLabels.adult}</SelectItem>
-              <SelectItem value="kids_1">{planKindLabels.kids_1}</SelectItem>
-              <SelectItem value="kids_2">{planKindLabels.kids_2}</SelectItem>
+              {modality === "jiu_jitsu" ? (
+                <>
+                  <SelectItem value="kids_1">{planKindLabels.kids_1}</SelectItem>
+                  <SelectItem value="kids_2">{planKindLabels.kids_2}</SelectItem>
+                </>
+              ) : planKind !== "adult" ? (
+                <SelectItem value={planKind}>{planKindLabels[planKind]}</SelectItem>
+              ) : null}
             </SelectContent>
           </Select>
         </div>

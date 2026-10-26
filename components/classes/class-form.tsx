@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { studentKindLabels } from "@/lib/i18n/domain-enums";
+import { MODALITY_LABELS, type AcademyModality } from "@/lib/modalities/catalog";
 import { routeAulasTurma, ROUTES } from "@/lib/routes";
 import { formActionsClass, formShellClass, primaryActionClass } from "@/lib/ui/form-chrome";
 
@@ -26,13 +27,14 @@ type Mode =
 type Props = {
   mode: Mode;
   instructorProfileId: string;
+  modality: AcademyModality;
     initial?: {
     name: string;
     kind: "adult" | "kids" | "baby";
   };
 };
 
-export function ClassForm({ mode, instructorProfileId, initial }: Props) {
+export function ClassForm({ mode, instructorProfileId, modality, initial }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -45,7 +47,7 @@ export function ClassForm({ mode, instructorProfileId, initial }: Props) {
     setError(null);
 
     startTransition(async () => {
-      const payload = { name, kind, instructorProfileId };
+      const payload = { name, kind, modality, instructorProfileId };
 
       const result =
         mode.kind === "create"
@@ -85,23 +87,25 @@ export function ClassForm({ mode, instructorProfileId, initial }: Props) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="class-kind">Modalidade</Label>
+        <p className="text-sm"><span className="text-muted-foreground">Modalidade da academia: </span>{MODALITY_LABELS[modality]}</p>
+        <Label htmlFor="class-kind">Público</Label>
         <Select
           value={kind}
           onValueChange={(v) => setKind(v as "adult" | "kids" | "baby")}
-          disabled={isPending}
+          disabled={isPending || modality !== "jiu_jitsu"}
         >
           <SelectTrigger id="class-kind">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {(["adult", "kids", "baby"] as const).map((k) => (
+            {(modality === "jiu_jitsu" ? ["adult", "kids", "baby"] as const : ["adult"] as const).map((k) => (
               <SelectItem key={k} value={k}>
                 {studentKindLabels[k]}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {modality !== "jiu_jitsu" ? <p className="text-xs text-muted-foreground">Nesta modalidade, as turmas atendem adultos de 18 anos ou mais.</p> : null}
         {kind === "baby" ? (
           <p className="text-xs text-muted-foreground">
             Turma Baby: faixa etária 3–5 anos, plano R$ 100/mês. Configure um horário

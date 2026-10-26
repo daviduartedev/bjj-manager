@@ -4,6 +4,7 @@
 
 export const ROUTES = {
   login: "/login",
+  register: "/register",
   portal: "/portal",
   portalAulas: "/portal/aulas",
   portalPresenca: "/portal/presenca",

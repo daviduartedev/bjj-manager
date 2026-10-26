@@ -1,4 +1,5 @@
 import type { DocumentPayload } from "@/lib/documents/types";
+import { MODALITY_LABELS } from "@/lib/modalities/catalog";
 
 import {
   escapeHtml,
@@ -31,7 +32,11 @@ export function renderEnrollmentProofV1(payload: DocumentPayload): string {
         student.enrolledSinceLabel
           ? `, com início em ${escapeHtml(student.enrolledSinceLabel)}`
           : ""
-      }.
+      }.${
+        receiver.modality
+          ? ` Modalidade: <strong>${escapeHtml(MODALITY_LABELS[receiver.modality])}</strong>.`
+          : ""
+      }
     </div>
 
     <div class="section body-text">

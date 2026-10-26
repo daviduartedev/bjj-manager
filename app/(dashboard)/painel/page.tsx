@@ -43,11 +43,13 @@ export default async function PainelPage() {
 
   const data = await loadPainelPageData(
     ctx.account.name,
+    ctx.account.modality,
     criterionFromAccount(ctx.account),
   );
 
   return (
     <PainelDashboard
+      modality={ctx.account.modality}
       displayName={ctx.profile.display_name}
       accountName={ctx.account.name}
       hiddenBlocks={parsePainelHiddenBlocks(ctx.profile.painel_hidden_blocks)}

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { StudentStatusBadge } from "@/components/students/student-status-badge";
+import { CascaButton, CascaComboBoxField, CascaSelectField, CascaTab, CascaTabList, CascaTabPanel, CascaTabPanels, CascaTabs, CascaTextField, type CascaOption } from "@/components/ui/react-aria-controls";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Section } from "@/components/layout/section";
@@ -105,6 +106,16 @@ type DemoFormValues = z.infer<typeof demoFormSchema>;
 
 export function DesignSystemGallery() {
   const [surfaceDark, setSurfaceDark] = useState(false);
+  const [sampleState, setSampleState] = useState("");
+  const [sampleCity, setSampleCity] = useState("");
+  const [sampleCityId, setSampleCityId] = useState("");
+  const [sampleText, setSampleText] = useState("");
+  const [sampleTab, setSampleTab] = useState("campos");
+  const cityOptions: CascaOption[] = [
+    { id: "sao-paulo", label: "São Paulo" },
+    { id: "santo-andre", label: "Santo André" },
+    { id: "sao-bernardo", label: "São Bernardo do Campo" },
+  ];
 
   const form = useForm<DemoFormValues>({
     resolver: zodResolver(demoFormSchema),
@@ -250,6 +261,30 @@ export function DesignSystemGallery() {
             <div className="flex items-center gap-2">
               <Checkbox id="ds-check-dense" size="dense" />
               <Label htmlFor="ds-check-dense">Mensalidades (dense)</Label>
+            </div>
+          </div>
+        </Section>
+
+        <Section title="Controles React Aria · Casca" description="Primitivos para cadastro e backoffice: teclado, foco visível, erro, seleção, popover e adaptação ao tema.">
+          <div className="grid gap-8 xl:grid-cols-2">
+            <div className="space-y-5">
+              <CascaTextField label="Nome da academia" value={sampleText} onChange={setSampleText} placeholder="Ex.: Casca Jiu-Jitsu" description="Campo com label, foco e descrição associados." />
+              <CascaTextField label="Campo inválido" value="" onChange={() => {}} isInvalid isRequired errorMessage="Este campo precisa ser preenchido." />
+              <div className="flex flex-wrap gap-3">
+                <CascaButton>Primária</CascaButton>
+                <CascaButton variant="secondary">Secundária</CascaButton>
+                <CascaButton variant="outline">Contorno</CascaButton>
+                <CascaButton variant="ghost">Ghost</CascaButton>
+                <CascaButton isDisabled>Desabilitada</CascaButton>
+              </div>
+            </div>
+            <div className="space-y-5">
+              <CascaSelectField label="Estado" value={sampleState} onChange={(value) => { setSampleState(value); setSampleCity(""); setSampleCityId(""); }} placeholder="Selecione" options={[{ id: "SP", label: "SP — São Paulo" }, { id: "RJ", label: "RJ — Rio de Janeiro" }]} />
+              <CascaComboBoxField label="Cidade (demonstração)" inputValue={sampleCity} selectedKey={sampleCityId} options={cityOptions} placeholder="Digite para filtrar" onInputChange={(value) => { setSampleCity(value); setSampleCityId(""); }} onSelectionChange={(key) => { const option = cityOptions.find(({ id }) => id === key); setSampleCity(option?.label ?? ""); setSampleCityId(option?.id ?? ""); }} description="Combobox pesquisável; abre abaixo quando há espaço e se ajusta à viewport." />
+              <CascaTabs selectedKey={sampleTab} onSelectionChange={(key) => setSampleTab(String(key))}>
+                <CascaTabList aria-label="Amostra de abas"><CascaTab id="campos">Campos</CascaTab><CascaTab id="teclado">Teclado</CascaTab></CascaTabList>
+                <CascaTabPanels><CascaTabPanel id="campos">Foco, hover, pressionado e valores selecionados seguem os tokens do Casca.</CascaTabPanel><CascaTabPanel id="teclado">Use Tab para focar e as setas para percorrer as abas.</CascaTabPanel></CascaTabPanels>
+              </CascaTabs>
             </div>
           </div>
         </Section>

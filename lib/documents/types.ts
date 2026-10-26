@@ -2,6 +2,8 @@
  * Tipos partilhados do motor documental (DOC- / REC-).
  */
 
+import type { AcademyModality } from "@/lib/modalities/catalog";
+
 export type DocumentType =
   | "payment_receipt"
   | "enrollment_proof"
@@ -15,7 +17,7 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   enrollment_proof: "Comprovante de matrícula",
   certificate: "Certificado",
   liability_term: "Termo de responsabilidade",
-  enrollment_liability_form: "Matrícula e Termo ASLAM",
+  enrollment_liability_form: "Matrícula e termo",
   manual_receipt: "Recibo manual",
 };
 
@@ -42,6 +44,8 @@ export type ReceiverInfo = {
   signaturePath: string | null;
   logoPath: string | null;
   academyName: string;
+  /** Ausente em payloads já emitidos: o termo histórico permanece Jiu-Jitsu/ASLAM. */
+  modality?: AcademyModality;
 };
 
 /**

@@ -1,3 +1,5 @@
+import { getCurrentAccount } from "@/lib/auth";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import { createClient } from "@/lib/supabase/server";
 import type { PlanKind } from "@/lib/students/plan-kind";
 
@@ -41,10 +43,14 @@ export async function getPlansCatalog(): Promise<PlanCatalogRow[]> {
 export async function getStudentCatalog(): Promise<{
   belts: BeltCatalogRow[];
   plans: PlanCatalogRow[];
+  modality: AcademyModality;
 }> {
+  const ctx = await getCurrentAccount();
+  if (!ctx) throw new Error("Conta indisponível.");
+  const modality = ctx.account.modality;
   const [belts, plans] = await Promise.all([
-    getBeltsCatalog(),
+    modality === "jiu_jitsu" ? getBeltsCatalog() : Promise.resolve([]),
     getPlansCatalog(),
   ]);
-  return { belts, plans };
+  return { belts, plans, modality };
 }

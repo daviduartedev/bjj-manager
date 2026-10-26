@@ -31,6 +31,11 @@ const MARKER_STUDENT_PROFILE = "RLS-V-STUDENT";
 const MARKER_CLASS = "RLS-V-CLASS";
 const MARKER_PRODUCT = "RLS-V-SHOP-PRODUCT";
 const MARKER_PRODUCT_CODE = "RLS-V-SHOP";
+const MARKER_PAYMENT = "RLS-V-PAYMENT";
+const MARKER_GRADUATION = "RLS-V-GRADUATION";
+const MARKER_PLAN = "RLS-V-PLAN";
+const MARKER_DOCUMENT = "RLS-V-DOC";
+const MARKER_LESSON = "RLS-V-LESSON";
 
 function requireEnv(name) {
   const v = process.env[name];
@@ -549,6 +554,190 @@ async function main() {
           throw new Error("student onboarding update não afectou a linha esperada");
         }
 
+        const studentFichaId = studentRows[0].id;
+
+        async function readOwnFicha() {
+          const res = await pg.query(
+            `select id, account_id, kind, full_name, current_belt_id, current_degree,
+                    status, is_exempt, portal_terms_accepted_at, guardian_email,
+                    user_id, archived_at, updated_at
+             from public.students
+             where id = $1 and account_id = $2 and full_name = $3`,
+            [studentFichaId, studentFixture.accountId, MARKER_STUDENT]
+          );
+          if (res.rows.length !== 1) {
+            throw new Error("ficha RLS-V-A-STUDENT ausente");
+          }
+          return res.rows[0];
+        }
+
+        function fichaStamp(row) {
+          const iso = (value) =>
+            value ? new Date(value).toISOString() : null;
+          return JSON.stringify({
+            id: row.id,
+            account_id: row.account_id,
+            kind: row.kind,
+            full_name: row.full_name,
+            current_belt_id: row.current_belt_id,
+            current_degree: Number(row.current_degree),
+            status: row.status,
+            is_exempt: row.is_exempt === true,
+            portal_terms_accepted_at: iso(row.portal_terms_accepted_at),
+            guardian_email: row.guardian_email,
+            user_id: row.user_id,
+            archived_at: iso(row.archived_at),
+            updated_at: iso(row.updated_at),
+          });
+        }
+
+        console.log(", Student: updated_at junto com o onboarding ,");
+        const withBookkeeping = await studentClient
+          .from("students")
+          .update({
+            portal_terms_accepted_at: onboardingAt,
+            guardian_email: "rls-test-guardian@example.com",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", studentFichaId)
+          .eq("full_name", MARKER_STUDENT)
+          .select("id");
+        if (withBookkeeping.error) {
+          throw new Error(
+            `student onboarding com updated_at: ${withBookkeeping.error.message}`
+          );
+        }
+        if ((withBookkeeping.data || []).length !== 1) {
+          throw new Error(
+            "student onboarding com updated_at não afectou a linha esperada"
+          );
+        }
+
+        const savedOnboarding = await readOwnFicha();
+        if (savedOnboarding.guardian_email !== "rls-test-guardian@example.com") {
+          throw new Error("onboarding não gravou guardian_email");
+        }
+        if (!savedOnboarding.portal_terms_accepted_at) {
+          throw new Error("onboarding não gravou portal_terms_accepted_at");
+        }
+
+        const fichaBeforeForbidden = savedOnboarding;
+        const stampBefore = fichaStamp(fichaBeforeForbidden);
+
+        async function assertFichaUnchanged(label) {
+          const now = await readOwnFicha();
+          if (fichaStamp(now) !== stampBefore) {
+            throw new Error(`${label} alterou a ficha do aluno`);
+          }
+        }
+
+        async function assertStudentUpdateRefused(patch, label) {
+          const result = await studentClient
+            .from("students")
+            .update(patch)
+            .eq("id", studentFichaId)
+            .eq("full_name", MARKER_STUDENT)
+            .select("id");
+          if (!result.error) {
+            throw new Error(`${label} devia ser recusado`);
+          }
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          await assertFichaUnchanged(label);
+        }
+
+        const otherBelt = await pg.query(
+          `select id from public.belts where id <> $1 order by ordinal limit 1`,
+          [fichaBeforeForbidden.current_belt_id]
+        );
+        if (!otherBelt.rows.length) {
+          throw new Error("Sem segunda faixa para recusar update de faixa");
+        }
+
+        console.log(", Student: não altera faixa, grau, Isento nem status ,");
+        await assertStudentUpdateRefused(
+          { current_belt_id: otherBelt.rows[0].id },
+          "UPDATE faixa (aluno)"
+        );
+        await assertStudentUpdateRefused(
+          {
+            current_degree:
+              Number(fichaBeforeForbidden.current_degree) === 0 ? 1 : 0,
+          },
+          "UPDATE grau (aluno)"
+        );
+        await assertStudentUpdateRefused(
+          { is_exempt: fichaBeforeForbidden.is_exempt !== true },
+          "UPDATE Isento (aluno)"
+        );
+        await assertStudentUpdateRefused(
+          {
+            status:
+              fichaBeforeForbidden.status === "active" ? "inactive" : "active",
+          },
+          "UPDATE status (aluno)"
+        );
+
+        console.log(
+          ", Student: update misto (e-mail do responsável + Isento) recusado por inteiro ,"
+        );
+        const mixedEmail = "rls-test-mixed-guardian@example.com";
+        const mixedExempt = fichaBeforeForbidden.is_exempt !== true;
+        const mixed = await studentClient
+          .from("students")
+          .update({
+            portal_terms_accepted_at: new Date().toISOString(),
+            guardian_email: mixedEmail,
+            updated_at: new Date().toISOString(),
+            is_exempt: mixedExempt,
+          })
+          .eq("id", studentFichaId)
+          .eq("full_name", MARKER_STUDENT)
+          .select("id");
+        if (!mixed.error) {
+          throw new Error("update misto devia ser recusado por inteiro");
+        }
+        console.log(`  Recusado update misto: ${mixed.error.message}`);
+        await assertFichaUnchanged("update misto");
+
+        console.log(", Student: não insere nem apaga ficha ,");
+        const insertedFicha = await studentClient.from("students").insert({
+          account_id: studentFixture.accountId,
+          kind: "adult",
+          full_name: "RLS-V-A-STUDENT-INSERT",
+          current_belt_id: fichaBeforeForbidden.current_belt_id,
+          current_degree: 0,
+          status: "active",
+        });
+        if (!insertedFicha.error) {
+          await pg.query(
+            `delete from public.students
+             where account_id = $1 and full_name = 'RLS-V-A-STUDENT-INSERT'`,
+            [studentFixture.accountId]
+          );
+          throw new Error("aluno não devia inserir ficha");
+        }
+        console.log(
+          `  Recusado INSERT ficha (aluno): ${insertedFicha.error.message}`
+        );
+
+        const deletedFicha = await studentClient
+          .from("students")
+          .delete()
+          .eq("id", studentFichaId)
+          .eq("full_name", MARKER_STUDENT)
+          .select("id");
+        if (!deletedFicha.error && (deletedFicha.data || []).length > 0) {
+          throw new Error("aluno não devia apagar a própria ficha");
+        }
+        if (deletedFicha.error) {
+          console.log(
+            `  Recusado DELETE ficha (aluno): ${deletedFicha.error.message}`
+          );
+        } else {
+          console.log("  DELETE ficha (aluno) não removeu linhas");
+        }
+        await assertFichaUnchanged("DELETE ficha (aluno)");
+
         console.log(", Student: profiles — só a própria linha ,");
         const studentProfiles = await studentClient
           .from("profiles")
@@ -579,6 +768,2174 @@ async function main() {
         );
 
         await studentClient.auth.signOut();
+
+        console.log(
+          ", Professor: ainda altera a ficha fixture, incluindo Isento ,"
+        );
+        const profFicha = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signInProfFicha = await profFicha.auth.signInWithPassword({
+          email: EMAIL_A,
+          password: passwordForSignIn,
+        });
+        if (signInProfFicha.error) throw signInProfFicha.error;
+
+        const nextExempt = fichaBeforeForbidden.is_exempt !== true;
+        const profUpdate = await profFicha
+          .from("students")
+          .update({ is_exempt: nextExempt })
+          .eq("id", studentFichaId)
+          .eq("full_name", MARKER_STUDENT)
+          .select("id, is_exempt");
+        if (profUpdate.error) {
+          throw new Error(
+            `professor update ficha: ${profUpdate.error.message}`
+          );
+        }
+        if (
+          (profUpdate.data || []).length !== 1 ||
+          profUpdate.data[0].is_exempt !== nextExempt
+        ) {
+          throw new Error("professor não alterou Isento na ficha fixture");
+        }
+        const profSeen = await readOwnFicha();
+        if ((profSeen.is_exempt === true) !== nextExempt) {
+          throw new Error("Isento da ficha fixture não persistiu para o professor");
+        }
+        await pg.query(
+          `update public.students set is_exempt = $1
+           where id = $2 and account_id = $3 and full_name = $4`,
+          [
+            fichaBeforeForbidden.is_exempt === true,
+            studentFichaId,
+            studentFixture.accountId,
+            MARKER_STUDENT,
+          ]
+        );
+        await profFicha.auth.signOut();
+      }
+    }
+
+    if (passwordForSignIn) {
+      console.log(", Mensalidades: professor grava, aluno não lê nem grava ,");
+
+      const assertPaymentWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar mensalidade`);
+        }
+      };
+
+      const financeStudentName = studentFixture ? MARKER_STUDENT : "RLS-V-A";
+      const financeStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantA.accountId, financeStudentName]
+      );
+      if (!financeStudent.rows.length) {
+        throw new Error(
+          `Fixture de mensalidade sem aluno ${financeStudentName}`
+        );
+      }
+      const financeStudentId = financeStudent.rows[0].id;
+
+      await pg.query(
+        `delete from public.payments p
+         using public.students s
+         where p.student_id = s.id
+           and s.full_name like 'RLS-V-%'
+           and p.notes = $1`,
+        [MARKER_PAYMENT]
+      );
+
+      const profPay = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInProfPay = await profPay.auth.signInWithPassword({
+        email: EMAIL_A,
+        password: passwordForSignIn,
+      });
+      if (signInProfPay.error) throw signInProfPay.error;
+
+      const insertedPay = await profPay
+        .from("payments")
+        .insert({
+          student_id: financeStudentId,
+          reference_month: "2099-01-01",
+          amount_cents: 12000,
+          status: "pending",
+          notes: MARKER_PAYMENT,
+        })
+        .select("id, status")
+        .single();
+      if (insertedPay.error) {
+        throw new Error(
+          `professor insert mensalidade: ${insertedPay.error.message}`
+        );
+      }
+      const paymentId = insertedPay.data.id;
+
+      const markedPaid = await profPay
+        .from("payments")
+        .update({
+          amount_cents: 12000,
+          status: "paid",
+          paid_at: new Date().toISOString(),
+        })
+        .eq("id", paymentId)
+        .eq("notes", MARKER_PAYMENT)
+        .select("id, status, amount_cents")
+        .single();
+      if (markedPaid.error) {
+        throw new Error(
+          `professor marcar mensalidade paga: ${markedPaid.error.message}`
+        );
+      }
+      if (markedPaid.data?.status !== "paid") {
+        throw new Error("professor não marcou a mensalidade fixture como paga");
+      }
+
+      const markedScholarship = await profPay
+        .from("payments")
+        .update({
+          amount_cents: 0,
+          status: "scholarship",
+          paid_at: null,
+        })
+        .eq("id", paymentId)
+        .eq("notes", MARKER_PAYMENT)
+        .select("id, status, amount_cents")
+        .single();
+      if (markedScholarship.error) {
+        throw new Error(
+          `professor marcar Bolsista: ${markedScholarship.error.message}`
+        );
+      }
+      if (
+        markedScholarship.data?.status !== "scholarship" ||
+        Number(markedScholarship.data?.amount_cents) !== 0
+      ) {
+        throw new Error(
+          "professor não actualizou a mensalidade fixture para Bolsista"
+        );
+      }
+
+      const tenantBStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantB.accountId, "RLS-V-B"]
+      );
+      if (!tenantBStudent.rows.length) {
+        throw new Error("Fixture RLS-V-B ausente para isolamento de mensalidade");
+      }
+      const crossPay = await profPay.from("payments").insert({
+        student_id: tenantBStudent.rows[0].id,
+        reference_month: "2099-01-01",
+        amount_cents: 12000,
+        status: "pending",
+        notes: MARKER_PAYMENT,
+      });
+      if (!crossPay.error) {
+        await pg.query(
+          `delete from public.payments
+           where student_id = $1 and notes = $2 and reference_month = '2099-01-01'`,
+          [tenantBStudent.rows[0].id, MARKER_PAYMENT]
+        );
+        throw new Error(
+          "professor não devia gravar mensalidade de outra academia"
+        );
+      }
+      console.log(
+        `  Recusado INSERT mensalidade cross-tenant: ${crossPay.error.message}`
+      );
+
+      await profPay.auth.signOut();
+
+      const userBPay = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInBPay = await userBPay.auth.signInWithPassword({
+        email: EMAIL_B,
+        password: passwordForSignIn,
+      });
+      if (signInBPay.error) throw signInBPay.error;
+
+      const bPayRead = await userBPay
+        .from("payments")
+        .select("id")
+        .eq("id", paymentId);
+      if (bPayRead.error) {
+        throw new Error(`B payments: ${bPayRead.error.message}`);
+      }
+      if ((bPayRead.data || []).length !== 0) {
+        throw new Error("B não devia ler mensalidade da conta A");
+      }
+      assertPaymentWriteRefused(
+        await userBPay
+          .from("payments")
+          .update({ status: "paid", amount_cents: 1 })
+          .eq("id", paymentId)
+          .select("id"),
+        "UPDATE mensalidade cross-tenant"
+      );
+      assertPaymentWriteRefused(
+        await userBPay.from("payments").delete().eq("id", paymentId).select("id"),
+        "DELETE mensalidade cross-tenant"
+      );
+      await userBPay.auth.signOut();
+
+      const afterCross = await pg.query(
+        `select status, amount_cents from public.payments
+         where id = $1 and notes = $2`,
+        [paymentId, MARKER_PAYMENT]
+      );
+      if (
+        afterCross.rows.length !== 1 ||
+        afterCross.rows[0].status !== "scholarship" ||
+        Number(afterCross.rows[0].amount_cents) !== 0
+      ) {
+        throw new Error("mensalidade fixture alterada por outra academia");
+      }
+
+      if (studentFixture) {
+        const studentPay = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signInStudentPay = await studentPay.auth.signInWithPassword({
+          email: studentFixture.email,
+          password: passwordForSignIn,
+        });
+        if (signInStudentPay.error) throw signInStudentPay.error;
+
+        const alunoRead = await studentPay.from("payments").select("id");
+        if (alunoRead.error) {
+          throw new Error(`aluno payments: ${alunoRead.error.message}`);
+        }
+        if ((alunoRead.data || []).length !== 0) {
+          throw new Error(
+            `aluno devia ver 0 mensalidades, viu ${(alunoRead.data || []).length}`
+          );
+        }
+
+        const alunoInsert = await studentPay.from("payments").insert({
+          student_id: financeStudentId,
+          reference_month: "2099-02-01",
+          amount_cents: 12000,
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          notes: MARKER_PAYMENT,
+        });
+        if (!alunoInsert.error) {
+          await pg.query(
+            `delete from public.payments
+             where student_id = $1 and notes = $2 and reference_month = '2099-02-01'`,
+            [financeStudentId, MARKER_PAYMENT]
+          );
+          throw new Error("aluno não devia criar mensalidade");
+        }
+        console.log(
+          `  Recusado INSERT mensalidade (aluno): ${alunoInsert.error.message}`
+        );
+
+        assertPaymentWriteRefused(
+          await studentPay
+            .from("payments")
+            .update({
+              amount_cents: 5000,
+              status: "paid",
+              paid_at: new Date().toISOString(),
+            })
+            .eq("id", paymentId)
+            .select("id, status"),
+          "UPDATE mensalidade (aluno)"
+        );
+        assertPaymentWriteRefused(
+          await studentPay
+            .from("payments")
+            .delete()
+            .eq("id", paymentId)
+            .select("id"),
+          "DELETE mensalidade (aluno)"
+        );
+
+        const afterAluno = await pg.query(
+          `select status, amount_cents from public.payments
+           where id = $1 and notes = $2`,
+          [paymentId, MARKER_PAYMENT]
+        );
+        if (
+          afterAluno.rows.length !== 1 ||
+          afterAluno.rows[0].status !== "scholarship" ||
+          Number(afterAluno.rows[0].amount_cents) !== 0
+        ) {
+          throw new Error("aluno alterou a mensalidade fixture");
+        }
+
+        await studentPay.auth.signOut();
+      } else {
+        console.log(
+          "  [Opcional] sem fixture student — testes de aluno em mensalidades omitidos."
+        );
+      }
+
+      const profVoid = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInVoid = await profVoid.auth.signInWithPassword({
+        email: EMAIL_A,
+        password: passwordForSignIn,
+      });
+      if (signInVoid.error) throw signInVoid.error;
+      const voided = await profVoid
+        .from("payments")
+        .delete()
+        .eq("id", paymentId)
+        .eq("notes", MARKER_PAYMENT)
+        .select("id");
+      if (voided.error) {
+        throw new Error(`professor estornar mensalidade: ${voided.error.message}`);
+      }
+      if ((voided.data || []).length !== 1) {
+        throw new Error("professor devia estornar a mensalidade fixture");
+      }
+      await profVoid.auth.signOut();
+    }
+
+    if (passwordForSignIn) {
+      console.log(", Graduações: professor grava, aluno não lê nem grava ,");
+
+      const assertGraduationWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar graduação`);
+        }
+      };
+
+      const graduationStudentName = studentFixture ? MARKER_STUDENT : "RLS-V-A";
+      const graduationStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantA.accountId, graduationStudentName]
+      );
+      if (!graduationStudent.rows.length) {
+        throw new Error(
+          `Fixture de graduação sem aluno ${graduationStudentName}`
+        );
+      }
+      const graduationStudentId = graduationStudent.rows[0].id;
+
+      await pg.query(
+        `delete from public.student_graduations g
+         using public.students s
+         where g.student_id = s.id
+           and s.full_name like 'RLS-V-%'
+           and g.skip_reason = $1`,
+        [MARKER_GRADUATION]
+      );
+
+      const graduatedAt = "2099-01-15T15:00:00.000Z";
+      const graduationRow = {
+        student_id: graduationStudentId,
+        resulting_belt_id: beltId,
+        resulting_degree: 0,
+        graduated_at: graduatedAt,
+        was_skip: true,
+        skip_reason: MARKER_GRADUATION,
+      };
+
+      const profGrad = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInProfGrad = await profGrad.auth.signInWithPassword({
+        email: EMAIL_A,
+        password: passwordForSignIn,
+      });
+      if (signInProfGrad.error) throw signInProfGrad.error;
+
+      const insertedGrad = await profGrad
+        .from("student_graduations")
+        .insert(graduationRow)
+        .select("id, resulting_degree")
+        .single();
+      if (insertedGrad.error) {
+        throw new Error(
+          `professor insert graduação: ${insertedGrad.error.message}`
+        );
+      }
+      const graduationId = insertedGrad.data.id;
+
+      const promoted = await profGrad
+        .from("student_graduations")
+        .update({ resulting_degree: 1 })
+        .eq("id", graduationId)
+        .eq("skip_reason", MARKER_GRADUATION)
+        .select("id, resulting_degree")
+        .single();
+      if (promoted.error) {
+        throw new Error(
+          `professor actualizar graduação: ${promoted.error.message}`
+        );
+      }
+      if (Number(promoted.data?.resulting_degree) !== 1) {
+        throw new Error("professor não actualizou a graduação fixture");
+      }
+
+      const tenantBStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantB.accountId, "RLS-V-B"]
+      );
+      if (!tenantBStudent.rows.length) {
+        throw new Error("Fixture RLS-V-B ausente para isolamento de graduação");
+      }
+      const crossGrad = await profGrad.from("student_graduations").insert({
+        ...graduationRow,
+        student_id: tenantBStudent.rows[0].id,
+      });
+      if (!crossGrad.error) {
+        await pg.query(
+          `delete from public.student_graduations
+           where student_id = $1 and skip_reason = $2`,
+          [tenantBStudent.rows[0].id, MARKER_GRADUATION]
+        );
+        throw new Error(
+          "professor não devia gravar graduação de outra academia"
+        );
+      }
+      console.log(
+        `  Recusado INSERT graduação cross-tenant: ${crossGrad.error.message}`
+      );
+
+      await profGrad.auth.signOut();
+
+      const userBGrad = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const signInBGrad = await userBGrad.auth.signInWithPassword({
+        email: EMAIL_B,
+        password: passwordForSignIn,
+      });
+      if (signInBGrad.error) throw signInBGrad.error;
+
+      const bGradRead = await userBGrad
+        .from("student_graduations")
+        .select("id")
+        .eq("id", graduationId);
+      if (bGradRead.error) {
+        throw new Error(`B graduations: ${bGradRead.error.message}`);
+      }
+      if ((bGradRead.data || []).length !== 0) {
+        throw new Error("B não devia ler graduação da conta A");
+      }
+      assertGraduationWriteRefused(
+        await userBGrad
+          .from("student_graduations")
+          .update({ resulting_degree: 2 })
+          .eq("id", graduationId)
+          .select("id"),
+        "UPDATE graduação cross-tenant"
+      );
+      assertGraduationWriteRefused(
+        await userBGrad
+          .from("student_graduations")
+          .delete()
+          .eq("id", graduationId)
+          .select("id"),
+        "DELETE graduação cross-tenant"
+      );
+      await userBGrad.auth.signOut();
+
+      const afterCross = await pg.query(
+        `select resulting_degree from public.student_graduations
+         where id = $1 and skip_reason = $2`,
+        [graduationId, MARKER_GRADUATION]
+      );
+      if (
+        afterCross.rows.length !== 1 ||
+        Number(afterCross.rows[0].resulting_degree) !== 1
+      ) {
+        throw new Error("graduação fixture alterada por outra academia");
+      }
+
+      if (studentFixture) {
+        const studentGrad = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signInStudentGrad = await studentGrad.auth.signInWithPassword({
+          email: studentFixture.email,
+          password: passwordForSignIn,
+        });
+        if (signInStudentGrad.error) throw signInStudentGrad.error;
+
+        const alunoRead = await studentGrad
+          .from("student_graduations")
+          .select("id");
+        if (alunoRead.error) {
+          throw new Error(`aluno graduations: ${alunoRead.error.message}`);
+        }
+        if ((alunoRead.data || []).length !== 0) {
+          throw new Error(
+            `aluno devia ver 0 graduações, viu ${(alunoRead.data || []).length}`
+          );
+        }
+
+        const alunoInsert = await studentGrad.from("student_graduations").insert({
+          ...graduationRow,
+          graduated_at: "2099-02-15T15:00:00.000Z",
+        });
+        if (!alunoInsert.error) {
+          await pg.query(
+            `delete from public.student_graduations
+             where student_id = $1 and skip_reason = $2 and graduated_at = '2099-02-15T15:00:00.000Z'`,
+            [graduationStudentId, MARKER_GRADUATION]
+          );
+          throw new Error("aluno não devia criar graduação");
+        }
+        console.log(
+          `  Recusado INSERT graduação (aluno): ${alunoInsert.error.message}`
+        );
+
+        assertGraduationWriteRefused(
+          await studentGrad
+            .from("student_graduations")
+            .update({ resulting_degree: 2 })
+            .eq("id", graduationId)
+            .select("id, resulting_degree"),
+          "UPDATE graduação (aluno)"
+        );
+        assertGraduationWriteRefused(
+          await studentGrad
+            .from("student_graduations")
+            .delete()
+            .eq("id", graduationId)
+            .select("id"),
+          "DELETE graduação (aluno)"
+        );
+
+        const afterAluno = await pg.query(
+          `select resulting_degree from public.student_graduations
+           where id = $1 and skip_reason = $2`,
+          [graduationId, MARKER_GRADUATION]
+        );
+        if (
+          afterAluno.rows.length !== 1 ||
+          Number(afterAluno.rows[0].resulting_degree) !== 1
+        ) {
+          throw new Error("aluno alterou a graduação fixture");
+        }
+
+        await studentGrad.auth.signOut();
+      } else {
+        console.log(
+          "  [Opcional] sem fixture student — testes de aluno em graduações omitidos."
+        );
+      }
+
+      await pg.query(
+        `delete from public.student_graduations
+         where id = $1 and skip_reason = $2`,
+        [graduationId, MARKER_GRADUATION]
+      );
+    }
+
+    if (passwordForSignIn) {
+      console.log(", Planos comerciais: professor grava, aluno não lê nem grava ,");
+
+      const LINK_START = "2099-01-01";
+      const LINK_END = "2099-01-02";
+      const PLAN_KINDS = ["baby", "kids_1", "kids_2", "adult"];
+      const PLAN_PRICE = 22200;
+
+      const assertCommercialWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar plano comercial nem vínculo`);
+        }
+      };
+
+      const isUniqueViolation = (error) =>
+        error?.code === "23505" ||
+        /duplicate key|plans_account_kind_unique/i.test(error?.message || "");
+
+      const deleteSentinelLinks = (accountId) =>
+        pg.query(
+          `delete from public.student_plans sp
+           using public.students s
+           where sp.student_id = s.id
+             and s.account_id = $1
+             and s.full_name like 'RLS-V-%'
+             and sp.started_at = $2
+             and sp.ended_at = $3`,
+          [accountId, LINK_START, LINK_END]
+        );
+
+      const signIn = async (email) => {
+        const client = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signed = await client.auth.signInWithPassword({
+          email,
+          password: passwordForSignIn,
+        });
+        if (signed.error) throw signed.error;
+        return client;
+      };
+
+      const attemptAlunoPlanInsert = async (client, kind, strictUnique) => {
+        const result = await client.from("plans").insert({
+          account_id: tenantA.accountId,
+          kind,
+          name: MARKER_PLAN,
+          price_cents: 1,
+          active: false,
+        });
+        if (!result.error) {
+          await pg.query(
+            `delete from public.plans
+             where account_id = $1 and name = $2 and kind = $3::public.plan_kind
+               and price_cents = 1`,
+            [tenantA.accountId, MARKER_PLAN, kind]
+          );
+          throw new Error("aluno não devia criar plano comercial");
+        }
+        if (strictUnique && isUniqueViolation(result.error)) {
+          throw new Error(
+            "INSERT de plano do aluno falhou por unicidade, não por recusa de acesso"
+          );
+        }
+        console.log(`  Recusado INSERT plano (aluno): ${result.error.message}`);
+      };
+
+      await deleteSentinelLinks(tenantA.accountId);
+      await deleteSentinelLinks(tenantB.accountId);
+
+      const planStudentName = studentFixture ? MARKER_STUDENT : "RLS-V-A";
+      const planStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantA.accountId, planStudentName]
+      );
+      if (!planStudent.rows.length) {
+        throw new Error(`Fixture de plano sem aluno ${planStudentName}`);
+      }
+      const planStudentId = planStudent.rows[0].id;
+
+      const tenantBStudent = await pg.query(
+        `select id from public.students where account_id = $1 and full_name = $2`,
+        [tenantB.accountId, "RLS-V-B"]
+      );
+      if (!tenantBStudent.rows.length) {
+        throw new Error("Fixture RLS-V-B ausente para isolamento de plano");
+      }
+      const tenantBStudentId = tenantBStudent.rows[0].id;
+
+      const existingPlans = await pg.query(
+        `select id, kind::text as kind, name, price_cents
+         from public.plans where account_id = $1`,
+        [tenantA.accountId]
+      );
+      const markerPlan = existingPlans.rows.find((row) => row.name === MARKER_PLAN);
+      const usedKinds = new Set(existingPlans.rows.map((row) => row.kind));
+      const freeKinds = PLAN_KINDS.filter((kind) => !usedKinds.has(kind));
+
+      let planId = null;
+      let vinculoId = null;
+      let insertedFixture = false;
+      let priceRestore = null;
+      let alunoPlanInsertChecked = false;
+
+      const assertFixtureUntouched = async (label) => {
+        const planRow = await pg.query(
+          `select price_cents from public.plans where id = $1 and name = $2`,
+          [planId, MARKER_PLAN]
+        );
+        if (
+          planRow.rows.length !== 1 ||
+          Number(planRow.rows[0].price_cents) !== PLAN_PRICE
+        ) {
+          throw new Error(`${label}: plano fixture alterado`);
+        }
+        const linkRow = await pg.query(
+          `select custom_price_cents, due_day from public.student_plans
+           where id = $1 and started_at = $2 and ended_at = $3`,
+          [vinculoId, LINK_START, LINK_END]
+        );
+        if (
+          linkRow.rows.length !== 1 ||
+          Number(linkRow.rows[0].custom_price_cents) !== 8800 ||
+          Number(linkRow.rows[0].due_day) !== 12
+        ) {
+          throw new Error(`${label}: vínculo fixture alterado`);
+        }
+      };
+
+      try {
+        let professorInsertKind = null;
+        if (markerPlan) {
+          planId = markerPlan.id;
+          priceRestore = {
+            id: markerPlan.id,
+            name: markerPlan.name,
+            price_cents: markerPlan.price_cents,
+          };
+        } else if (freeKinds.length >= 1) {
+          professorInsertKind = freeKinds[0];
+        } else {
+          const unlinked = await pg.query(
+            `select p.id, p.name, p.price_cents
+             from public.plans p
+             where p.account_id = $1
+               and not exists (
+                 select 1 from public.student_plans sp where sp.plan_id = p.id
+               )
+             order by case p.kind when 'baby' then 0 else 1 end
+             limit 1`,
+            [tenantA.accountId]
+          );
+          const borrow =
+            unlinked.rows[0] ||
+            existingPlans.rows.find((row) => row.kind === "baby") ||
+            existingPlans.rows[0];
+          if (!borrow) {
+            throw new Error("Fixture de plano comercial indisponível na conta de teste");
+          }
+          priceRestore = {
+            id: borrow.id,
+            name: borrow.name,
+            price_cents: borrow.price_cents,
+          };
+          planId = borrow.id;
+        }
+
+        const alunoInsertKind =
+          studentFixture && freeKinds.length >= 2
+            ? freeKinds[1]
+            : studentFixture && markerPlan && freeKinds.length >= 1
+              ? freeKinds[0]
+              : null;
+        const alunoInsertKindEarly =
+          studentFixture && !markerPlan && freeKinds.length === 1
+            ? freeKinds[0]
+            : null;
+
+        if (alunoInsertKindEarly) {
+          const studentEarly = await signIn(studentFixture.email);
+          try {
+            await attemptAlunoPlanInsert(studentEarly, alunoInsertKindEarly, true);
+            alunoPlanInsertChecked = true;
+          } finally {
+            await studentEarly.auth.signOut();
+          }
+        }
+
+        const profPlan = await signIn(EMAIL_A);
+
+        if (professorInsertKind) {
+          const insertedPlan = await profPlan
+            .from("plans")
+            .insert({
+              account_id: tenantA.accountId,
+              kind: professorInsertKind,
+              name: MARKER_PLAN,
+              price_cents: 11100,
+              active: true,
+            })
+            .select("id, price_cents")
+            .single();
+          if (insertedPlan.error) {
+            throw new Error(
+              `professor insert plano comercial: ${insertedPlan.error.message}`
+            );
+          }
+          planId = insertedPlan.data.id;
+          insertedFixture = true;
+        }
+
+        const planPatch = priceRestore
+          ? { name: MARKER_PLAN, price_cents: PLAN_PRICE }
+          : { price_cents: PLAN_PRICE };
+        const priced = await profPlan
+          .from("plans")
+          .update(planPatch)
+          .eq("id", planId)
+          .select("id, name, price_cents")
+          .single();
+        if (priced.error) {
+          throw new Error(
+            `professor actualizar plano comercial: ${priced.error.message}`
+          );
+        }
+        if (
+          priced.data?.name !== MARKER_PLAN ||
+          Number(priced.data?.price_cents) !== PLAN_PRICE
+        ) {
+          throw new Error("professor não actualizou o plano comercial fixture");
+        }
+
+        const insertedLink = await profPlan
+          .from("student_plans")
+          .insert({
+            student_id: planStudentId,
+            plan_id: planId,
+            custom_price_cents: 9900,
+            due_day: 10,
+            started_at: LINK_START,
+            ended_at: LINK_END,
+          })
+          .select("id, custom_price_cents, due_day")
+          .single();
+        if (insertedLink.error) {
+          throw new Error(
+            `professor insert vínculo: ${insertedLink.error.message}`
+          );
+        }
+        vinculoId = insertedLink.data.id;
+
+        const pricedLink = await profPlan
+          .from("student_plans")
+          .update({ custom_price_cents: 8800, due_day: 12 })
+          .eq("id", vinculoId)
+          .select("id, custom_price_cents, due_day")
+          .single();
+        if (pricedLink.error) {
+          throw new Error(
+            `professor actualizar vínculo: ${pricedLink.error.message}`
+          );
+        }
+        if (
+          Number(pricedLink.data?.custom_price_cents) !== 8800 ||
+          Number(pricedLink.data?.due_day) !== 12
+        ) {
+          throw new Error("professor não actualizou o vínculo fixture");
+        }
+
+        const crossPlan = await profPlan.from("plans").insert({
+          account_id: tenantB.accountId,
+          kind: "baby",
+          name: MARKER_PLAN,
+          price_cents: 33300,
+          active: false,
+        });
+        if (!crossPlan.error) {
+          await pg.query(
+            `delete from public.plans
+             where account_id = $1 and name = $2 and price_cents = 33300`,
+            [tenantB.accountId, MARKER_PLAN]
+          );
+          throw new Error("professor não devia gravar plano de outra academia");
+        }
+        console.log(
+          `  Recusado INSERT plano cross-tenant: ${crossPlan.error.message}`
+        );
+
+        const crossLink = await profPlan.from("student_plans").insert({
+          student_id: tenantBStudentId,
+          plan_id: planId,
+          custom_price_cents: 9900,
+          due_day: 10,
+          started_at: LINK_START,
+          ended_at: LINK_END,
+        });
+        if (!crossLink.error) {
+          await pg.query(
+            `delete from public.student_plans
+             where student_id = $1 and started_at = $2 and ended_at = $3`,
+            [tenantBStudentId, LINK_START, LINK_END]
+          );
+          throw new Error("professor não devia gravar vínculo de outra academia");
+        }
+        console.log(
+          `  Recusado INSERT vínculo cross-tenant: ${crossLink.error.message}`
+        );
+
+        await profPlan.auth.signOut();
+
+        const userBPlan = await signIn(EMAIL_B);
+        const bPlanRead = await userBPlan
+          .from("plans")
+          .select("id")
+          .eq("id", planId);
+        if (bPlanRead.error) {
+          throw new Error(`B plans: ${bPlanRead.error.message}`);
+        }
+        if ((bPlanRead.data || []).length !== 0) {
+          throw new Error("B não devia ler plano comercial da conta A");
+        }
+        assertCommercialWriteRefused(
+          await userBPlan
+            .from("plans")
+            .update({ price_cents: 1 })
+            .eq("id", planId)
+            .select("id"),
+          "UPDATE plano cross-tenant"
+        );
+        assertCommercialWriteRefused(
+          await userBPlan.from("plans").delete().eq("id", planId).select("id"),
+          "DELETE plano cross-tenant"
+        );
+        const bLinkRead = await userBPlan
+          .from("student_plans")
+          .select("id")
+          .eq("id", vinculoId);
+        if (bLinkRead.error) {
+          throw new Error(`B student_plans: ${bLinkRead.error.message}`);
+        }
+        if ((bLinkRead.data || []).length !== 0) {
+          throw new Error("B não devia ler vínculo da conta A");
+        }
+        assertCommercialWriteRefused(
+          await userBPlan
+            .from("student_plans")
+            .update({ custom_price_cents: 1, due_day: 1 })
+            .eq("id", vinculoId)
+            .select("id"),
+          "UPDATE vínculo cross-tenant"
+        );
+        assertCommercialWriteRefused(
+          await userBPlan
+            .from("student_plans")
+            .delete()
+            .eq("id", vinculoId)
+            .select("id"),
+          "DELETE vínculo cross-tenant"
+        );
+        await userBPlan.auth.signOut();
+        await assertFixtureUntouched("outra academia");
+
+        if (studentFixture) {
+          const studentPlan = await signIn(studentFixture.email);
+          const alunoPlans = await studentPlan.from("plans").select("id");
+          if (alunoPlans.error) {
+            throw new Error(`aluno plans: ${alunoPlans.error.message}`);
+          }
+          if ((alunoPlans.data || []).length !== 0) {
+            throw new Error(
+              `aluno devia ver 0 planos comerciais, viu ${(alunoPlans.data || []).length}`
+            );
+          }
+          const alunoLinks = await studentPlan.from("student_plans").select("id");
+          if (alunoLinks.error) {
+            throw new Error(`aluno student_plans: ${alunoLinks.error.message}`);
+          }
+          if ((alunoLinks.data || []).length !== 0) {
+            throw new Error(
+              `aluno devia ver 0 vínculos, viu ${(alunoLinks.data || []).length}`
+            );
+          }
+
+          if (!alunoPlanInsertChecked) {
+            await attemptAlunoPlanInsert(
+              studentPlan,
+              alunoInsertKind || "adult",
+              Boolean(alunoInsertKind)
+            );
+          }
+
+          assertCommercialWriteRefused(
+            await studentPlan
+              .from("plans")
+              .update({ price_cents: 1 })
+              .eq("id", planId)
+              .select("id, price_cents"),
+            "UPDATE plano (aluno)"
+          );
+          assertCommercialWriteRefused(
+            await studentPlan.from("plans").delete().eq("id", planId).select("id"),
+            "DELETE plano (aluno)"
+          );
+
+          const alunoLinkInsert = await studentPlan.from("student_plans").insert({
+            student_id: planStudentId,
+            plan_id: planId,
+            custom_price_cents: 1,
+            due_day: 3,
+            started_at: LINK_START,
+            ended_at: LINK_END,
+          });
+          if (!alunoLinkInsert.error) {
+            await pg.query(
+              `delete from public.student_plans
+               where student_id = $1 and plan_id = $2 and custom_price_cents = 1
+                 and started_at = $3 and ended_at = $4`,
+              [planStudentId, planId, LINK_START, LINK_END]
+            );
+            throw new Error("aluno não devia criar vínculo");
+          }
+          console.log(
+            `  Recusado INSERT vínculo (aluno): ${alunoLinkInsert.error.message}`
+          );
+
+          assertCommercialWriteRefused(
+            await studentPlan
+              .from("student_plans")
+              .update({ custom_price_cents: 1, due_day: 4 })
+              .eq("id", vinculoId)
+              .select("id, custom_price_cents, due_day"),
+            "UPDATE vínculo (aluno)"
+          );
+          assertCommercialWriteRefused(
+            await studentPlan
+              .from("student_plans")
+              .delete()
+              .eq("id", vinculoId)
+              .select("id"),
+            "DELETE vínculo (aluno)"
+          );
+
+          await assertFixtureUntouched("aluno");
+          await studentPlan.auth.signOut();
+        } else {
+          console.log(
+            "  [Opcional] sem fixture student — testes de aluno em planos comerciais omitidos."
+          );
+        }
+      } finally {
+        await deleteSentinelLinks(tenantA.accountId);
+        await deleteSentinelLinks(tenantB.accountId);
+        if (insertedFixture && planId) {
+          await pg.query(
+            `delete from public.plans where id = $1 and name = $2`,
+            [planId, MARKER_PLAN]
+          );
+        }
+        if (priceRestore) {
+          await pg.query(
+            `update public.plans set name = $2, price_cents = $3 where id = $1`,
+            [priceRestore.id, priceRestore.name, priceRestore.price_cents]
+          );
+        }
+      }
+    }
+
+    if (passwordForSignIn) {
+      console.log(", Documentos: professor grava, aluno não lê nem grava ,");
+
+      const DOC_TYPE = "certificate";
+      const SEQ_YEAR_MIN = 2090;
+      const SEQ_YEAR_MAX = 2099;
+
+      const assertDocumentWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar documento`);
+        }
+      };
+
+      const isUniqueViolation = (error) =>
+        error?.code === "23505" ||
+        /duplicate key|unique constraint/i.test(error?.message || "");
+
+      const signIn = async (email) => {
+        const client = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signed = await client.auth.signInWithPassword({
+          email,
+          password: passwordForSignIn,
+        });
+        if (signed.error) throw signed.error;
+        return client;
+      };
+
+      const cleanupMarkerRows = async () => {
+        await pg.query(
+          `delete from public.generated_document_deliveries d
+           using public.generated_documents g
+           where d.document_id = g.id
+             and g.idempotency_key like 'RLS-V-DOC%'`
+        );
+        await pg.query(
+          `delete from public.generated_documents
+           where idempotency_key like 'RLS-V-DOC%'`
+        );
+        await pg.query(
+          `delete from public.document_templates
+           where storage_path like 'RLS-V-DOC%'`
+        );
+      };
+
+      const assertSelectEmpty = (result, label) => {
+        if (result.error) {
+          throw new Error(`${label}: ${result.error.message}`);
+        }
+        if ((result.data || []).length !== 0) {
+          throw new Error(
+            `${label} devia ver 0 linhas, viu ${(result.data || []).length}`
+          );
+        }
+      };
+
+      const assertInsertRefused = async (result, label, cleanup) => {
+        if (!result.error) {
+          if (cleanup) await cleanup();
+          throw new Error(`${label} não devia criar linha`);
+        }
+        if (isUniqueViolation(result.error)) {
+          throw new Error(
+            `${label} falhou por unicidade, não por recusa de acesso`
+          );
+        }
+        console.log(`  Recusado ${label}: ${result.error.message}`);
+      };
+
+      await cleanupMarkerRows();
+
+      let documentId = null;
+      let deliveryId = null;
+      let templateId = null;
+      let globalTemplateId = null;
+      let seqYear = null;
+      let insertedSequence = false;
+
+      try {
+        const globalIns = await pg.query(
+          `insert into public.document_templates
+             (account_id, type, version, is_active, storage_path)
+           values (null, $2::public.document_type, 2099, false, $1)
+           returning id`,
+          [MARKER_DOCUMENT, DOC_TYPE]
+        );
+        globalTemplateId = globalIns.rows[0].id;
+
+        const takenVersions = await pg.query(
+          `select version from public.document_templates
+           where account_id = $1
+             and type = $2::public.document_type
+             and version between $3 and $4`,
+          [tenantA.accountId, DOC_TYPE, SEQ_YEAR_MIN, SEQ_YEAR_MAX]
+        );
+        const usedVersions = new Set(
+          takenVersions.rows.map((row) => Number(row.version))
+        );
+        let templateVersion = null;
+        for (let version = SEQ_YEAR_MAX; version >= SEQ_YEAR_MIN; version -= 1) {
+          if (!usedVersions.has(version)) {
+            templateVersion = version;
+            break;
+          }
+        }
+        if (templateVersion === null) {
+          throw new Error("Fixture de template sem versão livre");
+        }
+
+        const takenYears = await pg.query(
+          `select year from public.document_sequences
+           where account_id = $1
+             and type = $2::public.document_type
+             and year between $3 and $4`,
+          [tenantA.accountId, DOC_TYPE, SEQ_YEAR_MIN, SEQ_YEAR_MAX]
+        );
+        const usedYears = new Set(takenYears.rows.map((row) => Number(row.year)));
+        for (let year = SEQ_YEAR_MAX; year >= SEQ_YEAR_MIN; year -= 1) {
+          if (!usedYears.has(year)) {
+            seqYear = year;
+            break;
+          }
+        }
+        if (seqYear === null) {
+          throw new Error("Fixture de sequência sem ano livre");
+        }
+
+        const profDoc = await signIn(EMAIL_A);
+
+        const insertedDoc = await profDoc
+          .from("generated_documents")
+          .insert({
+            account_id: tenantA.accountId,
+            type: DOC_TYPE,
+            status: "pending",
+            idempotency_key: MARKER_DOCUMENT,
+            number: MARKER_DOCUMENT,
+            payload_json: { marker: MARKER_DOCUMENT },
+          })
+          .select("id, status")
+          .single();
+        if (insertedDoc.error) {
+          throw new Error(
+            `professor insert documento: ${insertedDoc.error.message}`
+          );
+        }
+        documentId = insertedDoc.data.id;
+
+        const updatedDoc = await profDoc
+          .from("generated_documents")
+          .update({ status: "ready" })
+          .eq("id", documentId)
+          .eq("idempotency_key", MARKER_DOCUMENT)
+          .select("id, status")
+          .single();
+        if (updatedDoc.error) {
+          throw new Error(
+            `professor actualizar documento: ${updatedDoc.error.message}`
+          );
+        }
+        if (updatedDoc.data?.status !== "ready") {
+          throw new Error("professor não actualizou o documento fixture");
+        }
+
+        const insertedDelivery = await profDoc
+          .from("generated_document_deliveries")
+          .insert({
+            document_id: documentId,
+            channel: "download",
+            status: "completed",
+            metadata_json: { marker: MARKER_DOCUMENT },
+          })
+          .select("id, status")
+          .single();
+        if (insertedDelivery.error) {
+          throw new Error(
+            `professor insert entrega: ${insertedDelivery.error.message}`
+          );
+        }
+        deliveryId = insertedDelivery.data.id;
+
+        const updatedDelivery = await profDoc
+          .from("generated_document_deliveries")
+          .update({ status: "requested" })
+          .eq("id", deliveryId)
+          .select("id, status")
+          .single();
+        if (updatedDelivery.error) {
+          throw new Error(
+            `professor actualizar entrega: ${updatedDelivery.error.message}`
+          );
+        }
+        if (updatedDelivery.data?.status !== "requested") {
+          throw new Error("professor não actualizou a entrega fixture");
+        }
+
+        const insertedTemplate = await profDoc
+          .from("document_templates")
+          .insert({
+            account_id: tenantA.accountId,
+            type: DOC_TYPE,
+            version: templateVersion,
+            is_active: false,
+            storage_path: MARKER_DOCUMENT,
+          })
+          .select("id, is_active")
+          .single();
+        if (insertedTemplate.error) {
+          throw new Error(
+            `professor insert template: ${insertedTemplate.error.message}`
+          );
+        }
+        templateId = insertedTemplate.data.id;
+
+        const globalRead = await profDoc
+          .from("document_templates")
+          .select("id, account_id")
+          .eq("id", globalTemplateId);
+        if (globalRead.error) {
+          throw new Error(`professor template global: ${globalRead.error.message}`);
+        }
+        if (
+          (globalRead.data || []).length !== 1 ||
+          globalRead.data[0].account_id !== null
+        ) {
+          throw new Error("professor não leu o template global");
+        }
+
+        const insertedSeq = await profDoc
+          .from("document_sequences")
+          .insert({
+            account_id: tenantA.accountId,
+            type: DOC_TYPE,
+            year: seqYear,
+            last_seq: 1,
+          })
+          .select("last_seq")
+          .single();
+        if (insertedSeq.error) {
+          throw new Error(
+            `professor insert sequência: ${insertedSeq.error.message}`
+          );
+        }
+        insertedSequence = true;
+
+        const updatedSeq = await profDoc
+          .from("document_sequences")
+          .update({ last_seq: 2 })
+          .eq("account_id", tenantA.accountId)
+          .eq("type", DOC_TYPE)
+          .eq("year", seqYear)
+          .select("last_seq");
+        if (updatedSeq.error) {
+          throw new Error(
+            `professor actualizar sequência: ${updatedSeq.error.message}`
+          );
+        }
+        if (Number(updatedSeq.data?.[0]?.last_seq) !== 2) {
+          throw new Error("professor não actualizou a sequência fixture");
+        }
+
+        await assertInsertRefused(
+          await profDoc.from("generated_documents").insert({
+            account_id: tenantB.accountId,
+            type: DOC_TYPE,
+            status: "pending",
+            idempotency_key: "RLS-V-DOC-CROSS",
+            number: "RLS-V-DOC-CROSS",
+          }),
+          "INSERT documento cross-tenant",
+          () =>
+            pg.query(
+              `delete from public.generated_documents
+               where account_id = $1 and idempotency_key = 'RLS-V-DOC-CROSS'`,
+              [tenantB.accountId]
+            )
+        );
+
+        await assertInsertRefused(
+          await profDoc.from("document_templates").insert({
+            account_id: tenantB.accountId,
+            type: DOC_TYPE,
+            version: templateVersion,
+            is_active: false,
+            storage_path: "RLS-V-DOC-CROSS",
+          }),
+          "INSERT template cross-tenant",
+          () =>
+            pg.query(
+              `delete from public.document_templates
+               where account_id = $1 and storage_path = 'RLS-V-DOC-CROSS'`,
+              [tenantB.accountId]
+            )
+        );
+
+        await assertInsertRefused(
+          await profDoc.from("document_sequences").insert({
+            account_id: tenantB.accountId,
+            type: "manual_receipt",
+            year: seqYear,
+            last_seq: 1,
+          }),
+          "INSERT sequência cross-tenant",
+          () =>
+            pg.query(
+              `delete from public.document_sequences
+               where account_id = $1
+                 and type = 'manual_receipt'::public.document_type
+                 and year = $2
+                 and last_seq = 1`,
+              [tenantB.accountId, seqYear]
+            )
+        );
+
+        await profDoc.auth.signOut();
+
+        const userBDoc = await signIn(EMAIL_B);
+        assertSelectEmpty(
+          await userBDoc.from("generated_documents").select("id").eq("id", documentId),
+          "B documento"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("generated_documents")
+            .update({ status: "archived" })
+            .eq("id", documentId)
+            .select("id"),
+          "UPDATE documento cross-tenant"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("generated_documents")
+            .delete()
+            .eq("id", documentId)
+            .select("id"),
+          "DELETE documento cross-tenant"
+        );
+        assertSelectEmpty(
+          await userBDoc
+            .from("generated_document_deliveries")
+            .select("id")
+            .eq("id", deliveryId),
+          "B entrega"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("generated_document_deliveries")
+            .update({ status: "failed" })
+            .eq("id", deliveryId)
+            .select("id"),
+          "UPDATE entrega cross-tenant"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("generated_document_deliveries")
+            .delete()
+            .eq("id", deliveryId)
+            .select("id"),
+          "DELETE entrega cross-tenant"
+        );
+        assertSelectEmpty(
+          await userBDoc
+            .from("document_sequences")
+            .select("account_id")
+            .eq("account_id", tenantA.accountId)
+            .eq("type", DOC_TYPE)
+            .eq("year", seqYear),
+          "B sequência"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("document_sequences")
+            .update({ last_seq: 9 })
+            .eq("account_id", tenantA.accountId)
+            .eq("type", DOC_TYPE)
+            .eq("year", seqYear)
+            .select("last_seq"),
+          "UPDATE sequência cross-tenant"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("document_sequences")
+            .delete()
+            .eq("account_id", tenantA.accountId)
+            .eq("type", DOC_TYPE)
+            .eq("year", seqYear)
+            .select("account_id"),
+          "DELETE sequência cross-tenant"
+        );
+        assertSelectEmpty(
+          await userBDoc.from("document_templates").select("id").eq("id", templateId),
+          "B template"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("document_templates")
+            .update({ is_active: true })
+            .eq("id", templateId)
+            .select("id"),
+          "UPDATE template cross-tenant"
+        );
+        assertDocumentWriteRefused(
+          await userBDoc
+            .from("document_templates")
+            .delete()
+            .eq("id", templateId)
+            .select("id"),
+          "DELETE template cross-tenant"
+        );
+        const bGlobal = await userBDoc
+          .from("document_templates")
+          .select("id, account_id")
+          .eq("id", globalTemplateId);
+        if (bGlobal.error) {
+          throw new Error(`B template global: ${bGlobal.error.message}`);
+        }
+        if (
+          (bGlobal.data || []).length !== 1 ||
+          bGlobal.data[0].account_id !== null
+        ) {
+          throw new Error("professor de outra academia não leu o template global");
+        }
+        await userBDoc.auth.signOut();
+
+        const assertFixtureUntouched = async (label) => {
+          const docRow = await pg.query(
+            `select status from public.generated_documents
+             where id = $1 and idempotency_key = $2`,
+            [documentId, MARKER_DOCUMENT]
+          );
+          if (docRow.rows.length !== 1 || docRow.rows[0].status !== "ready") {
+            throw new Error(`${label}: documento fixture alterado`);
+          }
+          const deliveryRow = await pg.query(
+            `select status::text as status
+             from public.generated_document_deliveries
+             where id = $1`,
+            [deliveryId]
+          );
+          if (
+            deliveryRow.rows.length !== 1 ||
+            deliveryRow.rows[0].status !== "requested"
+          ) {
+            throw new Error(`${label}: entrega fixture alterada`);
+          }
+          const templateRow = await pg.query(
+            `select is_active, storage_path
+             from public.document_templates
+             where id = $1 and storage_path = $2`,
+            [templateId, MARKER_DOCUMENT]
+          );
+          if (
+            templateRow.rows.length !== 1 ||
+            templateRow.rows[0].is_active !== false
+          ) {
+            throw new Error(`${label}: template fixture alterado`);
+          }
+          const seqRow = await pg.query(
+            `select last_seq from public.document_sequences
+             where account_id = $1
+               and type = $2::public.document_type
+               and year = $3`,
+            [tenantA.accountId, DOC_TYPE, seqYear]
+          );
+          if (seqRow.rows.length !== 1 || Number(seqRow.rows[0].last_seq) !== 2) {
+            throw new Error(`${label}: sequência fixture alterada`);
+          }
+          const globalRow = await pg.query(
+            `select account_id, storage_path
+             from public.document_templates
+             where id = $1`,
+            [globalTemplateId]
+          );
+          if (
+            globalRow.rows.length !== 1 ||
+            globalRow.rows[0].account_id !== null ||
+            globalRow.rows[0].storage_path !== MARKER_DOCUMENT
+          ) {
+            throw new Error(`${label}: template global alterado`);
+          }
+        };
+
+        await assertFixtureUntouched("outra academia");
+
+        if (studentFixture) {
+          const alunoDoc = await signIn(studentFixture.email);
+
+          assertSelectEmpty(
+            await alunoDoc.from("generated_documents").select("id"),
+            "aluno documento"
+          );
+          assertSelectEmpty(
+            await alunoDoc.from("generated_document_deliveries").select("id"),
+            "aluno entrega"
+          );
+          assertSelectEmpty(
+            await alunoDoc.from("document_sequences").select("account_id"),
+            "aluno sequência"
+          );
+          assertSelectEmpty(
+            await alunoDoc.from("document_templates").select("id"),
+            "aluno template"
+          );
+          assertSelectEmpty(
+            await alunoDoc
+              .from("document_templates")
+              .select("id")
+              .eq("id", globalTemplateId),
+            "aluno template global"
+          );
+
+          await assertInsertRefused(
+            await alunoDoc.from("generated_documents").insert({
+              account_id: tenantA.accountId,
+              type: DOC_TYPE,
+              status: "pending",
+              idempotency_key: "RLS-V-DOC-ALUNO",
+              number: "RLS-V-DOC-ALUNO",
+            }),
+            "INSERT documento (aluno)",
+            () =>
+              pg.query(
+                `delete from public.generated_documents
+                 where account_id = $1 and idempotency_key = 'RLS-V-DOC-ALUNO'`,
+                [tenantA.accountId]
+              )
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("generated_documents")
+              .update({ status: "archived" })
+              .eq("id", documentId)
+              .select("id, status"),
+            "UPDATE documento (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("generated_documents")
+              .delete()
+              .eq("id", documentId)
+              .select("id"),
+            "DELETE documento (aluno)"
+          );
+
+          await assertInsertRefused(
+            await alunoDoc.from("generated_document_deliveries").insert({
+              document_id: documentId,
+              channel: "download",
+              status: "failed",
+              metadata_json: { marker: "RLS-V-DOC-ALUNO" },
+            }),
+            "INSERT entrega (aluno)",
+            () =>
+              pg.query(
+                `delete from public.generated_document_deliveries
+                 where document_id = $1
+                   and metadata_json->>'marker' = 'RLS-V-DOC-ALUNO'`,
+                [documentId]
+              )
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("generated_document_deliveries")
+              .update({ status: "failed" })
+              .eq("id", deliveryId)
+              .select("id, status"),
+            "UPDATE entrega (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("generated_document_deliveries")
+              .delete()
+              .eq("id", deliveryId)
+              .select("id"),
+            "DELETE entrega (aluno)"
+          );
+
+          await assertInsertRefused(
+            await alunoDoc.from("document_sequences").insert({
+              account_id: tenantA.accountId,
+              type: "liability_term",
+              year: seqYear,
+              last_seq: 1,
+            }),
+            "INSERT sequência (aluno)",
+            () =>
+              pg.query(
+                `delete from public.document_sequences
+                 where account_id = $1
+                   and type = 'liability_term'::public.document_type
+                   and year = $2
+                   and last_seq = 1`,
+                [tenantA.accountId, seqYear]
+              )
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_sequences")
+              .update({ last_seq: 9 })
+              .eq("account_id", tenantA.accountId)
+              .eq("type", DOC_TYPE)
+              .eq("year", seqYear)
+              .select("last_seq"),
+            "UPDATE sequência (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_sequences")
+              .delete()
+              .eq("account_id", tenantA.accountId)
+              .eq("type", DOC_TYPE)
+              .eq("year", seqYear)
+              .select("account_id"),
+            "DELETE sequência (aluno)"
+          );
+
+          await assertInsertRefused(
+            await alunoDoc.from("document_templates").insert({
+              account_id: tenantA.accountId,
+              type: "manual_receipt",
+              version: templateVersion,
+              is_active: false,
+              storage_path: "RLS-V-DOC-ALUNO",
+            }),
+            "INSERT template (aluno)",
+            () =>
+              pg.query(
+                `delete from public.document_templates
+                 where storage_path = 'RLS-V-DOC-ALUNO'`
+              )
+          );
+          await assertInsertRefused(
+            await alunoDoc.from("document_templates").insert({
+              account_id: null,
+              type: "manual_receipt",
+              version: 2098,
+              is_active: false,
+              storage_path: "RLS-V-DOC-ALUNO-GLOBAL",
+            }),
+            "INSERT template global (aluno)",
+            () =>
+              pg.query(
+                `delete from public.document_templates
+                 where storage_path = 'RLS-V-DOC-ALUNO-GLOBAL'`
+              )
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_templates")
+              .update({ is_active: true })
+              .eq("id", templateId)
+              .select("id, is_active"),
+            "UPDATE template (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_templates")
+              .delete()
+              .eq("id", templateId)
+              .select("id"),
+            "DELETE template (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_templates")
+              .update({ is_active: true })
+              .eq("id", globalTemplateId)
+              .select("id"),
+            "UPDATE template global (aluno)"
+          );
+          assertDocumentWriteRefused(
+            await alunoDoc
+              .from("document_templates")
+              .delete()
+              .eq("id", globalTemplateId)
+              .select("id"),
+            "DELETE template global (aluno)"
+          );
+
+          await assertFixtureUntouched("aluno");
+          await alunoDoc.auth.signOut();
+        } else {
+          console.log(
+            "  [Opcional] sem fixture student — testes de aluno em documentos omitidos."
+          );
+        }
+      } finally {
+        await cleanupMarkerRows();
+        if (insertedSequence && seqYear !== null) {
+          await pg.query(
+            `delete from public.document_sequences
+             where account_id = $1
+               and type = $2::public.document_type
+               and year = $3`,
+            [tenantA.accountId, DOC_TYPE, seqYear]
+          );
+        }
+      }
+    }
+
+    if (passwordForSignIn) {
+      console.log(", Planos de aula: professor grava, aluno não lê nem grava ,");
+
+      const LESSON_MONTH = "2099-01-01";
+      const LESSON_KIND = "adult";
+
+      const assertLessonWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar plano de aula`);
+        }
+      };
+
+      const isUniqueViolation = (error) =>
+        error?.code === "23505" ||
+        /duplicate key|unique constraint/i.test(error?.message || "");
+
+      const signIn = async (email) => {
+        const client = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signed = await client.auth.signInWithPassword({
+          email,
+          password: passwordForSignIn,
+        });
+        if (signed.error) throw signed.error;
+        return client;
+      };
+
+      const cleanupMarkerRows = async () => {
+        await pg.query(
+          `update public.lesson_plans
+           set current_revision_id = null
+           where title like 'RLS-V-LESSON%'`
+        );
+        await pg.query(
+          `delete from public.lesson_plan_attachments a
+           using public.lesson_plans lp
+           where a.lesson_plan_id = lp.id
+             and lp.title like 'RLS-V-LESSON%'`
+        );
+        await pg.query(
+          `delete from public.lesson_plan_attachments
+           where storage_path like 'RLS-V-LESSON%'`
+        );
+        await pg.query(
+          `delete from public.lesson_plan_revisions r
+           using public.lesson_plans lp
+           where r.lesson_plan_id = lp.id
+             and lp.title like 'RLS-V-LESSON%'`
+        );
+        await pg.query(
+          `delete from public.lesson_plan_revisions
+           where change_summary like 'RLS-V-LESSON%'`
+        );
+        await pg.query(
+          `delete from public.lesson_plans
+           where title like 'RLS-V-LESSON%'`
+        );
+      };
+
+      const assertSelectEmpty = (result, label) => {
+        if (result.error) {
+          throw new Error(`${label}: ${result.error.message}`);
+        }
+        if ((result.data || []).length !== 0) {
+          throw new Error(
+            `${label} devia ver 0 linhas, viu ${(result.data || []).length}`
+          );
+        }
+      };
+
+      const assertInsertRefused = async (result, label, cleanup) => {
+        if (!result.error) {
+          if (cleanup) await cleanup();
+          throw new Error(`${label} não devia criar linha`);
+        }
+        if (isUniqueViolation(result.error)) {
+          throw new Error(
+            `${label} falhou por unicidade, não por recusa de acesso`
+          );
+        }
+        console.log(`  Recusado ${label}: ${result.error.message}`);
+      };
+
+      await cleanupMarkerRows();
+
+      let planId = null;
+      let revisionId = null;
+      let attachmentId = null;
+
+      try {
+        const profLesson = await signIn(EMAIL_A);
+
+        const insertedPlan = await profLesson
+          .from("lesson_plans")
+          .insert({
+            account_id: tenantA.accountId,
+            plan_kind: LESSON_KIND,
+            reference_month: LESSON_MONTH,
+            title: MARKER_LESSON,
+            status: "draft",
+          })
+          .select("id, title")
+          .single();
+        if (insertedPlan.error) {
+          throw new Error(
+            `professor insert plano de aula: ${insertedPlan.error.message}`
+          );
+        }
+        planId = insertedPlan.data.id;
+
+        const updatedPlan = await profLesson
+          .from("lesson_plans")
+          .update({ internal_notes: MARKER_LESSON })
+          .eq("id", planId)
+          .eq("title", MARKER_LESSON)
+          .select("id, internal_notes")
+          .single();
+        if (updatedPlan.error) {
+          throw new Error(
+            `professor actualizar plano de aula: ${updatedPlan.error.message}`
+          );
+        }
+        if (updatedPlan.data?.internal_notes !== MARKER_LESSON) {
+          throw new Error("professor não actualizou o plano de aula fixture");
+        }
+
+        const insertedRevision = await profLesson
+          .from("lesson_plan_revisions")
+          .insert({
+            lesson_plan_id: planId,
+            revision_number: 1,
+            content_json: { marker: MARKER_LESSON },
+            change_summary: MARKER_LESSON,
+          })
+          .select("id, change_summary")
+          .single();
+        if (insertedRevision.error) {
+          throw new Error(
+            `professor insert revisão: ${insertedRevision.error.message}`
+          );
+        }
+        revisionId = insertedRevision.data.id;
+
+        const insertedAttachment = await profLesson
+          .from("lesson_plan_attachments")
+          .insert({
+            lesson_plan_id: planId,
+            storage_path: MARKER_LESSON,
+            filename: "RLS-V-LESSON.pdf",
+            mime_type: "application/pdf",
+            byte_size: 1,
+          })
+          .select("id, storage_path")
+          .single();
+        if (insertedAttachment.error) {
+          throw new Error(
+            `professor insert anexo: ${insertedAttachment.error.message}`
+          );
+        }
+        attachmentId = insertedAttachment.data.id;
+
+        await assertInsertRefused(
+          await profLesson.from("lesson_plans").insert({
+            account_id: tenantB.accountId,
+            plan_kind: LESSON_KIND,
+            reference_month: LESSON_MONTH,
+            title: "RLS-V-LESSON-CROSS",
+            status: "draft",
+          }),
+          "INSERT plano de aula cross-tenant",
+          () =>
+            pg.query(
+              `delete from public.lesson_plans
+               where account_id = $1 and title = 'RLS-V-LESSON-CROSS'`,
+              [tenantB.accountId]
+            )
+        );
+
+        await profLesson.auth.signOut();
+
+        const userBLesson = await signIn(EMAIL_B);
+        assertSelectEmpty(
+          await userBLesson.from("lesson_plans").select("id").eq("id", planId),
+          "B plano de aula"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plans")
+            .update({ internal_notes: "RLS-V-LESSON-CROSS" })
+            .eq("id", planId)
+            .select("id"),
+          "UPDATE plano de aula cross-tenant"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plans")
+            .delete()
+            .eq("id", planId)
+            .select("id"),
+          "DELETE plano de aula cross-tenant"
+        );
+        assertSelectEmpty(
+          await userBLesson
+            .from("lesson_plan_revisions")
+            .select("id")
+            .eq("id", revisionId),
+          "B revisão"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plan_revisions")
+            .update({ change_summary: "RLS-V-LESSON-CROSS" })
+            .eq("id", revisionId)
+            .select("id"),
+          "UPDATE revisão cross-tenant"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plan_revisions")
+            .delete()
+            .eq("id", revisionId)
+            .select("id"),
+          "DELETE revisão cross-tenant"
+        );
+        assertSelectEmpty(
+          await userBLesson
+            .from("lesson_plan_attachments")
+            .select("id")
+            .eq("id", attachmentId),
+          "B anexo"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plan_attachments")
+            .update({ byte_size: 9 })
+            .eq("id", attachmentId)
+            .select("id"),
+          "UPDATE anexo cross-tenant"
+        );
+        assertLessonWriteRefused(
+          await userBLesson
+            .from("lesson_plan_attachments")
+            .delete()
+            .eq("id", attachmentId)
+            .select("id"),
+          "DELETE anexo cross-tenant"
+        );
+        await userBLesson.auth.signOut();
+
+        const assertFixtureUntouched = async (label) => {
+          const planRow = await pg.query(
+            `select title, internal_notes
+             from public.lesson_plans
+             where id = $1 and title = $2`,
+            [planId, MARKER_LESSON]
+          );
+          if (
+            planRow.rows.length !== 1 ||
+            planRow.rows[0].internal_notes !== MARKER_LESSON
+          ) {
+            throw new Error(`${label}: plano de aula fixture alterado`);
+          }
+          const revisionRow = await pg.query(
+            `select change_summary
+             from public.lesson_plan_revisions
+             where id = $1 and lesson_plan_id = $2`,
+            [revisionId, planId]
+          );
+          if (
+            revisionRow.rows.length !== 1 ||
+            revisionRow.rows[0].change_summary !== MARKER_LESSON
+          ) {
+            throw new Error(`${label}: revisão fixture alterada`);
+          }
+          const attachmentRow = await pg.query(
+            `select storage_path, byte_size
+             from public.lesson_plan_attachments
+             where id = $1 and lesson_plan_id = $2`,
+            [attachmentId, planId]
+          );
+          if (
+            attachmentRow.rows.length !== 1 ||
+            attachmentRow.rows[0].storage_path !== MARKER_LESSON ||
+            Number(attachmentRow.rows[0].byte_size) !== 1
+          ) {
+            throw new Error(`${label}: anexo fixture alterado`);
+          }
+        };
+
+        await assertFixtureUntouched("outra academia");
+
+        if (studentFixture) {
+          const alunoLesson = await signIn(studentFixture.email);
+
+          assertSelectEmpty(
+            await alunoLesson.from("lesson_plans").select("id"),
+            "aluno plano de aula"
+          );
+          assertSelectEmpty(
+            await alunoLesson.from("lesson_plan_revisions").select("id"),
+            "aluno revisão"
+          );
+          assertSelectEmpty(
+            await alunoLesson.from("lesson_plan_attachments").select("id"),
+            "aluno anexo"
+          );
+
+          await assertInsertRefused(
+            await alunoLesson.from("lesson_plans").insert({
+              account_id: tenantA.accountId,
+              plan_kind: LESSON_KIND,
+              reference_month: LESSON_MONTH,
+              title: "RLS-V-LESSON-ALUNO",
+              status: "draft",
+            }),
+            "INSERT plano de aula (aluno)",
+            () =>
+              pg.query(
+                `delete from public.lesson_plans
+                 where account_id = $1 and title = 'RLS-V-LESSON-ALUNO'`,
+                [tenantA.accountId]
+              )
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plans")
+              .update({ internal_notes: "RLS-V-LESSON-ALUNO" })
+              .eq("id", planId)
+              .select("id, internal_notes"),
+            "UPDATE plano de aula (aluno)"
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plans")
+              .delete()
+              .eq("id", planId)
+              .select("id"),
+            "DELETE plano de aula (aluno)"
+          );
+
+          await assertInsertRefused(
+            await alunoLesson.from("lesson_plan_revisions").insert({
+              lesson_plan_id: planId,
+              revision_number: 2,
+              content_json: { marker: "RLS-V-LESSON-ALUNO" },
+              change_summary: "RLS-V-LESSON-ALUNO",
+            }),
+            "INSERT revisão (aluno)",
+            () =>
+              pg.query(
+                `delete from public.lesson_plan_revisions
+                 where lesson_plan_id = $1
+                   and change_summary = 'RLS-V-LESSON-ALUNO'`,
+                [planId]
+              )
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plan_revisions")
+              .update({ change_summary: "RLS-V-LESSON-ALUNO" })
+              .eq("id", revisionId)
+              .select("id, change_summary"),
+            "UPDATE revisão (aluno)"
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plan_revisions")
+              .delete()
+              .eq("id", revisionId)
+              .select("id"),
+            "DELETE revisão (aluno)"
+          );
+
+          await assertInsertRefused(
+            await alunoLesson.from("lesson_plan_attachments").insert({
+              lesson_plan_id: planId,
+              storage_path: "RLS-V-LESSON-ALUNO",
+              filename: "RLS-V-LESSON-ALUNO.pdf",
+              mime_type: "application/pdf",
+              byte_size: 1,
+            }),
+            "INSERT anexo (aluno)",
+            () =>
+              pg.query(
+                `delete from public.lesson_plan_attachments
+                 where storage_path = 'RLS-V-LESSON-ALUNO'`
+              )
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plan_attachments")
+              .update({ byte_size: 9 })
+              .eq("id", attachmentId)
+              .select("id, byte_size"),
+            "UPDATE anexo (aluno)"
+          );
+          assertLessonWriteRefused(
+            await alunoLesson
+              .from("lesson_plan_attachments")
+              .delete()
+              .eq("id", attachmentId)
+              .select("id"),
+            "DELETE anexo (aluno)"
+          );
+
+          await assertFixtureUntouched("aluno");
+          await alunoLesson.auth.signOut();
+        } else {
+          console.log(
+            "  [Opcional] sem fixture student — testes de aluno em planos de aula omitidos."
+          );
+        }
+      } finally {
+        await cleanupMarkerRows();
       }
     }
 
@@ -704,6 +3061,19 @@ async function main() {
         }
       );
       if (signInStudentPortal.error) throw signInStudentPortal.error;
+
+      const ownClasses = await studentPortalClient
+        .from("classes")
+        .select("id, name")
+        .eq("id", classPortalFixture.classId);
+      if (ownClasses.error) {
+        throw new Error(`student classes: ${ownClasses.error.message}`);
+      }
+      if ((ownClasses.data || []).length !== 1) {
+        throw new Error(
+          `student devia ver 1 turma própria, viu ${(ownClasses.data || []).length}`
+        );
+      }
 
       await pg.query(`delete from public.check_ins where class_session_id = $1`, [
         classPortalFixture.sessionId,
@@ -1028,6 +3398,202 @@ async function main() {
       await pg.query(`delete from public.reservations where account_id = $1`, [
         studentFixture.accountId,
       ]);
+    }
+
+    if (passwordForSignIn) {
+      console.log(
+        ", Academia: aluno não apaga nem configura; professor configura a própria ,"
+      );
+
+      const assertAccountWriteRefused = (result, label) => {
+        if (result.error) {
+          console.log(`  Recusado ${label}: ${result.error.message}`);
+          return;
+        }
+        if ((result.data || []).length > 0) {
+          throw new Error(`${label} não devia alterar a academia`);
+        }
+      };
+
+      const readAccount = async (accountId) => {
+        const res = await pg.query(
+          `select id, name, pix_key, pix_key_type, pix_holder_name
+           from public.accounts
+           where id = $1`,
+          [accountId]
+        );
+        return res.rows[0] || null;
+      };
+
+      const signInAccount = async (email) => {
+        const client = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const signed = await client.auth.signInWithPassword({
+          email,
+          password: passwordForSignIn,
+        });
+        if (signed.error) throw signed.error;
+        return client;
+      };
+
+      const beforeA = await readAccount(tenantA.accountId);
+      if (!beforeA) throw new Error("academia fixture A ausente");
+      const beforeB = await readAccount(tenantB.accountId);
+      if (!beforeB) throw new Error("academia fixture B ausente");
+
+      const profAccount = await signInAccount(EMAIL_A);
+
+      const readOther = await profAccount
+        .from("accounts")
+        .select("id, name")
+        .eq("id", tenantB.accountId);
+      if (readOther.error) {
+        console.log(
+          `  Recusado SELECT academia alheia: ${readOther.error.message}`
+        );
+      } else if ((readOther.data || []).length > 0) {
+        throw new Error("professor A não devia ler a academia de B");
+      }
+
+      const ownAccount = await profAccount
+        .from("accounts")
+        .select("id")
+        .eq("id", tenantA.accountId);
+      if (ownAccount.error) {
+        throw new Error(`professor A accounts: ${ownAccount.error.message}`);
+      }
+      if ((ownAccount.data || []).length !== 1) {
+        throw new Error("professor A devia ler a própria academia");
+      }
+
+      assertAccountWriteRefused(
+        await profAccount
+          .from("accounts")
+          .update({ name: "RLS-V-B-ACCOUNT" })
+          .eq("id", tenantB.accountId)
+          .select("id, name"),
+        "UPDATE academia alheia"
+      );
+      const afterCross = await readAccount(tenantB.accountId);
+      if (
+        !afterCross ||
+        afterCross.name !== beforeB.name ||
+        afterCross.pix_key !== beforeB.pix_key
+      ) {
+        if (afterCross) {
+          await pg.query(
+            `update public.accounts
+             set name = $2, pix_key = $3, pix_key_type = $4, pix_holder_name = $5
+             where id = $1`,
+            [
+              tenantB.accountId,
+              beforeB.name,
+              beforeB.pix_key,
+              beforeB.pix_key_type,
+              beforeB.pix_holder_name,
+            ]
+          );
+        }
+        throw new Error("professor A alterou a academia de B");
+      }
+
+      if (studentFixture) {
+        const alunoAccount = await signInAccount(studentFixture.email);
+
+        assertAccountWriteRefused(
+          await alunoAccount
+            .from("accounts")
+            .update({ name: "RLS-V-A-ALUNO" })
+            .eq("id", studentFixture.accountId)
+            .select("id, name"),
+          "UPDATE nome (aluno)"
+        );
+        assertAccountWriteRefused(
+          await alunoAccount
+            .from("accounts")
+            .update({
+              pix_key: "00000000000",
+              pix_key_type: "cpf",
+              pix_holder_name: "RLS-V-A",
+            })
+            .eq("id", studentFixture.accountId)
+            .select("id, pix_key"),
+          "UPDATE pix (aluno)"
+        );
+        assertAccountWriteRefused(
+          await alunoAccount
+            .from("accounts")
+            .delete()
+            .eq("id", studentFixture.accountId)
+            .select("id"),
+          "DELETE academia (aluno)"
+        );
+
+        const afterAluno = await readAccount(studentFixture.accountId);
+        if (!afterAluno) {
+          throw new Error("aluno apagou a academia fixture");
+        }
+        if (
+          afterAluno.name !== beforeA.name ||
+          afterAluno.pix_key !== beforeA.pix_key ||
+          afterAluno.pix_key_type !== beforeA.pix_key_type ||
+          afterAluno.pix_holder_name !== beforeA.pix_holder_name
+        ) {
+          await pg.query(
+            `update public.accounts
+             set name = $2, pix_key = $3, pix_key_type = $4, pix_holder_name = $5
+             where id = $1`,
+            [
+              studentFixture.accountId,
+              beforeA.name,
+              beforeA.pix_key,
+              beforeA.pix_key_type,
+              beforeA.pix_holder_name,
+            ]
+          );
+          throw new Error("aluno alterou nome ou pix da academia fixture");
+        }
+
+        await alunoAccount.auth.signOut();
+
+        const markerName = "RLS-V-A-ACCOUNT";
+        const profRename = await profAccount
+          .from("accounts")
+          .update({ name: markerName })
+          .eq("id", studentFixture.accountId)
+          .select("id, name");
+        const renamed = await readAccount(studentFixture.accountId);
+        if (renamed && renamed.name !== beforeA.name) {
+          await pg.query(
+            `update public.accounts set name = $2 where id = $1`,
+            [studentFixture.accountId, beforeA.name]
+          );
+        }
+        if (profRename.error) {
+          throw new Error(
+            `professor devia actualizar o nome da academia: ${profRename.error.message}`
+          );
+        }
+        if (
+          (profRename.data || []).length !== 1 ||
+          profRename.data[0].name !== markerName ||
+          !renamed ||
+          renamed.name !== markerName
+        ) {
+          throw new Error("professor não actualizou o nome da academia fixture");
+        }
+        const restored = await readAccount(studentFixture.accountId);
+        if (!restored || restored.name !== beforeA.name) {
+          throw new Error("nome da academia fixture não foi reposto");
+        }
+      } else {
+        console.log(
+          "  [Opcional] sem fixture student — testes de aluno na academia omitidos."
+        );
+      }
+
+      await profAccount.auth.signOut();
     }
 
     console.log("\nOK , validação RLS concluída.");

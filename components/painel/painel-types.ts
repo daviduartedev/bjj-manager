@@ -4,11 +4,13 @@ import type {
   PainelDistributionSlice,
 } from "@/lib/data/painel-page";
 import type { UpcomingSessionRow } from "@/lib/data/classes-page";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import type { PainelBillingMix } from "@/lib/painel/billing-mix";
 import type { PainelBlockId } from "@/lib/painel/hidden-blocks";
 import type { PaymentReminderRow } from "@/lib/painel/payment-reminders";
 
 export type PainelDashboardProps = {
+  modality: AcademyModality;
   displayName: string;
   hiddenBlocks: readonly PainelBlockId[];
   accountName: string;

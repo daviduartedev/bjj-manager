@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { ISO_WEEKDAY_MAX, ISO_WEEKDAY_MIN } from "@/lib/classes/constants";
+import { ACADEMY_MODALITIES } from "@/lib/modalities/catalog";
 
 const TIME_HH_MM_RE = /^\d{2}:\d{2}(:\d{2})?$/;
 
@@ -12,7 +13,8 @@ const timeSchema = z
 export const classSchema = z
   .object({
     name: z.string().trim().min(1, "Informe o nome da turma.").max(100, "Nome muito longo."),
-    kind: z.enum(["adult", "kids", "baby"], { message: "Modalidade inválida." }),
+    kind: z.enum(["adult", "kids", "baby"], { message: "Público inválido." }),
+    modality: z.enum(ACADEMY_MODALITIES).optional(),
     instructorProfileId: z.string().uuid("Perfil de instrutor inválido."),
   })
   .strict();

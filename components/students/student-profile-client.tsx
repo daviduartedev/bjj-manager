@@ -5,8 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserRound } from "lucide-react";
 
+import { JudoBeltIllustration, MuayThaiKhanIllustration } from "@/components/graduation/referenced-rank-display";
+import { ReferencedGraduationReference } from "@/components/graduation/referenced-graduation-reference";
+import { referencedGraduationSummary } from "@/lib/modalities/referenced-graduation-summary";
 import { BeltIllustration } from "@/components/graduation/belt-illustration";
 import { GraduationEventDialog } from "@/components/graduation/graduation-event-dialog";
+import { ReferencedPromotionDialog } from "@/components/graduation/referenced-promotion-dialog";
+import { ReferencedPromotionHistory } from "@/components/graduation/referenced-promotion-history";
 
 import { Section } from "@/components/layout/section";
 import { StudentStatusBadge } from "@/components/students/student-status-badge";
@@ -24,6 +29,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { StudentProfilePayload } from "@/lib/data/students-profile.shared";
+import type { AcademyModality } from "@/lib/modalities/catalog";
 import type { BeltCatalogRow } from "@/lib/data/students-catalog";
 import type { StudentAttendancesPage } from "@/lib/data/student-attendances";
 import { profileFormatPaidAt } from "@/lib/data/students-profile.shared";
@@ -49,6 +55,7 @@ import {
 import { studentKindLabels } from "@/lib/i18n/domain-enums";
 
 type Props = {
+  modality?: AcademyModality;
   profile: StudentProfilePayload;
   belts: BeltCatalogRow[];
   defaultTab?: "dados" | "graduacao" | "financeiro" | "documentos" | "portal" | "presenca";
@@ -94,6 +101,7 @@ function Field({
 
 export function StudentProfileClient({
   profile,
+  modality = "jiu_jitsu",
   belts,
   defaultTab = "dados",
   attendance,
@@ -101,6 +109,9 @@ export function StudentProfileClient({
   frameVariant,
 }: Props) {
   const router = useRouter();
+  const ungraded = modality === "boxing";
+  const referenced = modality === "judo" || modality === "muay_thai";
+  const rankSummary = referencedGraduationSummary(profile, profile.todayYmd);
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
 
@@ -108,12 +119,12 @@ export function StudentProfileClient({
 
   const beltSlug = profile.currentBelt?.slug;
   const beltKind = profile.currentBelt?.kind;
-  const beltTitle =
+  const beltTitle = rankSummary.rank?.label ?? (
     beltSlug && beltKind
-      ? beltWithDegreeLine(beltSlug, beltKind, profile.current_degree)
-      : profile.current_degree > 0
+      ? beltWithDegreeLine(beltSlug, beltKind, profile.current_degree ?? 0)
+      : profile.current_degree != null && profile.current_degree > 0
         ? `Grau ${profile.current_degree}`
-        : ",";
+        : ",");
 
   const showKidsAdultBanner =
     profile.kind === "kids" &&
@@ -129,7 +140,7 @@ export function StudentProfileClient({
       emoji="👤"
       icon={UserRound}
       tone="rose"
-      context={`${beltTitle}, ${studentKindLabels[profile.kind]}, ${ageDisplay}`}
+      context={`${ungraded ? "" : `${beltTitle}, `}${studentKindLabels[profile.kind]}, ${ageDisplay}`}
     >
     <div className="space-y-6">
       <DashboardBackLink href={ROUTES.alunos}>Alunos</DashboardBackLink>
@@ -141,7 +152,7 @@ export function StudentProfileClient({
           </div>
           <div className="min-w-0 flex-1 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{beltTitle}</Badge>
+              {!ungraded ? <Badge variant="secondary">{beltTitle}</Badge> : null}
               <Badge variant="outline">{studentKindLabels[profile.kind]}</Badge>
               <StudentStatusBadge status={profile.status} />
               {profile.is_exempt ? <StudentExemptBadge /> : null}
@@ -151,14 +162,14 @@ export function StudentProfileClient({
               <Button className="min-h-11" asChild>
                 <Link href={routeAlunoEditar(profile.id)}>Editar</Link>
               </Button>
-              <Button
+              {modality === "jiu_jitsu" || referenced ? <Button
                 type="button"
                 variant="outline"
                 className="min-h-11"
                 onClick={() => setPromoteOpen(true)}
               >
                 Promover
-              </Button>
+              </Button> : null}
               {profile.canRegisterMonthlyPayments ? (
                 <Button
                   type="button"
@@ -197,9 +208,9 @@ export function StudentProfileClient({
             <TabsTrigger value="dados" className="min-h-11 shrink-0">
               Dados pessoais
             </TabsTrigger>
-            <TabsTrigger value="graduacao" className="min-h-11 shrink-0">
+            {!ungraded ? <TabsTrigger value="graduacao" className="min-h-11 shrink-0">
               Graduação
-            </TabsTrigger>
+            </TabsTrigger> : null}
             <TabsTrigger value="financeiro" className="min-h-11 shrink-0">
               Financeiro
             </TabsTrigger>
@@ -241,6 +252,7 @@ export function StudentProfileClient({
                     profile.phone ? maskPhoneBrInput(profile.phone) : ","
                   }
                 />
+                {!profile.current_belt_id ? <Field label="Peso" value={formatWeightKg(profile.weight_kg ?? null) ?? "–"} /> : null}
                 <Field label="E-mail" value={profile.email ?? ","} />
               </CardContent>
             </ProfileSurfaceCard>
@@ -256,16 +268,18 @@ export function StudentProfileClient({
           </Section>
         </TabsContent>
 
-        <TabsContent value="graduacao" className="space-y-4">
+        {!ungraded ? <TabsContent value="graduacao" className="space-y-4">
           <Section title="Estado actual">
             <ProfileSurfaceCard>
               <CardHeader className="pb-2">
                 <div className="flex flex-wrap items-center gap-4">
+                  {rankSummary.rank?.modality === "judo" ? <JudoBeltIllustration rank={rankSummary.rank} decorative /> : null}
+                  {rankSummary.rank?.modality === "muay_thai" ? <MuayThaiKhanIllustration rank={rankSummary.rank} decorative /> : null}
                   {beltSlug && beltKind ? (
                     <BeltIllustration
                       slug={beltSlug}
                       kind={beltKind}
-                      degree={profile.current_degree}
+                      degree={profile.current_degree ?? 0}
                     />
                   ) : null}
                   <CardTitle className="text-base font-semibold">
@@ -276,14 +290,16 @@ export function StudentProfileClient({
               <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <p>
                   <span className="font-medium text-foreground">
-                    Tempo na faixa e no grau actuais:{" "}
+                    {referenced ? "Tempo na graduação atual:" : "Tempo na faixa e no grau actuais:"}{" "}
                   </span>
-                  {profile.timeAtBeltPhrase ?? ","}
+                  {referenced ? rankSummary.durationLabel : profile.timeAtBeltPhrase ?? ","}
                   {profile.timeAtDegreePhrase &&
                   profile.timeAtDegreePhrase !== profile.timeAtBeltPhrase ? (
                     <>, grau: {profile.timeAtDegreePhrase}</>
                   ) : null}
                 </p>
+                {referenced ? <p><span className="font-medium text-foreground">Data da graduação: </span>{rankSummary.dateLabel}</p> : null}
+                {referenced ? <ReferencedGraduationReference modality={modality} /> : null}
                 {profile.academy_start_date ? (
                   <p>
                     <span className="font-medium text-foreground">
@@ -301,17 +317,18 @@ export function StudentProfileClient({
             </ProfileSurfaceCard>
           </Section>
           <Section title="Histórico">
-            <div className="flex flex-wrap items-center justify-end gap-2">
+            {modality === "jiu_jitsu" || referenced ? <div className="flex flex-wrap items-center justify-end gap-2">
               <Button variant="outline" size="sm" className="min-h-9" asChild>
                 <Link href={routeAlunoGraduacoes(profile.id)}>
                   Ver histórico completo
                 </Link>
               </Button>
-            </div>
-            {recentGraduations.length === 0 ? (
+            </div> : null}
+            {referenced ? <ReferencedPromotionHistory events={profile.rankPromotions ?? []} current={profile} /> : null}
+            {referenced ? null : recentGraduations.length === 0 ? (
               <ProfileSurfaceCard>
                 <CardContent className="p-8 text-center text-sm text-muted-foreground">
-                  Ainda não há graduações registadas.
+                  {referenced ? "Ainda não há eventos de promoção registrados." : "Ainda não há graduações registadas."}
                 </CardContent>
               </ProfileSurfaceCard>
             ) : (
@@ -375,7 +392,7 @@ export function StudentProfileClient({
               </div>
             )}
           </Section>
-        </TabsContent>
+        </TabsContent> : null}
 
         <TabsContent value="financeiro" className="space-y-4">
           {profile.is_exempt ? (
@@ -540,7 +557,7 @@ export function StudentProfileClient({
         </TabsContent>
       </Tabs>
 
-      <GraduationEventDialog
+      {!ungraded && profile.current_belt_id != null && profile.current_degree != null ? <GraduationEventDialog
         open={promoteOpen}
         onOpenChange={setPromoteOpen}
         mode="promote"
@@ -551,7 +568,13 @@ export function StudentProfileClient({
         currentDegree={profile.current_degree}
         belts={belts}
         onSuccess={() => router.refresh()}
-      />
+      /> : null}
+
+      {referenced && profile.current_rank_code && profile.birth_date ? <ReferencedPromotionDialog modality={modality}
+        open={promoteOpen} onOpenChange={setPromoteOpen} onSuccess={() => router.refresh()}
+        studentId={profile.id} currentCode={profile.current_rank_code} currentDate={profile.current_rank_date ?? null}
+        birthDate={profile.birth_date} today={profile.todayYmd}
+      /> : null}
 
       <RecordPaymentDialog
         open={paymentOpen}
