@@ -16,10 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ROUTES } from "@/lib/routes";
+import { parsePlanRowReaisToCents } from "@/lib/validations/settings";
 import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 import { formatMoneyBrFromCents } from "@/lib/students/payment-ui";
 
@@ -45,6 +47,8 @@ export function RecordPaymentDialog({
     null,
   );
   const [referenceMonth, setReferenceMonth] = useState(defaultReferenceMonth);
+  const [amountReais, setAmountReais] = useState("");
+  const [settlePreviousMonth, setSettlePreviousMonth] = useState(false);
   const [paidAtLocal, setPaidAtLocal] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [notes, setNotes] = useState("");
@@ -60,13 +64,17 @@ export function RecordPaymentDialog({
   useEffect(() => {
     if (open) {
       setReferenceMonth(defaultReferenceMonth);
+      setAmountReais(
+        amountCents == null ? "" : (amountCents / 100).toFixed(2).replace(".", ","),
+      );
+      setSettlePreviousMonth(false);
       setPaidAtLocal("");
       setPaymentMethod("");
       setNotes("");
       setPendingKind(null);
       setSummary(null);
     }
-  }, [open, defaultReferenceMonth]);
+  }, [open, defaultReferenceMonth, amountCents]);
 
   const monthControlValue = referenceMonth.slice(0, 7);
 
@@ -75,6 +83,13 @@ export function RecordPaymentDialog({
       toast.error(
         "Este aluno não tem plano ativo. Associe um plano antes de registrar.",
       );
+      return;
+    }
+
+    const chargedCents =
+      kind === "paid" ? parsePlanRowReaisToCents(amountReais) : undefined;
+    if (kind === "paid" && (chargedCents == null || !Number.isFinite(chargedCents) || chargedCents < 1)) {
+      toast.error("Indique o valor recebido. Ex.: 120 ou 240,00.");
       return;
     }
 
@@ -90,6 +105,8 @@ export function RecordPaymentDialog({
           studentId,
           referenceMonth,
           recordingKind: kind,
+          amountCents: kind === "paid" ? chargedCents : undefined,
+          settlePreviousMonth: kind === "paid" ? settlePreviousMonth : false,
           paidAt: paidAtPayload,
           notes: notes.trim() === "" ? null : notes.trim(),
           paymentMethod:
@@ -135,7 +152,7 @@ export function RecordPaymentDialog({
   if (summary) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[min(92vh,720px)] flex-col gap-4 overflow-y-auto sm:max-w-md">
+        <DialogContent size="short" className="flex max-h-[min(92vh,720px)] flex-col gap-4 overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Pagamento registrado</DialogTitle>
             <DialogDescription>
@@ -162,27 +179,24 @@ export function RecordPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[min(92vh,720px)] flex-col gap-4 overflow-y-auto sm:max-w-md">
+      <DialogContent size="short" className="flex max-h-[min(92vh,720px)] flex-col gap-4 overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Registrar pagamento</DialogTitle>
           <DialogDescription>
-            Valor conforme plano ativo. Para isenção, use «Bolsista (isento)» em vez de confirmar pagamento.
+            O valor começa no preço do plano. Altere se este mês incluir a parcela que ficou para trás.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2 text-sm text-muted-foreground">
           <p>
-            Referência: Adulto R$&nbsp;120, Kids 1 e Kids 2 R$&nbsp;100 (ajuste em{" "}
+            Referência do plano: Adulto R$&nbsp;120, Kids 1 e Kids 2 R$&nbsp;100 (ajuste em{" "}
             <Link
               href={ROUTES.configuracoes}
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
               Configurações
             </Link>
-            ).
-          </p>
-          <p>
-            O valor não pode ser editado aqui: na confirmação usa-se o preço vigente do plano ou R$&nbsp;0 para bolsista.
+            ). Bolsista continua a gravar R$&nbsp;0.
           </p>
         </div>
 
@@ -201,23 +215,40 @@ export function RecordPaymentDialog({
             />
           </div>
 
-          <div className="space-y-2 rounded-lg border border-border/80 bg-muted/30 px-3 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Valor do plano (referência)
-            </p>
-            <p className="type-lead tabular-nums-crm text-lg font-semibold text-foreground">
-              {amountCents != null ? formatMoneyBrFromCents(amountCents) : ","}
-            </p>
+          <div className="space-y-2">
+            <Label htmlFor="pay-amount">Valor recebido neste mês</Label>
+            <Input
+              id="pay-amount"
+              inputMode="decimal"
+              value={amountReais}
+              onChange={(e) => setAmountReais(e.target.value)}
+              placeholder="Ex.: 240,00"
+              disabled={amountCents == null}
+              className="min-h-11 tabular-nums"
+            />
             {amountCents == null ? (
               <p className="text-sm text-destructive">
                 Sem plano ativo, não é possível registrar.
               </p>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Pagamento normal grava este valor; bolsista grava R$&nbsp;0,00.
+                Plano deste aluno: {formatMoneyBrFromCents(amountCents)}. Para duas parcelas, use o dobro.
               </p>
             )}
           </div>
+
+          <label className="flex min-h-11 items-start gap-3 text-sm">
+            <Checkbox
+              size="sm"
+              className="mt-0.5"
+              checked={settlePreviousMonth}
+              onCheckedChange={(checked) => setSettlePreviousMonth(checked === true)}
+              disabled={amountCents == null}
+            />
+            <span>
+              Quitar também o mês anterior. Ele sai dos atrasados e o valor não entra de novo no caixa daquele mês.
+            </span>
+          </label>
 
           <div className="space-y-2">
             <Label htmlFor="paid-at">Data e hora do pagamento</Label>

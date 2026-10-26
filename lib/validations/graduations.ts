@@ -2,17 +2,25 @@ import { z } from "zod";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida.");
 
-export const weightKgSchema = z
-  .union([
-    z.literal(""),
-    z.literal(null),
-    z.undefined(),
-    z.coerce.number().min(20, "Mínimo 20,0 kg.").max(250, "Máximo 250,0 kg."),
-  ])
-  .transform((v) => {
-    if (v === "" || v === null || v === undefined) return null;
-    return Math.round(Number(v) * 10) / 10;
-  });
+function weightNumberSchema(minKg: number, minMessage: string) {
+  return z
+    .union([
+      z.literal(""),
+      z.literal(null),
+      z.undefined(),
+      z.coerce.number().min(minKg, minMessage).max(250, "Máximo 250,0 kg."),
+    ])
+    .transform((v) => {
+      if (v === "" || v === null || v === undefined) return null;
+      return Math.round(Number(v) * 10) / 10;
+    });
+}
+
+/** Adulto e graduação: 20,0 a 250,0 kg. */
+export const weightKgSchema = weightNumberSchema(20, "Mínimo 20,0 kg.");
+
+/** Baby: qualquer peso acima de zero, até 250,0 kg. */
+export const weightKgBabySchema = weightNumberSchema(0.1, "Indique o peso em kg.");
 
 const graduationEventFields = z
   .object({

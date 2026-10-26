@@ -387,6 +387,15 @@ async function tryAutoIssueReceipt(
   }
 }
 
+function previousReferenceMonth(refMonth: string): string | null {
+  const match = /^(\d{4})-(\d{2})-01$/.exec(refMonth);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const date = new Date(Date.UTC(year, month - 2, 1));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-01`;
+}
+
 export async function recordPayment(input: unknown): Promise<RecordPaymentResult> {
   try {
     const parsed = recordPaymentSchema.safeParse(input);
@@ -402,6 +411,8 @@ export async function recordPayment(input: unknown): Promise<RecordPaymentResult
       studentId,
       referenceMonth,
       recordingKind,
+      amountCents,
+      settlePreviousMonth,
       paidAt,
       notes,
       paymentMethod,
@@ -446,11 +457,25 @@ export async function recordPayment(input: unknown): Promise<RecordPaymentResult
         paymentMethod: paymentMethod ?? null,
       });
     } else {
+      if (settlePreviousMonth) {
+        const previousMonth = previousReferenceMonth(refMonth);
+        if (previousMonth) {
+          await upsertRecordedPaymentRow(supabase, {
+            studentId,
+            refMonth: previousMonth,
+            status: "paid",
+            amountCents: 0,
+            paidAtIso,
+            notes: "Parcela quitada junto com o mês seguinte.",
+            paymentMethod: paymentMethod ?? null,
+          });
+        }
+      }
       inserted = await upsertRecordedPaymentRow(supabase, {
         studentId,
         refMonth,
         status: "paid",
-        amountCents: price.effectiveCents,
+        amountCents: amountCents ?? price.effectiveCents,
         paidAtIso,
         notes: notes ?? null,
         paymentMethod: paymentMethod ?? null,

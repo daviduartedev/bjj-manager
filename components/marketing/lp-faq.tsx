@@ -1,6 +1,5 @@
-import {
+﻿import {
   LpDisplay,
-  LpEyebrow,
   LpReveal,
   LpSection,
 } from "@/components/marketing/lp-primitives";
@@ -42,13 +41,12 @@ const faqItems = [
 
 export function LpFaq() {
   return (
-    <LpSection id="faq">
-      <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20">
+    <LpSection id="faq" className="relative z-10 bg-black text-white">
+      <div className="grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-28">
         {/* Left column — sticky on desktop */}
         <LpReveal>
           <div className="lg:sticky lg:top-28 mb-12 lg:mb-0">
-            <LpEyebrow>FAQ</LpEyebrow>
-            <LpDisplay className="mt-6 text-[clamp(2.25rem,5vw,4rem)]">
+            <LpDisplay className="text-[clamp(2.25rem,5vw,4rem)]">
               Perguntas frequentes
             </LpDisplay>
             <p className="mt-6 max-w-[36ch] leading-relaxed text-white/60">
@@ -64,12 +62,12 @@ export function LpFaq() {
               <details key={q} className="group">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left text-base font-medium text-white outline-none focus-visible:ring-2 focus-visible:ring-white sm:text-lg [&::-webkit-details-marker]:hidden">
                   <span>{q}</span>
-                  <span aria-hidden className="font-lp text-2xl text-bjj-red group-open:hidden">
+                  <span aria-hidden className="font-sans text-2xl font-semibold text-bjj-red group-open:hidden">
                     +
                   </span>
                   <span
                     aria-hidden
-                    className="hidden font-lp text-2xl text-bjj-red group-open:inline"
+                    className="hidden font-sans text-2xl font-semibold text-bjj-red group-open:inline"
                   >
                     −
                   </span>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { validateGraduatedAtNotFuture } from "@/lib/graduation/graduated-at";
-import { weightKgSchema } from "@/lib/validations/graduations";
+import { weightKgBabySchema, weightKgSchema } from "@/lib/validations/graduations";
 
 describe("weightKgSchema", () => {
   it("aceita valor válido com uma casa decimal", () => {
@@ -18,6 +18,16 @@ describe("weightKgSchema", () => {
 
   it("normaliza vazio para null", () => {
     expect(weightKgSchema.parse("")).toBeNull();
+  });
+});
+
+describe("weightKgBabySchema", () => {
+  it("aceita peso de baby abaixo de 20 kg", () => {
+    expect(weightKgBabySchema.parse("12.4")).toBe(12.4);
+  });
+
+  it("rejeita zero", () => {
+    expect(() => weightKgBabySchema.parse(0)).toThrow();
   });
 });
 

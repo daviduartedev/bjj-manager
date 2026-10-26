@@ -119,6 +119,8 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   pix_key_type public.pix_key_type NULL,
   pix_key text NULL,
   pix_holder_name text NULL,
+  readiness_kids_degree_months smallint NULL,
+  readiness_confirmed_at timestamptz NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT accounts_cnpj_format_ck CHECK (
@@ -151,6 +153,10 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   ),
   CONSTRAINT accounts_storefront_published_whatsapp_ck CHECK (
     storefront_published = false OR storefront_whatsapp IS NOT NULL
+  ),
+  CONSTRAINT accounts_readiness_kids_degree_months_ck CHECK (
+    readiness_kids_degree_months IS NULL
+    OR readiness_kids_degree_months IN (1, 3, 4)
   )
 );
 
@@ -201,6 +207,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   display_name text NOT NULL,
   phone text NULL,
   role public.profile_role NOT NULL DEFAULT 'professor',
+  painel_hidden_blocks text[] NOT NULL DEFAULT '{}',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT profiles_user_id_key UNIQUE (user_id)
@@ -340,7 +347,7 @@ CREATE TABLE IF NOT EXISTS public.student_graduations (
   CONSTRAINT student_graduations_weight_kg_ck CHECK (
     weight_kg IS NULL
     OR (
-      weight_kg >= 20.0
+      weight_kg >= 0.1
       AND weight_kg <= 250.0
     )
   )

@@ -58,10 +58,18 @@ export const recordPaymentSchema = z
     studentId: z.string().uuid("Identificador de aluno inválido."),
     referenceMonth: z.string().min(1, "Indique o mês de referência."),
     /**
-     * **`paid`**: mensalidade ao valor do plano (definido na conta; servidor ignora qualquer valor manual).
+     * **`paid`**: usa `amountCents` quando vem preenchido; senão, o preço do plano.
      * **`scholarship`**: isenção / bolsista (`amount_cents` = 0 no registo).
      */
     recordingKind: z.enum(["paid", "scholarship"]).default("paid"),
+    amountCents: z.coerce
+      .number()
+      .int("O valor deve ser um inteiro em centavos.")
+      .min(1, "Indique o valor.")
+      .max(99_999_999)
+      .optional(),
+    /** Quita o mês anterior como pago, sem somar esse valor de novo no caixa. */
+    settlePreviousMonth: z.boolean().optional(),
     paidAt: z.string().optional(),
     notes: z.string().max(4000).optional().nullable(),
     paymentMethod: z.string().max(200).optional().nullable(),

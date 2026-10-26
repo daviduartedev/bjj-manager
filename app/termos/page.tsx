@@ -42,7 +42,7 @@ export default function TermosPage() {
         Marca, interface e código do Casca pertencem à Utopia. Os dados cadastrais da academia e dos alunos pertencem à academia responsável pela conta.
       </p>
 
-      <h2>Alterações e contacto</h2>
+      <h2>Alterações e contato</h2>
       <p>
         Estes Termos podem ser atualizados. A versão vigente fica nesta página. Dúvidas: utopia.app.br.
       </p>

@@ -72,6 +72,7 @@ export default async function EditarAlunoPage({ params }: PageProps) {
       ) : null}
 
       <DashboardPanel
+        className="mx-auto w-full max-w-3xl"
         icon={FilePenLine}
         title="Ficha completa"
         subtitle={modality === "boxing" ? "Atualize dados pessoais e vínculo de plano" : "Atualize dados pessoais, faixa e vínculo de plano"}

@@ -14,7 +14,8 @@ import {
 import { ProductPhotoEditor } from "@/components/products/product-photo-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
+import { shouldToastActionError } from "@/lib/ui/action-field-errors";
+import { formActionsClass, formCheckboxRowClass, primaryActionClass } from "@/lib/ui/form-chrome";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -73,6 +74,7 @@ export function ProductEditorCard({ product }: Props) {
   const [catalogVisible, setCatalogVisible] = useState(product.catalog_visible);
   const [savingProduct, setSavingProduct] = useState(false);
   const [savingCatalog, setSavingCatalog] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   const [sizeQuery, setSizeQuery] = useState("");
   const [chipSize, setChipSize] = useState<string | null>(null);
@@ -136,6 +138,7 @@ export function ProductEditorCard({ product }: Props) {
   }
 
   async function saveProductMeta() {
+    setNameError(null);
     setSavingProduct(true);
     try {
       const descriptionChanged =
@@ -151,7 +154,9 @@ export function ProductEditorCard({ product }: Props) {
         description: descriptionChanged ? descriptionDraft : undefined,
       });
       if (!r.ok) {
-        toast.error(r.error);
+        const fieldMessage = r.fieldErrors?.name?.[0];
+        if (fieldMessage) setNameError(fieldMessage);
+        if (shouldToastActionError(r)) toast.error(r.error);
         return;
       }
       toast.success("Produto atualizado.");
@@ -266,7 +271,7 @@ export function ProductEditorCard({ product }: Props) {
                     <Package className="size-4" aria-hidden />
                   </span>
                   <div className="min-w-0 space-y-1">
-                    <h2 className="font-display text-lg font-semibold leading-tight text-foreground sm:text-xl">
+                    <h2 className="text-lg font-semibold leading-tight tracking-[-0.02em] text-foreground sm:text-xl">
                       {product.name}
                     </h2>
                     <p className="text-crm-xs text-muted-foreground">
@@ -302,10 +307,17 @@ export function ProductEditorCard({ product }: Props) {
                   <Input
                     id={`prod-name-${product.id}`}
                     value={nameDraft}
-                    onChange={(e) => setNameDraft(e.target.value)}
+                    onChange={(e) => {
+                      setNameDraft(e.target.value);
+                      setNameError(null);
+                    }}
                     maxLength={120}
                     disabled={savingProduct}
+                    aria-invalid={nameError ? true : undefined}
                   />
+                  {nameError ? (
+                    <p className="text-crm-sm font-medium text-destructive">{nameError}</p>
+                  ) : null}
                 </div>
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor={`prod-description-${product.id}`}>Descrição</Label>
@@ -340,36 +352,28 @@ export function ProductEditorCard({ product }: Props) {
                   </Select>
                 </div>
                 <div className="flex flex-col justify-end gap-3 pb-1">
-                  <div className="flex items-center gap-3">
+                  <label className={cn(formCheckboxRowClass, "items-end")}>
                     <Checkbox
-                      id={`prod-active-${product.id}`}
+                      size="sm"
                       checked={active}
                       disabled={savingProduct}
                       onCheckedChange={(v) => void toggleActive(v === true)}
-                      className="size-5"
                     />
-                    <Label
-                      htmlFor={`prod-active-${product.id}`}
-                      className="cursor-pointer font-normal leading-snug"
-                    >
+                    <span className="cursor-pointer font-normal leading-snug">
                       Ativo na gestão
-                    </Label>
-                  </div>
-                  <div className="flex items-center gap-3">
+                    </span>
+                  </label>
+                  <label className={cn(formCheckboxRowClass, "items-end")}>
                     <Checkbox
-                      id={`prod-catalog-${product.id}`}
+                      size="sm"
                       checked={catalogVisible}
                       disabled={savingProduct || savingCatalog}
                       onCheckedChange={(v) => void toggleCatalogVisible(v === true)}
-                      className="size-5"
                     />
-                    <Label
-                      htmlFor={`prod-catalog-${product.id}`}
-                      className="cursor-pointer font-normal leading-snug"
-                    >
+                    <span className="cursor-pointer font-normal leading-snug">
                       Mostrar na vitrine
-                    </Label>
-                  </div>
+                    </span>
+                  </label>
                 </div>
               </div>
               {listingWarning ? (

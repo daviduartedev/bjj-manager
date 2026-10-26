@@ -75,23 +75,23 @@ const config: Config = {
       fontFamily: {
         sans: [
           "var(--font-sans)",
-          '"IBM Plex Sans"',
-          "Segoe UI",
+          "Inter",
+          "ui-sans-serif",
           "system-ui",
           "sans-serif",
         ],
-        /* Mesma família que sans: hierarquia só por peso/tamanho , padrão CRM */
         display: [
           "var(--font-sans)",
-          '"IBM Plex Sans"',
-          "Segoe UI",
+          "Inter",
+          "ui-sans-serif",
           "system-ui",
           "sans-serif",
         ],
         lp: [
-          "var(--font-lp-display)",
-          '"Arial Narrow"',
-          "Impact",
+          "var(--font-sans)",
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
           "sans-serif",
         ],
       },

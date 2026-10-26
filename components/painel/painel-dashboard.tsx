@@ -15,10 +15,13 @@ import {
 import { RouteHeader } from "@/components/layout/route-header";
 import { useState, type ReactNode } from "react";
 
+import { MonthRevenuePair } from "@/components/painel/month-revenue-pair";
+import { PainelCustomizeControl } from "@/components/painel/painel-customize-dialog";
 import { formatPainelDate, formatPainelMonth, moneyLabel } from "@/components/painel/painel-blocks";
 import type { PainelDashboardProps } from "@/components/painel/painel-types";
 import { MIX_META, attentionItems, mixTotal, shareLabel } from "@/components/painel/painel-attention";
 import { studentKindLabels } from "@/lib/i18n/domain-enums";
+import { isPainelBlockVisible, type PainelBlockId } from "@/lib/painel/hidden-blocks";
 import { ROUTES, routeAlunosActivos, routeAulasSessao, routeMensalidadesComFiltro } from "@/lib/routes";
 import { beltDistributionBarColor } from "@/lib/students/belt-chart-colors";
 import { cn } from "@/lib/utils";
@@ -42,6 +45,11 @@ export function PainelDashboard(props: PainelDashboardProps) {
     value: props.billingMix[item.key],
   }));
   const attention = attentionItems(props);
+  const show = (id: PainelBlockId) => isPainelBlockVisible(props.hiddenBlocks, id);
+  const showKpis =
+    show("overdue") || show("active") || show("received") || show("alerts");
+  const showAttention = show("attention");
+  const showBelts = show("belts");
 
   return (
     <div
@@ -64,9 +72,12 @@ export function PainelDashboard(props: PainelDashboardProps) {
           href: ROUTES.alunosNovo,
           icon: <UserPlus className="size-4" aria-hidden />,
         }}
+        extra={<PainelCustomizeControl hiddenBlocks={props.hiddenBlocks} />}
       />
 
+      {showKpis ? (
       <section aria-label="Indicadores" className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 xl:grid-cols-4">
+        {show("overdue") ? (
         <KpiCard
           href={routeMensalidadesComFiltro("atrasado")}
           icon={<AlertTriangle className="size-4" aria-hidden />}
@@ -78,6 +89,8 @@ export function PainelDashboard(props: PainelDashboardProps) {
           chipClass={props.overdueCount > 0 ? pillTone.rose : pillTone.emerald}
           bars={mixRows.map((row) => ({ value: row.value, color: row.key === "overdue" ? row.color : "#d4d4d8" }))}
         />
+        ) : null}
+        {show("active") ? (
         <KpiCard
           href={routeAlunosActivos()}
           icon={<Users className="size-4" aria-hidden />}
@@ -96,12 +109,14 @@ export function PainelDashboard(props: PainelDashboardProps) {
           bars={
             props.modality === "boxing"
               ? []
-              : [...props.distributionAdult, ...props.distributionKids].slice(0, 6).map((slice, index) => ({
+              : [...props.distributionAdult, ...props.distributionKids].slice(0, 6).map((slice) => ({
                   value: slice.count,
-                  color: slice.barColor ?? ["#2563eb", "#7c3aed", "#ea580c", "#16a34a", "#eab308", "#0ea5e9"][index] ?? "#71717a",
+                  color: slice.barColor ?? beltDistributionBarColor(slice.slug, slice.kind),
                 }))
           }
         />
+        ) : null}
+        {show("received") ? (
         <KpiCard
           href={ROUTES.mensalidades}
           icon={<Wallet className="size-4" aria-hidden />}
@@ -116,41 +131,58 @@ export function PainelDashboard(props: PainelDashboardProps) {
             color: ["#16a34a", "#22c55e", "#4ade80", "#15803d", "#86efac", "#166534"][index] ?? "#16a34a",
           }))}
         />
+        ) : null}
+        {show("alerts") ? (
         <KpiCard
           href={routeAlunosActivos()}
           icon={<Award className="size-4" aria-hidden />}
           iconClass="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-100"
           label={props.modality === "jiu_jitsu" ? "Alertas de graduação" : "Aniversários"}
-          value={String(props.modality === "jiu_jitsu" ? props.graduationAlertCount : props.birthdayMonthCount)}
-          chip={
-            props.modality === "jiu_jitsu"
-              ? props.birthdayMonthCount === 1
-                ? "1 aniversário"
-                : `${props.birthdayMonthCount} aniversários`
-              : props.birthdayToday.length === 1
-                ? "1 hoje"
-                : `${props.birthdayToday.length} hoje`
-          }
-          chipHint="neste mês"
-          chipClass={pillTone.amber}
-          bars={props.modality === "jiu_jitsu" ? [
-            { value: props.dueToday.length, color: "#f59e0b" },
-            { value: props.overdue14.length, color: "#e11d48" },
-            { value: props.birthdayToday.length, color: "#8b5cf6" },
-            { value: props.graduationAlertCount, color: "#0ea5e9" },
-          ] : [
-            { value: props.birthdayToday.length, color: "#8b5cf6" },
+          value={String(props.modality === "jiu_jitsu" ? props.graduationAlertCount : props.birthdayToday.length)}
+          bars={[
+            { value: props.graduationAlertCount, color: "hsl(var(--status-info))" },
           ]}
         />
+        ) : null}
       </section>
+      ) : null}
 
-      <section className="mt-3 grid grid-cols-1 items-stretch gap-3 min-[520px]:mt-4 min-[520px]:gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <AttentionBoard items={attention} modality={props.modality} />
-        {props.modality === "boxing" ? null : (
-          <BeltBarsCard modality={props.modality} adult={props.distributionAdult} kids={props.distributionKids} />
+      {show("forecast") ? (
+        <MonthRevenuePair
+          className="mt-3 sm:mt-4"
+          monthLabel={monthLabel}
+          forecastCents={props.forecastCents}
+          receivedCents={props.monthFinance.totalPaidReceivedCents}
+          reminders={props.paymentReminders}
+        />
+      ) : null}
+
+      {showAttention || (showBelts && props.modality !== "boxing") ? (
+      <section
+        className={cn(
+          "mt-3 grid grid-cols-1 items-stretch gap-3 min-[520px]:mt-4 min-[520px]:gap-4",
+          showAttention && showBelts && props.modality !== "boxing" && "md:grid-cols-2 xl:grid-cols-5",
         )}
+      >
+        {showAttention ? (
+          <AttentionBoard
+            items={attention}
+            modality={props.modality}
+            className={showBelts && props.modality !== "boxing" ? "xl:col-span-3" : "xl:col-span-5"}
+          />
+        ) : null}
+        {showBelts && props.modality !== "boxing" ? (
+          <BeltBarsCard
+            modality={props.modality}
+            adult={props.distributionAdult}
+            kids={props.distributionKids}
+            className={showAttention ? "xl:col-span-2" : undefined}
+          />
+        ) : null}
       </section>
+      ) : null}
 
+      {show("classes") ? (
       <section className={cn(card, "mt-3 p-4 sm:mt-4 sm:p-5")}>
         <div className="flex items-center gap-2">
           <CalendarDays className="size-4 text-sky-600" aria-hidden />
@@ -158,6 +190,7 @@ export function PainelDashboard(props: PainelDashboardProps) {
         </div>
         <TodaySessions sessions={props.todaySessions} nextSession={props.nextSession} />
       </section>
+      ) : null}
     </div>
   );
 }
@@ -168,9 +201,9 @@ function KpiCard(props: {
   iconClass: string;
   label: string;
   value: string;
-  chip: string;
-  chipHint: string;
-  chipClass: string;
+  chip?: string;
+  chipHint?: string;
+  chipClass?: string;
   bars: { value: number; color: string }[];
 }) {
   const rows = props.bars.length > 0 ? props.bars : [{ value: 0, color: "#e4e4e7" }];
@@ -183,33 +216,44 @@ function KpiCard(props: {
         <MiniBars rows={rows} />
       </div>
       <p className="mt-4 text-sm text-muted-foreground">{props.label}</p>
-      <p className="mt-1 font-display text-[1.65rem] font-semibold leading-none tracking-tight tabular-nums [overflow-wrap:anywhere] sm:text-[2rem]">
+      <p className="mt-1 text-[1.65rem] font-semibold leading-none tracking-[-0.015em] tabular-nums [overflow-wrap:anywhere] sm:text-[2rem]">
         {props.value}
       </p>
-      <p className="mt-3 flex flex-wrap items-center gap-2">
-        <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", props.chipClass)}>{props.chip}</span>
-        <span className="text-xs text-muted-foreground">{props.chipHint}</span>
-      </p>
+      {props.chip || props.chipHint ? (
+        <p className="mt-3 flex flex-wrap items-center gap-2">
+          {props.chip ? (
+            <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", props.chipClass)}>{props.chip}</span>
+          ) : null}
+          {props.chipHint ? (
+            <span className="text-xs text-muted-foreground">{props.chipHint}</span>
+          ) : null}
+        </p>
+      ) : null}
     </Link>
   );
 }
 
 function MiniBars(props: { rows: { value: number; color: string }[] }) {
-  const max = Math.max(1, ...props.rows.map((row) => row.value));
   const width = 88;
+  const height = 40;
+  const gap = 3;
   const slot = width / props.rows.length;
+  const barWidth = Math.max(2, Math.min(slot - gap, 14));
+  const max = Math.max(1, ...props.rows.map((row) => (Number.isFinite(row.value) ? row.value : 0)));
   return (
-    <svg viewBox={`0 0 ${width} 40`} className="h-8 w-16 shrink-0 sm:h-10 sm:w-[5.5rem]" aria-hidden>
+    <svg viewBox={`0 0 ${width} ${height}`} className="h-8 w-16 shrink-0 overflow-hidden sm:h-10 sm:w-[5.5rem]" aria-hidden>
       {props.rows.map((row, index) => {
-        const h = row.value <= 0 ? 3 : Math.max(6, (row.value / max) * 36);
+        const value = Number.isFinite(row.value) ? Math.max(0, row.value) : 0;
+        const h = value <= 0 ? 2 : Math.max(4, Math.min(height - 4, (value / max) * (height - 4)));
+        const x = index * slot + (slot - barWidth) / 2;
         return (
           <rect
             key={index}
-            x={index * slot + 1.5}
-            y={40 - h}
-            width={Math.max(4, slot - 4)}
+            x={x}
+            y={height - h}
+            width={barWidth}
             height={h}
-            rx="3"
+            rx="2"
             fill={row.color}
           />
         );
@@ -218,7 +262,11 @@ function MiniBars(props: { rows: { value: number; color: string }[] }) {
   );
 }
 
-function AttentionBoard(props: { items: ReturnType<typeof attentionItems>; modality: PainelDashboardProps["modality"] }) {
+function AttentionBoard(props: {
+  items: ReturnType<typeof attentionItems>;
+  modality: PainelDashboardProps["modality"];
+  className?: string;
+}) {
   const groups = [
     {
       reason: "Vence hoje",
@@ -237,9 +285,9 @@ function AttentionBoard(props: { items: ReturnType<typeof attentionItems>; modal
     },
     ...(props.modality === "jiu_jitsu"
       ? [{
-          reason: "Faixa ou grau",
+          reason: "Faixa ou grau" as const,
           label: "Faixa ou grau",
-          hint: "Tempo no grau passou de 4 meses, ou na faixa passou de 1 ano.",
+          hint: "Aluno ativo que atingiu o critério de prontidão da academia.",
         }]
       : []),
   ] as const;
@@ -256,7 +304,7 @@ function AttentionBoard(props: { items: ReturnType<typeof attentionItems>; modal
   const visible = rows.slice(safePage * pageSize, safePage * pageSize + pageSize);
 
   return (
-    <div className={cn(card, "flex h-full min-w-0 flex-col p-4 sm:p-5", props.modality === "boxing" ? "xl:col-span-5" : "xl:col-span-3")}>
+    <div className={cn(card, "flex h-full min-w-0 flex-col p-4 sm:p-5", props.className)}>
       <h2 className="text-base font-semibold">Atenção</h2>
       <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="Tipo de atenção">
         {groups.map((group) => {
@@ -335,6 +383,7 @@ function BeltBarsCard(props: {
   modality: PainelDashboardProps["modality"];
   adult: PainelDashboardProps["distributionAdult"];
   kids: PainelDashboardProps["distributionKids"];
+  className?: string;
 }) {
   const referenced = props.modality === "judo" || props.modality === "muay_thai";
   const [kind, setKind] = useState<"adult" | "kids">(props.adult.length > 0 ? "adult" : "kids");
@@ -347,7 +396,7 @@ function BeltBarsCard(props: {
       : "Sem alunos kids ativos com faixa registrada.";
 
   return (
-    <div className={cn(card, "flex h-full min-w-0 flex-col p-4 sm:p-5 xl:col-span-2")}>
+    <div className={cn(card, "flex h-full min-w-0 flex-col p-4 sm:p-5", props.className)}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold">{referenced ? "Graduação atual" : "Faixas"}</h2>
@@ -385,11 +434,11 @@ function BeltBarsCard(props: {
             return (
               <li key={slice.beltId} className={referenced ? "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2" : "grid grid-cols-[minmax(0,5.75rem)_minmax(0,1fr)_auto] items-center gap-2"}>
                 <span className={referenced ? "break-words text-xs text-foreground" : "truncate text-xs text-foreground"}>{slice.label}</span>
-                {referenced ? null : <span className="h-3 overflow-hidden rounded-full bg-[#f3f4f6] dark:bg-muted">
+                {referenced ? null : <span className="relative block h-3 min-w-0 overflow-hidden rounded-full bg-[#f3f4f6] dark:bg-muted">
                   <span
-                    className="block h-full rounded-full"
+                    className="absolute inset-y-0 left-0 rounded-full"
                     style={{
-                      width: `${width}%`,
+                      width: `${Math.min(100, width)}%`,
                       background: slice.barColor ?? beltDistributionBarColor(slice.slug, slice.kind),
                       boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.12)",
                     }}

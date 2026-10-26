@@ -101,6 +101,31 @@ export function ProductsClient({
         </div>
       ) : null}
 
+      {mainTab === "guia" ? (
+        <div
+          role="tabpanel"
+          id="produtos-panel-guia"
+          aria-labelledby="produtos-tab-guia"
+        >
+          <DashboardPanel
+            icon={Ruler}
+            title="Guia de kimonos"
+          >
+            <div className={`mb-6 ${formActionsClass}`}>
+              <Button
+                type="button"
+                variant="outline"
+                className={secondaryActionClass}
+                onClick={() => setMainTab("catalogo")}
+              >
+                Voltar ao catálogo
+              </Button>
+            </div>
+            <KimonoSizeGuide />
+          </DashboardPanel>
+        </div>
+      ) : null}
+
       {mainTab === "catalogo" ? (
         <div
           role="tabpanel"
@@ -162,30 +187,7 @@ export function ProductsClient({
             )}
           </DashboardPanel>
         </div>
-      ) : (
-        <div
-          role="tabpanel"
-          id="produtos-panel-guia"
-          aria-labelledby="produtos-tab-guia"
-        >
-          <DashboardPanel
-            icon={Ruler}
-            title="Guia de kimonos"
-          >
-            <div className={`mb-6 ${formActionsClass}`}>
-              <Button
-                type="button"
-                variant="outline"
-                className={secondaryActionClass}
-                onClick={() => setMainTab("catalogo")}
-              >
-                Voltar ao catálogo
-              </Button>
-            </div>
-            <KimonoSizeGuide />
-          </DashboardPanel>
-        </div>
-      )}
+      ) : null}
     </Tabs>
   );
 }

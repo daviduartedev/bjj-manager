@@ -15,6 +15,8 @@ export type AccountRow = {
   cnpj: string | null;
   signature_url: string | null;
   logo_url: string | null;
+  readiness_kids_degree_months: number | null;
+  readiness_confirmed_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -26,6 +28,7 @@ export type ProfileRow = {
   display_name: string;
   phone: string | null;
   role: AuthRole;
+  painel_hidden_blocks: string[];
   created_at: string;
   updated_at: string;
 };
@@ -57,10 +60,35 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
   if (!user) return null;
 
   const supabase = await createClient();
-  const { data: row, error } = await supabase
-    .from("profiles")
-    .select(
-      `
+  const fullSelect = `
+      id,
+      user_id,
+      account_id,
+      display_name,
+      phone,
+      role,
+      painel_hidden_blocks,
+      created_at,
+      updated_at,
+      accounts (
+        id,
+        name,
+        slug,
+        storefront_whatsapp,
+        storefront_published,
+        modality,
+        legal_name,
+        cnpj,
+        signature_url,
+        logo_url,
+        readiness_kids_degree_months,
+        readiness_confirmed_at,
+        created_at,
+        updated_at
+      )
+    `;
+
+  const legacySelect = `
       id,
       user_id,
       account_id,
@@ -83,10 +111,23 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
         created_at,
         updated_at
       )
-    `,
-    )
+    `;
+
+  let { data: row, error } = await supabase
+    .from("profiles")
+    .select(fullSelect)
     .eq("user_id", user.id)
     .maybeSingle();
+
+  if (error) {
+    const retry = await supabase
+      .from("profiles")
+      .select(legacySelect)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    row = retry.data as typeof row;
+    error = retry.error;
+  }
 
   if (error || !row) return null;
 
@@ -107,9 +148,32 @@ export async function getCurrentAccount(): Promise<AuthContext | null> {
     display_name: profileRow.display_name,
     phone: profileRow.phone ?? null,
     role: profileRow.role,
+    painel_hidden_blocks: Array.isArray(profileRow.painel_hidden_blocks)
+      ? profileRow.painel_hidden_blocks
+      : [],
     created_at: profileRow.created_at,
     updated_at: profileRow.updated_at,
   };
 
-  return { user, profile, account: accountRow };
+  const account: AccountRow = {
+    id: accountRow.id,
+    name: accountRow.name,
+    slug: accountRow.slug,
+    storefront_whatsapp: accountRow.storefront_whatsapp ?? null,
+    storefront_published: accountRow.storefront_published === true,
+    modality: accountRow.modality,
+    legal_name: accountRow.legal_name ?? null,
+    cnpj: accountRow.cnpj ?? null,
+    signature_url: accountRow.signature_url ?? null,
+    logo_url: accountRow.logo_url ?? null,
+    readiness_kids_degree_months:
+      typeof accountRow.readiness_kids_degree_months === "number"
+        ? accountRow.readiness_kids_degree_months
+        : null,
+    readiness_confirmed_at: accountRow.readiness_confirmed_at ?? null,
+    created_at: accountRow.created_at,
+    updated_at: accountRow.updated_at,
+  };
+
+  return { user, profile, account };
 }

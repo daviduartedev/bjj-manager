@@ -51,3 +51,8 @@ export function toCalendarDateStringInAppTZ(d: Date): string {
   const { y, m0, d: day } = calendarPartsFromJsDate(d);
   return `${y}-${String(m0 + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
+
+/** «Hoje» civil em America/Sao_Paulo — não usar `toISOString().slice(0, 10)`. */
+export function todayCalendarDateStringInAppTZ(now: Date = new Date()): string {
+  return toCalendarDateStringInAppTZ(now);
+}

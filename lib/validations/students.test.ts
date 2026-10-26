@@ -20,6 +20,11 @@ const beltKidsOrange = {
   slug: "orange",
   kind: "kids" as const,
 };
+const beltAdultBlue = {
+  id: "10000000-0000-4000-8000-000000000005",
+  slug: "blue",
+  kind: "adult" as const,
+};
 const planAdult = {
   id: "20000000-0000-4000-8000-000000000001",
   kind: "adult" as const,
@@ -31,6 +36,10 @@ const planKids = {
 const planKids2 = {
   id: "20000000-0000-4000-8000-000000000003",
   kind: "kids_2" as const,
+};
+const planBaby = {
+  id: "20000000-0000-4000-8000-000000000006",
+  kind: "baby" as const,
 };
 
 const baseInput = {
@@ -45,11 +54,77 @@ const baseInput = {
 };
 
 describe("buildStudentFullFormSchema", () => {
-  const plansTriple = [planAdult, planKids, planKids2];
+  const plansTriple = [planAdult, planKids, planKids2, planBaby];
   const schema = buildStudentFullFormSchema(
-    [beltAdult, beltKids, beltKidsOrange],
+    [beltAdult, beltKids, beltKidsOrange, beltAdultBlue],
     plansTriple,
   );
+
+  it("aceita peso de baby abaixo de 20 kg", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "baby" as const,
+      birth_date: "2022-06-01",
+      current_belt_id: beltKids.id,
+      plan_id: planBaby.id,
+      weight_kg: 12.4,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.weight_kg).toBe(12.4);
+  });
+
+  it("aceita baby sem peso", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "baby" as const,
+      birth_date: "2022-06-01",
+      current_belt_id: beltKids.id,
+      plan_id: planBaby.id,
+      weight_kg: "",
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.weight_kg).toBeNull();
+  });
+
+  it("rejeita peso zero no baby", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "baby" as const,
+      birth_date: "2022-06-01",
+      current_belt_id: beltKids.id,
+      plan_id: planBaby.id,
+      weight_kg: 0,
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it("rejeita peso de adulto abaixo de 20 kg", () => {
+    const r = schema.safeParse({ ...baseInput, weight_kg: 12 });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.flatten().fieldErrors.weight_kg?.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("aceita peso de adulto dentro da faixa", () => {
+    const r = schema.safeParse({ ...baseInput, weight_kg: "72.5" });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.weight_kg).toBe(72.5);
+  });
+
+  it("rejeita peso de kids abaixo de 20 kg", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      kind: "kids" as const,
+      current_belt_id: beltKids.id,
+      plan_id: planKids.id,
+      weight_kg: 15,
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.flatten().fieldErrors.weight_kg?.[0]).toMatch(/20/);
+    }
+  });
 
   it("aceita combinação adulto + plano adulto + faixa adulta", () => {
     const r = schema.safeParse(baseInput);
@@ -130,6 +205,45 @@ describe("buildStudentFullFormSchema", () => {
       status: "inactive",
     });
     expect(r.success).toBe(false);
+  });
+
+  it("grava o ano de entrada da faixa branca como 1 de janeiro", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      academy_start_date: "2024-06-15",
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.academy_start_date).toBe("2024-01-01");
+    }
+  });
+
+  it("rejeita ano de entrada posterior ao ano civil no campo da faixa branca", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      academy_start_date: "2099-01-01",
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.flatten().fieldErrors.academy_start_date).toEqual([
+        "O ano de entrada não pode ser no futuro.",
+      ]);
+    }
+  });
+
+  it("rejeita data de entrada futura na faixa colorida", () => {
+    const r = schema.safeParse({
+      ...baseInput,
+      current_belt_id: beltAdultBlue.id,
+      current_degree: 0,
+      academy_start_date: "2099-06-15",
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.flatten().fieldErrors.academy_start_date).toEqual([
+        "A data de entrada não pode ser no futuro.",
+      ]);
+    }
   });
 });
 

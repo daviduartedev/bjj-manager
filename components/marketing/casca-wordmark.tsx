@@ -29,7 +29,7 @@ export function CascaWordmarkNav({
       >
         <span
           className={cn(
-            "inline-flex select-none items-baseline gap-0 font-display font-bold uppercase tracking-[0.14em] text-white",
+            "inline-flex select-none items-baseline gap-0 font-sans font-semibold tracking-[-0.02em] text-white",
             "text-base sm:text-lg",
             className,
           )}
@@ -44,7 +44,7 @@ export function CascaWordmarkNav({
   return (
     <span
       className={cn(
-        "inline-flex select-none items-baseline gap-0 font-display font-bold uppercase tracking-[0.14em] text-white",
+        "inline-flex select-none items-baseline gap-0 font-sans font-semibold tracking-[-0.02em] text-white",
         "text-base sm:text-lg",
         className,
       )}

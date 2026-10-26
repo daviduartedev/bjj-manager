@@ -35,7 +35,7 @@ export function ReferencedPromotionDialog({ modality, open, onOpenChange, onSucc
   const target = findReferencedRank(reference.id, rankCode);
   const reasonRequired = assessment.wasSkip || assessment.exceptions.length > 0;
   function fieldError(field: string) { return errors[field]?.length ? <p id={`promotion-${field}-error`} className="text-sm text-destructive">{errors[field].join(" ")}</p> : null; }
-  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent size="wide" className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
     <DialogHeader><DialogTitle>Registrar promoção de {modality === "judo" ? "Judô" : "Muay Thai"}</DialogTitle><DialogDescription>Registre uma graduação já concedida pelo professor.</DialogDescription></DialogHeader>
     <form className="space-y-4" onSubmit={async event => {
       event.preventDefault(); setBusy(true); setErrors({}); setError("");

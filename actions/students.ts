@@ -162,9 +162,26 @@ export async function createStudent(
       });
     }
 
+    if (legacyGraduation && v.weight_kg != null && v.current_belt_id && v.current_degree != null) {
+      await applyWeightToCurrentGraduation(
+        supabase,
+        inserted.id,
+        v.current_belt_id,
+        v.current_degree,
+        v.weight_kg,
+      );
+    }
+
     revalidatePath(ROUTES.alunos);
     return { ok: true };
   } catch (e) {
+    if (e instanceof GraduationWeightError) {
+      return {
+        ok: false,
+        error: e.message,
+        fieldErrors: { [e.field]: [e.message] },
+      };
+    }
     if (e instanceof BillingDomainError) {
       return { ok: false, error: mapBillingActionError(e) };
     }
@@ -279,7 +296,11 @@ export async function updateStudent(
     return { ok: true };
   } catch (e) {
     if (e instanceof GraduationWeightError) {
-      return { ok: false, error: e.message, fieldErrors: { weight_kg: [e.message] } };
+      return {
+        ok: false,
+        error: e.message,
+        fieldErrors: { [e.field]: [e.message] },
+      };
     }
     if (e instanceof BillingDomainError) {
       return { ok: false, error: mapBillingActionError(e) };
@@ -392,7 +413,11 @@ export async function quickUpdateStudent(
     return { ok: true };
   } catch (e) {
     if (e instanceof GraduationWeightError) {
-      return { ok: false, error: e.message, fieldErrors: { weight_kg: [e.message] } };
+      return {
+        ok: false,
+        error: e.message,
+        fieldErrors: { [e.field]: [e.message] },
+      };
     }
     if (e instanceof BillingDomainError) {
       return { ok: false, error: mapBillingActionError(e) };

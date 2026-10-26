@@ -6,6 +6,7 @@ import {
   maskCnpj,
   updateAccountSchema,
   updateProfileSchema,
+  updateReadinessCriterionSchema,
   updateReceiverSchema,
 } from "./settings";
 
@@ -84,5 +85,37 @@ describe("updateReceiverSchema", () => {
       account_id: "550e8400-e29b-41d4-a716-446655440000",
     });
     expect(r.success).toBe(false);
+  });
+});
+
+describe("updateReadinessCriterionSchema", () => {
+  it("aceita cadência kids 1, 3 ou 4", () => {
+    expect(
+      updateReadinessCriterionSchema.safeParse({ kidsDegreeMonths: 1 }).success,
+    ).toBe(true);
+    expect(
+      updateReadinessCriterionSchema.safeParse({ kidsDegreeMonths: 3 }).success,
+    ).toBe(true);
+    expect(
+      updateReadinessCriterionSchema.safeParse({
+        kidsDegreeMonths: 4,
+        confirmAccepted: true,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejeita cadência fora de 1, 3 e 4", () => {
+    expect(
+      updateReadinessCriterionSchema.safeParse({ kidsDegreeMonths: 2 }).success,
+    ).toBe(false);
+  });
+
+  it("rejeita campos extras (mass assignment)", () => {
+    expect(
+      updateReadinessCriterionSchema.safeParse({
+        kidsDegreeMonths: 4,
+        account_id: "550e8400-e29b-41d4-a716-446655440000",
+      }).success,
+    ).toBe(false);
   });
 });

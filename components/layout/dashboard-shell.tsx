@@ -160,7 +160,7 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
     >
       {brandMarkSidebar}
       <span className="min-w-0 pt-0.5">
-        <span className="block font-display text-sm font-semibold tracking-tight text-secondary-foreground">
+        <span className="block text-sm font-semibold tracking-[-0.02em] text-secondary-foreground">
           {APP_NAME}
         </span>
         {academyName ? (

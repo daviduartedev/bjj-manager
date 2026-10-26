@@ -87,6 +87,27 @@ describe("recordPaymentSchema", () => {
     if (r.success) expect(r.data.recordingKind).toBe("scholarship");
   });
 
+  it("rejeita valor zero", () => {
+    const r = recordPaymentSchema.safeParse({
+      ...recordBase,
+      amountCents: 0,
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it("aceita amountCents e settlePreviousMonth", () => {
+    const r = recordPaymentSchema.safeParse({
+      ...recordBase,
+      amountCents: 24000,
+      settlePreviousMonth: true,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.amountCents).toBe(24000);
+      expect(r.data.settlePreviousMonth).toBe(true);
+    }
+  });
+
   it("rejeita amount_cents ou account_id enviados pelo cliente (strict)", () => {
     expect(
       recordPaymentSchema.safeParse({

@@ -76,7 +76,7 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
     >
       <div className="flex items-center gap-3">
         {brandMarkSidebar}
-        <span className="font-display text-sm font-semibold tracking-tight text-zinc-100">
+        <span className="text-sm font-semibold tracking-[-0.02em] text-zinc-100">
           {APP_NAME}
         </span>
       </div>

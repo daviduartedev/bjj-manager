@@ -12,7 +12,8 @@ import {
   type ProvisionPortalSuccessOutcome,
 } from "@/actions/student-portal/provision-access";
 import { Button } from "@/components/ui/button";
-import { formActionsClass, primaryActionClass } from "@/lib/ui/form-chrome";
+import { applyActionFailureToForm } from "@/lib/ui/action-field-errors";
+import { formActionsClass, formShellClass, primaryActionClass } from "@/lib/ui/form-chrome";
 import {
   Form,
   FormControl,
@@ -158,14 +159,8 @@ export function ProvisionPortalAccess({
     try {
       const result = await provisionStudentPortalAccess(values);
       if (!result.ok) {
-        if (result.fieldErrors) {
-          for (const [field, messages] of Object.entries(result.fieldErrors)) {
-            form.setError(field as keyof ProvisionPortalAccessInput, {
-              message: messages[0],
-            });
-          }
-        }
-        toast.error(result.error);
+        const { toastError } = applyActionFailureToForm(form.setError, result);
+        if (toastError) toast.error(result.error);
         return;
       }
 
@@ -230,7 +225,7 @@ export function ProvisionPortalAccess({
       ) : null}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className={`${formShellClass} space-y-4`}>
           <input type="hidden" {...form.register("studentId")} />
           <input type="hidden" {...form.register("mode")} />
 

@@ -1,5 +1,6 @@
 import type { AcademyModality } from "@/lib/modalities/catalog";
 import type { BeltCatalogRow, PlanCatalogRow } from "@/lib/data/students-catalog";
+import { todayCalendarDateStringInAppTZ } from "@/lib/dates";
 import type { StudentFullFormValues } from "@/lib/validations/students";
 import { getReferencedRanks } from "@/lib/modalities/referenced-ranks";
 
@@ -9,7 +10,7 @@ export function defaultCreateStudentValues(
   plans: PlanCatalogRow[],
   modality: AcademyModality = "jiu_jitsu",
 ): StudentFullFormValues {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayCalendarDateStringInAppTZ();
   const adultBelt = belts.find((b) => b.kind === "adult");
   const adultPlan = plans.find((p) => p.kind === "adult");
   const initialRank = getReferencedRanks(modality)[0];
