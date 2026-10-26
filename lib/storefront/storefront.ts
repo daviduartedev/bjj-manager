@@ -370,6 +370,20 @@ export function filterStorefrontByName<T extends { name: string }>(
   return products.filter((product) => foldStorefrontSearch(product.name).includes(needle));
 }
 
+export const STOREFRONT_AUDIENCE_FILTERS = ["Todos", "Unissex", "Masculino", "Feminino"] as const;
+
+export type StorefrontAudienceFilter = (typeof STOREFRONT_AUDIENCE_FILTERS)[number];
+
+export function filterStorefrontProducts<T extends { name: string; audienceLabel: string }>(
+  products: readonly T[],
+  query: string,
+  audience: StorefrontAudienceFilter,
+): T[] {
+  const named = filterStorefrontByName(products, query);
+  if (audience === "Todos") return named;
+  return named.filter((product) => product.audienceLabel === audience);
+}
+
 const STOREFRONT_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 const STOREFRONT_PHOTO_MAX_COUNT = 6;
 
@@ -425,6 +439,7 @@ export const STOREFRONT_THEME_DEFAULTS = {
   footerText: "#3f3f46",
   cardBackground: "#ffffff",
   cardText: "#18181b",
+  productTitle: "#18181b",
   mutedText: "#71717a",
   border: "#e4e4e7",
   accent: "#18181b",
@@ -476,6 +491,7 @@ export function storefrontThemeStyle(theme: StorefrontTheme): Record<string, str
     "--store-footer-text": theme.footerText,
     "--store-card": theme.cardBackground,
     "--store-card-text": theme.cardText,
+    "--store-title": theme.productTitle,
     "--store-muted": theme.mutedText,
     "--store-border": theme.border,
     "--store-accent": theme.accent,

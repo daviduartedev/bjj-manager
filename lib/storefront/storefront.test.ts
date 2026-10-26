@@ -6,6 +6,7 @@ import {
   canPublishStorefront,
   checkStorefrontPhoto,
   filterStorefrontByName,
+  filterStorefrontProducts,
   normalizeStorefrontDescription,
   projectStorefrontCard,
   projectStorefrontCatalog,
@@ -943,6 +944,24 @@ describe("filterStorefrontByName", () => {
 
   it("devolve lista vazia quando nada combina", () => {
     expect(filterStorefrontByName(products, "rash")).toEqual([]);
+  });
+});
+
+describe("filterStorefrontProducts", () => {
+  const products = [
+    { name: "Kimono", audienceLabel: "Unissex" },
+    { name: "Rash", audienceLabel: "Feminino" },
+    { name: "Faixa", audienceLabel: "Masculino" },
+  ];
+
+  it("mantém a ordem e o público escolhido, com a busca à parte", () => {
+    expect(filterStorefrontProducts(products, "", "Feminino")).toEqual([
+      { name: "Rash", audienceLabel: "Feminino" },
+    ]);
+    expect(filterStorefrontProducts(products, "faixa", "Todos")).toEqual([
+      { name: "Faixa", audienceLabel: "Masculino" },
+    ]);
+    expect(filterStorefrontProducts(products, "kimono", "Feminino")).toEqual([]);
   });
 });
 
