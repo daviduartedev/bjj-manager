@@ -25,7 +25,7 @@ export function StudentFormProgress({ step, onSelectCompleted }: Props) {
   const current = STUDENT_FORM_STEPS[step];
 
   return (
-    <div className="rounded-2xl border border-black/[0.04] bg-zinc-50/80 px-3 py-4 dark:border-border dark:bg-zinc-900/40 sm:px-4">
+    <div className="rounded-2xl border border-border bg-muted/80 px-3 py-4 sm:px-4">
       <ol className="grid grid-cols-4">
         {STUDENT_FORM_STEPS.map((item, index) => {
           const isCurrent = index === step;
@@ -35,12 +35,12 @@ export function StudentFormProgress({ step, onSelectCompleted }: Props) {
               className={cn(
                 "relative z-10 flex size-9 items-center justify-center rounded-full text-xs font-semibold tabular-nums",
                 isCurrent &&
-                  "bg-zinc-950 text-white shadow-[0_8px_20px_-12px_rgba(15,23,42,0.8)] ring-4 ring-zinc-950/10 dark:bg-zinc-100 dark:text-zinc-950 dark:ring-zinc-100/15",
+                  "bg-secondary text-secondary-foreground shadow-[0_8px_20px_-12px_rgba(15,23,42,0.8)] ring-4 ring-secondary/10",
                 isCompleted &&
-                  "bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950",
+                  "bg-secondary text-secondary-foreground",
                 !isCurrent &&
                   !isCompleted &&
-                  "border border-zinc-200 bg-white text-zinc-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-500",
+                  "border border-border bg-card text-muted-foreground",
               )}
             >
               {isCompleted ? <Check className="size-3.5" strokeWidth={2.5} aria-hidden /> : index + 1}
@@ -64,8 +64,8 @@ export function StudentFormProgress({ step, onSelectCompleted }: Props) {
                   className={cn(
                     "absolute left-1/2 top-[1.125rem] h-px w-full",
                     index < step
-                      ? "bg-zinc-950 dark:bg-zinc-100"
-                      : "bg-zinc-200 dark:bg-zinc-700",
+                      ? "bg-secondary"
+                      : "bg-border",
                   )}
                   aria-hidden
                 />

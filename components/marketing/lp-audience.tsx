@@ -1,11 +1,16 @@
 ﻿import { Check, GraduationCap, Store, UserRound } from "lucide-react";
 import Image from "next/image";
 
-import { LpDisplay, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LpPillCta } from "@/components/marketing/lp-chrome";
+import { LpDisplay, LpEyebrow, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 const audiences = [
   {
     icon: Store,
+    head: "bg-brand-blue text-white",
+    chip: "bg-white text-brand-blue",
+    leadTone: "text-white/80",
+    check: "bg-brand-blue/10 text-brand-blue",
     title: "Quem administra a escola",
     lead: "O mês financeiro e o painel do dia, sem caderno.",
     items: [
@@ -16,6 +21,10 @@ const audiences = [
   },
   {
     icon: GraduationCap,
+    head: "bg-brand-green text-white",
+    chip: "bg-white text-brand-green",
+    leadTone: "text-white/80",
+    check: "bg-brand-green/10 text-brand-green",
     title: "Quem ensina",
     lead: "Alunos, faixas e aulas no mesmo lugar.",
     items: [
@@ -26,6 +35,10 @@ const audiences = [
   },
   {
     icon: UserRound,
+    head: "bg-brand-yellow text-neutral-950",
+    chip: "bg-neutral-950 text-brand-yellow",
+    leadTone: "text-neutral-950/70",
+    check: "bg-neutral-950 text-brand-yellow",
     title: "Quem treina",
     lead: "Um espaço próprio, quando a academia libera o portal.",
     items: [
@@ -38,48 +51,53 @@ const audiences = [
 
 export function LpAudience() {
   return (
-    <LpSection id="para-quem" className="relative z-10 overflow-hidden bg-black text-white">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-32 bottom-0 h-[460px] w-[460px] rounded-full bg-[#BF1E27]/20 blur-[130px]"
-      />
-      <div className="relative grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-16">
+    <LpSection id="para-quem" className="relative z-10 bg-background">
+      <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-16">
         <LpReveal>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-bjj-red">Para quem é</p>
-          <LpDisplay className="mt-4 text-[clamp(2.25rem,5vw,4rem)]">
+          <LpEyebrow>Para quem é</LpEyebrow>
+          <LpDisplay surface="light" className="mt-4 text-balance text-[clamp(2.25rem,5vw,4rem)] sm:text-wrap">
             Cada pessoa da escola
-            <br />
-            vê o que precisa
+            <span className="sm:hidden"> </span>
+            <br className="hidden sm:block" />
+            <span className="text-brand-blue">vê o que precisa</span>
           </LpDisplay>
         </LpReveal>
 
-        {/* Logo da cobra: arquivo 1024×1024 servido sem recompressão (nítido em telas Full HD/retina). */}
-        <LpReveal delay={0.1} className="mx-auto lg:mx-0">
+        <LpReveal delay={0.1} className="mx-auto w-full min-w-0 max-w-[16rem] sm:max-w-[18rem] lg:mx-0 lg:max-w-[22rem]">
           <Image
-            src="/Logo.png"
+            src="/marketing/logo-emblem-light.png"
             alt="Casca — cobra, símbolo da academia"
             width={1024}
             height={1024}
-            unoptimized
-            className="h-64 w-64 select-none object-contain [mask-image:radial-gradient(circle,black_64%,transparent_71%)] sm:h-80 sm:w-80 lg:h-[26rem] lg:w-[26rem]"
+            className="h-auto w-full select-none"
+            style={{ width: "100%", height: "auto" }}
             data-testid="landing-snake-logo"
           />
         </LpReveal>
       </div>
 
-      <div className="relative mt-16 grid gap-6 lg:grid-cols-3">
-        {audiences.map(({ icon: Icon, title, lead, items }, i) => (
+      <div className="mt-16 grid gap-6 lg:grid-cols-3">
+        {audiences.map(({ icon: Icon, title, lead, items, head, chip, leadTone, check }, i) => (
           <LpReveal key={title} delay={i * 0.1} className="h-full">
-            <div className="flex h-full flex-col rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-8 transition-colors duration-300 hover:border-white/25">
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-white/15 bg-white/5">
-                <Icon className="h-5 w-5 text-white" aria-hidden />
-              </span>
-              <p className="mt-6 font-sans text-2xl font-semibold tracking-[-0.02em]">{title}</p>
-              <p className="mt-2 text-white/60">{lead}</p>
-              <ul className="mt-8 space-y-3 border-t border-white/10 pt-6">
+            <div className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-black/[0.06] bg-neutral-50 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_24px_48px_-28px_rgba(0,0,0,0.3)]">
+              <div className={`relative overflow-hidden p-7 sm:p-8 ${head}`}>
+                <Icon
+                  aria-hidden
+                  className="pointer-events-none absolute -bottom-6 -right-4 h-32 w-32 opacity-[0.12] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-rotate-6 group-hover:scale-105"
+                  strokeWidth={1.5}
+                />
+                <span className={`relative inline-flex h-12 w-12 items-center justify-center rounded-2xl ${chip}`}>
+                  <Icon className="h-5 w-5" aria-hidden />
+                </span>
+                <p className="relative mt-6 font-sans text-2xl font-bold tracking-[-0.03em]">{title}</p>
+                <p className={`relative mt-2 lg:min-h-[3rem] ${leadTone}`}>{lead}</p>
+              </div>
+              <ul className="flex-1 space-y-3 p-7 sm:p-8">
                 {items.map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-white/75">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-bjj-red" strokeWidth={3} aria-hidden />
+                  <li key={item} className="flex items-start gap-3 text-sm leading-relaxed text-foreground">
+                    <span className={`mt-px inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${check}`}>
+                      <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
+                    </span>
                     {item}
                   </li>
                 ))}
@@ -88,6 +106,12 @@ export function LpAudience() {
           </LpReveal>
         ))}
       </div>
+
+      <LpReveal className="mt-12 sm:mt-14">
+        <LpPillCta strong="Quem administra e quem ensina" note="no mesmo sistema.">
+          Criar academia para a equipe
+        </LpPillCta>
+      </LpReveal>
     </LpSection>
   );
 }

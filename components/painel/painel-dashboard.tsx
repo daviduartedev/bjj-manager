@@ -27,15 +27,24 @@ import { beltDistributionBarColor } from "@/lib/students/belt-chart-colors";
 import { cn } from "@/lib/utils";
 
 const card =
-  "rounded-[20px] border border-black/[0.04] bg-white shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)] dark:border-border dark:bg-card";
+  "rounded-[20px] border border-border bg-card shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)]";
 
 const pillTone = {
-  rose: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100",
-  amber: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-100",
-  violet: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-100",
-  sky: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-100",
-  emerald: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-100",
+  rose: "bg-[hsl(var(--status-overdue)/0.12)] text-[hsl(var(--status-overdue-foreground))]",
+  amber: "bg-[hsl(var(--status-pending)/0.18)] text-[hsl(var(--status-pending-foreground))]",
+  violet: "bg-foreground/[0.07] text-foreground",
+  sky: "bg-[hsl(var(--status-info)/0.12)] text-[hsl(var(--status-info-foreground))]",
+  emerald: "bg-[hsl(var(--status-paid)/0.12)] text-[hsl(var(--status-paid-foreground))]",
 };
+
+const RECEIVED_BAR_COLORS = [
+  "hsl(var(--status-paid))",
+  "hsl(var(--status-paid) / 0.82)",
+  "hsl(var(--status-paid) / 0.66)",
+  "hsl(var(--status-paid) / 0.5)",
+  "hsl(var(--status-paid) / 0.36)",
+  "hsl(var(--status-paid) / 0.24)",
+];
 
 export function PainelDashboard(props: PainelDashboardProps) {
   const monthLabel = formatPainelMonth(props.referenceMonth);
@@ -53,7 +62,7 @@ export function PainelDashboard(props: PainelDashboardProps) {
 
   return (
     <div
-      className="min-h-[calc(100dvh-3rem)] bg-[#f3f4f6] px-3 pb-8 pt-0 text-foreground dark:bg-zinc-950 sm:px-4 lg:min-h-dvh lg:px-6"
+      className="min-h-[calc(100dvh-3rem)] bg-background px-3 pb-8 pt-0 text-foreground sm:px-4 lg:min-h-dvh lg:px-6"
       data-tour="page-painel"
     >
       <RouteHeader
@@ -81,20 +90,20 @@ export function PainelDashboard(props: PainelDashboardProps) {
         <KpiCard
           href={routeMensalidadesComFiltro("atrasado")}
           icon={<AlertTriangle className="size-4" aria-hidden />}
-          iconClass="bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100"
+          iconClass={pillTone.rose}
           label="Atrasados"
           value={String(props.overdueCount)}
           chip={shareLabel(props.overdueCount, total)}
           chipHint="da carteira no mês"
           chipClass={props.overdueCount > 0 ? pillTone.rose : pillTone.emerald}
-          bars={mixRows.map((row) => ({ value: row.value, color: row.key === "overdue" ? row.color : "#d4d4d8" }))}
+          bars={mixRows.map((row) => ({ value: row.value, color: row.key === "overdue" ? row.color : "hsl(var(--border))" }))}
         />
         ) : null}
         {show("active") ? (
         <KpiCard
           href={routeAlunosActivos()}
           icon={<Users className="size-4" aria-hidden />}
-          iconClass="bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-100"
+          iconClass={pillTone.sky}
           label="Alunos ativos"
           value={String(props.activeStudentCount)}
           chip={
@@ -120,7 +129,7 @@ export function PainelDashboard(props: PainelDashboardProps) {
         <KpiCard
           href={ROUTES.mensalidades}
           icon={<Wallet className="size-4" aria-hidden />}
-          iconClass="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-100"
+          iconClass={pillTone.emerald}
           label="Recebido"
           value={moneyLabel(props.monthFinance.totalPaidReceivedCents)}
           chip={props.monthFinance.paidCount === 1 ? "1 pago" : `${props.monthFinance.paidCount} pagos`}
@@ -128,7 +137,7 @@ export function PainelDashboard(props: PainelDashboardProps) {
           chipClass={pillTone.emerald}
           bars={props.monthFinance.paidByPlanLabel.slice(0, 6).map((row, index) => ({
             value: row.totalCents,
-            color: ["#16a34a", "#22c55e", "#4ade80", "#15803d", "#86efac", "#166534"][index] ?? "#16a34a",
+            color: RECEIVED_BAR_COLORS[index] ?? RECEIVED_BAR_COLORS[0],
           }))}
         />
         ) : null}
@@ -136,7 +145,7 @@ export function PainelDashboard(props: PainelDashboardProps) {
         <KpiCard
           href={routeAlunosActivos()}
           icon={<Award className="size-4" aria-hidden />}
-          iconClass="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-100"
+          iconClass={pillTone.amber}
           label={props.modality === "jiu_jitsu" ? "Alertas de graduação" : "Aniversários"}
           value={String(props.modality === "jiu_jitsu" ? props.graduationAlertCount : props.birthdayToday.length)}
           bars={[
@@ -185,7 +194,7 @@ export function PainelDashboard(props: PainelDashboardProps) {
       {show("classes") ? (
       <section className={cn(card, "mt-3 p-4 sm:mt-4 sm:p-5")}>
         <div className="flex items-center gap-2">
-          <CalendarDays className="size-4 text-sky-600" aria-hidden />
+          <CalendarDays className="size-4 text-[hsl(var(--status-info))]" aria-hidden />
           <h2 className="text-base font-semibold">Aulas de hoje</h2>
         </div>
         <TodaySessions sessions={props.todaySessions} nextSession={props.nextSession} />
@@ -206,7 +215,7 @@ function KpiCard(props: {
   chipClass?: string;
   bars: { value: number; color: string }[];
 }) {
-  const rows = props.bars.length > 0 ? props.bars : [{ value: 0, color: "#e4e4e7" }];
+  const rows = props.bars.length > 0 ? props.bars : [{ value: 0, color: "hsl(var(--muted))" }];
   return (
     <Link href={props.href} className={cn(card, "flex h-full min-w-0 flex-col p-4 sm:p-5")}>
       <div className="flex items-start justify-between gap-3">
@@ -318,7 +327,7 @@ function AttentionBoard(props: {
               aria-selected={selected}
               className={cn(
                 "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium",
-                selected ? "bg-zinc-950 text-white" : "bg-[#f3f4f6] text-muted-foreground dark:bg-muted",
+                selected ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground",
               )}
               onClick={() => {
                 setReason(group.reason);
@@ -329,7 +338,7 @@ function AttentionBoard(props: {
               <span
                 className={cn(
                   "inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold tabular-nums",
-                  selected ? "bg-white text-zinc-950" : "bg-white text-foreground dark:bg-zinc-900",
+                  selected ? "bg-secondary-foreground text-secondary" : "bg-card text-foreground",
                 )}
               >
                 {count}
@@ -342,7 +351,7 @@ function AttentionBoard(props: {
       {rows.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">Nenhum aluno nesta lista.</p>
       ) : (
-        <ul className="mt-3 divide-y divide-black/[0.06] dark:divide-border">
+        <ul className="mt-3 divide-y divide-border">
           {visible.map((item) => (
             <li key={item.id} className="py-2.5">
               <Link href={item.href} className="block truncate text-sm font-medium hover:text-primary">
@@ -402,7 +411,7 @@ function BeltBarsCard(props: {
           <h2 className="text-base font-semibold">{referenced ? "Graduação atual" : "Faixas"}</h2>
           <p className="mt-1 text-xs text-muted-foreground">Alunos ativos. Pessoas.</p>
         </div>
-        {referenced ? null : <div className="inline-flex rounded-full bg-[#f3f4f6] p-1 dark:bg-muted" role="tablist" aria-label="Quadro de faixas">
+        {referenced ? null : <div className="inline-flex rounded-full bg-muted p-1" role="tablist" aria-label="Quadro de faixas">
           {(
             [
               ["adult", "Adulto"],
@@ -416,7 +425,7 @@ function BeltBarsCard(props: {
               aria-selected={kind === value}
               className={cn(
                 "rounded-full px-3 py-1 text-xs font-medium",
-                kind === value ? "bg-zinc-950 text-white" : "text-muted-foreground",
+                kind === value ? "bg-secondary text-secondary-foreground" : "text-muted-foreground",
               )}
               onClick={() => setKind(value)}
             >
@@ -434,7 +443,7 @@ function BeltBarsCard(props: {
             return (
               <li key={slice.beltId} className={referenced ? "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2" : "grid grid-cols-[minmax(0,5.75rem)_minmax(0,1fr)_auto] items-center gap-2"}>
                 <span className={referenced ? "break-words text-xs text-foreground" : "truncate text-xs text-foreground"}>{slice.label}</span>
-                {referenced ? null : <span className="relative block h-3 min-w-0 overflow-hidden rounded-full bg-[#f3f4f6] dark:bg-muted">
+                {referenced ? null : <span className="relative block h-3 min-w-0 overflow-hidden rounded-full bg-muted">
                   <span
                     className="absolute inset-y-0 left-0 rounded-full"
                     style={{
@@ -446,7 +455,7 @@ function BeltBarsCard(props: {
                 </span>}
                 <span className="text-xs tabular-nums text-muted-foreground">{slice.count}</span>
                 {referenced ? (
-                  <span className="col-span-2 h-3 overflow-hidden rounded-full bg-[#f3f4f6] dark:bg-muted">
+                  <span className="col-span-2 h-3 overflow-hidden rounded-full bg-muted">
                     <span
                       className="block h-full rounded-full"
                       style={{
@@ -488,9 +497,9 @@ function TodaySessions(props: {
         <li key={session.id} className="min-w-52">
           <Link
             href={routeAulasSessao(session.id)}
-            className="block rounded-2xl bg-[#f4f5f7] px-4 py-3 hover:bg-sky-50 dark:bg-muted"
+            className="block rounded-2xl bg-muted px-4 py-3 hover:bg-[hsl(var(--status-info)/0.12)]"
           >
-            <span className="text-sm font-semibold tabular-nums text-sky-700">{session.startTime}</span>
+            <span className="text-sm font-semibold tabular-nums text-[hsl(var(--status-info-foreground))]">{session.startTime}</span>
             <span className="mt-1 block truncate text-sm font-medium">{session.className}</span>
             <span className="text-xs text-muted-foreground">
               {studentKindLabels[session.classKind]} · {session.checkInCount} check-in

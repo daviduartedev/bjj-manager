@@ -7,11 +7,11 @@ export default function AuthLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="border-b border-zinc-200/80 bg-white/90 backdrop-blur">
+      <header className="border-b border-zinc-200/80 bg-card/90 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
           <Link
             href="/"
-            className="outline-none ring-offset-white focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-bjj-red focus-visible:ring-offset-2"
+            className="outline-none ring-offset-card focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <LogoMark height={26} className="py-1.5 pl-2 pr-3" />
           </Link>

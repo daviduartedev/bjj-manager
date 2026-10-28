@@ -63,7 +63,7 @@ function StudentRow({
       h={TABLE.row}
       style={{
         borderTop: `1px solid ${C.line}`,
-        background: `rgba(253,232,234,${flash * 0.85})`,
+        background: `hsl(var(--primary) / ${flash * 0.1})`,
         opacity: slide,
         transform: `translateX(${(1 - slide) * -60}px)`,
         boxSizing: "border-box",
@@ -80,7 +80,7 @@ function StudentRow({
         {s.plan}
       </Abs>
       <Abs x={COL.status} y={0} h={TABLE.row} style={{ display: "flex", alignItems: "center" }}>
-        <Pill bg={C.greenSoft} color="#15803d">
+        <Pill bg={C.greenSoft} color={C.greenInk}>
           Ativo
         </Pill>
       </Abs>
@@ -187,9 +187,9 @@ function NewStudentModal({ frame }: { frame: number }) {
             style={{
               boxSizing: "border-box",
               borderRadius: 16,
-              border: `2px solid ${on ? C.red : C.line}`,
-              background: on ? C.redSoft : "#fff",
-              color: on ? C.red : "#3b4048",
+              border: `2px solid ${on ? C.primary : C.line}`,
+              background: on ? C.primarySoft : "#fff",
+              color: on ? C.primary : "#3b4048",
               display: "grid",
               placeItems: "center",
               fontSize: 22,
@@ -232,7 +232,7 @@ function NewStudentModal({ frame }: { frame: number }) {
                 padding: "0 18px",
                 fontSize: 23,
                 fontWeight: 600,
-                background: belt === "Azul" && frame >= 140 ? C.redSoft : "transparent",
+                background: belt === "Azul" && frame >= 140 ? C.primarySoft : "transparent",
               }}
             >
               <BeltBar belt={belt} w={74} />
@@ -270,11 +270,11 @@ export function AlunosScene({ frameOverride }: { frameOverride?: number }) {
         y={136}
         w={466}
         Icon={Users}
-        iconBg={C.redSoft}
-        iconColor={C.red}
+        iconBg={C.primarySoft}
+        iconColor={C.primary}
         label="Total na conta"
         value={total}
-        bar="#fb3b5a"
+        bar={C.primary}
       />
       <StatCard
         x={837}

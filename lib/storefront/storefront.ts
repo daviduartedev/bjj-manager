@@ -27,9 +27,9 @@ const RESERVED_SLUG_ERROR = "Este endereço está reservado.";
 
 const TAKEN_SLUG_ERROR = "Este endereço já está em uso.";
 
-const PUBLISH_WHATSAPP_ERROR = "Informe um WhatsApp válido para publicar a loja.";
+const PUBLISH_WHATSAPP_ERROR = "Informe um WhatsApp válido para publicar o catálogo de produtos.";
 
-const CLEAR_WHATSAPP_ERROR = "Despublique a loja antes de apagar o WhatsApp.";
+const CLEAR_WHATSAPP_ERROR = "Despublique o catálogo de produtos antes de apagar o WhatsApp.";
 
 const INVALID_WHATSAPP_ERROR = "Informe um WhatsApp válido.";
 
@@ -105,13 +105,6 @@ export function resolveStorefrontAccess(input: {
   preview: boolean;
 }): StorefrontAccess {
   if (!input.slugFound) return "not_found";
-
-  if (input.preview) {
-    return input.eligibleProductCount === 0 ? "empty" : "catalog";
-  }
-
-  if (!input.published || input.whatsappE164 == null) return "not_found";
-
   return input.eligibleProductCount === 0 ? "empty" : "catalog";
 }
 
@@ -152,7 +145,8 @@ const DESCRIPTION_MAX_LENGTH = 500;
 
 const DESCRIPTION_TOO_LONG_ERROR = "A descrição pode ter no máximo 500 caracteres.";
 
-const LISTING_WARNING = "Este produto não entra na loja.";
+const INACTIVE_WARNING = "Ative o produto para ele aparecer no catálogo de produtos.";
+const NO_SIZE_WARNING = "Cadastre um tamanho para ele aparecer no catálogo de produtos.";
 
 const AUDIENCE_LABEL = {
   masculine: "Masculino",
@@ -221,14 +215,16 @@ export function normalizeStorefrontDescription(
   return { ok: true, description: description === "" ? null : description };
 }
 
-function hasPriceAboveZero(product: StorefrontProductInput): boolean {
-  return product.variants.some((variant) => (variant.priceCents ?? 0) > 0);
-}
-
 export function storefrontListingWarning(product: StorefrontProductInput): string | null {
   if (!product.catalogVisible) return null;
-  if (!product.active || !hasPriceAboveZero(product)) return LISTING_WARNING;
+  if (!product.active) return INACTIVE_WARNING;
+  if (product.variants.length === 0) return NO_SIZE_WARNING;
   return null;
+}
+
+function priceLabelFor(cents: number | null | undefined): string {
+  if (cents == null || cents <= 0) return "A combinar";
+  return formatPriceCents(cents);
 }
 
 function compareVariants(a: StorefrontVariantInput, b: StorefrontVariantInput): number {
@@ -239,9 +235,7 @@ function compareVariants(a: StorefrontVariantInput, b: StorefrontVariantInput): 
 function initialPricedVariant(
   variants: readonly StorefrontVariantInput[],
 ): StorefrontVariantInput | null {
-  const available = variants.filter(
-    (variant) => (variant.priceCents ?? 0) > 0 && variant.stockQuantity > 0,
-  );
+  const available = variants.filter((variant) => variant.stockQuantity > 0);
   available.sort(compareVariants);
   return available[0] ?? null;
 }
@@ -268,7 +262,7 @@ function storefrontWhatsAppMessage(args: {
   academyName: string;
   storeUrl: string;
 }): string {
-  return `Olá! Quero 1× ${args.name} — ${args.tamanho}. Valor: ${args.priceLabel}. Vi na loja ${args.academyName}: ${args.storeUrl}`;
+  return `Olá! Quero 1× ${args.name} — ${args.tamanho}. Valor: ${args.priceLabel}. Vi no catálogo de produtos ${args.academyName}: ${args.storeUrl}`;
 }
 
 export function storefrontChipWhatsAppHref(args: {
@@ -291,12 +285,12 @@ export function projectStorefrontCard(
   product: StorefrontProductInput,
   ctx: StorefrontCardContext,
 ): StorefrontCard {
-  const visible = product.variants.filter((variant) => (variant.priceCents ?? 0) > 0);
+  const visible = [...product.variants];
   visible.sort(compareVariants);
 
   const chips: StorefrontChip[] = visible.map((variant) => ({
     label: chipLabel(variant),
-    priceLabel: formatPriceCents(variant.priceCents ?? 0),
+    priceLabel: priceLabelFor(variant.priceCents),
     available: variant.stockQuantity > 0,
   }));
   const found = chips.findIndex((chip) => chip.available);
@@ -326,7 +320,7 @@ function listedStorefrontProducts(
   products: readonly StorefrontProductInput[],
 ): StorefrontProductInput[] {
   const listed = products.filter(
-    (product) => product.active && product.catalogVisible && hasPriceAboveZero(product),
+    (product) => product.active && product.catalogVisible && product.variants.length > 0,
   );
   listed.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
   return listed;
@@ -343,8 +337,7 @@ export function projectStorefrontCatalog(products: readonly StorefrontProductInp
         name: product.name,
         audienceLabel: AUDIENCE_LABEL[product.audience],
         description: descriptionForCard(product.description),
-        priceLabel:
-          priceCents != null && priceCents > 0 ? formatPriceCents(priceCents) : null,
+        priceLabel: initial ? priceLabelFor(priceCents) : null,
         initialSizeLabel: initial?.sizeLabel ?? null,
       };
     }),
@@ -368,6 +361,20 @@ export function filterStorefrontByName<T extends { name: string }>(
 ): T[] {
   const needle = foldStorefrontSearch(query);
   return products.filter((product) => foldStorefrontSearch(product.name).includes(needle));
+}
+
+export const STOREFRONT_AUDIENCE_FILTERS = ["Todos", "Unissex", "Masculino", "Feminino"] as const;
+
+export type StorefrontAudienceFilter = (typeof STOREFRONT_AUDIENCE_FILTERS)[number];
+
+export function filterStorefrontProducts<T extends { name: string; audienceLabel: string }>(
+  products: readonly T[],
+  query: string,
+  audience: StorefrontAudienceFilter,
+): T[] {
+  const named = filterStorefrontByName(products, query);
+  if (audience === "Todos") return named;
+  return named.filter((product) => product.audienceLabel === audience);
 }
 
 const STOREFRONT_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
@@ -425,6 +432,7 @@ export const STOREFRONT_THEME_DEFAULTS = {
   footerText: "#3f3f46",
   cardBackground: "#ffffff",
   cardText: "#18181b",
+  productTitle: "#18181b",
   mutedText: "#71717a",
   border: "#e4e4e7",
   accent: "#18181b",
@@ -447,12 +455,12 @@ export function parseStorefrontTheme(
   const theme = storefrontThemeDefaults();
   if (input == null) return { ok: true, theme };
   if (typeof input !== "object" || Array.isArray(input)) {
-    return { ok: false, error: "A aparência da loja está inválida." };
+    return { ok: false, error: "A aparência do catálogo de produtos está inválida." };
   }
   const record = input as Record<string, unknown>;
   for (const key of Object.keys(record)) {
     if (!STOREFRONT_THEME_KEYS.includes(key as StorefrontThemeKey)) {
-      return { ok: false, error: "A aparência da loja tem um campo desconhecido." };
+      return { ok: false, error: "A aparência do catálogo de produtos tem um campo desconhecido." };
     }
   }
   for (const key of STOREFRONT_THEME_KEYS) {
@@ -476,6 +484,7 @@ export function storefrontThemeStyle(theme: StorefrontTheme): Record<string, str
     "--store-footer-text": theme.footerText,
     "--store-card": theme.cardBackground,
     "--store-card-text": theme.cardText,
+    "--store-title": theme.productTitle,
     "--store-muted": theme.mutedText,
     "--store-border": theme.border,
     "--store-accent": theme.accent,

@@ -145,7 +145,7 @@ export function PerfilClient(props: Props) {
                   value={props.email ?? ""}
                   readOnly
                   tabIndex={-1}
-                  className="bg-zinc-100 dark:bg-zinc-900"
+                  className="bg-muted"
                 />
                 <p className="text-crm-xs text-muted-foreground">
                   E-mail de login definido no Supabase Auth.

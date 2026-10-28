@@ -16,7 +16,11 @@ export function StudentShellGate({ academyName, userLabel, children }: StudentSh
   const showShell = !isPortalExemptFromOnboardingPath(pathname);
 
   if (!showShell) {
-    return <div className="min-h-screen bg-background">{children}</div>;
+    return (
+      <div data-app-palette className="min-h-screen bg-background">
+        {children}
+      </div>
+    );
   }
 
   return (

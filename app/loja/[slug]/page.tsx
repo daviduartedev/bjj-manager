@@ -8,7 +8,6 @@ import {
   type StorefrontPublicCard,
 } from "@/components/storefront/storefront-product-list";
 import { resolvePublicAppOrigin } from "@/lib/app-url";
-import { getCurrentAccount } from "@/lib/auth";
 import { normalizePhoneE164 } from "@/lib/documents/whatsapp";
 import { BRANDING_BUCKET } from "@/lib/settings/branding-upload";
 import {
@@ -178,17 +177,8 @@ const loadStorefrontPage = cache(async (slug: string) => {
   if (error) throw error;
 
   const account = readStorefrontAccount(data);
-  const session = account ? await getCurrentAccount() : null;
-  const preview = Boolean(
-    account &&
-      session &&
-      session.profile.role === "professor" &&
-      session.profile.account_id === account.id,
-  );
   const whatsappE164 = normalizePhoneE164(account?.storefront_whatsapp ?? null);
-  const canLoadProducts = Boolean(
-    account && (preview || (account.storefront_published && whatsappE164 != null)),
-  );
+  const canLoadProducts = account != null;
 
   const storeUrl = `${resolvePublicAppOrigin()}${storefrontPath(slug)}`;
   const cardCtx: StorefrontCardContext = {
@@ -209,7 +199,7 @@ const loadStorefrontPage = cache(async (slug: string) => {
     published: account?.storefront_published ?? false,
     whatsappE164,
     eligibleProductCount: projectedCount,
-    preview,
+    preview: false,
   });
   const logoSrc =
     access === "not_found" ? null : await signStorefrontObject(supabase, account?.logo_url ?? null);
@@ -234,7 +224,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const { access, account } = await loadStorefrontPage(slug);
   return {
-    title: access === "not_found" || !account ? "Loja não encontrada" : account.name,
+    title: access === "not_found" || !account ? "Catálogo não encontrado" : account.name,
     robots: { index: false, follow: false },
   };
 }
@@ -257,26 +247,45 @@ export default async function LojaPage({
     >
       {access === "not_found" || !account ? (
         <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6">
-          <h1 className="text-2xl font-semibold tracking-tight">Loja não encontrada</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Catálogo não encontrado</h1>
         </main>
       ) : (
         <>
           <header className="border-b border-[var(--store-border)] bg-[var(--store-header)] text-[var(--store-header-text)]">
-            <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center gap-2 px-2 py-5 text-center sm:py-8">
-              {logoSrc ? (
-                <Image
-                  src={logoSrc}
-                  alt={account.name}
-                  width={480}
-                  height={160}
-                  unoptimized
-                  priority
-                  className="h-24 w-auto max-w-full object-contain sm:h-36"
-                />
-              ) : null}
-              <h1 className={logoSrc ? "text-lg font-semibold tracking-tight" : "text-3xl font-semibold tracking-tight"}>
-                {account.name}
-              </h1>
+            <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center justify-between gap-3 px-3 sm:h-16">
+              <div className="flex min-w-0 items-center gap-2">
+                {logoSrc ? (
+                  <Image
+                    src={logoSrc}
+                    alt=""
+                    width={160}
+                    height={48}
+                    unoptimized
+                    priority
+                    className="h-9 w-auto max-w-[7.5rem] object-contain sm:h-11 sm:max-w-[9rem]"
+                  />
+                ) : null}
+                <h1 className="truncate text-sm font-semibold tracking-tight sm:text-base">
+                  {account.name}
+                </h1>
+              </div>
+              {whatsappE164 ? (
+                <a
+                  href={`https://wa.me/${whatsappE164}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex shrink-0 items-center justify-center rounded-md bg-[var(--store-accent)] px-3 py-1.5 text-sm font-medium text-[var(--store-accent-text)]"
+                >
+                  WhatsApp
+                </a>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  className="inline-flex shrink-0 items-center justify-center rounded-md bg-[var(--store-accent)] px-3 py-1.5 text-sm font-medium text-[var(--store-accent-text)] opacity-40"
+                >
+                  WhatsApp
+                </span>
+              )}
             </div>
           </header>
           <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-0.5 py-1">

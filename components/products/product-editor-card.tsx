@@ -194,7 +194,9 @@ export function ProductEditorCard({ product }: Props) {
         setCatalogVisible(!checked);
         return;
       }
-      toast.success(checked ? "Produto na vitrine." : "Produto fora da vitrine.");
+      toast.success(
+        checked ? "Produto no catálogo de produtos." : "Produto fora do catálogo de produtos.",
+      );
       router.refresh();
     } finally {
       setSavingCatalog(false);
@@ -286,7 +288,7 @@ export function ProductEditorCard({ product }: Props) {
                     className={cn(
                       "border font-medium",
                       product.active
-                        ? "border-bjj-green/35 bg-bjj-green/10 text-bjj-green"
+                        ? "border-[hsl(var(--status-paid)/0.35)] bg-[hsl(var(--status-paid)/0.1)] text-[hsl(var(--status-paid-foreground))]"
                         : "border-muted-foreground/40 bg-muted/60 text-muted-foreground",
                     )}
                   >
@@ -294,7 +296,7 @@ export function ProductEditorCard({ product }: Props) {
                   </Badge>
                   <Badge
                     variant="outline"
-                    className="border-bjj-blue/30 bg-bjj-blue/[0.08] font-normal text-bjj-blue"
+                    className="border-primary/30 bg-primary/[0.08] font-normal text-primary"
                   >
                     {product.code}
                   </Badge>
@@ -327,7 +329,7 @@ export function ProductEditorCard({ product }: Props) {
                     onChange={(e) => setDescriptionDraft(e.target.value)}
                     maxLength={500}
                     disabled={savingProduct}
-                    placeholder="Opcional. Aparece no card da loja."
+                    placeholder="Opcional. Aparece no card do catálogo de produtos."
                   />
                 </div>
                 <div className="space-y-2">
@@ -371,7 +373,7 @@ export function ProductEditorCard({ product }: Props) {
                       onCheckedChange={(v) => void toggleCatalogVisible(v === true)}
                     />
                     <span className="cursor-pointer font-normal leading-snug">
-                      Mostrar na vitrine
+                      Mostrar no catálogo de produtos
                     </span>
                   </label>
                 </div>
@@ -379,7 +381,7 @@ export function ProductEditorCard({ product }: Props) {
               {listingWarning ? (
                 <p
                   role="status"
-                  className="rounded-lg border border-bjj-yellow/40 bg-bjj-yellow/10 px-3 py-2 text-crm-sm text-foreground"
+                  className="rounded-lg border border-[hsl(var(--status-pending)/0.4)] bg-[hsl(var(--status-pending)/0.1)] px-3 py-2 text-crm-sm text-foreground"
                 >
                   {listingWarning}
                 </p>
@@ -403,9 +405,9 @@ export function ProductEditorCard({ product }: Props) {
             <ProductPhotoEditor productId={product.id} photos={product.photos} />
 
             {/* Bloco 2 — filtro de tamanhos */}
-            <section className="space-y-4 rounded-2xl border border-bjj-blue/20 bg-gradient-to-br from-bjj-blue/[0.05] to-transparent p-4 sm:p-5">
+            <section className="space-y-4 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/[0.05] to-transparent p-4 sm:p-5">
               <div className="flex flex-wrap items-center gap-2">
-                <Filter className="size-4 text-bjj-blue" aria-hidden />
+                <Filter className="size-4 text-primary" aria-hidden />
                 <h3 className="text-sm font-semibold text-foreground">
                   Filtrar tamanhos
                 </h3>
@@ -723,10 +725,10 @@ function VariantTableRow(props: {
   const stock = variant.stock_quantity;
   const rowTone =
     stock <= 0
-      ? "bg-bjj-red/[0.04]"
+      ? "bg-[hsl(var(--status-overdue)/0.04)]"
       : stock <= 5
-        ? "bg-bjj-yellow/[0.06]"
-        : "bg-bjj-green/[0.03]";
+        ? "bg-[hsl(var(--status-pending)/0.06)]"
+        : "bg-[hsl(var(--status-paid)/0.03)]";
 
   return (
     <tr className={cn("border-b border-border/70 last:border-0", rowTone)}>

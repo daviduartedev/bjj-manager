@@ -75,11 +75,6 @@ import { AlertTriangle, Building2, Layers, Receipt } from "lucide-react";
 
 type Props = {
   initialAccountName: string;
-  initialSlug: string;
-  initialStorefrontWhatsapp: string | null;
-  initialStorefrontPublished: boolean;
-  initialStorefrontTheme: unknown;
-  storefrontUrl: string;
   modality: AcademyModality;
   plans: SettingsPlanRow[];
   receiver: SettingsReceiverRow;
@@ -163,15 +158,6 @@ export function ConfiguracoesClient(props: Props) {
             </div>
           </form>
         </Form>
-        <StorefrontAddressForm initialSlug={props.initialSlug} onSaved={() => router.refresh()} />
-        <StorefrontPublicationForm
-          initialSlug={props.initialSlug}
-          initialWhatsapp={props.initialStorefrontWhatsapp}
-          initialPublished={props.initialStorefrontPublished}
-          storefrontUrl={props.storefrontUrl}
-          onSaved={() => router.refresh()}
-        />
-        <StorefrontThemeForm academyName={props.initialAccountName} initialTheme={props.initialStorefrontTheme} onSaved={() => router.refresh()} />
         <ModalitySwitchPanel current={props.modality} onSaved={() => router.refresh()} />
       </DashboardPanel>
 
@@ -202,6 +188,35 @@ export function ConfiguracoesClient(props: Props) {
           ) : null}
         </div>
       </DashboardPanel>
+    </div>
+  );
+}
+
+export function CatalogoClient(props: {
+  initialAccountName: string;
+  initialSlug: string;
+  initialStorefrontWhatsapp: string | null;
+  initialStorefrontPublished: boolean;
+  initialStorefrontTheme: unknown;
+  storefrontUrl: string;
+}) {
+  const router = useRouter();
+
+  return (
+    <div className="space-y-8">
+      <StorefrontAddressForm initialSlug={props.initialSlug} onSaved={() => router.refresh()} />
+      <StorefrontPublicationForm
+        initialSlug={props.initialSlug}
+        initialWhatsapp={props.initialStorefrontWhatsapp}
+        initialPublished={props.initialStorefrontPublished}
+        storefrontUrl={props.storefrontUrl}
+        onSaved={() => router.refresh()}
+      />
+      <StorefrontThemeForm
+        academyName={props.initialAccountName}
+        initialTheme={props.initialStorefrontTheme}
+        onSaved={() => router.refresh()}
+      />
     </div>
   );
 }
@@ -251,7 +266,7 @@ function StorefrontAddressForm({
       toast.error(result.error);
       return;
     }
-    toast.success("Endereço da loja atualizado.");
+    toast.success("Endereço do catálogo de produtos atualizado.");
     setConfirmed(false);
     onSaved();
   }
@@ -259,7 +274,7 @@ function StorefrontAddressForm({
   return (
     <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
       <div className="space-y-1">
-        <p className="text-crm-sm font-medium">Endereço da loja</p>
+        <p className="text-crm-sm font-medium">Endereço do catálogo de produtos</p>
         <p className="text-crm-sm text-muted-foreground">
           Endereço atual:{" "}
           <span className="font-medium text-foreground">{storefrontPath(initialSlug)}</span>
@@ -357,7 +372,7 @@ function StorefrontPublicationForm({
       toast.error(result.error);
       return;
     }
-    toast.success("Loja atualizada.");
+    toast.success("Catálogo de produtos atualizado.");
     onSaved();
   }
 
@@ -373,11 +388,14 @@ function StorefrontPublicationForm({
   return (
     <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
       <div className="space-y-1">
-        <p className="text-crm-sm font-medium">Publicação da loja</p>
+        <p className="text-crm-sm font-medium">Publicação do catálogo de produtos</p>
         <p className="break-all text-crm-sm text-muted-foreground">{storefrontUrl}</p>
+        <p className="text-crm-sm text-muted-foreground">
+          Este endereço é público. Quem não está logado vê os produtos marcados para o catálogo.
+        </p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="storefront-whatsapp">WhatsApp da loja</Label>
+        <Label htmlFor="storefront-whatsapp">WhatsApp do catálogo de produtos</Label>
         <Input
           id="storefront-whatsapp"
           value={whatsapp}
@@ -394,7 +412,7 @@ function StorefrontPublicationForm({
       </div>
       <div className="flex items-center justify-between gap-4">
         <Label htmlFor="storefront-published" className="cursor-pointer">
-          Loja publicada
+          Catálogo de produtos publicado
         </Label>
         <button
           id="storefront-published"
@@ -433,7 +451,7 @@ function StorefrontPublicationForm({
           <Link href={storefrontPath(initialSlug)}>Ver prévia</Link>
         </Button>
         <Button type="submit" className={primaryActionClass} disabled={pending}>
-          {pending ? "Salvando…" : "Salvar loja"}
+          {pending ? "Salvando…" : "Salvar catálogo"}
         </Button>
       </div>
     </form>
@@ -445,10 +463,9 @@ const STOREFRONT_THEME_FIELDS: { key: StorefrontThemeKey; label: string }[] = [
   { key: "pageText", label: "Texto da página" },
   { key: "headerBackground", label: "Fundo do cabeçalho" },
   { key: "headerText", label: "Texto do cabeçalho" },
-  { key: "footerBackground", label: "Fundo do rodapé" },
-  { key: "footerText", label: "Texto do rodapé" },
   { key: "cardBackground", label: "Fundo do card" },
   { key: "cardText", label: "Texto do card" },
+  { key: "productTitle", label: "Título do produto" },
   { key: "mutedText", label: "Texto secundário" },
   { key: "border", label: "Bordas" },
   { key: "accent", label: "Botão" },
@@ -467,8 +484,11 @@ function StorefrontThemePreview({ academyName, theme }: { academyName: string; t
         style={style}
         className="overflow-hidden rounded-lg border border-border bg-[var(--store-page)] text-[var(--store-text)]"
       >
-        <div className="border-b border-[var(--store-border)] bg-[var(--store-header)] px-3 py-4 text-center text-[var(--store-header-text)]">
-          <p className="text-base font-semibold">{academyName}</p>
+        <div className="flex items-center justify-between gap-2 border-b border-[var(--store-border)] bg-[var(--store-header)] px-2 py-2 text-[var(--store-header-text)]">
+          <p className="truncate text-xs font-semibold">{academyName}</p>
+          <span className="rounded bg-[var(--store-accent)] px-2 py-1 text-[10px] font-medium text-[var(--store-accent-text)]">
+            WhatsApp
+          </span>
         </div>
         <div className="grid grid-cols-2 gap-1 p-1">
           {[
@@ -484,7 +504,7 @@ function StorefrontThemePreview({ academyName, theme }: { academyName: string; t
               </div>
               <div className="space-y-1.5 p-2">
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className="truncate text-xs font-medium">{item.name}</p>
+                  <p className="truncate text-xs font-semibold text-[var(--store-title)]">{item.name}</p>
                   <p className="text-xs font-semibold">{item.price}</p>
                 </div>
                 <p className="text-[11px] text-[var(--store-muted)]">Unissex</p>
@@ -501,8 +521,9 @@ function StorefrontThemePreview({ academyName, theme }: { academyName: string; t
             </div>
           ))}
         </div>
-        <div className="border-t border-[var(--store-border)] bg-[var(--store-footer)] px-3 py-2 text-[11px] text-[var(--store-footer-text)]">
-          Termos · Privacidade
+        <div className="flex items-center justify-between bg-black px-2 py-1.5 text-[10px] text-white">
+          <span>Casca</span>
+          <span>Termos · Privacidade</span>
         </div>
       </div>
     </div>
@@ -547,16 +568,16 @@ function StorefrontThemeForm({
       toast.error(result.error);
       return;
     }
-    toast.success("Cores da loja atualizadas.");
+    toast.success("Cores do catálogo de produtos atualizadas.");
     onSaved();
   }
 
   return (
     <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
       <div className="space-y-1">
-        <p className="text-crm-sm font-medium">Cores da loja</p>
+        <p className="text-crm-sm font-medium">Cores do catálogo de produtos</p>
         <p className="text-crm-sm text-muted-foreground">
-          Cabeçalho, rodapé, fundo, cards e botão. O padrão é {STOREFRONT_THEME_DEFAULTS.pageBackground}.
+          Cabeçalho, fundo, cards e botão. O rodapé permanece preto. O padrão é {STOREFRONT_THEME_DEFAULTS.pageBackground}.
         </p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">

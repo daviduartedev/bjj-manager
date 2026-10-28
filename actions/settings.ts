@@ -211,7 +211,7 @@ export async function updateAccountSlug(input: unknown): Promise<SettingsActionR
     if (!parsed.success) {
       const msg =
         Object.values(parsed.error.flatten().fieldErrors).flat()[0] ??
-        "Verifique o endereço da loja.";
+        "Verifique o endereço do catálogo de produtos.";
       return { ok: false, error: msg };
     }
 
@@ -251,6 +251,7 @@ export async function updateAccountSlug(input: unknown): Promise<SettingsActionR
 
     if (decision.slug === currentSlug) {
       revalidatePath(ROUTES.configuracoes);
+      revalidatePath(ROUTES.catalogo);
       return { ok: true };
     }
 
@@ -276,6 +277,7 @@ export async function updateAccountSlug(input: unknown): Promise<SettingsActionR
     }
 
     revalidatePath(ROUTES.configuracoes);
+    revalidatePath(ROUTES.catalogo);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: mapBillingActionError(e) };
@@ -288,13 +290,13 @@ export async function updateStorefrontPublication(input: unknown): Promise<Setti
     if (!parsed.success) {
       const msg =
         Object.values(parsed.error.flatten().fieldErrors).flat()[0] ??
-        "Verifique o WhatsApp da loja.";
+        "Verifique o WhatsApp do catálogo de produtos.";
       return { ok: false, error: msg };
     }
 
     const context = await getCurrentAccount();
     if (!context || context.profile.role !== "professor") {
-      return { ok: false, error: "Só o professor da academia pode publicar a loja." };
+      return { ok: false, error: "Só o professor da academia pode publicar o catálogo de produtos." };
     }
 
     const supabase = await createClient();
@@ -327,6 +329,7 @@ export async function updateStorefrontPublication(input: unknown): Promise<Setti
     if (error) throw error;
 
     revalidatePath(ROUTES.configuracoes);
+    revalidatePath(ROUTES.catalogo);
     revalidatePath(storefrontPath(currentSlug));
     return { ok: true };
   } catch (e) {
@@ -341,7 +344,7 @@ export async function updateStorefrontTheme(input: unknown): Promise<SettingsAct
 
     const context = await getCurrentAccount();
     if (!context || context.profile.role !== "professor") {
-      return { ok: false, error: "Só o professor da academia pode personalizar a loja." };
+      return { ok: false, error: "Só o professor da academia pode personalizar o catálogo de produtos." };
     }
 
     const supabase = await createClient();
@@ -356,6 +359,7 @@ export async function updateStorefrontTheme(input: unknown): Promise<SettingsAct
     if (error) throw error;
 
     revalidatePath(ROUTES.configuracoes);
+    revalidatePath(ROUTES.catalogo);
     revalidatePath(storefrontPath(context.account.slug));
     return { ok: true };
   } catch (e) {

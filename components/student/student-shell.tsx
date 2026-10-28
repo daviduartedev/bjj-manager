@@ -40,7 +40,8 @@ function SidebarSkeletonNav() {
 function BottomNavSkeleton() {
   return (
     <div
-      className="flex h-16 items-stretch justify-around gap-1 border-t border-border bg-background px-2 pt-1 lg:hidden"
+      className="brand-stripe-edge relative flex h-16 items-stretch justify-around gap-1 border-t border-border bg-background px-2 pt-1 lg:hidden"
+      data-edge="top"
       aria-hidden
     >
       {STUDENT_NAV_ITEMS.map((item) => (
@@ -72,18 +73,18 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
   const sidebarBrand = (
     <Link
       href={ROUTES.portal}
-      className="group mb-8 flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 shadow-sm ring-1 ring-white/[0.06] transition-colors hover:border-white/18 hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(0_0%_2%)]"
+      className="group mb-8 flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 shadow-sm ring-1 ring-white/[0.06] transition-colors hover:border-white/18 hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--secondary))]"
     >
       <div className="flex items-center gap-3">
         {brandMarkSidebar}
-        <span className="text-sm font-semibold tracking-[-0.02em] text-zinc-100">
+        <span className="text-sm font-semibold tracking-[-0.02em] text-secondary-foreground">
           {APP_NAME}
         </span>
       </div>
       {academyName ? (
-        <p className="line-clamp-2 pl-[3.25rem] text-xs leading-snug text-zinc-400">{academyName}</p>
+        <p className="line-clamp-2 pl-[3.25rem] text-xs leading-snug text-secondary-foreground/55">{academyName}</p>
       ) : (
-        <p className="pl-[3.25rem] text-xs text-zinc-500">Portal do aluno</p>
+        <p className="pl-[3.25rem] text-xs text-secondary-foreground/45">Portal do aluno</p>
       )}
     </Link>
   );
@@ -120,10 +121,10 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div data-app-palette className="min-h-screen bg-background">
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 hidden w-[15.5rem] flex-col border-r border-zinc-800/90 bg-[hsl(0_0%_2%)] text-zinc-100 shadow-[2px_0_24px_-12px_hsl(0_0%_0%/0.45)] lg:flex",
+          "brand-stripe-edge dashboard-ink-chrome fixed inset-y-0 left-0 z-40 hidden w-[15.5rem] flex-col border-r shadow-[2px_0_24px_-12px_hsl(0_0%_0%/0.45)] lg:flex",
         )}
       >
         <div className="relative flex flex-1 flex-col p-3 pt-7">
@@ -134,7 +135,7 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
           ) : (
             <>
               {sidebarBrand}
-              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400">
+              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-secondary-foreground/55">
                 Menu
               </p>
               <nav className="flex flex-col gap-1" aria-label="Principal">
@@ -150,7 +151,7 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
               </nav>
               <div className="mt-auto flex items-center justify-end border-t border-white/10 pt-3">
                 {userMenu(
-                  "text-zinc-100 hover:bg-white/10 hover:text-zinc-100 focus-visible:ring-offset-[hsl(0_0%_2%)]",
+                  "text-secondary-foreground hover:bg-white/10 hover:text-secondary-foreground focus-visible:ring-offset-[hsl(var(--secondary))]",
                 )}
               </div>
             </>
@@ -168,7 +169,8 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
             <BottomNavSkeleton />
           ) : (
             <nav
-              className="flex h-16 items-stretch justify-around gap-0 border-t border-zinc-800 bg-[hsl(0_0%_3%)] px-1 pb-[env(safe-area-inset-bottom)] pt-1 text-zinc-100 shadow-[0_-8px_32px_-16px_hsl(0_0%_0%/0.55)] backdrop-blur-md supports-[backdrop-filter]:bg-[hsl(0_0%_3%/0.92)] lg:hidden"
+              className="brand-stripe-edge relative flex h-16 items-stretch justify-around gap-0 border-t border-[hsl(var(--shell-chrome-border))] bg-[hsl(var(--shell-chrome-bottom))] px-1 pb-[env(safe-area-inset-bottom)] pt-1 text-secondary-foreground shadow-[0_-8px_32px_-16px_hsl(0_0%_0%/0.55)] backdrop-blur-md supports-[backdrop-filter]:bg-[hsl(var(--shell-chrome-bottom)/0.92)] lg:hidden"
+              data-edge="top"
               aria-label="Navegação inferior"
             >
               {STUDENT_NAV_ITEMS.map((item) => (
@@ -182,7 +184,7 @@ export function StudentShell({ academyName, userLabel, children }: StudentShellP
                 />
               ))}
               <div className="flex flex-1 items-center justify-center">
-                {userMenu("text-zinc-100 hover:bg-white/10 hover:text-zinc-100")}
+                {userMenu("text-secondary-foreground hover:bg-white/10 hover:text-secondary-foreground")}
               </div>
             </nav>
           )}

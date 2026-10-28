@@ -198,7 +198,7 @@ function WhatsApp({ frame }: { frame: number }) {
             padding: "14px 16px",
           }}
         >
-          <IconBadge Icon={FileText} bg={C.redSoft} color={C.red} size={52} />
+          <IconBadge Icon={FileText} bg={C.primarySoft} color={C.primary} size={52} />
           <div>
             <div style={{ fontSize: 21, fontWeight: 700 }}>Certificado-Marina-Alves.pdf</div>
             <div style={{ fontSize: 17, color: C.muted }}>PDF · 184 KB</div>
@@ -249,8 +249,8 @@ export function DocumentosScene({ frameOverride }: { frameOverride?: number }) {
               style={{
                 boxSizing: "border-box",
                 borderRadius: 22,
-                border: `2px solid ${on ? C.red : C.line}`,
-                background: on ? "#fff5f6" : "#fff",
+                border: `2px solid ${on ? C.primary : C.line}`,
+                background: on ? C.primarySoft : "#fff",
                 display: "flex",
                 alignItems: "center",
                 gap: 20,
@@ -258,7 +258,7 @@ export function DocumentosScene({ frameOverride }: { frameOverride?: number }) {
                 transform: i === 0 ? `scale(${1 - press(frame, 28) * 0.03})` : undefined,
               }}
             >
-              <IconBadge Icon={Icon} bg={on ? C.red : C.redSoft} color={on ? "#fff" : C.red} size={62} />
+              <IconBadge Icon={Icon} bg={on ? C.primary : C.primarySoft} color={on ? "#fff" : C.primary} size={62} />
               <div>
                 <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.2 }}>{title}</div>
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>{sub}</div>

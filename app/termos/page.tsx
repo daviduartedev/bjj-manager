@@ -11,7 +11,7 @@ export default function TermosPage() {
   return (
     <MarketingLegalLayout title="Termos de Uso" updated="19 de setembro de 2026">
       <p>
-        Estes Termos regulam o uso do Casca, produto de software da Utopia (utopia.app.br) para gestão de academias de jiu-jitsu. Ao entrar na plataforma, a academia e os utilizadores autorizados aceitam estas regras.
+        Estes Termos regulam o uso do Casca, software para gestão de academias de jiu-jitsu. Ao entrar na plataforma, a academia e os utilizadores autorizados aceitam estas regras.
       </p>
 
       <h2>O que o Casca oferece</h2>
@@ -34,17 +34,17 @@ export default function TermosPage() {
 
       <h2>Disponibilidade</h2>
       <p>
-        O serviço pode ser interrompido para manutenção, falha técnica ou motivo de força maior. A Utopia esforça-se por manter o sistema disponível, sem garantir funcionamento ininterrupto.
+        O serviço pode ser interrompido para manutenção, falha técnica ou motivo de força maior. O Casca esforça-se por manter o sistema disponível, sem garantir funcionamento ininterrupto.
       </p>
 
       <h2>Propriedade</h2>
       <p>
-        Marca, interface e código do Casca pertencem à Utopia. Os dados cadastrais da academia e dos alunos pertencem à academia responsável pela conta.
+        Os dados cadastrais da academia e dos alunos pertencem à academia responsável pela conta.
       </p>
 
       <h2>Alterações e contato</h2>
       <p>
-        Estes Termos podem ser atualizados. A versão vigente fica nesta página. Dúvidas: utopia.app.br.
+        Estes Termos podem ser atualizados. A versão vigente fica nesta página. Dúvidas: casca.pro.
       </p>
     </MarketingLegalLayout>
   );

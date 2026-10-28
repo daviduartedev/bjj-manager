@@ -9,9 +9,11 @@ const LABELS: Record<Status, string> = {
 };
 
 const STYLES: Record<Status, string> = {
-  draft: "bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-zinc-800/50 dark:text-zinc-200",
-  published: "bg-emerald-50 text-emerald-900 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200",
-  archived: "bg-amber-50 text-amber-900 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200",
+  draft: "bg-muted text-muted-foreground ring-border",
+  published:
+    "bg-[hsl(var(--status-paid)/0.12)] text-[hsl(var(--status-paid-foreground))] ring-[hsl(var(--status-paid)/0.3)]",
+  archived:
+    "bg-[hsl(var(--status-pending)/0.18)] text-[hsl(var(--status-pending-foreground))] ring-[hsl(var(--status-pending)/0.35)]",
 };
 
 export function PlanStatusBadge({ status }: { status: Status }) {

@@ -26,6 +26,26 @@ export function LpSection({
 }
 
 // ---------------------------------------------------------------------------
+// LpEyebrow — tag colorida acima do título da seção
+// ---------------------------------------------------------------------------
+
+export function LpEyebrow({
+  className,
+  tone = "primary",
+  children,
+}: {
+  className?: string;
+  tone?: "primary" | "green";
+  children: ReactNode;
+}) {
+  return (
+    <p className={cn("text-sm font-semibold", tone === "green" ? "text-brand-green" : "text-primary", className)}>
+      {children}
+    </p>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // LpDisplay — big display type
 // ---------------------------------------------------------------------------
 
@@ -41,10 +61,10 @@ export function LpDisplay({
   return (
     <p
       className={cn(
-        "font-sans font-semibold tracking-[-0.02em]",
+        "font-sans font-bold tracking-[-0.035em]",
         className,
         surface === "light" ? "text-neutral-950" : "text-white",
-        "leading-[1.15]",
+        "leading-[1.08]",
       )}
     >
       {children}
