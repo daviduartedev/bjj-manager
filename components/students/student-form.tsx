@@ -775,7 +775,7 @@ export function StudentForm({
           </div>
         ) : null}
 
-        <div className={cn(formActionsClass, "border-t border-black/[0.04] pt-4 dark:border-border")}>
+        <div className={cn(formActionsClass, "border-t border-border pt-4")}>
           {!isFirst ? (
             <Button
               type="button"

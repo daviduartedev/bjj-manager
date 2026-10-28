@@ -182,21 +182,53 @@ export function DesignSystemGallery() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Paleta BJJ</CardTitle>
-                <CardDescription>Chaves tailwind bjj.*</CardDescription>
+                <CardTitle>Paleta</CardTitle>
+                <CardDescription>Papéis de cor da marca e status</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
                 <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
-                  <span className="size-6 rounded-sm border border-border bg-bjj-black" />
-                  bjj.black
+                  <span className="size-6 rounded-sm border border-border bg-primary" />
+                  Principal · azul #0055A0
                 </div>
                 <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
-                  <span className="size-6 rounded-sm border border-border bg-bjj-red" />
-                  bjj.red
+                  <span className="size-6 rounded-sm border border-border bg-brand-green" />
+                  Acento · verde #008038
                 </div>
                 <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
-                  <span className="size-6 rounded-sm border border-border bg-bjj-off" />
-                  bjj.off
+                  <span className="size-6 rounded-sm border border-border bg-brand-yellow" />
+                  Decorativo · amarelo #F8B800
+                </div>
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
+                  <span className="size-6 rounded-sm border border-border bg-secondary" />
+                  Chrome · preto #050505
+                </div>
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
+                  <span className="size-6 rounded-sm border border-border bg-destructive" />
+                  Destrutivo / atraso · vermelho semântico, não marca
+                </div>
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
+                  <span className="size-6 rounded-sm border border-border bg-[hsl(var(--status-paid))]" />
+                  Status pago
+                </div>
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
+                  <span className="size-6 rounded-sm border border-border bg-[hsl(var(--status-pending))]" />
+                  Status pendente
+                </div>
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
+                  <span className="size-6 rounded-sm border border-border bg-[hsl(var(--status-overdue))]" />
+                  Status atrasado · semântico
+                </div>
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
+                  <span className="size-6 rounded-sm border border-border bg-[hsl(var(--status-info))]" />
+                  Status info
+                </div>
+                <div
+                  data-edge="top"
+                  className="brand-stripe-edge relative mt-1 flex h-11 w-full basis-full items-center rounded-md border bg-secondary px-3"
+                >
+                  <span className="text-xs text-secondary-foreground">
+                    Faixa .brand-stripe-edge
+                  </span>
                 </div>
               </CardContent>
               <CardFooter className="text-xs text-muted-foreground">

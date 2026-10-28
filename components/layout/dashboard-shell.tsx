@@ -51,7 +51,8 @@ function SidebarSkeletonNav() {
 function BottomNavSkeleton() {
   return (
     <div
-      className="dashboard-ink-chrome flex h-16 items-stretch justify-around gap-1 border-t px-2 pt-1 lg:hidden"
+      className="brand-stripe-edge dashboard-ink-chrome relative flex h-16 items-stretch justify-around gap-1 border-t px-2 pt-1 lg:hidden"
+      data-edge="top"
       aria-hidden
     >
       {[...BOTTOM_NAV_PRIMARY, { href: "__more__" }].map((item) => (
@@ -80,14 +81,14 @@ function BottomNavMoreMenu(props: {
           className={cn(
             "flex min-h-[44px] min-w-[44px] flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-1 text-[10px] font-medium leading-tight transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--secondary))] sm:text-xs",
             moreActive
-              ? "bg-[hsl(var(--shell-nav-active-bg))] font-semibold text-primary shadow-[inset_0_-2px_0_0_hsl(var(--primary))]"
-              : "text-secondary-foreground/70 hover:text-secondary-foreground",
+              ? "bg-primary font-semibold text-primary-foreground"
+              : "text-secondary-foreground/70 hover:bg-white/[0.12] hover:text-white",
           )}
           aria-label="Mais destinos"
           aria-current={moreActive ? "true" : undefined}
         >
           <MoreHorizontal
-            className={cn("size-5 shrink-0", moreActive ? "text-primary" : "text-secondary-foreground/45")}
+            className={cn("size-5 shrink-0", moreActive ? "text-primary-foreground" : "text-secondary-foreground/55")}
             aria-hidden
           />
           <span>Mais</span>
@@ -214,11 +215,11 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div data-app-palette className="min-h-screen bg-background">
       <GuidedTour run={tourRun} onRunChange={setTourRun} sessionKey={tourSessionKey} />
       <aside
         data-tour="shell-sidebar"
-        className="dashboard-ink-chrome fixed inset-y-0 left-0 z-40 hidden w-[15.5rem] flex-col border-r shadow-[2px_0_28px_-16px_hsl(var(--secondary)/0.55)] lg:flex"
+        className="brand-stripe-edge dashboard-ink-chrome fixed inset-y-0 left-0 z-40 hidden w-[15.5rem] flex-col border-r shadow-[2px_0_28px_-16px_hsl(var(--secondary)/0.55)] lg:flex"
       >
         <div className="relative flex flex-1 flex-col px-3 pb-4 pt-6">
           {!mounted ? (
@@ -275,7 +276,8 @@ export function DashboardShell({ academyName, userLabel, children }: DashboardSh
           ) : (
             <nav
               data-tour="shell-bottom-nav"
-              className="dashboard-ink-chrome flex h-16 items-stretch justify-around gap-0 border-t px-1 pb-[env(safe-area-inset-bottom)] pt-1 shadow-[0_-10px_28px_-18px_hsl(var(--secondary)/0.65)] backdrop-blur-md supports-[backdrop-filter]:bg-[hsl(var(--secondary)/0.94)] lg:hidden"
+              className="brand-stripe-edge dashboard-ink-chrome relative flex h-16 items-stretch justify-around gap-0 border-t px-1 pb-[env(safe-area-inset-bottom)] pt-1 shadow-[0_-10px_28px_-18px_hsl(var(--secondary)/0.65)] backdrop-blur-md supports-[backdrop-filter]:bg-[hsl(var(--secondary)/0.94)] lg:hidden"
+              data-edge="top"
               aria-label="Navegação inferior"
             >
               {BOTTOM_NAV_PRIMARY.map((item) => (

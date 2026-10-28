@@ -26,13 +26,13 @@ export function DashboardPanel({
   return (
     <Card
       className={cn(
-        "overflow-hidden rounded-[20px] border border-black/[0.04] bg-white shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)] dark:border-border dark:bg-card",
+        "overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)]",
         className,
       )}
     >
       <div className="flex items-center gap-3 px-5 pt-5">
         {Icon ? (
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Icon className="size-4" aria-hidden />
           </span>
         ) : null}

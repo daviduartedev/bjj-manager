@@ -273,7 +273,7 @@ export function PlanEditor({ mode, modality, initial }: Props) {
 
         <div className="space-y-3">
           {topics.map((topic, idx) => (
-            <div key={topic.id} className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
+            <div key={topic.id} className="rounded-xl border border-border bg-muted/60 p-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Input
                   value={topic.title}

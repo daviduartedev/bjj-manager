@@ -129,8 +129,8 @@ export function PostPaymentSummary({ paymentId, receipt: initialReceipt }: Props
 
   if (receipt.status === "failed") {
     return (
-      <div className="space-y-3 rounded-md border border-amber-300/60 bg-amber-50 p-3 dark:border-amber-400/30 dark:bg-amber-950/40">
-        <p className="text-crm-sm text-amber-900 dark:text-amber-200">
+      <div className="space-y-3 rounded-md border border-[hsl(var(--status-pending)/0.35)] bg-[hsl(var(--status-pending)/0.18)] p-3">
+        <p className="text-crm-sm text-[hsl(var(--status-pending-foreground))]">
           O pagamento foi salvo mas o recibo falhou: {receipt.error}.
         </p>
         <Button
@@ -149,7 +149,7 @@ export function PostPaymentSummary({ paymentId, receipt: initialReceipt }: Props
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border border-emerald-300/50 bg-emerald-50 p-3 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-950/40 dark:text-emerald-200">
+      <div className="rounded-md border border-[hsl(var(--status-paid)/0.35)] bg-[hsl(var(--status-paid)/0.12)] p-3 text-[hsl(var(--status-paid-foreground))]">
         <p className="text-crm-sm font-medium">Recibo {receipt.number} pronto.</p>
         <p className="text-crm-xs">Pode partilhar com o aluno em segundos.</p>
       </div>

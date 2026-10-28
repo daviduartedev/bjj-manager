@@ -12,7 +12,7 @@ type LogoMarkProps = {
 };
 
 /**
- * Logo Casca sobre fundo preto da identidade, usar em header escuro / hero.
+ * Símbolo da cobra para fundos escuros (menu, login, portal). O arquivo tem fundo transparente.
  */
 export function LogoMark({
   className,
@@ -23,14 +23,14 @@ export function LogoMark({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-lg bg-bjj-black px-2.5 py-1.5 ring-1 ring-white/12",
+        "flex shrink-0 items-center justify-center rounded-lg bg-secondary px-2.5 py-1.5 ring-1 ring-white/12",
         className,
       )}
     >
       <Image
-        src="/Logo.png"
+        src="/marketing/logo-emblem-dark.png"
         alt={APP_NAME}
-        width={200}
+        width={height}
         height={height}
         priority={priority}
         className={cn(

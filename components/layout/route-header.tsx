@@ -8,12 +8,12 @@ import { resolvePageHeader } from "@/lib/painel/page-frame";
 import { primaryActionClass, secondaryActionClass } from "@/lib/ui/form-chrome";
 
 export const routeTones = {
-  rose: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100",
-  sky: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-100",
-  emerald: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-100",
-  amber: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-100",
-  violet: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-100",
-  orange: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-100",
+  rose: "bg-primary/10 text-primary",
+  sky: "bg-[hsl(var(--status-info)/0.12)] text-[hsl(var(--status-info-foreground))]",
+  emerald: "bg-[hsl(var(--status-paid)/0.12)] text-[hsl(var(--status-paid-foreground))]",
+  amber: "bg-[hsl(var(--status-pending)/0.18)] text-[hsl(var(--status-pending-foreground))]",
+  violet: "bg-foreground/[0.07] text-foreground",
+  orange: "bg-[hsl(var(--brand-yellow)/0.2)] text-[hsl(var(--status-pending-foreground))]",
 } as const;
 
 export type RouteTone = keyof typeof routeTones;
@@ -41,7 +41,7 @@ export function RouteHeader(props: RouteHeaderProps) {
   const secondaryIcon = iconFor(actions.secondary, props.secondary);
 
   return (
-    <header className="sticky top-0 z-20 -mx-3 mb-3 border-b border-zinc-200 bg-[#f3f4f6] px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:-mx-4 sm:px-4 lg:-mx-6 lg:mb-5 lg:px-6 lg:pt-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <header className="sticky top-0 z-20 -mx-3 mb-3 border-b border-border bg-background px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:-mx-4 sm:px-4 lg:-mx-6 lg:mb-5 lg:px-6 lg:pt-4">
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-lg font-semibold tracking-[-0.02em] lg:text-2xl">

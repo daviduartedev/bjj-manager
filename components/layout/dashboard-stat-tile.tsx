@@ -14,21 +14,21 @@ export type DashboardStatTileProps = {
 };
 
 const well: Record<DashboardStatTileAccent, string> = {
-  default: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-100",
-  primary: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100",
-  paid: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-100",
-  pending: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-100",
-  overdue: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100",
-  info: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-100",
+  default: "bg-muted text-foreground",
+  primary: "bg-primary/10 text-primary",
+  paid: "bg-[hsl(var(--status-paid)/0.12)] text-[hsl(var(--status-paid-foreground))]",
+  pending: "bg-[hsl(var(--status-pending)/0.18)] text-[hsl(var(--status-pending-foreground))]",
+  overdue: "bg-[hsl(var(--status-overdue)/0.12)] text-[hsl(var(--status-overdue-foreground))]",
+  info: "bg-[hsl(var(--status-info)/0.12)] text-[hsl(var(--status-info-foreground))]",
 };
 
 const bar: Record<DashboardStatTileAccent, string> = {
-  default: "bg-zinc-300",
-  primary: "bg-rose-500",
-  paid: "bg-emerald-500",
-  pending: "bg-amber-500",
-  overdue: "bg-rose-600",
-  info: "bg-sky-500",
+  default: "bg-muted-foreground/40",
+  primary: "bg-primary",
+  paid: "bg-[hsl(var(--status-paid))]",
+  pending: "bg-[hsl(var(--status-pending))]",
+  overdue: "bg-[hsl(var(--status-overdue))]",
+  info: "bg-[hsl(var(--status-info))]",
 };
 
 /** Indicador no mesmo cartão da home: ícone sólido, número e uma barra de cor. */
@@ -42,7 +42,7 @@ export function DashboardStatTile({
   return (
     <div
       className={cn(
-        "flex h-full min-w-0 flex-col rounded-[20px] border border-black/[0.04] bg-white p-4 shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)] dark:border-border dark:bg-card sm:p-5",
+        "flex h-full min-w-0 flex-col rounded-[20px] border border-border bg-card p-4 shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)] sm:p-5",
         className,
       )}
     >

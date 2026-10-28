@@ -27,7 +27,7 @@ const Checkbox = React.forwardRef<
       "peer flex shrink-0 items-center justify-center rounded border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
       size === "default" && "size-11 rounded-md",
       size === "sm" &&
-        "size-4 rounded-[4px] border-zinc-300 bg-white shadow-none data-[state=checked]:border-primary data-[state=checked]:bg-primary dark:border-zinc-600 dark:bg-zinc-950",
+        "size-4 rounded-[4px] border-border bg-card shadow-none data-[state=checked]:border-primary data-[state=checked]:bg-primary",
       size === "dense" &&
         "h-4 w-4 rounded-[3px] border-primary/85 data-[state=checked]:shadow-none",
       className,

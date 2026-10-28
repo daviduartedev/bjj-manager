@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PainelLoading() {
   return (
-    <div className="bg-[#f3f4f6] p-4 dark:bg-zinc-950 lg:p-6" aria-busy="true" aria-live="polite">
+    <div className="bg-background p-4 lg:p-6" aria-busy="true" aria-live="polite">
       <span className="sr-only">A carregar o painel…</span>
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
