@@ -84,18 +84,18 @@ export function LoginForm({ recoveryMessage }: { recoveryMessage: string | null 
   }
 
   return (
-    <div className="fixed inset-0 z-[100] min-h-dvh overflow-y-auto bg-[#F5F3F0] text-[#050505]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[570px] bg-[#050505] [clip-path:polygon(0_0,100%_0,100%_82%,0_62%)] sm:h-[620px]">
+    <div className="fixed inset-0 z-[100] min-h-dvh overflow-y-auto bg-background text-secondary">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[570px] bg-secondary [clip-path:polygon(0_0,100%_0,100%_82%,0_62%)] sm:h-[620px]">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: `linear-gradient(90deg,rgba(5,5,5,.82),rgba(5,5,5,.88)),url(${photo})`,
+            backgroundImage: `linear-gradient(90deg,hsl(var(--secondary) / 0.82),hsl(var(--secondary) / 0.88)),url(${photo})`,
           }}
         />
         <div
           className="absolute inset-0 opacity-50"
           style={{
-            backgroundImage: "radial-gradient(rgba(245,243,240,.72) 1.2px,transparent 1.2px)",
+            backgroundImage: "radial-gradient(hsl(var(--background) / 0.72) 1.2px,transparent 1.2px)",
             backgroundSize: "34px 34px",
             maskImage: "linear-gradient(90deg,black,transparent 78%)",
           }}
@@ -103,7 +103,7 @@ export function LoginForm({ recoveryMessage }: { recoveryMessage: string | null 
       </div>
 
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5 sm:px-10">
-        <Link href="/" aria-label="Casca — início" className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BF1E27] focus-visible:ring-offset-2">
+        <Link href="/" aria-label="Casca — início" className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
           <LogoMark height={32} priority className="border border-white/10" />
         </Link>
         <Link
@@ -116,18 +116,18 @@ export function LoginForm({ recoveryMessage }: { recoveryMessage: string | null 
       </header>
 
       <main className="relative z-[1] mx-auto flex min-h-[calc(100dvh-80px)] max-w-6xl items-center justify-center px-5 pb-20 pt-5 sm:px-8 sm:pb-24">
-        <section className="w-full max-w-[480px] rounded-2xl bg-[#F5F3F0] p-7 text-[#050505] shadow-[0_28px_80px_rgba(0,0,0,0.32)] ring-1 ring-black/[0.08] sm:p-12">
+        <section className="w-full max-w-[480px] rounded-2xl bg-background p-7 text-secondary shadow-[0_28px_80px_rgba(0,0,0,0.32)] ring-1 ring-black/[0.08] sm:p-12">
           <div className="text-center">
-            <h1 className="mb-2 text-balance text-[32px] font-semibold leading-tight tracking-[-0.035em] text-[#050505] sm:text-[36px]">
+            <h1 className="mb-2 text-balance text-[32px] font-semibold leading-tight tracking-[-0.035em] text-secondary sm:text-[36px]">
               Bem-vindo de volta
             </h1>
-            <p className="mb-8 text-sm text-[#3A3A3A]/75">
+            <p className="mb-8 text-sm text-foreground/75">
               Entre com os dados da sua conta Casca.
             </p>
           </div>
 
           {recoveryMessage ? (
-            <div className="mb-6 space-y-4 rounded-lg bg-white/75 p-4 text-sm text-[#3A3A3A]">
+            <div className="mb-6 space-y-4 rounded-lg bg-card/75 p-4 text-sm text-foreground">
               <p>{recoveryMessage}</p>
               <ResendConfirmationForm />
             </div>
@@ -140,18 +140,18 @@ export function LoginForm({ recoveryMessage }: { recoveryMessage: string | null 
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[11px] font-bold tracking-[0.16em] text-[#3A3A3A]/75">
+                    <FormLabel className="text-[11px] font-bold tracking-[0.16em] text-foreground/75">
                       E-MAIL
                     </FormLabel>
                     <div className="relative flex h-12 items-center">
-                      <Mail aria-hidden="true" className="pointer-events-none absolute left-3.5 z-10 size-4 text-[#3A3A3A]/50" />
+                      <Mail aria-hidden="true" className="pointer-events-none absolute left-3.5 z-10 size-4 text-foreground/50" />
                       <FormControl>
                         <Input
                           type="email"
                           autoComplete="email"
                           disabled={loading}
                           placeholder="nome@academia.com.br"
-                          className="h-12 rounded-md border-[#E5E2DC] bg-white/75 pl-10 text-sm placeholder:text-[#3A3A3A]/45 focus-visible:ring-[#BF1E27]"
+                          className="h-12 rounded-md border-border bg-card/75 pl-10 text-sm placeholder:text-foreground/45 focus-visible:ring-ring"
                           {...field}
                         />
                       </FormControl>
@@ -165,18 +165,18 @@ export function LoginForm({ recoveryMessage }: { recoveryMessage: string | null 
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[11px] font-bold tracking-[0.16em] text-[#3A3A3A]/75">
+                    <FormLabel className="text-[11px] font-bold tracking-[0.16em] text-foreground/75">
                       SENHA
                     </FormLabel>
                     <div className="relative flex h-12 items-center">
-                      <LockKeyhole aria-hidden="true" className="pointer-events-none absolute left-3.5 z-10 size-4 text-[#3A3A3A]/50" />
+                      <LockKeyhole aria-hidden="true" className="pointer-events-none absolute left-3.5 z-10 size-4 text-foreground/50" />
                       <FormControl>
                         <Input
                           type="password"
                           autoComplete="current-password"
                           disabled={loading}
                           placeholder="Sua senha"
-                          className="h-12 rounded-md border-[#E5E2DC] bg-white/75 pl-10 text-sm placeholder:text-[#3A3A3A]/45 focus-visible:ring-[#BF1E27]"
+                          className="h-12 rounded-md border-border bg-card/75 pl-10 text-sm placeholder:text-foreground/45 focus-visible:ring-ring"
                           {...field}
                         />
                       </FormControl>
@@ -187,7 +187,7 @@ export function LoginForm({ recoveryMessage }: { recoveryMessage: string | null 
               />
               <Button
                 type="submit"
-                className="group mt-2 h-[58px] w-full rounded-md bg-[#BF1E27] text-xs font-extrabold tracking-[0.18em] text-white shadow-lg shadow-[#BF1E27]/20 transition hover:bg-[#a91820] active:scale-[0.98]"
+                className="group mt-2 h-[58px] w-full rounded-md bg-primary text-xs font-extrabold tracking-[0.18em] text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/90 active:scale-[0.98]"
                 disabled={loading}
               >
                 {loading ? "ENTRANDO…" : "ENTRAR"}
@@ -197,17 +197,17 @@ export function LoginForm({ recoveryMessage }: { recoveryMessage: string | null 
           </Form>
 
           {resendForEmail ? (
-            <div className="mt-5 space-y-3 rounded-lg border border-[#E5E2DC] bg-white/70 p-4">
-              <p className="text-sm leading-6 text-[#3A3A3A]">
+            <div className="mt-5 space-y-3 rounded-lg border border-border bg-card/70 p-4">
+              <p className="text-sm leading-6 text-foreground">
                 Confirme seu e-mail antes de entrar. Se a mensagem não chegou, você pode pedir outro link.
               </p>
               <ResendConfirmationForm defaultEmail={resendForEmail} emailHidden />
             </div>
           ) : null}
 
-          <p className="mt-5 text-center text-xs text-[#3A3A3A]/80">
+          <p className="mt-5 text-center text-xs text-foreground/80">
             Primeira vez por aqui?{" "}
-            <Link href="/register" className="font-bold text-[#BF1E27] hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BF1E27]">
+            <Link href="/register" className="font-bold text-primary hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               Criar academia
             </Link>
           </p>

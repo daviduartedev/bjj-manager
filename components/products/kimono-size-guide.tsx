@@ -61,7 +61,7 @@ export function KimonoSizeGuide({ className }: { className?: string }) {
         <strong className="text-foreground">M1</strong>) para manter o mesmo padrão da academia.
       </p>
 
-      <Card className="overflow-hidden border-bjj-blue/20 bg-gradient-to-br from-bjj-blue/[0.05] to-card shadow-md">
+      <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.05] to-card shadow-md">
         <CardHeader className="border-b border-border/60 bg-card/80 pb-4">
           <CardTitle className="flex items-center gap-2 text-base font-semibold sm:text-lg">
             <span className="text-xl" aria-hidden>
@@ -107,7 +107,7 @@ export function KimonoSizeGuide({ className }: { className?: string }) {
             </table>
           </div>
           <div className="flex gap-3 border-t border-border/80 bg-muted/25 p-4">
-            <Info className="mt-0.5 size-4 shrink-0 text-bjj-blue" aria-hidden />
+            <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
             <p className="text-crm-xs leading-relaxed text-muted-foreground">
               <strong className="font-medium text-foreground">Nota:</strong> alguns fabricantes usam
               numeração ligeiramente diferente, como A1 (até 1,75 m) ou A3 (até 1,85 m / 95 kg). Em caso

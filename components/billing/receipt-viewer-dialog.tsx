@@ -159,8 +159,8 @@ export function ReceiptViewerDialog({
         ) : null}
 
         {state.kind === "failed" ? (
-          <div className="space-y-3 rounded-md border border-amber-300/60 bg-amber-50 p-3 dark:border-amber-400/30 dark:bg-amber-950/40">
-            <p className="text-crm-sm text-amber-900 dark:text-amber-200">
+          <div className="space-y-3 rounded-md border border-[hsl(var(--status-pending)/0.35)] bg-[hsl(var(--status-pending)/0.18)] p-3">
+            <p className="text-crm-sm text-[hsl(var(--status-pending-foreground))]">
               A última tentativa falhou: {state.error}
             </p>
             <div className={formActionsClass}>

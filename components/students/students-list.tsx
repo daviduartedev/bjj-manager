@@ -391,7 +391,7 @@ export function StudentsList({
                   value={localQ}
                   onChange={(e) => setLocalQ(e.target.value)}
                   placeholder="Nome do aluno…"
-                  className="bg-white pl-9 dark:bg-zinc-950"
+                  className="bg-card pl-9"
                 />
               </div>
             </div>

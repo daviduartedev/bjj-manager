@@ -9,7 +9,7 @@ import {
   cameraAt,
   type CamKey,
 } from "@/components/marketing/promo/timeline";
-import { FONT } from "@/components/marketing/promo/ui";
+import { C, FONT } from "@/components/marketing/promo/ui";
 
 // ---------------------------------------------------------------------------
 // Fundo
@@ -21,7 +21,7 @@ export function Backdrop({ frame }: { frame: number }) {
     <AbsoluteFill style={{ background: "#030304" }}>
       <AbsoluteFill
         style={{
-          background: `radial-gradient(900px 600px at ${300 + drift}px 120px, rgba(191,30,39,0.38), transparent 70%), radial-gradient(800px 560px at ${1640 - drift}px 980px, rgba(191,30,39,0.22), transparent 70%)`,
+          background: `radial-gradient(900px 600px at ${300 + drift}px 120px, hsl(var(--primary) / 0.38), transparent 70%), radial-gradient(800px 560px at ${1640 - drift}px 980px, hsl(var(--primary) / 0.22), transparent 70%)`,
         }}
       />
       <AbsoluteFill
@@ -112,8 +112,8 @@ export function Cursor({
               width: size,
               height: size,
               borderRadius: size,
-              border: `${4 * (1 - t) + 1}px solid rgba(255,70,80,${0.85 * (1 - t)})`,
-              background: `rgba(191,30,39,${0.22 * (1 - t)})`,
+              border: `${4 * (1 - t) + 1}px solid hsl(var(--primary) / ${0.85 * (1 - t)})`,
+              background: `hsl(var(--primary) / ${0.22 * (1 - t)})`,
             }}
           />
         );
@@ -202,8 +202,8 @@ export function SceneNote({
             width: 18,
             height: 18,
             borderRadius: 18,
-            background: "#BF1E27",
-            boxShadow: "0 0 0 8px rgba(191,30,39,0.28)",
+            background: C.primary,
+            boxShadow: "0 0 0 8px hsl(var(--primary) / 0.28)",
             marginLeft: 8,
           }}
         />

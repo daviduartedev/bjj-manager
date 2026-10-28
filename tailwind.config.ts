@@ -21,17 +21,17 @@ const config: Config = {
     },
     extend: {
       colors: {
-        // Paleta Casca (jiu-jitsu / operação)
+        // Paleta Casca nomeada: azul, verde e amarelo da marca, e preto do chrome.
         bjj: {
           black: "#050505",
-          white: "#FFFFFF",
-          off: "#F5F3F0",
-          red: "#BF1E27",
-          green: "#1D8B32",
-          blue: "#1E5AA8",
-          yellow: "#F4C542",
-          text: "#3A3A3A",
-          border: "#E5E2DC",
+          green: "#008038",
+          blue: "#0055A0",
+          yellow: "#F8B800",
+        },
+        brand: {
+          blue: "hsl(var(--brand-blue))",
+          green: "hsl(var(--brand-green))",
+          yellow: "hsl(var(--brand-yellow))",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -74,21 +74,21 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
-          "var(--font-sans)",
+          "var(--font-sans, Inter)",
           "Inter",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",
         ],
         display: [
-          "var(--font-sans)",
+          "var(--font-sans, Inter)",
           "Inter",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",
         ],
         lp: [
-          "var(--font-sans)",
+          "var(--font-sans, Inter)",
           "Inter",
           "ui-sans-serif",
           "system-ui",

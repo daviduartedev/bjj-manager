@@ -61,9 +61,9 @@ function Chip({
       style={{
         boxSizing: "border-box",
         borderRadius: 16,
-        border: `2px solid ${on ? C.red : C.line}`,
-        background: on ? C.redSoft : "#fff",
-        color: on ? C.red : "#3b4048",
+        border: `2px solid ${on ? C.primary : C.line}`,
+        background: on ? C.primarySoft : "#fff",
+        color: on ? C.primary : "#3b4048",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -148,7 +148,7 @@ export function GraduacaoScene() {
       <PageFade frame={frame} duration={durationInFrames}>
         <PageHeader title="Graduação" subtitle="Marina Alves" />
 
-        <Abs x={348} y={124} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 22, fontWeight: 700, color: "#2563eb" }}>
+        <Abs x={348} y={124} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 22, fontWeight: 700, color: C.primary }}>
           <ChevronLeft size={26} /> Marina Alves
         </Abs>
 
@@ -187,11 +187,11 @@ export function GraduacaoScene() {
             </div>
             <div style={{ marginTop: 14 }}>
               {promoted ? (
-                <Pill bg={C.greenSoft} color="#15803d">
+                <Pill bg={C.greenSoft} color={C.greenInk}>
                   Promoção registrada
                 </Pill>
               ) : (
-                <Pill bg={C.amberSoft} color="#b45309">
+                <Pill bg={C.amberSoft} color={C.amberInk}>
                   Pronta para a faixa roxa
                 </Pill>
               )}

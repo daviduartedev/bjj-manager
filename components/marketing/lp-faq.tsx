@@ -1,5 +1,7 @@
-﻿import {
+﻿import { LpPillCta } from "@/components/marketing/lp-chrome";
+import {
   LpDisplay,
+  LpEyebrow,
   LpReveal,
   LpSection,
 } from "@/components/marketing/lp-primitives";
@@ -41,38 +43,43 @@ const faqItems = [
 
 export function LpFaq() {
   return (
-    <LpSection id="faq" className="relative z-10 bg-black text-white">
+    <LpSection id="faq" className="relative z-10 bg-background">
       <div className="grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-28">
         {/* Left column — sticky on desktop */}
         <LpReveal>
-          <div className="lg:sticky lg:top-28 mb-12 lg:mb-0">
-            <LpDisplay className="text-[clamp(2.25rem,5vw,4rem)]">
-              Perguntas frequentes
+          <div className="mb-12 lg:sticky lg:top-28 lg:mb-0">
+            <LpEyebrow>FAQ</LpEyebrow>
+            <LpDisplay surface="light" className="mt-4 text-[clamp(2.25rem,5vw,4rem)]">
+              Perguntas <span className="text-brand-blue">frequentes</span>
             </LpDisplay>
-            <p className="mt-6 max-w-[36ch] leading-relaxed text-white/60">
+            <p className="mt-6 max-w-[36ch] leading-relaxed text-muted-foreground">
               O que donos e professores perguntam antes de entrar.
             </p>
+            <LpPillCta align="start" className="mt-8">
+              Criar minha academia
+            </LpPillCta>
           </div>
         </LpReveal>
 
         {/* Right column — accordion */}
         <LpReveal delay={0.1}>
-          <div className="divide-y divide-white/10 border-y border-white/10">
+          <div className="flex flex-col gap-3">
             {faqItems.map(({ q, a }) => (
-              <details key={q} className="group">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left text-base font-medium text-white outline-none focus-visible:ring-2 focus-visible:ring-white sm:text-lg [&::-webkit-details-marker]:hidden">
+              <details
+                key={q}
+                className="group rounded-[22px] border border-black/[0.06] bg-neutral-50 px-5 transition-[background-color,box-shadow] duration-300 open:bg-white open:shadow-[0_1px_2px_rgba(0,0,0,0.04),0_16px_40px_-24px_rgba(0,0,0,0.18)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background sm:px-6"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left text-base font-semibold text-foreground outline-none sm:gap-6 sm:text-lg [&::-webkit-details-marker]:hidden">
                   <span>{q}</span>
-                  <span aria-hidden className="font-sans text-2xl font-semibold text-bjj-red group-open:hidden">
-                    +
-                  </span>
                   <span
                     aria-hidden
-                    className="hidden font-sans text-2xl font-semibold text-bjj-red group-open:inline"
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-blue font-sans text-xl font-semibold leading-none text-white transition-colors group-open:bg-neutral-950"
                   >
-                    −
+                    <span className="group-open:hidden">+</span>
+                    <span className="hidden group-open:inline">−</span>
                   </span>
                 </summary>
-                <p className="max-w-[56ch] pb-5 leading-relaxed text-white/60">{a}</p>
+                <p className="max-w-[56ch] pb-5 leading-relaxed text-muted-foreground">{a}</p>
               </details>
             ))}
           </div>

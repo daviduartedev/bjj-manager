@@ -216,7 +216,7 @@ export function ProductLedgerNotebook({
       <form
         id="ledger-form"
         onSubmit={onCreate}
-        className="rounded-lg border border-border/80 bg-[hsl(42_33%_97%)] p-5 shadow-sm dark:bg-card"
+        className="rounded-lg border border-border/80 bg-card p-5 shadow-sm"
       >
         <p className="text-lg font-semibold tracking-[-0.02em]">
           {editingId ? "Editar anotação" : "Nova anotação"}
@@ -435,7 +435,7 @@ export function ProductLedgerNotebook({
             {visible.map((row) => (
               <li
                 key={row.id}
-                className="rounded-lg border border-border/80 bg-[hsl(42_40%_98%)] p-5 shadow-sm dark:bg-card"
+                className="rounded-lg border border-border/80 bg-card p-5 shadow-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -450,9 +450,9 @@ export function ProductLedgerNotebook({
                   <span
                     className={cn(
                       "rounded-full px-3 py-1 text-xs font-semibold",
-                      row.bucket === "a_receber" && "bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-100",
-                      row.bucket === "a_pagar" && "bg-red-100 text-red-950 dark:bg-red-950 dark:text-red-100",
-                      row.bucket === "quitado" && "bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-100",
+                      row.bucket === "a_receber" && "bg-[hsl(var(--status-pending)/0.18)] text-[hsl(var(--status-pending-foreground))]",
+                      row.bucket === "a_pagar" && "bg-[hsl(var(--status-overdue)/0.12)] text-[hsl(var(--status-overdue-foreground))]",
+                      row.bucket === "quitado" && "bg-[hsl(var(--status-paid)/0.12)] text-[hsl(var(--status-paid-foreground))]",
                     )}
                   >
                     {row.bucket === "a_receber"

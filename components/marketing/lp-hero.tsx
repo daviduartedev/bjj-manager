@@ -1,75 +1,54 @@
-﻿import { LpEnterLink } from "@/components/marketing/lp-chrome";
-import { LpDisplay, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { Geologica } from "next/font/google";
+
+import { LpOutlineLink, LpSignupLink } from "@/components/marketing/lp-chrome";
+import { LpReveal } from "@/components/marketing/lp-primitives";
 import { LpSystemVideo } from "@/components/marketing/lp-system-video";
 
-// ---------------------------------------------------------------------------
-// Capability strip item
-// ---------------------------------------------------------------------------
+const heroDisplay = Geologica({
+  subsets: ["latin"],
+  weight: "700",
+  display: "swap",
+});
 
-function CapabilityItem({ kicker, label }: { kicker: string; label: string }) {
-  return (
-    <div>
-      <p className="font-sans text-xl font-semibold tracking-[-0.02em] sm:text-2xl">{kicker}</p>
-      <p className="mt-2 text-sm leading-relaxed text-white/55">{label}</p>
-    </div>
-  );
-}
+const CAPABILITIES = ["Alunos", "Mensalidades", "Graduação", "Aulas", "Pagamentos"] as const;
 
-// ---------------------------------------------------------------------------
-// LpHero — título, CTAs e o vídeo do sistema na própria hero
-// ---------------------------------------------------------------------------
-
+/** Hero empilhado: texto alinhado à esquerda e o vídeo do produto em moldura clara logo abaixo. */
 export function LpHero() {
   return (
-    <LpSection className="pb-20 pt-28 sm:pb-24 sm:pt-36">
-      <LpReveal onLoad>
-        <div className="mx-auto w-full max-w-7xl text-center">
-          <LpDisplay className="whitespace-nowrap text-[clamp(1.15rem,4.4vw,4rem)]">
-            Se preocupe apenas em dar aula.
-          </LpDisplay>
-        </div>
-      </LpReveal>
-
-      <LpReveal onLoad delay={0.12}>
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="mx-auto mt-6 max-w-2xl text-balance text-base leading-relaxed text-white/65 sm:text-lg">
-            No Casca, você visualiza e organiza toda a gestão da sua academia em um só lugar.
+    <section className="bg-white pb-8 pt-28 sm:pb-10 sm:pt-36">
+      <LpReveal onLoad className="mx-auto w-full max-w-7xl px-3 sm:px-10 lg:px-16">
+        <div className="max-w-4xl">
+          <h1
+            className={`${heroDisplay.className} text-[clamp(2.5rem,5.2vw,4.75rem)] leading-[1.02] tracking-[-0.05em] text-foreground`}
+          >
+            A plataforma brasileira para gestão de academias de artes marciais.
+          </h1>
+          <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            Alunos, mensalidades, aulas e a rotina da academia organizados em um só lugar.
           </p>
-
-          <div className="mt-9 flex items-center justify-center gap-4">
-            <LpEnterLink className="h-12 px-8" />
-            <a
-              href="#sistema"
-              className="inline-flex h-12 items-center rounded-full border border-white/15 px-8 text-sm font-semibold text-white/80 transition-colors hover:border-white/30 hover:text-white"
-            >
-              Ver o sistema
-            </a>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <LpSignupLink />
+            <LpOutlineLink href="#sistema">Ver o sistema</LpOutlineLink>
           </div>
         </div>
-      </LpReveal>
 
-      <LpReveal onLoad delay={0.24} className="mt-14 sm:mt-16">
-        <LpSystemVideo />
-      </LpReveal>
+        <div className="mt-12 rounded-[1.5rem] border border-black/[0.06] bg-[#f3f4f6] p-2 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_24px_60px_-28px_rgba(16,24,40,0.28)] sm:mt-16 sm:rounded-[2rem] sm:p-3">
+          <div className="overflow-hidden rounded-[1.1rem] border border-white bg-[#111416] sm:rounded-[1.5rem]">
+            <LpSystemVideo compact />
+          </div>
+        </div>
 
-      <LpReveal className="mt-20 grid grid-cols-2 gap-10 border-t border-white/10 pt-10 text-left lg:grid-cols-4 lg:gap-14">
-        <CapabilityItem
-          kicker="Adulto e kids"
-          label="O mesmo cadastro cobre as duas linhas da escola."
-        />
-        <CapabilityItem
-          kicker="Faixa e grau"
-          label="Histórico com data. Pulo de ordem pede justificativa."
-        />
-        <CapabilityItem
-          kicker="O mês"
-          label="Pago, pendente, atrasado, bolsista ou outro. Você confirma."
-        />
-        <CapabilityItem
-          kicker="Sua academia"
-          label="Isolamento por conta. Cada escola vê só os seus dados."
-        />
+        <div className="flex w-full flex-wrap items-center justify-center gap-x-8 gap-y-4 border-b border-border py-9 text-foreground sm:justify-between">
+          {CAPABILITIES.map((capability) => (
+            <span
+              key={capability}
+              className={`${heroDisplay.className} text-lg tracking-[-0.03em] sm:text-2xl lg:text-[1.65rem]`}
+            >
+              {capability}
+            </span>
+          ))}
+        </div>
       </LpReveal>
-    </LpSection>
+    </section>
   );
 }

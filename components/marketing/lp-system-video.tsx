@@ -3,6 +3,8 @@
 import { Player, type PlayerRef } from "@remotion/player";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { cn } from "@/lib/utils";
+
 import {
   LP_SYSTEM_SCENE_FRAMES,
   LP_SYSTEM_VIDEO_DURATION,
@@ -70,7 +72,7 @@ const ITEMS = [
 // LpSystemVideo
 // ---------------------------------------------------------------------------
 
-export function LpSystemVideo() {
+export function LpSystemVideo({ compact = false }: { compact?: boolean }) {
   const playerRef = useRef<PlayerRef>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [activeScene, setActiveScene] = useState<LpSystemSceneId>("intro");
@@ -158,19 +160,24 @@ export function LpSystemVideo() {
       ref={sectionRef}
       data-testid="lp-system-video"
       aria-label="O sistema em uso"
-      className="relative scroll-mt-24"
+      className={cn("relative scroll-mt-24", compact && "w-full")}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/4 h-[420px] w-[80%] -translate-x-1/2 rounded-full bg-[#BF1E27]/25 blur-[130px]"
-      />
-
       {/* Player com moldura leve (sem barra de navegador nem rodapé) */}
       <div
         data-testid="lp-system-video-card"
-        className="relative mx-auto max-w-6xl rounded-[28px] border border-white/15 bg-white/[0.04] p-2 shadow-[0_40px_90px_-30px_rgba(191,30,39,0.5),0_24px_60px_-20px_rgba(0,0,0,0.8)] sm:p-2.5"
+        className={cn(
+          "relative mx-auto max-w-6xl",
+          compact
+            ? "bg-[#111416]"
+            : "rounded-3xl border border-border bg-background p-2 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_16px_40px_-24px_rgba(0,0,0,0.18)] sm:p-2.5",
+        )}
       >
-        <div className="relative aspect-video overflow-hidden rounded-[20px] bg-black ring-1 ring-white/10">
+        <div
+          className={cn(
+            "relative aspect-video overflow-hidden bg-secondary",
+            !compact && "rounded-[1.25rem]",
+          )}
+        >
           <Player
             ref={playerRef}
             component={SystemScreensComposition}
@@ -189,50 +196,54 @@ export function LpSystemVideo() {
       </div>
 
       {/* Cenas (clicáveis: pulam para a cena) */}
-      <ul
-        data-testid="lp-system-video-copy"
-        className="relative mx-auto mt-5 grid max-w-6xl gap-2 sm:grid-cols-2 lg:grid-cols-5"
-      >
-        {ITEMS.map((item) => {
-          const active = activeScene === item.scene;
-          return (
-            <li key={item.title}>
-              <button
-                type="button"
-                onClick={() => jumpTo(item.scene)}
-                aria-current={active ? "true" : undefined}
-                className={`relative h-full w-full rounded-xl px-4 pb-4 pt-5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
-                  active ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"
-                }`}
-              >
-                <span aria-hidden className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-white/10">
+      {!compact && (
+        <ul
+          data-testid="lp-system-video-copy"
+          className="relative mx-auto mt-5 grid max-w-6xl gap-2 sm:grid-cols-2 lg:grid-cols-5"
+        >
+          {ITEMS.map((item) => {
+            const active = activeScene === item.scene;
+            return (
+              <li key={item.title}>
+                <button
+                  type="button"
+                  onClick={() => jumpTo(item.scene)}
+                  aria-current={active ? "true" : undefined}
+                  className={`relative h-full w-full rounded-2xl border px-4 pb-4 pt-5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                    active
+                      ? "border-primary/30 bg-background"
+                      : "border-border bg-background hover:border-primary/20"
+                  }`}
+                >
+                  <span aria-hidden className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-border">
+                    <span
+                      ref={(el) => {
+                        fillRefs.current[item.scene] = el as unknown as HTMLDivElement | null;
+                      }}
+                      className="block h-full rounded-full bg-primary"
+                      style={{ width: active ? "100%" : "0%" }}
+                    />
+                  </span>
                   <span
-                    ref={(el) => {
-                      fillRefs.current[item.scene] = el as unknown as HTMLDivElement | null;
-                    }}
-                    className="block h-full rounded-full bg-[#BF1E27]"
-                    style={{ width: active ? "100%" : "0%" }}
-                  />
-                </span>
-                <span
-                  className={`block font-sans text-lg font-semibold tracking-[-0.02em] transition-colors ${
-                    active ? "text-white" : "text-white/75"
-                  }`}
-                >
-                  {item.title}
-                </span>
-                <span
-                  className={`mt-1.5 block text-sm leading-relaxed transition-colors ${
-                    active ? "text-white/70" : "text-white/45"
-                  }`}
-                >
-                  {item.body}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                    className={`block font-sans text-lg font-semibold tracking-[-0.02em] transition-colors ${
+                      active ? "text-foreground" : "text-foreground/75"
+                    }`}
+                  >
+                    {item.title}
+                  </span>
+                  <span
+                    className={`mt-1.5 block text-sm leading-relaxed transition-colors ${
+                      active ? "text-muted-foreground" : "text-muted-foreground/80"
+                    }`}
+                  >
+                    {item.body}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

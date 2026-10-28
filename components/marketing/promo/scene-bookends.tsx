@@ -1,7 +1,7 @@
 ﻿import type { CSSProperties, ReactNode } from "react";
 import { AbsoluteFill, Img, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 
-import { FONT, WORDMARK_SRC } from "@/components/marketing/promo/ui";
+import { C, FONT, WORDMARK_SRC } from "@/components/marketing/promo/ui";
 import { PROMO_FPS, progress } from "@/components/marketing/promo/timeline";
 
 function Rise({
@@ -65,7 +65,7 @@ export function IntroTitle() {
       }}
     >
       <Rise frame={frame} start={0}>
-        <Img src={WORDMARK_SRC} style={{ height: 120, width: "auto", display: "block", margin: "0 auto" }} />
+        <Img src={WORDMARK_SRC} style={{ height: 180, width: "auto", display: "block", margin: "0 auto" }} />
       </Rise>
     </AbsoluteFill>
   );
@@ -113,7 +113,7 @@ export function OutroCard() {
       }}
     >
       <Rise frame={frame} start={14}>
-        <Img src={WORDMARK_SRC} style={{ height: 84, width: "auto", display: "block", margin: "0 auto" }} />
+        <Img src={WORDMARK_SRC} style={{ height: 120, width: "auto", display: "block", margin: "0 auto" }} />
       </Rise>
       <Rise
         frame={frame}
@@ -151,10 +151,10 @@ export function OutroCard() {
           marginTop: 52,
           padding: "22px 64px",
           borderRadius: 999,
-          background: "#BF1E27",
+          background: C.primary,
           fontSize: 34,
           fontWeight: 700,
-          boxShadow: "0 24px 60px -16px rgba(191,30,39,0.9)",
+          boxShadow: "0 24px 60px -16px hsl(var(--primary) / 0.9)",
         }}
       >
         Entrar no Casca

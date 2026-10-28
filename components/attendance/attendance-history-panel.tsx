@@ -80,7 +80,7 @@ export function AttendanceHistoryPanel({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="rounded-[20px] border border-black/[0.04] bg-white px-4 py-3 dark:border-border dark:bg-card">
+      <div className="rounded-[20px] border border-border bg-card px-4 py-3">
         <p className="text-sm text-muted-foreground">Total de aulas frequentadas</p>
         <p className="text-3xl font-semibold tabular-nums">{total}</p>
       </div>
@@ -88,7 +88,7 @@ export function AttendanceHistoryPanel({
       <ul className="space-y-3">
         {rows.map((row) => (
           <li key={row.id}>
-            <article className="rounded-[20px] border border-black/[0.04] bg-white p-4 shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)] dark:border-border dark:bg-card sm:p-5">
+            <article className="rounded-[20px] border border-border bg-card p-4 shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)] sm:p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 space-y-1">
                   <p className="text-sm font-medium text-muted-foreground">

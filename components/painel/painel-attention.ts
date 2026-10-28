@@ -2,11 +2,11 @@ import type { PainelDashboardProps } from "@/components/painel/painel-types";
 import { routeAlunoPerfil } from "@/lib/routes";
 
 export const MIX_META = [
-  { key: "paid" as const, label: "Pago", short: "Pago", color: "#16a34a" },
-  { key: "pending" as const, label: "Pendente", short: "Pend.", color: "#eab308" },
-  { key: "overdue" as const, label: "Atrasado", short: "Atras.", color: "#e11d48" },
-  { key: "scholarship" as const, label: "Bolsista", short: "Bolsa", color: "#2563eb" },
-  { key: "other" as const, label: "Outro", short: "Outro", color: "#71717a" },
+  { key: "paid" as const, label: "Pago", short: "Pago", color: "hsl(var(--status-paid))" },
+  { key: "pending" as const, label: "Pendente", short: "Pend.", color: "hsl(var(--status-pending))" },
+  { key: "overdue" as const, label: "Atrasado", short: "Atras.", color: "hsl(var(--status-overdue))" },
+  { key: "scholarship" as const, label: "Bolsista", short: "Bolsa", color: "hsl(var(--status-info))" },
+  { key: "other" as const, label: "Outro", short: "Outro", color: "hsl(var(--muted-foreground))" },
 ];
 
 export function mixTotal(mix: PainelDashboardProps["billingMix"]): number {

@@ -49,9 +49,9 @@ export function MensalidadesMonthFinancePanel(props: Props) {
                     {formatMoneyBrFromCents(row.totalCents)}
                   </span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full rounded-full bg-emerald-500"
+                    className="h-full rounded-full bg-[hsl(var(--status-paid))]"
                     style={{
                       width: `${Math.round((row.totalCents / maxPlan) * 100)}%`,
                     }}

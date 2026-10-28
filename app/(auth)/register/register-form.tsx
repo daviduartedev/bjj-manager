@@ -210,14 +210,14 @@ export function RegisterForm() {
         <p className="text-sm text-muted-foreground">Já tem uma conta? <Link href="/login" className="font-semibold text-primary underline-offset-4 hover:underline">Entrar</Link></p>
       </div>
 
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b-4 border-primary bg-bjj-black px-6 py-7 text-white sm:px-9">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b-4 border-primary bg-secondary px-6 py-7 text-secondary-foreground sm:px-9">
         <div className="flex items-center gap-4">
-          <Building2 className="size-9 shrink-0 text-white/70" aria-hidden />
-          <div><h1 className="!text-2xl !font-medium !text-white">Configurar academia</h1>
-            <p className="mt-1 text-sm text-white/60">Vamos preparar seu espaço no Casca.</p>
+          <Building2 className="size-9 shrink-0 text-secondary-foreground/70" aria-hidden />
+          <div><h1 className="!text-2xl !font-medium !text-secondary-foreground">Configurar academia</h1>
+            <p className="mt-1 text-sm text-secondary-foreground/60">Vamos preparar seu espaço no Casca.</p>
           </div>
         </div>
-        <span className="text-sm text-white/70">{waiting ? "Confirmação de e-mail" : `Etapa ${step + 1} de 3`}</span>
+        <span className="text-sm text-secondary-foreground/70">{waiting ? "Confirmação de e-mail" : `Etapa ${step + 1} de 3`}</span>
       </header>
       <div className="border-x border-b border-border bg-card">
           <nav aria-label="Etapas do cadastro">
@@ -301,7 +301,7 @@ export function RegisterForm() {
                         <div className="grid gap-3 sm:grid-cols-2">
                           {[{ value: "planning", label: "Estou começando", detail: "Organizando a abertura e as primeiras turmas.", emoji: "🌱" }, { value: "operating", label: "Já está funcionando", detail: "Já tenho alunos e uma rotina de treinos.", emoji: "🥋" }].map(option => (
                             <label key={option.value} className={cn("flex cursor-pointer items-start gap-3 rounded-md border p-4 focus-within:ring-2 focus-within:ring-ring", field.value === option.value ? "border-primary bg-primary/5" : "border-border hover:bg-background")}>
-                              <input ref={field.ref} type="radio" name={field.name} value={option.value} checked={field.value === option.value} onChange={() => field.onChange(option.value)} className="mt-1 size-4 shrink-0 accent-bjj-red" />
+                              <input ref={field.ref} type="radio" name={field.name} value={option.value} checked={field.value === option.value} onChange={() => field.onChange(option.value)} className="mt-1 size-4 shrink-0 accent-primary" />
                               <span><span className="block text-base font-medium"><span aria-hidden className="mr-2">{option.emoji}</span>{option.label}</span><span className="mt-1 block text-sm leading-5 text-muted-foreground">{option.detail}</span></span>
                             </label>
                           ))}
@@ -332,7 +332,7 @@ export function RegisterForm() {
                         <p className="mb-4 text-sm text-muted-foreground">{adultOnly ? "Esta modalidade atende adultos de 18 anos ou mais." : "Selecione todos os públicos que fazem parte do seu espaço."}</p>
                         <div className="grid gap-3 sm:grid-cols-3">{AUDIENCES.filter((option) => !adultOnly || option.value === "adult").map(option => (
                           <label key={option.value} className={cn("relative flex cursor-pointer items-start gap-3 rounded-md border p-4 focus-within:ring-2 focus-within:ring-ring", field.value.includes(option.value) ? "border-primary bg-primary/5" : "border-border hover:bg-background")}>
-                            <input ref={field.ref} type="checkbox" name={field.name} checked={field.value.includes(option.value)} onChange={event => field.onChange(event.target.checked ? [...field.value, option.value] : field.value.filter(value => value !== option.value))} className="mt-1 size-4 shrink-0 accent-bjj-red" />
+                            <input ref={field.ref} type="checkbox" name={field.name} checked={field.value.includes(option.value)} onChange={event => field.onChange(event.target.checked ? [...field.value, option.value] : field.value.filter(value => value !== option.value))} className="mt-1 size-4 shrink-0 accent-primary" />
                             <span><span className="flex items-center gap-2 font-medium"><span aria-hidden className="text-xl">{option.emoji}</span>{option.label}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{adultOnly ? "18 anos ou mais" : option.description}</span></span>
                           </label>
                         ))}</div>
@@ -342,7 +342,7 @@ export function RegisterForm() {
                       <fieldset><legend className="mb-4 text-base font-semibold">O que você mais quer organizar?</legend>
                         <div className="grid gap-3 sm:grid-cols-2">{PRIORITIES.map(({ value, label, icon: Icon }) => (
                           <label key={value} className={cn("flex min-h-14 cursor-pointer items-center gap-3 rounded-md border p-4 focus-within:ring-2 focus-within:ring-ring", field.value.includes(value) ? "border-primary bg-primary/5" : "border-border hover:bg-background")}>
-                            <input ref={field.ref} type="checkbox" name={field.name} checked={field.value.includes(value)} onChange={event => field.onChange(event.target.checked ? [...field.value, value] : field.value.filter(item => item !== value))} className="size-4 shrink-0 accent-bjj-red" />
+                            <input ref={field.ref} type="checkbox" name={field.name} checked={field.value.includes(value)} onChange={event => field.onChange(event.target.checked ? [...field.value, value] : field.value.filter(item => item !== value))} className="size-4 shrink-0 accent-primary" />
                             <Icon className="size-5 shrink-0 text-primary" aria-hidden /><span className="text-sm font-medium">{label}</span>
                           </label>
                         ))}</div>

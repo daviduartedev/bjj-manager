@@ -40,8 +40,8 @@ function Checkbox({ on, pr }: { on: boolean; pr: number }) {
         height: 34,
         borderRadius: 10,
         boxSizing: "border-box",
-        border: `2.5px solid ${C.red}`,
-        background: on ? C.red : "#fff",
+        border: `2.5px solid ${C.primary}`,
+        background: on ? C.primary : "#fff",
         display: "grid",
         placeItems: "center",
         transform: `scale(${1 - pr * 0.15})`,
@@ -78,7 +78,7 @@ export function MensalidadesScene() {
           iconColor={C.green}
           label="Recebido"
           value={brl(received)}
-          bar="#10b981"
+          bar={C.green}
         />
         <StatCard
           x={837}
@@ -86,7 +86,7 @@ export function MensalidadesScene() {
           w={466}
           Icon={Clock}
           iconBg={C.amberSoft}
-          iconColor="#d97706"
+          iconColor={C.amberInk}
           label="Pendentes"
           value={pending}
           bar={C.amber}
@@ -168,9 +168,9 @@ export function MensalidadesScene() {
                   boxSizing: "border-box",
                   background:
                     p > 0.01 && p < 1
-                      ? `rgba(227,246,234,${flash})`
+                      ? `hsl(var(--status-paid) / ${flash * 0.12})`
                       : selected[i]
-                        ? "rgba(253,232,234,0.55)"
+                        ? "hsl(var(--primary) / 0.07)"
                         : "transparent",
                 }}
               >
@@ -195,12 +195,12 @@ export function MensalidadesScene() {
                 <Abs x={COL.status} y={0} h={TABLE.row} style={{ display: "flex", alignItems: "center" }}>
                   <div style={{ position: "relative" }}>
                     <div style={{ opacity: 1 - p }}>
-                      <Pill bg={C.amberSoft} color="#b45309">
+                      <Pill bg={C.amberSoft} color={C.amberInk}>
                         Pendente
                       </Pill>
                     </div>
                     <div style={{ position: "absolute", inset: 0, opacity: p, transform: `scale(${0.85 + 0.15 * p})` }}>
-                      <Pill bg={C.greenSoft} color="#15803d">
+                      <Pill bg={C.greenSoft} color={C.greenInk}>
                         Pago ✓
                       </Pill>
                     </div>
