@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -41,13 +41,23 @@ describe("LandingPage photographs", () => {
 });
 
 describe("LandingPage system video section", () => {
-  it("includes the Remotion region, right-column capability texts, and cards without titles or tags", () => {
+  it("includes the Remotion region inside the hero without duplicating the system section", () => {
     const landing = readFileSync(LANDING_PAGE_SOURCE, "utf8");
     const marketing = readMarketingSources();
 
-    // O vídeo vive na própria hero (cycle 1008, rodada 4).
     const heroSource = readFileSync(join(MARKETING_DIR, "lp-hero.tsx"), "utf8");
     expect(heroSource.includes("LpSystemVideo"), "LpHero must mount the system video").toBe(true);
+    expect(heroSource).toContain("compact");
+
+    const systemSectionPath = join(MARKETING_DIR, "lp-system-section.tsx");
+    const systemSectionSource = existsSync(systemSectionPath)
+      ? readFileSync(systemSectionPath, "utf8")
+      : "";
+    expect(systemSectionSource.includes("LpSystemVideo")).toBe(true);
+    expect(
+      landing.includes("LpSystemSection"),
+      "LandingPage must not duplicate LpSystemSection",
+    ).toBe(false);
     expect(landing.includes("LpHero"), "LandingPage must render the hero").toBe(true);
     expect(marketing).toContain('data-testid="lp-system-video"');
     expect(marketing).toContain("@remotion/player");

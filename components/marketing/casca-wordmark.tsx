@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 
-/** Wordmark tipográfico alinhado à marca (sem imagem). Letras A em destaque vermelho. */
+/** Wordmark tipográfico alinhado à marca (sem imagem). Letras A em destaque azul. */
 export function CascaWordmarkNav({
   className,
   asLink = true,
@@ -13,10 +13,10 @@ export function CascaWordmarkNav({
   const letters = (
     <>
       <span>C</span>
-      <span className="text-bjj-red">A</span>
+      <span className="text-primary">A</span>
       <span>S</span>
       <span>C</span>
-      <span className="text-bjj-red">A</span>
+      <span className="text-primary">A</span>
     </>
   );
 
@@ -24,7 +24,7 @@ export function CascaWordmarkNav({
     return (
       <Link
         href="/"
-        className="outline-none ring-offset-bjj-black focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-bjj-red focus-visible:ring-offset-2"
+        className="outline-none ring-offset-secondary focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-label="Casca, página inicial"
       >
         <span

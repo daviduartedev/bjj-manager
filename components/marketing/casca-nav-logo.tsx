@@ -5,24 +5,31 @@ import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 
-/** Logo compacta para header/footer da LP (proporção horizontal da marca). */
-const NAV_LOGO_SRC = "/uf.png";
+/** Logo horizontal com emblema e nome, nas versões para fundo claro e escuro. */
+const logoByTone = {
+  "dark-bg": "/marketing/casca-logo-light.png",
+  "light-bg": "/marketing/casca-logo-dark.png",
+} as const;
+
+export type CascaNavLogoTone = keyof typeof logoByTone;
 
 export function CascaNavLogo({
   className,
   imgClassName,
   asLink = true,
+  tone = "dark-bg",
 }: {
   className?: string;
   imgClassName?: string;
   asLink?: boolean;
+  tone?: CascaNavLogoTone;
 }) {
   const img = (
     <Image
-      src={NAV_LOGO_SRC}
+      src={logoByTone[tone]}
       alt=""
-      width={240}
-      height={72}
+      width={3068}
+      height={945}
       quality={100}
       priority
       className={cn("h-7 w-auto object-contain object-left sm:h-8", imgClassName)}
@@ -34,7 +41,8 @@ export function CascaNavLogo({
       <Link
         href="/"
         className={cn(
-          "inline-flex shrink-0 items-center outline-none ring-offset-black focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-bjj-red focus-visible:ring-offset-2",
+          "inline-flex shrink-0 items-center outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          tone === "light-bg" ? "ring-offset-card" : "ring-offset-secondary",
           className,
         )}
         aria-label="Casca, página inicial"

@@ -117,11 +117,11 @@ export function PainelScene() {
           y={136}
           w={343}
           Icon={AlertTriangle}
-          iconBg={C.redSoft}
-          iconColor={C.red}
+          iconBg={C.overdueSoft}
+          iconColor={C.overdue}
           label="Atrasados"
           value={frame > 40 ? 1 : 0}
-          bar="#fb3b5a"
+          bar={C.overdue}
         />
         <StatCard
           x={715}
@@ -143,7 +143,7 @@ export function PainelScene() {
           iconColor={C.green}
           label="Recebido"
           value={<span style={{ fontSize: 40 }}>{brl(received)}</span>}
-          bar="#10b981"
+          bar={C.green}
         />
         <StatCard
           x={1449}
@@ -151,36 +151,36 @@ export function PainelScene() {
           w={343}
           Icon={Award}
           iconBg={C.amberSoft}
-          iconColor="#d97706"
+          iconColor={C.amberInk}
           label="Alertas de graduação"
           labelSize={19}
           value={alerts}
-          bar="#2563eb"
+          bar={C.blue}
         />
 
         {/* Mensalidades do mês */}
         <Card x={348} y={310} w={860} h={270} style={{ padding: 32 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-              <IconBadge Icon={Wallet} bg={C.redSoft} color={C.red} size={54} />
+              <IconBadge Icon={Wallet} bg={C.primarySoft} color={C.primary} size={54} />
               <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em" }}>Mensalidades do mês</div>
             </div>
             <Pill bg="#f1f2f4" color="#3b4048">
               Outubro de 2026
             </Pill>
           </div>
-          <Abs x={32} y={104} w={796} h={26} style={{ borderRadius: 13, background: "#fde2e4", overflow: "hidden" }}>
-            <div style={{ width: `${80 * barP}%`, height: "100%", background: "linear-gradient(90deg,#16a34a,#34d399)", borderRadius: 13 }} />
+          <Abs x={32} y={104} w={796} h={26} style={{ borderRadius: 13, background: C.primarySoft, overflow: "hidden" }}>
+            <div style={{ width: `${80 * barP}%`, height: "100%", background: C.green, borderRadius: 13 }} />
           </Abs>
-          <Abs x={32} y={140} style={{ fontSize: 20, fontWeight: 700, color: "#15803d" }}>
+          <Abs x={32} y={140} style={{ fontSize: 20, fontWeight: 700, color: C.greenInk }}>
             {Math.round(80 * barP)}% recebido
           </Abs>
           <Abs x={32} y={176} w={386} h={68} style={{ borderRadius: 18, background: C.greenSoft, padding: "10px 20px", boxSizing: "border-box" }}>
-            <div style={{ fontSize: 17, color: "#15803d", fontWeight: 600 }}>Recebido</div>
+            <div style={{ fontSize: 17, color: C.greenInk, fontWeight: 600 }}>Recebido</div>
             <div style={{ fontSize: 30, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{brl(received)}</div>
           </Abs>
-          <Abs x={442} y={176} w={386} h={68} style={{ borderRadius: 18, background: "#fee9ea", padding: "10px 20px", boxSizing: "border-box" }}>
-            <div style={{ fontSize: 17, color: "#9d171f", fontWeight: 600 }}>A receber</div>
+          <Abs x={442} y={176} w={386} h={68} style={{ borderRadius: 18, background: C.primarySoft, padding: "10px 20px", boxSizing: "border-box" }}>
+            <div style={{ fontSize: 17, color: C.primary, fontWeight: 600 }}>A receber</div>
             <div style={{ fontSize: 30, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{brl(750 - received)}</div>
           </Abs>
         </Card>
@@ -189,7 +189,7 @@ export function PainelScene() {
         <Card x={1232} y={310} w={560} h={270} style={{ padding: 32 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em" }}>Atrasados</div>
-            <Pill bg={C.redSoft} color={C.red}>
+            <Pill bg={C.overdueSoft} color={C.overdueInk}>
               1
             </Pill>
           </div>
@@ -220,7 +220,7 @@ export function PainelScene() {
               ["Rafael Costa", "apto ao 3º grau da faixa branca"],
             ].map(([name, note]) => (
               <div key={name} style={{ display: "flex", alignItems: "center", gap: 14, height: 44, fontSize: 22 }}>
-                <span style={{ width: 10, height: 10, borderRadius: 10, background: C.red }} />
+                <span style={{ width: 10, height: 10, borderRadius: 10, background: C.primary }} />
                 <b>{name}</b>
                 <span style={{ color: C.muted }}>{note}</span>
               </div>

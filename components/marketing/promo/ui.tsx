@@ -16,32 +16,44 @@ import { Img } from "remotion";
 import { HEADER_H, SIDEBAR_W, WIN } from "@/components/marketing/promo/timeline";
 
 /**
- * Kit visual do vídeo-promo: recria o sistema (sidebar preta, cartões brancos, vermelho Casca)
+ * Kit visual do vídeo-promo: recria o sistema (sidebar preta, cartões brancos, azul Casca)
  * em escala "de vídeo" (tipografia maior que a do app) para ler bem em player pequeno.
+ *
+ * Cores de marca via tokens de app/globals.css. O Player Remotion monta a composição
+ * no DOM da landing, então hsl(var(--token)) resolve. Lavagens usam o mesmo token
+ * com alpha (o 0.12 / 0.22 reproduz o tom claro que antes era hex).
+ * Vermelho aqui é só status atrasado. A ponteira da faixa preta fica em BELT_TIP_RED.
  */
 
 export const C = {
-  red: "#BF1E27",
-  redDark: "#9d171f",
-  redSoft: "#fde8ea",
+  primary: "hsl(var(--primary))",
+  primarySoft: "hsl(var(--primary) / 0.12)",
   ink: "#1c1f24",
   muted: "#6b7280",
   line: "#e8e9ed",
   app: "#f3f4f6",
   card: "#ffffff",
-  green: "#16a34a",
-  greenSoft: "#e3f6ea",
-  blue: "#0ea5e9",
-  blueSoft: "#e0f2fe",
-  amber: "#f59e0b",
-  amberSoft: "#fef3c7",
+  green: "hsl(var(--status-paid))",
+  greenSoft: "hsl(var(--status-paid) / 0.12)",
+  greenInk: "hsl(var(--status-paid-foreground))",
+  blue: "hsl(var(--status-info))",
+  blueSoft: "hsl(var(--status-info) / 0.12)",
+  amber: "hsl(var(--status-pending))",
+  amberSoft: "hsl(var(--status-pending) / 0.22)",
+  amberInk: "hsl(var(--status-pending-foreground))",
+  overdue: "hsl(var(--status-overdue))",
+  overdueSoft: "hsl(var(--status-overdue) / 0.12)",
+  overdueInk: "hsl(var(--status-overdue-foreground))",
 } as const;
 
-/** Wordmark sem fundo preto (derivado de /uf.png), para compor sobre qualquer fundo. */
-export const WORDMARK_SRC = "/marketing/casca-wordmark-transparent.png";
+/** Barra vermelha da faixa preta (ponteira). Cor real de faixa, distinta da marca. */
+const BELT_TIP_RED = "#C8102E";
+
+/** Logo horizontal branca (a mesma do footer), para os fundos escuros do vídeo. */
+export const WORDMARK_SRC = "/marketing/casca-logo-light.png";
 
 export const FONT =
-  'var(--font-sans), Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+  'var(--font-sans, Inter), Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 
 export const CARD_SHADOW =
   "0 1px 2px rgba(16,24,40,0.05), 0 18px 40px -16px rgba(16,24,40,0.18)";
@@ -97,7 +109,7 @@ function Sidebar({ active }: { active: NavId }) {
       }}
     >
       <div style={{ padding: "0 14px 26px" }}>
-        <Img src={WORDMARK_SRC} style={{ height: 40, width: "auto", display: "block" }} />
+        <Img src={WORDMARK_SRC} style={{ height: 56, width: "auto", display: "block" }} />
         <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 18, marginTop: 12 }}>
           Academia Gracie Norte
         </div>
@@ -130,13 +142,13 @@ function Sidebar({ active }: { active: NavId }) {
                 gap: 16,
                 padding: "0 18px",
                 color: on ? "#fff" : "rgba(255,255,255,0.72)",
-                background: on ? "rgba(191,30,39,0.24)" : "transparent",
-                border: on ? "1px solid rgba(191,30,39,0.65)" : "1px solid transparent",
+                background: on ? "hsl(var(--primary) / 0.24)" : "transparent",
+                border: on ? "1px solid hsl(var(--primary) / 0.65)" : "1px solid transparent",
                 fontSize: 22,
                 fontWeight: on ? 700 : 600,
               }}
             >
-              <Icon size={26} strokeWidth={1.8} color={on ? "#ff4650" : "rgba(255,255,255,0.6)"} />
+              <Icon size={26} strokeWidth={1.8} color={on ? C.primary : "rgba(255,255,255,0.6)"} />
               {label}
             </div>
           );
@@ -162,7 +174,7 @@ export function AppWindow({ active, children }: { active: NavId; children: React
         fontFamily: FONT,
         color: C.ink,
         boxShadow:
-          "0 0 0 1px rgba(255,255,255,0.08), 0 60px 120px -30px rgba(0,0,0,0.85), 0 0 140px -20px rgba(191,30,39,0.35)",
+          "0 0 0 1px rgba(255,255,255,0.08), 0 60px 120px -30px rgba(0,0,0,0.85), 0 0 140px -20px hsl(var(--primary) / 0.35)",
       }}
     >
       <Sidebar active={active} />
@@ -349,7 +361,7 @@ export function Button({
   disabled?: boolean;
 }) {
   const palette = {
-    primary: { bg: C.red, fg: "#fff", border: C.red },
+    primary: { bg: C.primary, fg: "#fff", border: C.primary },
     outline: { bg: "#fff", fg: C.ink, border: "#111" },
     soft: { bg: "#f4f2ee", fg: C.ink, border: "#e6e2da" },
     whatsapp: { bg: "#25d366", fg: "#04361a", border: "#25d366" },
@@ -376,7 +388,7 @@ export function Button({
         opacity: disabled ? 0.45 : 1,
         boxSizing: "border-box",
         boxShadow:
-          variant === "primary" && !disabled ? "0 10px 24px -10px rgba(191,30,39,0.7)" : "none",
+          variant === "primary" && !disabled ? "0 10px 24px -10px hsl(var(--primary) / 0.7)" : "none",
         filter: pressed ? `brightness(${1 - pressed * 0.1})` : undefined,
       }}
     >
@@ -481,7 +493,7 @@ export function BeltBar({
           top: 0,
           bottom: 0,
           width: tip,
-          background: belt === "Preta" ? C.red : "#0b0b0d",
+          background: belt === "Preta" ? BELT_TIP_RED : "#0b0b0d",
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-end",
@@ -588,8 +600,8 @@ export function Field({
         style={{
           boxSizing: "border-box",
           borderRadius: 16,
-          border: `2px solid ${focused ? C.red : C.line}`,
-          boxShadow: focused ? "0 0 0 6px rgba(191,30,39,0.14)" : "none",
+          border: `2px solid ${focused ? C.primary : C.line}`,
+          boxShadow: focused ? "0 0 0 6px hsl(var(--primary) / 0.14)" : "none",
           background: "#fff",
           display: "flex",
           alignItems: "center",
@@ -610,7 +622,7 @@ export function Field({
             width: 3,
             height: 32,
             marginLeft: value ? 2 : 0,
-            background: C.red,
+            background: C.primary,
             opacity: caret ? 1 : 0,
             borderRadius: 2,
           }}
