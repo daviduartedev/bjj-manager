@@ -56,7 +56,7 @@ export function LpAudience() {
         <LpReveal>
           <LpEyebrow>Para quem é</LpEyebrow>
           <LpDisplay surface="light" className="mt-4 text-balance text-[clamp(2.25rem,5vw,4rem)] sm:text-wrap">
-            Cada pessoa da escola
+            Cada pessoa da academia
             <span className="sm:hidden"> </span>
             <br className="hidden sm:block" />
             <span className="text-brand-blue">vê o que precisa</span>
