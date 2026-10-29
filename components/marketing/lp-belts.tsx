@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 
 import { LpPillCta } from "@/components/marketing/lp-chrome";
-import { LpDisplay, LpEyebrow, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LpDisplay, LpEyebrow, LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 const BELT_FILL = {
   Branca: "#f1f1ee",
@@ -54,7 +54,7 @@ export function LpBelts() {
         <LpReveal>
           <LpEyebrow tone="green">Faixas e graus</LpEyebrow>
           <LpDisplay surface="light" className="mt-4 text-balance text-[clamp(2.15rem,4.2vw,3.5rem)]">
-            A trajetória do aluno, registrada <span className="text-brand-green">de verdade</span>
+            A trajetória do aluno, registrada <LpMark>de verdade</LpMark>
           </LpDisplay>
           <p className="mt-6 max-w-[48ch] text-base leading-relaxed text-muted-foreground sm:text-lg">
             Cada promoção fica no histórico, com data e quem aprovou. Nada de lembrar de cabeça quando o

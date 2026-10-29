@@ -1,7 +1,8 @@
 import { Check, Lock, Shield } from "lucide-react";
 
 import { LpPillCta } from "@/components/marketing/lp-chrome";
-import { LpDisplay, LpEyebrow, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LpHighlightLines } from "@/components/marketing/lp-highlight-lines";
+import { LpDisplay, LpEyebrow, LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 const points = [
   {
@@ -29,7 +30,7 @@ export function LpTrust() {
       <LpReveal>
         <LpEyebrow tone="green">Segurança e transparência</LpEyebrow>
         <LpDisplay surface="light" className="mt-4 max-w-[18ch] text-[clamp(2.25rem,5vw,4rem)]">
-          Os dados da academia ficam na academia
+          Os dados da academia ficam <LpMark>na academia</LpMark>
         </LpDisplay>
         <p className="mt-5 max-w-[52ch] text-base leading-relaxed text-neutral-700 sm:text-lg">
           Feito para quem ensina e para quem administra a academia. Sem misturar turmas, financeiro ou
@@ -55,6 +56,16 @@ export function LpTrust() {
           </li>
         ))}
       </ul>
+
+      <LpReveal className="mt-16">
+        <LpHighlightLines
+          rows={[
+            { lead: "Dados", mark: "isolados", tone: "text-brand-green" },
+            { lead: "Acesso", mark: "autenticado", tone: "text-foreground" },
+            { lead: "Histórico", mark: "com data", tone: "text-brand-blue" },
+          ]}
+        />
+      </LpReveal>
 
       <LpReveal className="mt-12 sm:mt-14">
         <LpPillCta tone="green" strong="Isolamento por academia" note="em toda a operação.">

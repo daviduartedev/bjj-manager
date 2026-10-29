@@ -2,9 +2,11 @@
 import type { ReactNode } from "react";
 
 import { LpPillCta } from "@/components/marketing/lp-chrome";
+import { LpHighlightLines } from "@/components/marketing/lp-highlight-lines";
 import {
   LpDisplay,
   LpEyebrow,
+  LpMark,
   LpReveal,
   LpSection,
 } from "@/components/marketing/lp-primitives";
@@ -237,7 +239,7 @@ export function LpProductFlow() {
         <LpDisplay surface="light" className="mt-3 text-[clamp(2.25rem,5vw,3.75rem)]">
           O que a academia
           <br />
-          faz no <span className="text-brand-green">Casca</span>
+          faz no <LpMark>Casca</LpMark>
         </LpDisplay>
         <p className="mt-5 max-w-[52ch] text-base leading-relaxed text-muted-foreground sm:text-lg">
           Cadastro de alunos adulto e kids, ficha com faixa e grau, histórico de graduação, planos
@@ -276,6 +278,16 @@ export function LpProductFlow() {
       </div>
 
       <LpReveal className="mt-16 sm:mt-20">
+        <LpHighlightLines
+          rows={[
+            { lead: "Alunos", mark: "no mesmo lugar", tone: "text-brand-blue" },
+            { lead: "Faixas", mark: "no mesmo lugar", tone: "text-brand-green" },
+            { lead: "Mensalidades", mark: "no mesmo lugar", tone: "text-foreground" },
+          ]}
+        />
+      </LpReveal>
+
+      <LpReveal className="mt-12 sm:mt-14">
         <LpPillCta tone="green" strong="Alunos, faixas e mensalidades" note="no mesmo lugar.">
           Criar minha academia
         </LpPillCta>

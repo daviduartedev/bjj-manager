@@ -1,5 +1,6 @@
 ﻿import { LpPillCta } from "@/components/marketing/lp-chrome";
-import { LpDisplay, LpEyebrow, LpReveal } from "@/components/marketing/lp-primitives";
+import { LpHighlightLines } from "@/components/marketing/lp-highlight-lines";
+import { LpDisplay, LpEyebrow, LpMark, LpReveal } from "@/components/marketing/lp-primitives";
 
 const steps = [
   {
@@ -28,7 +29,9 @@ export function LpHowItWorks() {
           <LpDisplay surface="dark" className="mt-4 text-[clamp(2.25rem,5vw,4rem)]">
             Da matrícula ao fim do mês,
             <br />
-            <span className="text-brand-yellow">sem planilha solta</span>
+            <LpMark className="bg-[linear-gradient(transparent_58%,hsl(var(--brand-yellow))_58%,hsl(var(--brand-yellow))_92%,transparent_92%)] text-neutral-950">
+              sem planilha solta
+            </LpMark>
           </LpDisplay>
           <p className="mt-6 max-w-[52ch] text-base leading-relaxed text-white/75 sm:text-lg">
             Três movimentos simples que cobrem o dia a dia de quem ensina e de quem administra a academia.
@@ -44,6 +47,17 @@ export function LpHowItWorks() {
             </LpReveal>
           ))}
         </div>
+
+        <LpReveal className="mt-16 sm:mt-20">
+          <LpHighlightLines
+            onDark
+            rows={[
+              { lead: "Cadastro", mark: "em dia", tone: "text-white" },
+              { lead: "Rotina", mark: "em dia", tone: "text-brand-yellow" },
+              { lead: "Painel", mark: "em dia", tone: "text-white" },
+            ]}
+          />
+        </LpReveal>
 
         <LpReveal className="mt-14 sm:mt-16">
           <LpPillCta tone="yellow" strong="Adulto, Kids 1 e Kids 2" note="no mesmo cadastro.">

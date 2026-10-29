@@ -45,6 +45,26 @@ export function LpEyebrow({
   );
 }
 
+/** Marca-texto amarelo atrás de uma palavra, no mesmo espírito de “em dia”. */
+export function LpMark({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "bg-[linear-gradient(transparent_58%,hsl(var(--brand-yellow)/0.55)_58%,hsl(var(--brand-yellow)/0.55)_92%,transparent_92%)] px-1",
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // LpDisplay — big display type
 // ---------------------------------------------------------------------------

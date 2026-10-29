@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, CreditCard } from "lucide-react";
 
-import { LpEyebrow, LpSection } from "@/components/marketing/lp-primitives";
+import { LpEyebrow, LpMark, LpSection } from "@/components/marketing/lp-primitives";
 import { SUBSCRIPTION_PLANS } from "@/lib/subscriptions/catalog";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +32,7 @@ export function LpPricing() {
     <LpSection id="planos" className="scroll-mt-16 bg-white">
       <LpEyebrow tone="green">Planos</LpEyebrow>
       <h2 className="mt-4 max-w-3xl text-balance font-sans text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.08] tracking-[-0.035em]">
-        Um Casca completo.<br />O espaço que sua academia precisa.
+        Um Casca completo.<br />O espaço que sua academia <LpMark>precisa</LpMark>.
       </h2>
       <p className="mt-6 max-w-2xl leading-relaxed text-muted-foreground">
         Todos os recursos atuais em todos os planos. Escolha pelo número de alunos ativos da sua academia.

@@ -2,7 +2,7 @@
 import Image from "next/image";
 
 import { LpPillCta } from "@/components/marketing/lp-chrome";
-import { LpDisplay, LpEyebrow, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LpDisplay, LpEyebrow, LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 const audiences = [
   {
@@ -53,7 +53,7 @@ export function LpAudience() {
             Cada pessoa da academia
             <span className="sm:hidden"> </span>
             <br className="hidden sm:block" />
-            <span className="text-brand-blue">vê o que precisa</span>
+            <LpMark>vê o que precisa</LpMark>
           </LpDisplay>
         </LpReveal>
 

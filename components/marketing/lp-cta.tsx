@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { LpSignupLink } from "@/components/marketing/lp-chrome";
-import { LpReveal } from "@/components/marketing/lp-primitives";
+import { LpMark, LpReveal } from "@/components/marketing/lp-primitives";
 
 /** CTA final em degradê, no mesmo espírito da faixa de fechamento da AbacatePay. */
 export function LpCta() {
@@ -39,7 +39,7 @@ export function LpCta() {
           data-testid="landing-cta-logo"
         />
         <h2 className="mt-8 text-balance font-sans text-[clamp(2.15rem,5vw,3.75rem)] font-bold leading-[1.08] tracking-[-0.035em] text-neutral-950">
-          Sua academia de artes marciais, em um só sistema.
+          Sua academia de artes marciais, <LpMark>em um só sistema</LpMark>.
         </h2>
         <p className="mx-auto mt-5 max-w-[46ch] text-base leading-relaxed text-neutral-700 sm:text-lg">
           Cadastro em minutos, 3 dias de teste com cartão e a primeira cobrança só depois do período de
