@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { getCurrentUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createAbacatePayGateway } from "@/lib/subscriptions/abacatepay";
+import { createAbacatePayGateway, readProcessBillingEnvironment } from "@/lib/subscriptions/abacatepay";
 import { createPlatformAdminService, isPlatformOwner, type AdminOverview, type AdminSubscription, type InternalAcademyRequest, type PlatformAdminDependencies } from "./service";
 
 export async function getPlatformAdminUser() {
@@ -58,7 +58,7 @@ export function getPlatformAdminService() {
   if (!client) return null;
 
   async function stopBilling(subscriptionId: string | null, checkoutId?: string | null) {
-    const gateway = createAbacatePayGateway(process.env);
+    const gateway = createAbacatePayGateway(readProcessBillingEnvironment());
     if (checkoutId) await gateway.deleteSubscriptionCheckout(checkoutId);
     const subscriptions = checkoutId ? await gateway.listSubscriptionsByCheckout(checkoutId) : [];
     const ids = new Set(subscriptions.filter(subscription => subscription.status === "ACTIVE").map(subscription => subscription.id));

@@ -17,22 +17,70 @@ export type AbacatePayGateway = SubscriptionGateway & {
 };
 
 const PLAN_IDS = ["essencial", "academia", "evolucao"] as const;
+const BILLING_ENV_KEYS = [
+  "CASCA_ABACATEPAY_API_KEY",
+  "CASCA_ABACATEPAY_ENV",
+  "NEXT_PUBLIC_APP_URL",
+  "CASCA_ABACATEPAY_PRODUCT_ESSENCIAL",
+  "CASCA_ABACATEPAY_PRODUCT_ESSENCIAL_TRIAL",
+  "CASCA_ABACATEPAY_PRODUCT_ACADEMIA",
+  "CASCA_ABACATEPAY_PRODUCT_ACADEMIA_TRIAL",
+  "CASCA_ABACATEPAY_PRODUCT_EVOLUCAO",
+  "CASCA_ABACATEPAY_PRODUCT_EVOLUCAO_TRIAL",
+] as const;
+
+function cleanEnv(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  let text = value.trim();
+  if (text.length >= 2 && ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'")))) {
+    text = text.slice(1, -1).trim();
+  }
+  return text || undefined;
+}
+
+/** Reads each billing variable by its own name. Passing `process.env` whole drops keys that the bundler did not see. */
+export function readProcessBillingEnvironment(): BillingEnvironment {
+  return {
+    CASCA_ABACATEPAY_API_KEY: process.env.CASCA_ABACATEPAY_API_KEY,
+    CASCA_ABACATEPAY_ENV: process.env.CASCA_ABACATEPAY_ENV,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    CASCA_ABACATEPAY_PRODUCT_ESSENCIAL: process.env.CASCA_ABACATEPAY_PRODUCT_ESSENCIAL,
+    CASCA_ABACATEPAY_PRODUCT_ESSENCIAL_TRIAL: process.env.CASCA_ABACATEPAY_PRODUCT_ESSENCIAL_TRIAL,
+    CASCA_ABACATEPAY_PRODUCT_ACADEMIA: process.env.CASCA_ABACATEPAY_PRODUCT_ACADEMIA,
+    CASCA_ABACATEPAY_PRODUCT_ACADEMIA_TRIAL: process.env.CASCA_ABACATEPAY_PRODUCT_ACADEMIA_TRIAL,
+    CASCA_ABACATEPAY_PRODUCT_EVOLUCAO: process.env.CASCA_ABACATEPAY_PRODUCT_EVOLUCAO,
+    CASCA_ABACATEPAY_PRODUCT_EVOLUCAO_TRIAL: process.env.CASCA_ABACATEPAY_PRODUCT_EVOLUCAO_TRIAL,
+  };
+}
+
+function normalizeBillingEnvironment(environment: BillingEnvironment): BillingEnvironment {
+  const normalized = Object.fromEntries(BILLING_ENV_KEYS.map((key) => [key, cleanEnv(environment[key])])) as BillingEnvironment;
+  const mode = normalized.CASCA_ABACATEPAY_ENV?.toLowerCase();
+  return { ...normalized, CASCA_ABACATEPAY_ENV: mode };
+}
 
 /** True only when the three optional trial products are present. Absent products charge the monthly price. */
 export function commercialTrialsConfigured(environment: BillingEnvironment): boolean {
-  return PLAN_IDS.every((id) => environment[`CASCA_ABACATEPAY_PRODUCT_${id.toUpperCase()}_TRIAL`]?.trim()?.startsWith("prod_") === true);
+  const normalized = normalizeBillingEnvironment(environment);
+  return PLAN_IDS.every((id) => normalized[`CASCA_ABACATEPAY_PRODUCT_${id.toUpperCase()}_TRIAL`]?.startsWith("prod_") === true);
 }
 
-export function createAbacatePayGateway(environment: BillingEnvironment, fetcher: typeof fetch = fetch): AbacatePayGateway {
-  const key = environment.CASCA_ABACATEPAY_API_KEY?.trim();
+export function createAbacatePayGateway(source: BillingEnvironment, fetcher: typeof fetch = fetch): AbacatePayGateway {
+  const environment = normalizeBillingEnvironment(source);
+  const key = environment.CASCA_ABACATEPAY_API_KEY;
   const mode = environment.CASCA_ABACATEPAY_ENV;
-  const appUrl = new URL(environment.NEXT_PUBLIC_APP_URL ?? "");
+  let appUrl: URL;
+  try {
+    appUrl = new URL(environment.NEXT_PUBLIC_APP_URL ?? "");
+  } catch {
+    throw new Error("billing_configuration_missing");
+  }
   if (!key || !["sandbox", "production"].includes(mode ?? "") || !["http:", "https:"].includes(appUrl.protocol)) throw new Error("billing_configuration_missing");
   if (mode === "production" && appUrl.protocol !== "https:") throw new Error("billing_origin_invalid");
 
   function readProductId(planId: SubscriptionPlanId, trial: boolean): string | null {
     const name = `CASCA_ABACATEPAY_PRODUCT_${planId.toUpperCase()}${trial ? "_TRIAL" : ""}`;
-    const id = environment[name]?.trim();
+    const id = environment[name];
     if (!id) return null;
     if (!id.startsWith("prod_")) throw new Error("billing_product_missing");
     return id;

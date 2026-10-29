@@ -61,6 +61,17 @@ describe("contrato HTTP de contratação AbacatePay", () => {
     expect(JSON.parse(String(fetcher.mock.calls[1][1]?.body))).not.toHaveProperty("amount");
   });
 
+  it("aceita sandbox e produto com espaço ou aspas", () => {
+    const gateway = createAbacatePayGateway({
+      ...configuration,
+      CASCA_ABACATEPAY_ENV: " Sandbox ",
+      CASCA_ABACATEPAY_PRODUCT_ESSENCIAL: ' "prod_essencial" ',
+      CASCA_ABACATEPAY_PRODUCT_ACADEMIA: " prod_academia ",
+      CASCA_ABACATEPAY_PRODUCT_EVOLUCAO: "'prod_evolucao'",
+    });
+    expect(gateway.devMode).toBe(true);
+  });
+
   it("cobra o produto mensal quando a variante de avaliação não está configurada", async () => {
     const paidOnly = Object.fromEntries(Object.entries(configuration).filter(([key]) => !key.endsWith("_TRIAL")));
     const monthly = { id: "prod_essencial", price: 9900, currency: "BRL", cycle: "MONTHLY", trialDays: null, devMode: true, status: "ACTIVE" };
