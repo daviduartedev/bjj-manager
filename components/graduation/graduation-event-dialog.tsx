@@ -309,7 +309,7 @@ export function GraduationEventDialog({
                 <FormItem>
                   <FormLabel>Grau resultante</FormLabel>
                   <Select
-                    value={String(field.value)}
+                    value={field.value == null ? "" : String(field.value)}
                     onValueChange={(v) => field.onChange(Number(v))}
                   >
                     <FormControl>

@@ -373,7 +373,7 @@ function BoolSelect({
     <div className="space-y-2">
       <Label>{label}</Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger>
+        <SelectTrigger aria-label={label}>
           <SelectValue placeholder="Selecione" />
         </SelectTrigger>
         <SelectContent>
@@ -407,35 +407,35 @@ function AddressFields({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <Label>Logradouro</Label>
-          <Input
+          <Input aria-label="Logradouro"
             value={value.street}
             onChange={(e) => onChange({ ...value, street: e.target.value })}
           />
         </div>
         <div className="space-y-2">
           <Label>Número</Label>
-          <Input
+          <Input aria-label="Número"
             value={value.number}
             onChange={(e) => onChange({ ...value, number: e.target.value })}
           />
         </div>
         <div className="space-y-2">
           <Label>Bairro</Label>
-          <Input
+          <Input aria-label="Bairro"
             value={value.neighborhood}
             onChange={(e) => onChange({ ...value, neighborhood: e.target.value })}
           />
         </div>
         <div className="space-y-2">
           <Label>Cidade</Label>
-          <Input
+          <Input aria-label="Cidade"
             value={value.city}
             onChange={(e) => onChange({ ...value, city: e.target.value })}
           />
         </div>
         <div className="space-y-2">
           <Label>UF</Label>
-          <Input
+          <Input aria-label="UF"
             value={value.state}
             maxLength={2}
             onChange={(e) =>
@@ -445,7 +445,7 @@ function AddressFields({
         </div>
         <div className="space-y-2">
           <Label>CEP</Label>
-          <Input
+          <Input aria-label="CEP"
             value={value.zip}
             onChange={(e) => onChange({ ...value, zip: e.target.value })}
           />

@@ -216,7 +216,7 @@ export function PlanEditor({ mode, modality, initial }: Props) {
             value={planKind}
             onValueChange={(v) => setPlanKind(v as "adult" | "kids_1" | "kids_2")}
           >
-            <SelectTrigger>
+            <SelectTrigger aria-label="Tipo de plano">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -275,7 +275,7 @@ export function PlanEditor({ mode, modality, initial }: Props) {
           {topics.map((topic, idx) => (
             <div key={topic.id} className="rounded-xl border border-border bg-muted/60 p-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Input
+                <Input aria-label="Título do tópico"
                   value={topic.title}
                   onChange={(e) => updateTopic(idx, { title: e.target.value })}
                   maxLength={160}
@@ -287,7 +287,7 @@ export function PlanEditor({ mode, modality, initial }: Props) {
                     updateTopic(idx, { kind: v as LessonPlanTopic["kind"] })
                   }
                 >
-                  <SelectTrigger className="sm:w-44">
+                  <SelectTrigger aria-label="Tipo do tópico" className="sm:w-44">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -329,7 +329,7 @@ export function PlanEditor({ mode, modality, initial }: Props) {
               </div>
 
               <div className="mt-2 space-y-2">
-                <Textarea
+                <Textarea aria-label="Resumo deste tópico"
                   value={topic.summary ?? ""}
                   onChange={(e) => updateTopic(idx, { summary: e.target.value })}
                   placeholder="Resumo deste tópico (opcional)"
@@ -339,7 +339,7 @@ export function PlanEditor({ mode, modality, initial }: Props) {
                 <ul className="space-y-1.5">
                   {topic.items.map((it, j) => (
                     <li key={it.id} className="flex items-center gap-2">
-                      <Input
+                      <Input aria-label={`Item ${j + 1}`}
                         value={it.text}
                         onChange={(e) => setTopicItem(idx, j, e.target.value)}
                         placeholder={`Item ${j + 1}`}

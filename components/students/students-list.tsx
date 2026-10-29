@@ -407,7 +407,7 @@ export function StudentsList({
                   })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Plano">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -433,7 +433,7 @@ export function StudentsList({
                   })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Situação">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -456,7 +456,7 @@ export function StudentsList({
                   })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Ordenar">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

@@ -481,7 +481,7 @@ export function MensalidadesClient({
                 className="space-y-2 rounded-lg border border-border/80 bg-card p-2.5"
               >
                 <div className="flex items-start gap-2">
-                  <Checkbox
+                  <Checkbox aria-label={`Seleccionar ${row.fullName}`}
                     size="dense"
                     checked={selected.has(row.studentId)}
                     onCheckedChange={(v) => toggleRow(row.studentId, v === true)}

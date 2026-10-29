@@ -748,7 +748,7 @@ function VariantTableRow(props: {
             value={lineDraft}
             onValueChange={(v) => setLineDraft(v as VariantLine)}
           >
-            <SelectTrigger className="h-10 w-[min(100%,9rem)]">
+            <SelectTrigger aria-label="Linha" className="h-10 w-[min(100%,9rem)]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

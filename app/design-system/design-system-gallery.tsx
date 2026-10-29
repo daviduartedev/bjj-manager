@@ -392,7 +392,7 @@ export function DesignSystemGallery() {
             </DropdownMenu>
 
             <Select defaultValue="adulto">
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger aria-label="Faixa etária" className="w-[200px]">
                 <SelectValue placeholder="Faixa etária" />
               </SelectTrigger>
               <SelectContent>

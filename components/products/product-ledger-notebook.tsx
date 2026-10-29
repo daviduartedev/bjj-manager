@@ -251,7 +251,7 @@ export function ProductLedgerNotebook({
               <div className="space-y-2">
                 <Label>Aluno</Label>
                 <Select value={studentId} onValueChange={setStudentId} disabled={moneyLocked}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Aluno">
                     <SelectValue placeholder="Quem comprou" />
                   </SelectTrigger>
                   <SelectContent>
@@ -273,7 +273,7 @@ export function ProductLedgerNotebook({
                     setVariantId("");
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Produto">
                     <SelectValue placeholder="Quimono, rash guard…" />
                   </SelectTrigger>
                   <SelectContent>
@@ -289,7 +289,7 @@ export function ProductLedgerNotebook({
                 <div className="space-y-2">
                   <Label>Tamanho</Label>
                   <Select value={variantId} onValueChange={setVariantId} disabled={moneyLocked}>
-                    <SelectTrigger>
+                    <SelectTrigger aria-label="Tamanho">
                       <SelectValue placeholder="Opcional" />
                     </SelectTrigger>
                     <SelectContent>
@@ -351,7 +351,7 @@ export function ProductLedgerNotebook({
           <div className="space-y-2">
             <Label>Pagamento</Label>
             <Select value={method} onValueChange={(value) => setMethod(value as LedgerPaymentMethod)}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Pagamento">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

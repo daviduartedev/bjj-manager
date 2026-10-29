@@ -65,7 +65,7 @@ export function DocumentsPageClient({ rows }: { rows: DocumentListRow[] }) {
             value={searchParams.get("type") ?? "all"}
             onValueChange={(v) => setParam("type", v)}
           >
-            <SelectTrigger className="min-h-11">
+            <SelectTrigger aria-label="Tipo" className="min-h-11">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -82,7 +82,7 @@ export function DocumentsPageClient({ rows }: { rows: DocumentListRow[] }) {
             value={searchParams.get("status") ?? "all"}
             onValueChange={(v) => setParam("status", v)}
           >
-            <SelectTrigger className="min-h-11">
+            <SelectTrigger aria-label="Estado" className="min-h-11">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

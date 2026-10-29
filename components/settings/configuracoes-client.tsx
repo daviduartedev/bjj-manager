@@ -595,7 +595,7 @@ function StorefrontThemeForm({
                 onChange={(event) => setColor(field.key, event.target.value)}
                 className="h-10 w-14 cursor-pointer rounded-md border border-border bg-transparent"
               />
-              <Input
+              <Input aria-label={`${field.label} em hexadecimal`}
                 value={theme[field.key]}
                 spellCheck={false}
                 maxLength={7}

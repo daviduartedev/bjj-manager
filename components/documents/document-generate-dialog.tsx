@@ -130,7 +130,7 @@ export function DocumentGenerateDialog({
         <div className="space-y-2">
           <Label>Tipo</Label>
           <Select value={variant} onValueChange={(v) => setVariant(v as Variant)}>
-            <SelectTrigger className="min-h-11">
+            <SelectTrigger aria-label="Tipo" className="min-h-11">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
