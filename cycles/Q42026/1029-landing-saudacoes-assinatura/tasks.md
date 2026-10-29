@@ -12,3 +12,4 @@
 - [x] Reescrever `subscription-panel.tsx` em três telas: contratação, retorno do checkout e troca de plano,
       com o valor da troca vindo de `quoteSubscriptionPlanChange`.
 - [x] Conferir desktop e mobile no navegador.
+- [x] Seção de saudações removida da landing a pedido do usuário (29/10/2026), depois de publicada.
