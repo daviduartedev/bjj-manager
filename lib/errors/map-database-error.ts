@@ -14,6 +14,13 @@ export function mapDatabaseErrorToUserMessage(error: unknown): string | null {
   const msg = (o.message ?? "").toLowerCase();
   const details = (o.details ?? "").toLowerCase();
 
+  if (msg.includes("casca_subscription_read_only")) {
+    return "Sua academia está em somente leitura. Regularize a assinatura em Conta para voltar a fazer alterações.";
+  }
+  if (msg.includes("casca_subscription_capacity")) {
+    return "O limite de alunos ativos foi atingido. Altere o plano em Conta para cadastrar ou reativar alunos.";
+  }
+
   if (
     o.code === "42703" ||
     (msg.includes("column") && msg.includes("does not exist")) ||

@@ -13,6 +13,7 @@ import {
   normalizeStorefrontDescription,
   reorderStorefrontPhotos,
 } from "@/lib/storefront/storefront";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import {
   createProductSchema,
@@ -67,6 +68,8 @@ export async function createProduct(input: unknown): Promise<ProductActionResult
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const code = `custom-${randomUUID()}`;
     const { error } = await supabase.from("products").insert({
       account_id: ctx.account.id,
@@ -107,6 +110,8 @@ export async function updateProduct(input: unknown): Promise<ProductActionResult
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const patch: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
@@ -168,6 +173,8 @@ export async function createProductVariant(
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const { data: productRow, error: prodErr } = await supabase
       .from("products")
       .select("id, audience")
@@ -236,6 +243,8 @@ export async function updateProductVariant(
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const patch: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
@@ -311,6 +320,8 @@ export async function deleteProductVariant(
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const { data: variantRow, error: vErr } = await supabase
       .from("product_variants")
       .select("id, product_id")
@@ -370,6 +381,8 @@ async function requireProfessorProduct(productId: string) {
   }
 
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase, ctx.account.id);
+  if (!writeAccess.ok) return writeAccess;
   const { data: product, error } = await supabase
     .from("products")
     .select("id")

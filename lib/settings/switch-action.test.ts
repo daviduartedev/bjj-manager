@@ -16,6 +16,10 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
+    from: () => {
+      const query = { select: () => query, eq: () => query, maybeSingle: async () => ({ data: { enforcement_enabled: false }, error: null }) };
+      return query;
+    },
     rpc: async (name: string, args: unknown) => {
       state.calls.push({ name, args });
       return { error: state.error };

@@ -9,6 +9,7 @@ import {
 import { mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";
 import { ROUTES } from "@/lib/routes";
 import { toCalendarDateStringInAppTZ } from "@/lib/dates";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import {
   completeStudentOnboardingSchema,
@@ -68,6 +69,8 @@ export async function completeStudentOnboarding(
       : (parsed.data.guardianEmail?.trim() || null);
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const { error } = await supabase
       .from("students")
       .update({

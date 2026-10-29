@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentAccount } from "@/lib/auth";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import { validateGraduatedAtNotFuture } from "@/lib/graduation/graduated-at";
 import { findReferencedRank } from "@/lib/modalities/referenced-ranks";
@@ -31,6 +32,8 @@ export async function promoteReferencedStudent(studentId: string, values: unknow
     const { data } = parsed;
     if (findReferencedRank(data.reference_id, data.rank_code)?.modality !== context.account.modality) return { ok: false, error: "Escolha uma graduação da modalidade da academia.", fieldErrors: { rank_code: ["A referência não pertence à modalidade da academia."] } };
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const { error } = await supabase.rpc("promote_referenced_student", {
       p_student_id: studentId, p_reference_id: data.reference_id, p_rank_code: data.rank_code,
       p_granted_on: data.granted_on, p_reason: data.reason || null,

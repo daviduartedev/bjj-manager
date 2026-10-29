@@ -18,6 +18,7 @@ import {
 } from "@/lib/products/ledger";
 import { ledgerClient } from "@/lib/products/ledger-client";
 import { ROUTES } from "@/lib/routes";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -170,6 +171,8 @@ export async function createLedgerNote(input: unknown): Promise<LedgerActionResu
 
   try {
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const accountId = auth.ctx.account.id;
     const built = await buildNoteDraft(supabase, accountId, parsed.data);
     if (!built.ok) return built;
@@ -204,6 +207,8 @@ export async function updateLedgerNote(input: unknown): Promise<LedgerActionResu
 
   try {
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const ledger = ledgerClient(supabase);
     const accountId = auth.ctx.account.id;
     const { noteId, ...fields } = parsed.data;
@@ -301,6 +306,8 @@ export async function deleteLedgerNote(input: unknown): Promise<LedgerActionResu
 
   try {
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const { data, error } = await ledgerClient(supabase)
       .from("product_ledger_notes")
       .delete()
@@ -326,6 +333,8 @@ export async function markLedgerInstallmentPaid(input: unknown): Promise<LedgerA
 
   try {
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const ledger = ledgerClient(supabase);
     const { data: row, error } = await ledger
       .from("product_ledger_installments")
@@ -360,6 +369,8 @@ export async function issueLedgerReceipt(input: unknown): Promise<LedgerActionRe
 
   try {
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const { data: note, error } = await ledgerClient(supabase)
       .from("product_ledger_notes")
       .select(

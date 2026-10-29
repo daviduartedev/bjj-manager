@@ -34,6 +34,7 @@ import {
   routeMatriculaTermo,
   routeMatriculaTermoNovo,
 } from "@/lib/routes";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import {
   createEnrollmentLiabilityDraftSchema,
@@ -191,6 +192,8 @@ export async function createEnrollmentLiabilityDraft(
 ): Promise<ActionOk<{ documentId: string }> | ActionErr> {
   const ctx = await requireAccountContext();
   if (!ctx.ok) return { ok: false, error: ctx.error };
+  const writeAccess = await requireAcademyWriteAccess(ctx.supabase, ctx.accountId);
+  if (!writeAccess.ok) return writeAccess;
 
   const parsed = createEnrollmentLiabilityDraftSchema.safeParse(input);
   if (!parsed.success) {
@@ -236,6 +239,8 @@ export async function updateEnrollmentLiabilityDraft(
 ): Promise<ActionOk<{ documentId: string }> | ActionErr> {
   const ctx = await requireAccountContext();
   if (!ctx.ok) return { ok: false, error: ctx.error };
+  const writeAccess = await requireAcademyWriteAccess(ctx.supabase, ctx.accountId);
+  if (!writeAccess.ok) return writeAccess;
 
   const parsed = updateEnrollmentLiabilityDraftSchema.safeParse(input);
   if (!parsed.success) {
@@ -291,6 +296,8 @@ export async function generateEnrollmentLiabilityPdf(
 > {
   const ctx = await requireAccountContext();
   if (!ctx.ok) return { ok: false, error: ctx.error };
+  const writeAccess = await requireAcademyWriteAccess(ctx.supabase, ctx.accountId);
+  if (!writeAccess.ok) return writeAccess;
 
   const parsed = enrollmentLiabilityDocumentIdSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Documento inválido." };
@@ -516,6 +523,8 @@ export async function sendEnrollmentLiabilityWhatsApp(
 ): Promise<ActionOk<{ url: string; signingUrl: string }> | ActionErr> {
   const ctx = await requireAccountContext();
   if (!ctx.ok) return { ok: false, error: ctx.error };
+  const writeAccess = await requireAcademyWriteAccess(ctx.supabase, ctx.accountId);
+  if (!writeAccess.ok) return writeAccess;
 
   const parsed = enrollmentLiabilityDocumentIdSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Documento inválido." };
@@ -592,6 +601,8 @@ export async function uploadSignedEnrollmentDocument(
 ): Promise<ActionOk<{ documentId: string }> | ActionErr> {
   const ctx = await requireAccountContext();
   if (!ctx.ok) return { ok: false, error: ctx.error };
+  const writeAccess = await requireAcademyWriteAccess(ctx.supabase, ctx.accountId);
+  if (!writeAccess.ok) return writeAccess;
 
   const documentId = formData.get("documentId");
   const file = formData.get("file");

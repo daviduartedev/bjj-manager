@@ -11,6 +11,7 @@ import {
 import { LessonPlanService, LessonPlanServiceError } from "@/lib/lesson-plans/service";
 import { renderLessonPlanPdf } from "@/lib/lesson-plans/pdf";
 import { ROUTES } from "@/lib/routes";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import {
   archiveLessonPlanSchema,
@@ -36,6 +37,8 @@ async function ctx(): Promise<
   | { ok: false; error: string }
 > {
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
   const {
     data: { user },
   } = await supabase.auth.getUser();
