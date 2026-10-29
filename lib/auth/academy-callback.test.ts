@@ -51,7 +51,7 @@ describe("academyCallbackPath", () => {
         provisionFailed: false,
         provisionData: { outcome: "created", role: "professor" },
       }),
-    ).toBe("/painel");
+    ).toBe("/conta/assinatura");
 
     expect(
       academyCallbackPath({

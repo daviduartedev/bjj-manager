@@ -8,6 +8,7 @@ import { LpFooter } from "@/components/marketing/lp-footer";
 import { LpHero } from "@/components/marketing/lp-hero";
 import { LpHowItWorks } from "@/components/marketing/lp-how-it-works";
 import { LpProductFlow } from "@/components/marketing/lp-product-flow";
+import { LpPricing } from "@/components/marketing/lp-pricing";
 import { LpTrust } from "@/components/marketing/lp-trust";
 
 /**
@@ -30,6 +31,7 @@ export function LandingPage() {
         <LpBelts />
         <LpAudience />
         <LpTrust />
+        <LpPricing />
         <LpFaq />
         <LpCta />
       </main>

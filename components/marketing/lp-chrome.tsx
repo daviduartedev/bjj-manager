@@ -158,6 +158,7 @@ const NAV = [
   { href: "/#sistema", label: "Sistema" },
   { href: "/#como-funciona", label: "Como funciona" },
   { href: "/#para-quem", label: "Para quem" },
+  { href: "/#planos", label: "Planos" },
   { href: "/#faq", label: "FAQ" },
 ] as const;
 

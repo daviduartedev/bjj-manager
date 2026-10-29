@@ -24,8 +24,8 @@ const faqItems = [
     a: "O professor trabalha na área operacional. Quando a academia libera o portal, o aluno entra no próprio espaço para aulas, presença e financeiro. Sem portal, o Casca continua só com a equipe interna.",
   },
   {
-    q: "Integra com gateway ou cobrança automática por PIX?",
-    a: "Não. Pagamentos e status são registrados manualmente quando você confirma na vida real. O controle fica na operação da escola.",
+    q: "Como funcionam os pagamentos?",
+    a: "A assinatura da academia no Casca é cobrada pelo AbacatePay. As mensalidades dos alunos continuam no controle da academia: você registra o pagamento quando confirma o recebimento na vida real.",
   },
   {
     q: "Posso exportar planilha ou relatório em Excel?",
@@ -33,7 +33,11 @@ const faqItems = [
   },
   {
     q: "Como obtenho login?",
-    a: "O primeiro usuário costuma ser criado por provisionamento junto à equipe que mantém o sistema. Use as credenciais recebidas na página Entrar.",
+    a: "Escolha um plano, cadastre sua academia e confirme o e-mail. Depois, conclua a adesão com cartão para iniciar os 3 dias de teste. O plano é cobrado automaticamente ao final do teste; cancele antes para não ser cobrado.",
+  },
+  {
+    q: "O que acontece se eu cancelar ou não pagar?",
+    a: "Ao cancelar, você mantém o acesso até o fim do período pago. Sem pagamento regularizado, a academia fica em modo somente leitura, com os dados e históricos preservados.",
   },
 ] as const;
 
