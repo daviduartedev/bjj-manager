@@ -8,9 +8,9 @@ import { LpHero } from "@/components/marketing/lp-hero";
 import { LpHowItWorks } from "@/components/marketing/lp-how-it-works";
 import { LpPricing } from "@/components/marketing/lp-pricing";
 import { LpProductOverview } from "@/components/marketing/lp-product-overview";
-import { LpTrust } from "@/components/marketing/lp-trust";
+import { LpSalutes } from "@/components/marketing/lp-salutes";
 
-/** Uma narrativa curta: posição → rotina → processo → especialidade → confiança → oferta. */
+/** Uma narrativa curta: posição → rotina → processo → especialidade → cumprimentos → oferta. */
 export function LandingPage() {
   return (
     <div
@@ -24,7 +24,7 @@ export function LandingPage() {
         <LpProductOverview />
         <LpHowItWorks />
         <LpBelts />
-        <LpTrust />
+        <LpSalutes />
         <LpPricing />
         <LpFaq />
         <LpCta />

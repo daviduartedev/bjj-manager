@@ -5,7 +5,6 @@ import { LpPillCta } from "@/components/marketing/lp-chrome";
 import { LpHighlightLines } from "@/components/marketing/lp-highlight-lines";
 import {
   LpDisplay,
-  LpEyebrow,
   LpMark,
   LpReveal,
   LpSection,
@@ -235,8 +234,7 @@ export function LpProductFlow() {
   return (
     <LpSection id="funcionalidades" className="bg-[#f3faf6]">
       <LpReveal>
-        <LpEyebrow tone="green">Funcionalidades</LpEyebrow>
-        <LpDisplay surface="light" className="mt-3 text-[clamp(2.25rem,5vw,3.75rem)]">
+        <LpDisplay surface="light" className="text-[clamp(2.25rem,5vw,3.75rem)]">
           O que a academia
           <br />
           faz no <LpMark>Casca</LpMark>

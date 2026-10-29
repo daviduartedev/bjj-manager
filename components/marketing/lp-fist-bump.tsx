@@ -14,7 +14,7 @@ export function LpFistBump() {
   return (
     <section data-testid="lp-fist-bump" className="overflow-hidden bg-white pb-16 pt-20 sm:pb-24 sm:pt-28">
       <LpFistBumpHands />
-      <div className="mx-auto mt-10 max-w-3xl px-5 text-center sm:mt-14">
+      <div className="mx-auto mt-10 max-w-5xl px-5 text-center sm:mt-14">
         <LpReveal direction="scale" duration={1.05}>
           <LpHighlightLines as="h2" align="center" rows={ROWS} />
         </LpReveal>

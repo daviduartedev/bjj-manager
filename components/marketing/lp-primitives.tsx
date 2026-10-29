@@ -26,26 +26,6 @@ export function LpSection({
   );
 }
 
-// ---------------------------------------------------------------------------
-// LpEyebrow — tag colorida acima do título da seção
-// ---------------------------------------------------------------------------
-
-export function LpEyebrow({
-  className,
-  tone = "primary",
-  children,
-}: {
-  className?: string;
-  tone?: "primary" | "green";
-  children: ReactNode;
-}) {
-  return (
-    <p className={cn("text-sm font-semibold", tone === "green" ? "text-brand-green" : "text-primary", className)}>
-      {children}
-    </p>
-  );
-}
-
 /** Marca-texto amarelo atrás de uma palavra, no mesmo espírito de “em dia”. */
 export function LpMark({
   children,

@@ -1,0 +1,465 @@
+/*
+ * Quatro saudações em loop. O estado sem animação é a pose pronta,
+ * usada quando o sistema pede menos movimento.
+ */
+
+.anim {
+  will-change: transform, opacity;
+}
+
+.root[data-playing="false"] .anim {
+  animation-play-state: paused;
+}
+
+.fill {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ---------------------------------------------------------------- OSS */
+
+.ossFist {
+  animation: oss-fist 4s infinite;
+}
+
+@keyframes oss-fist {
+  0%,
+  12% {
+    transform: translateY(-54px);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.35);
+  }
+  30% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  36% {
+    transform: translateY(-5px);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  44%,
+  78% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+  100% {
+    transform: translateY(-54px);
+  }
+}
+
+.ossPalm {
+  animation: oss-palm 4s infinite;
+}
+
+@keyframes oss-palm {
+  0%,
+  30% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  33% {
+    transform: translateY(4px);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  46%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.ossBurst {
+  animation: impact-burst 4s infinite;
+}
+
+.ossPulse {
+  animation: impact-pulse 4s infinite;
+}
+
+.ossWord {
+  animation: word-pop 4s infinite;
+}
+
+/* -------------------------------------------------------------- Wai */
+
+.waiAll {
+  transform-box: view-box;
+  transform-origin: 120px 210px;
+  animation: wai-all 4.4s infinite;
+}
+
+@keyframes wai-all {
+  0%,
+  8% {
+    transform: translateY(34px);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  34%,
+  44% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+  56%,
+  64% {
+    transform: translateY(9px) scale(0.95);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  76%,
+  86% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+  100% {
+    transform: translateY(34px);
+  }
+}
+
+.waiLeft,
+.waiRight {
+  transform-box: view-box;
+}
+
+.waiLeft {
+  transform-origin: 40px 186px;
+  animation: wai-left 4.4s infinite;
+}
+
+.waiRight {
+  transform-origin: 200px 186px;
+  animation: wai-right 4.4s infinite;
+}
+
+@keyframes wai-left {
+  0%,
+  8% {
+    transform: translateX(-16px) rotate(-11deg);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  32%,
+  86% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+  100% {
+    transform: translateX(-16px) rotate(-11deg);
+  }
+}
+
+@keyframes wai-right {
+  0%,
+  8% {
+    transform: translateX(16px) rotate(11deg);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  32%,
+  86% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+  100% {
+    transform: translateX(16px) rotate(11deg);
+  }
+}
+
+.waiSpark {
+  animation: wai-spark 4.4s infinite;
+}
+
+@keyframes wai-spark {
+  0%,
+  30% {
+    opacity: 0;
+    transform: scale(0.5);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.06);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  48% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  60%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.waiWord {
+  animation: wai-word 4.4s infinite;
+}
+
+@keyframes wai-word {
+  0%,
+  40% {
+    opacity: 0;
+    transform: translateY(6px);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  54%,
+  84% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  94%,
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+
+/* -------------------------------------------------------- Taekwondo */
+
+.tkdBody {
+  transform-box: view-box;
+  transform-origin: 124px 212px;
+  transform: rotate(-22deg);
+  animation: tkd-body 4.8s infinite;
+}
+
+@keyframes tkd-body {
+  0%,
+  38% {
+    transform: rotate(0deg);
+    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+  54%,
+  68% {
+    transform: rotate(-22deg);
+    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+  82%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.tkdArm {
+  transform-box: view-box;
+  transform-origin: 132px 108px;
+  animation: tkd-arm 4.8s infinite;
+}
+
+@keyframes tkd-arm {
+  0%,
+  8% {
+    transform: rotate(62deg);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  25% {
+    transform: rotate(-4deg);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  31%,
+  86% {
+    transform: rotate(0deg);
+    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+  100% {
+    transform: rotate(62deg);
+  }
+}
+
+.tkdBurst {
+  animation: tkd-burst 4.8s infinite;
+}
+
+@keyframes tkd-burst {
+  0%,
+  22% {
+    opacity: 0;
+    transform: scale(0.5);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  26% {
+    opacity: 1;
+    transform: scale(1.08);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  36% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  46%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* ------------------------------------------------------------- Boxe */
+
+.boxLeft {
+  animation: box-left 3.6s infinite;
+}
+
+.boxRight {
+  animation: box-right 3.6s infinite;
+}
+
+@keyframes box-left {
+  0%,
+  10% {
+    transform: translateX(-46px);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.35);
+  }
+  30% {
+    transform: translateX(0);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  36% {
+    transform: translateX(-7px);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  46%,
+  76% {
+    transform: translateX(0);
+    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+  100% {
+    transform: translateX(-46px);
+  }
+}
+
+@keyframes box-right {
+  0%,
+  10% {
+    transform: translateX(46px);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.35);
+  }
+  30% {
+    transform: translateX(0);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  36% {
+    transform: translateX(7px);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  46%,
+  76% {
+    transform: translateX(0);
+    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+  100% {
+    transform: translateX(46px);
+  }
+}
+
+.boxBurst {
+  animation: box-burst 3.6s infinite;
+}
+
+.boxPulse {
+  animation: box-pulse 3.6s infinite;
+}
+
+@keyframes box-burst {
+  0%,
+  29% {
+    opacity: 0;
+    transform: scale(0.5);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  33% {
+    opacity: 1;
+    transform: scale(1.08);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  48% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  60%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes box-pulse {
+  0%,
+  29% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  31% {
+    opacity: 0.9;
+    transform: scale(0.4);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  54%,
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+/* ------------------------------------------------------- Compartilhados */
+
+@keyframes impact-burst {
+  0%,
+  29% {
+    opacity: 0;
+    transform: scale(0.5);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  33% {
+    opacity: 1;
+    transform: scale(1.08);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  48% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  60%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes impact-pulse {
+  0%,
+  29% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  31% {
+    opacity: 0.9;
+    transform: scale(0.4);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  54%,
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes word-pop {
+  0%,
+  34% {
+    opacity: 0;
+    transform: scale(0.82);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  48%,
+  80% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  92%,
+  100% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim {
+    animation: none !important;
+    will-change: auto;
+  }
+}

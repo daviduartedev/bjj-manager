@@ -22,8 +22,7 @@ export function LpHowItWorks() {
       <LpScrollDrift distance={48} rotate={1.2} scaleFrom={0.97} className="mx-auto max-w-7xl">
       <div className="overflow-hidden rounded-[2.25rem] bg-brand-green px-6 py-12 text-white sm:rounded-[3rem] sm:px-12 sm:py-16 lg:px-16 lg:py-20">
         <LpReveal direction="left" duration={1.05}>
-          <p className="text-sm font-semibold text-white/75">Como funciona</p>
-          <LpDisplay surface="dark" className="mt-4 max-w-[17ch] text-[clamp(2.25rem,5vw,4rem)]">
+          <LpDisplay surface="dark" className="max-w-[17ch] text-[clamp(2.25rem,5vw,4rem)]">
             Da matrícula ao fim do mês, <LpMark className="text-neutral-950">sem perder o fio</LpMark>.
           </LpDisplay>
           <p className="mt-6 max-w-[54ch] text-base leading-relaxed text-white/80 sm:text-lg">

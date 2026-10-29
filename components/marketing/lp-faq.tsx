@@ -1,4 +1,4 @@
-import { LpDisplay, LpEyebrow, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LpDisplay, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 const faqItems = [
   {
@@ -33,8 +33,7 @@ export function LpFaq() {
       <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-24">
         <LpReveal direction="left" duration={1.05}>
           <div className="mb-12 lg:sticky lg:top-28 lg:mb-0">
-            <LpEyebrow>Antes de começar</LpEyebrow>
-            <LpDisplay surface="light" className="mt-4 max-w-[13ch] text-[clamp(2.25rem,5vw,4rem)]">
+            <LpDisplay surface="light" className="max-w-[13ch] text-[clamp(2.25rem,5vw,4rem)]">
               Perguntas de quem vai colocar a academia no Casca.
             </LpDisplay>
             <p className="mt-6 max-w-[38ch] leading-relaxed text-muted-foreground">

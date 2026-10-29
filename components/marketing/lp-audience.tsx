@@ -2,7 +2,7 @@
 import Image from "next/image";
 
 import { LpPillCta } from "@/components/marketing/lp-chrome";
-import { LpDisplay, LpEyebrow, LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LpDisplay, LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 const audiences = [
   {
@@ -48,8 +48,7 @@ export function LpAudience() {
     <LpSection id="para-quem" className="relative z-10 bg-white">
       <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-16">
         <LpReveal>
-          <LpEyebrow>Para quem é</LpEyebrow>
-          <LpDisplay surface="light" className="mt-4 text-balance text-[clamp(2.25rem,5vw,4rem)] sm:text-wrap">
+          <LpDisplay surface="light" className="text-balance text-[clamp(2.25rem,5vw,4rem)] sm:text-wrap">
             Cada pessoa da academia
             <span className="sm:hidden"> </span>
             <br className="hidden sm:block" />

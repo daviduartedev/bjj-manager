@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 
 import { LpPillCta } from "@/components/marketing/lp-chrome";
-import { LpDisplay, LpEyebrow, LpMark, LpReveal, LpScrollDrift, LpSection } from "@/components/marketing/lp-primitives";
+import { LpDisplay, LpMark, LpReveal, LpScrollDrift, LpSection } from "@/components/marketing/lp-primitives";
 
 const BELT_FILL = {
   Branca: "#f1f1ee",
@@ -52,8 +52,7 @@ export function LpBelts() {
     <LpSection id="faixas" className="bg-background">
       <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-16">
         <LpReveal direction="left" duration={1.05}>
-          <LpEyebrow tone="green">Faixas e graus</LpEyebrow>
-          <LpDisplay surface="light" className="mt-4 text-balance text-[clamp(2.15rem,4.2vw,3.5rem)]">
+          <LpDisplay surface="light" className="text-balance text-[clamp(2.15rem,4.2vw,3.5rem)]">
             A trajetória do aluno, registrada <LpMark>de verdade</LpMark>
           </LpDisplay>
           <p className="mt-6 max-w-[48ch] text-base leading-relaxed text-muted-foreground sm:text-lg">

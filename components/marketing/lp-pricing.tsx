@@ -1,7 +1,7 @@
 import { ArrowRight, Check, CreditCard } from "lucide-react";
 import Link from "next/link";
 
-import { LpEyebrow, LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 import { SUBSCRIPTION_PLANS } from "@/lib/subscriptions/catalog";
 import { cn } from "@/lib/utils";
 
@@ -31,8 +31,7 @@ export function LpPricing() {
   return (
     <LpSection id="planos" className="scroll-mt-16 bg-white">
       <LpReveal direction="left" duration={1.05}>
-        <LpEyebrow>Planos</LpEyebrow>
-        <h2 className="mt-4 max-w-3xl text-balance font-sans text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.08] tracking-[-0.035em]">
+        <h2 className="max-w-3xl text-balance font-sans text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.08] tracking-[-0.035em]">
           Escolha pelo número de alunos. <LpMark>O resto já vem junto</LpMark>.
         </h2>
         <p className="mt-6 max-w-2xl leading-relaxed text-muted-foreground">

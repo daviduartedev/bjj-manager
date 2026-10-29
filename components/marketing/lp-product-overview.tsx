@@ -1,7 +1,7 @@
 import { CalendarCheck, GraduationCap, LayoutDashboard, Users } from "lucide-react";
 import Link from "next/link";
 
-import { LpDisplay, LpEyebrow, LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LpDisplay, LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 const routines = [
   {
@@ -42,8 +42,7 @@ export function LpProductOverview() {
   return (
     <LpSection id="funcionalidades" className="bg-[#f4f6f8]">
       <LpReveal>
-        <LpEyebrow>Feito para a operação real</LpEyebrow>
-        <LpDisplay surface="light" className="mt-4 max-w-[17ch] text-[clamp(2.25rem,5vw,4rem)]">
+        <LpDisplay surface="light" className="max-w-[17ch] text-[clamp(2.25rem,5vw,4rem)]">
           O Casca conhece o trabalho por trás de <LpMark>cada aula</LpMark>.
         </LpDisplay>
         <p className="mt-6 max-w-[58ch] text-base leading-relaxed text-muted-foreground sm:text-lg">
