@@ -70,6 +70,9 @@ export const academyRegistrationSchema = z
     academyName: z.string().trim().min(2, academyNameMessage).max(80, academyNameMessage),
     displayName: z.string().trim().min(2, displayNameMessage).max(80, displayNameMessage),
     modality: z.enum(ACADEMY_MODALITIES, { errorMap: () => ({ message: "Selecione a modalidade da academia." }) }),
+    subscriptionPlanId: z.enum(["essencial", "academia", "evolucao"], {
+      errorMap: () => ({ message: "Selecione um plano válido do Casca." }),
+    }).default("essencial"),
     onboarding: academyOnboardingSchema.optional(),
   })
   .strict();

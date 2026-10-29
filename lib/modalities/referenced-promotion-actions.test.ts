@@ -6,7 +6,10 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 import { promoteReferencedStudent } from "@/actions/referenced-promotions";
 const id = "00000000-0000-4000-8000-000000000001";
 describe("operação pública de promoção referenciada", () => {
-  beforeEach(() => { vi.clearAllMocks(); client.mockResolvedValue({ rpc }); });
+  beforeEach(() => { vi.clearAllMocks(); client.mockResolvedValue({ rpc, from: () => {
+    const query = { select: () => query, eq: () => query, maybeSingle: async () => ({ data: { enforcement_enabled: false }, error: null }) };
+    return query;
+  } }); });
   afterEach(() => { vi.useRealTimers(); });
   it("recusa papel ausente/aluno e esporte diferente antes de consultar IDs", async () => {
     for (const context of [null, { profile: { role: "student" }, account: { modality: "judo" } }, { profile: {}, account: { modality: "judo" } }, { profile: { role: "professor" }, account: { modality: "boxing" } }]) {

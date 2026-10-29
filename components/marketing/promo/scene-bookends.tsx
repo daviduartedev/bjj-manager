@@ -120,7 +120,7 @@ export function OutroCard() {
         start={24}
         style={{ marginTop: 40, maxWidth: 1360, fontSize: 84, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.08 }}
       >
-        Feito para quem ensina e para quem administra a escola
+        Feito para quem ensina e para quem administra a academia
       </Rise>
       <Rise frame={frame} start={40} style={{ marginTop: 28, fontSize: 34, color: "rgba(255,255,255,0.62)" }}>
         Cadastro, graduação, financeiro do mês, painel e documentos no mesmo lugar.

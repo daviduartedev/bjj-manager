@@ -12,6 +12,7 @@ import {
   generateTemporaryPassword,
   inviteAuthUserByEmail,
 } from "@/lib/supabase/admin";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import { provisionPortalAccessSchema } from "@/lib/validations/student-portal";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -233,6 +234,8 @@ export async function provisionStudentPortalAccess(
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const loaded = await loadStudentForProvision(
       supabase,
       parsed.data.studentId,

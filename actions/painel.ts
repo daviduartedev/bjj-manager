@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";
 import { parsePainelHiddenBlocks } from "@/lib/painel/hidden-blocks";
 import { ROUTES } from "@/lib/routes";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 
 export type PainelActionResult = { ok: true } | { ok: false; error: string };
@@ -16,6 +17,8 @@ export async function updatePainelHiddenBlocks(
     const hidden = parsePainelHiddenBlocks(input);
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const {
       data: { user },
     } = await supabase.auth.getUser();

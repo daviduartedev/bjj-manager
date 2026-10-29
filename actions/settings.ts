@@ -27,6 +27,7 @@ import {
   updateReceiverSchema,
   updateStorefrontPublicationSchema,
 } from "@/lib/validations/settings";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 
 export type SettingsActionResult =
@@ -46,6 +47,8 @@ function fieldErrorsFromZod(err: {
 
 async function requireSettingsAccount() {
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -171,6 +174,8 @@ export async function updateAccount(input: unknown): Promise<SettingsActionResul
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -216,6 +221,8 @@ export async function updateAccountSlug(input: unknown): Promise<SettingsActionR
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -300,6 +307,8 @@ export async function updateStorefrontPublication(input: unknown): Promise<Setti
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const { data: account, error: readError } = await supabase
       .from("accounts")
       .select("slug, storefront_published")
@@ -348,6 +357,8 @@ export async function updateStorefrontTheme(input: unknown): Promise<SettingsAct
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const { error } = await supabase
       .from("accounts")
       .update({
@@ -379,6 +390,8 @@ export async function updateReceiver(input: unknown): Promise<SettingsActionResu
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -445,6 +458,8 @@ export async function updateProfile(input: unknown): Promise<SettingsActionResul
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -480,6 +495,8 @@ export async function switchAcademyModality(target: unknown): Promise<SettingsAc
   }
 
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
   const { error } = await supabase.rpc("switch_academy_modality", { p_target: target });
   if (error) {
     if (error.message.includes("academy is not empty")) {

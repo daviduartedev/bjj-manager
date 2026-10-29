@@ -32,5 +32,7 @@ describe("student portal route helpers", () => {
     expect(isProtectedAuthenticatedPath("/portal/loja")).toBe(true);
     expect(isProtectedAuthenticatedPath("/mensalidades")).toBe(true);
     expect(isProtectedAuthenticatedPath("/login")).toBe(false);
+    expect(isProtectedAuthenticatedPath("/recuperar-senha")).toBe(false);
+    expect(isProtectedAuthenticatedPath("/redefinir-senha")).toBe(false);
   });
 });

@@ -7,9 +7,9 @@ import {
 } from "./provision-destination";
 
 describe("destinationForProvision", () => {
-  it("manda academia recém-criada para o painel", () => {
-    expect(destinationForProvision({ outcome: "created", role: "professor" })).toBe("/painel");
-    expect(destinationForProvision({ outcome: "created", role: null })).toBe("/painel");
+  it("manda academia recém-criada para concluir a assinatura", () => {
+    expect(destinationForProvision({ outcome: "created", role: "professor" })).toBe("/conta/assinatura");
+    expect(destinationForProvision({ outcome: "created", role: null })).toBe("/conta/assinatura");
   });
 
   it("manda professor que já existe para o painel e aluno para o portal", () => {
@@ -33,9 +33,9 @@ describe("destinationForProvision", () => {
 });
 
 describe("loginDecisionForProvision", () => {
-  it("abre o painel quando a academia acaba de ser criada", () => {
+  it("abre a assinatura quando a academia acaba de ser criada", () => {
     expect(loginDecisionForProvision({ outcome: "created", role: "professor" })).toEqual({
-      path: "/painel",
+      path: "/conta/assinatura",
     });
   });
 
@@ -67,7 +67,7 @@ describe("completePasswordLogin", () => {
 
     const decision = await completePasswordLogin({ role: null, provision });
 
-    expect(decision).toEqual({ path: "/painel" });
+    expect(decision).toEqual({ path: "/conta/assinatura" });
     expect(provision).toHaveBeenCalledOnce();
   });
 

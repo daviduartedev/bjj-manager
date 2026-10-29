@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isStudentRole, postLoginPathForRole, resolveAuthRole } from "@/lib/auth/roles";
 import { isStudentPortalEnabled } from "@/lib/feature-flags/student-portal";
 import { mergeSessionCookieOptions } from "@/lib/security/cookie-hardening";
+import { isPlatformOwner } from "@/lib/platform-admin/service";
 import {
   isOperationalAreaPath,
   isPortalBloqueadoPath,
@@ -101,6 +102,26 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
+  const platformOwner = user && isPlatformOwner(user.id, process.env.CASCA_PLATFORM_ADMIN_USER_ID);
+
+  if (pathname === ROUTES.redefinirSenha || pathname.startsWith(`${ROUTES.redefinirSenha}/`)) {
+    if (!user) return redirectWithCookies(request, supabaseResponse, ROUTES.recuperarSenha);
+    return supabaseResponse;
+  }
+
+  if (pathname === "/admin/casca" || pathname.startsWith("/admin/casca/")) {
+    if (!user) return redirectWithCookies(request, supabaseResponse, ROUTES.login);
+    if (!platformOwner) {
+      const denied = new NextResponse("Acesso restrito.", { status: 403, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+      copyCookies(supabaseResponse, denied);
+      return denied;
+    }
+    return supabaseResponse;
+  }
+
+  if (platformOwner && (pathname === ROUTES.login || pathname === ROUTES.register)) {
+    return redirectWithCookies(request, supabaseResponse, "/admin/casca");
+  }
 
   if (pathname === LEGACY_DASHBOARD_PREFIX || pathname.startsWith(`${LEGACY_DASHBOARD_PREFIX}/`)) {
     if (user) {

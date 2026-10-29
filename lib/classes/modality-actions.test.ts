@@ -32,7 +32,7 @@ import { createClass, updateClass } from "@/actions/classes";
 
 beforeEach(() => {
   state.modality = "boxing"; state.role = "professor";
-  state.rows = { profiles: [{ id: instructorId, account_id: accountId, role: "professor" }] };
+  state.rows = { profiles: [{ id: instructorId, account_id: accountId, role: "professor" }], casca_billing_settings: [{ id: true, enforcement_enabled: false }] };
 });
 describe("turmas na modalidade da sessão", () => {
   it("persiste Boxe separadamente do público Adulto", async () => {

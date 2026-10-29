@@ -36,7 +36,7 @@ export function LpFistBump() {
           ))}
         </h2>
         <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-          O Casca é a plataforma parceira para a gestão da sua academia. Acreditamos que academia em dia é
+          O Casca é a plataforma brasileira para gestão de academias de artes marciais. Academia em dia é
           academia que cresce.
         </p>
         <div className="mt-9 flex justify-center">

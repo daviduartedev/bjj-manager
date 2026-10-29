@@ -10,6 +10,7 @@ import {
   isStudentPortalEnabled,
 } from "@/lib/feature-flags/student-portal";
 import { ROUTES } from "@/lib/routes";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import {
   cancelCheckInSchema,
@@ -115,6 +116,8 @@ export async function createCheckIn(
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const loaded = await loadSessionForStudent(
       supabase,
       parsed.data.classSessionId,
@@ -179,6 +182,8 @@ export async function cancelCheckIn(
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const loaded = await loadSessionForStudent(
       supabase,
       parsed.data.classSessionId,

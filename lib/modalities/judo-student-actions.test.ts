@@ -7,6 +7,7 @@ vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ from(table: string) {
   let operation = "read"; let value: Record<string, unknown> = {}; const filters: [string, unknown][] = [];
   const execute = () => {
+    if (table === "casca_billing_settings") return { data: { enforcement_enabled: false }, error: null };
     if (table !== "students") return { data: [], error: null };
     if (operation === "insert") { const row = { ...value, id: "student-a" }; storage.students.push(row); return { data: row, error: null }; }
     const row = storage.students.find(r => filters.every(([k,v]) => r[k] === v));

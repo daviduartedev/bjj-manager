@@ -1,8 +1,8 @@
 import { postLoginPathForRole, type AuthRole } from "@/lib/auth/roles";
 
-export type ProvisionDestination = "/painel" | "/portal" | "/login";
+export type ProvisionDestination = "/painel" | "/portal" | "/login" | "/conta/assinatura";
 
-export type ProvisionLoginDecision = { path: "/painel" | "/portal" } | { message: string };
+export type ProvisionLoginDecision = { path: "/painel" | "/portal" | "/conta/assinatura" } | { message: string };
 
 const INELIGIBLE_LOGIN_MESSAGE = "Esta conta não abre o painel da academia.";
 const EMAIL_NOT_CONFIRMED_LOGIN_MESSAGE = "Confirme o e-mail antes de entrar no painel.";
@@ -25,7 +25,7 @@ export function destinationForProvision(data: unknown): ProvisionDestination {
  */
 export function loginDecisionForProvision(data: unknown): ProvisionLoginDecision {
   const row = firstProvisionRow(data);
-  if (row.outcome === "created") return { path: "/painel" };
+  if (row.outcome === "created") return { path: "/conta/assinatura" };
   if (row.outcome === "existing" && row.role === "professor") return { path: "/painel" };
   if (row.outcome === "existing" && row.role === "student") return { path: "/portal" };
   if (row.outcome === "email_not_confirmed") return { message: EMAIL_NOT_CONFIRMED_LOGIN_MESSAGE };

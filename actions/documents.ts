@@ -25,6 +25,7 @@ import {
   normalizePhoneE164,
 } from "@/lib/documents/whatsapp";
 import { ROUTES } from "@/lib/routes";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import {
   documentIdSchema,
@@ -111,6 +112,8 @@ function mapPayloadError(err: unknown): string {
 export async function generateDocument(input: unknown): Promise<GenerateDocumentResult> {
   const ctx = await requireAccountContext();
   if (!ctx.ok) return { ok: false, error: ctx.error };
+  const writeAccess = await requireAcademyWriteAccess(ctx.supabase, ctx.accountId);
+  if (!writeAccess.ok) return writeAccess;
 
   const parsed = generateDocumentSchema.safeParse(input);
   if (!parsed.success) {
@@ -231,6 +234,8 @@ export async function generateDocument(input: unknown): Promise<GenerateDocument
 export async function reissueDocument(input: unknown): Promise<GenerateDocumentResult> {
   const ctx = await requireAccountContext();
   if (!ctx.ok) return { ok: false, error: ctx.error };
+  const writeAccess = await requireAcademyWriteAccess(ctx.supabase, ctx.accountId);
+  if (!writeAccess.ok) return writeAccess;
 
   const parsed = reissueDocumentSchema.safeParse(input);
   if (!parsed.success) {

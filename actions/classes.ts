@@ -6,6 +6,7 @@ import { getCurrentAccount } from "@/lib/auth";
 import { expandSessionsForSchedules } from "@/lib/classes/session-generator";
 import { mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";
 import { ROUTES, routeAulasTurma } from "@/lib/routes";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import {
   classSchema,
@@ -88,6 +89,8 @@ export async function createClass(input: unknown): Promise<ClassActionResult> {
   }
 
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
 
   if ((parsed.data.modality && parsed.data.modality !== ctx.account.modality) ||
       (ctx.account.modality !== "jiu_jitsu" && parsed.data.kind !== "adult")) {
@@ -134,6 +137,8 @@ export async function updateClass(input: unknown): Promise<ClassActionResult> {
   }
 
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
 
   if ((parsed.data.modality && parsed.data.modality !== ctx.account.modality) ||
       (ctx.account.modality !== "jiu_jitsu" && parsed.data.kind !== "adult")) {
@@ -187,6 +192,8 @@ export async function addRecurringSchedule(input: unknown): Promise<ClassActionR
   }
 
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
 
   const { data: existingClass, error: classError } = await supabase
     .from("classes")
@@ -255,6 +262,8 @@ export async function deleteRecurringSchedule(input: unknown): Promise<ClassActi
   }
 
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
   const { error } = await supabase
     .from("class_recurring_schedules")
     .delete()
@@ -284,6 +293,8 @@ export async function enrollStudent(input: unknown): Promise<ClassActionResult> 
   }
 
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
 
   const { data: existingClass } = await supabase
     .from("classes")
@@ -331,6 +342,8 @@ export async function unenrollStudent(input: unknown): Promise<ClassActionResult
   }
 
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
   const { error } = await supabase
     .from("student_class_enrollments")
     .delete()

@@ -22,6 +22,7 @@ import {
   updatePlanSchema,
   voidPaymentSchema,
 } from "@/lib/validations/billing";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 
 export type BillingActionResult =
@@ -94,6 +95,8 @@ export async function updatePlanPrice(
 
     const { planId, priceCents } = parsed.data;
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
 
     const { data: row, error: selErr } = await supabase
       .from("plans")
@@ -141,6 +144,8 @@ export async function updatePlan(input: unknown): Promise<BillingActionResult> {
 
     const { planId, name, priceCents, active } = parsed.data;
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
 
     const { data: row, error: selErr } = await supabase
       .from("plans")
@@ -194,6 +199,8 @@ export async function setStudentPlan(input: unknown): Promise<BillingActionResul
 
     const { studentId, planId, dueDay, customPriceCents } = parsed.data;
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
 
     await applyStudentPlanChange({
       supabase,
@@ -434,6 +441,8 @@ export async function recordPayment(input: unknown): Promise<RecordPaymentResult
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -536,6 +545,8 @@ export async function recordPaymentsBulk(
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const failures: { studentId: string; error: string }[] = [];
     let recorded = 0;
     const okIds: string[] = [];
@@ -604,6 +615,8 @@ export async function voidPayment(input: unknown): Promise<BillingActionResult> 
 
     const { paymentId } = parsed.data;
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
 
     const { data: row, error: selErr } = await supabase
       .from("payments")
@@ -671,6 +684,8 @@ export async function retryReceiptGeneration(
     }
     const { paymentId } = parsed.data;
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
 
     const {
       data: { user },

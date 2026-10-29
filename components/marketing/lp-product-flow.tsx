@@ -198,7 +198,6 @@ const modules = [
     stage: "bg-brand-blue/[0.07]",
     body: "Lista e ficha completa. Tipo adulto ou kids, contato, status, observações. Cada aluno carrega faixa atual, grau, histórico e a situação financeira do mês.",
     screen: <StudentsScreen />,
-    span: "lg:col-span-7",
   },
   {
     title: "Graduação",
@@ -207,7 +206,6 @@ const modules = [
     stage: "bg-brand-green/[0.07]",
     body: "Promoção de grau ou faixa com data e histórico. Se houver pulo de ordem, o sistema pede justificativa antes de concluir.",
     screen: <GraduationScreen />,
-    span: "lg:col-span-5",
   },
   {
     title: "Mensalidades",
@@ -216,7 +214,6 @@ const modules = [
     stage: "bg-brand-yellow/[0.12]",
     body: "Preço efetivo e dia de vencimento por aluno. Status explícito. Você confirma o pagamento quando ele acontece na vida real.",
     screen: <FeesScreen />,
-    span: "lg:col-span-5",
   },
   {
     title: "Painel",
@@ -225,7 +222,6 @@ const modules = [
     stage: "bg-neutral-950/[0.05]",
     body: "Alunos ativos, mensalidades em atraso, aniversariantes do mês, distribuição por faixa. Atalhos para agir no mesmo dia.",
     screen: <DashboardScreen />,
-    span: "lg:col-span-7",
   },
 ] as const;
 
@@ -235,13 +231,13 @@ const modules = [
 
 export function LpProductFlow() {
   return (
-    <LpSection id="funcionalidades" className="bg-background">
+    <LpSection id="funcionalidades" className="bg-[#f3faf6]">
       <LpReveal>
-        <LpEyebrow>Funcionalidades</LpEyebrow>
+        <LpEyebrow tone="green">Funcionalidades</LpEyebrow>
         <LpDisplay surface="light" className="mt-3 text-[clamp(2.25rem,5vw,3.75rem)]">
-          O que você faz
+          O que a academia
           <br />
-          dentro do <span className="text-brand-blue">Casca</span>
+          faz no <span className="text-brand-green">Casca</span>
         </LpDisplay>
         <p className="mt-5 max-w-[52ch] text-base leading-relaxed text-muted-foreground sm:text-lg">
           Cadastro de alunos adulto e kids, ficha com faixa e grau, histórico de graduação, planos
@@ -249,32 +245,38 @@ export function LpProductFlow() {
         </p>
       </LpReveal>
 
-      <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-2 lg:mt-16 lg:grid-cols-12">
+      <div className="mt-16 space-y-20 lg:mt-20 lg:space-y-28">
         {modules.map((mod, i) => (
-          <LpReveal key={mod.title} delay={i * 0.08} className={`h-full ${mod.span}`}>
-            <article className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-black/[0.06] bg-neutral-50 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_24px_48px_-28px_rgba(0,0,0,0.3)]">
-              <div className={`flex flex-1 items-center justify-center px-6 pb-2 pt-8 sm:px-10 sm:pt-10 ${mod.stage}`}>
-                <div className="w-full max-w-md transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-1">
-                  {mod.screen}
-                </div>
+          <LpReveal key={mod.title} delay={0.04}>
+            <div
+              className={`grid items-center gap-10 lg:grid-cols-2 lg:gap-20 ${
+                i % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""
+              }`}
+            >
+              <div className={`flex justify-center px-2 py-4 sm:px-6 ${mod.stage} rounded-[2rem]`}>
+                <div className="w-full max-w-md">{mod.screen}</div>
               </div>
-              <div className="px-7 pb-8 pt-6 sm:px-8">
-                <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${mod.tagClass}`}>
+              <div>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${mod.tagClass}`}
+                >
                   <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
                   {mod.tag}
                 </span>
-                <p className="mt-4 font-sans text-2xl font-bold leading-tight tracking-[-0.035em] text-foreground">
+                <p className="mt-5 font-sans text-[clamp(1.75rem,3vw,2.5rem)] font-bold leading-tight tracking-[-0.035em] text-foreground">
                   {mod.title}
                 </p>
-                <p className="mt-2 max-w-[46ch] text-base leading-relaxed text-muted-foreground">{mod.body}</p>
+                <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-muted-foreground sm:text-lg">
+                  {mod.body}
+                </p>
               </div>
-            </article>
+            </div>
           </LpReveal>
         ))}
       </div>
 
-      <LpReveal className="mt-12 sm:mt-14">
-        <LpPillCta strong="Alunos, faixas e mensalidades" note="no mesmo lugar.">
+      <LpReveal className="mt-16 sm:mt-20">
+        <LpPillCta tone="green" strong="Alunos, faixas e mensalidades" note="no mesmo lugar.">
           Criar minha academia
         </LpPillCta>
       </LpReveal>

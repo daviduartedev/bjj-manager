@@ -54,7 +54,7 @@ const ITEMS = [
   {
     scene: "mensalidades",
     title: "Mensalidades",
-    body: "Mês de referência com status explícito. O pagamento é confirmado na operação da escola.",
+    body: "Mês de referência com status explícito. O pagamento é confirmado na operação da academia.",
   },
   {
     scene: "painel",

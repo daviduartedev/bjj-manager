@@ -20,12 +20,13 @@ export const metadata: Metadata = {
     template: `%s | ${APP_NAME}`,
   },
   description:
-    "Plataforma para professores de jiu-jitsu gerenciarem alunos, graduações e mensalidades da academia.",
+    "A plataforma brasileira para gestão de academias de artes marciais. Alunos, graduações e mensalidades em um só lugar.",
   applicationName: APP_NAME,
   authors: [{ name: APP_NAME }],
   keywords: [
     "Casca",
     "gestão de academia",
+    "artes marciais",
     "jiu-jitsu",
     "bjj",
     "academia",

@@ -3,6 +3,7 @@ import {
   BookOpen,
   CalendarDays,
   ClipboardList,
+  CreditCard,
   FileText,
   LayoutDashboard,
   Package,
@@ -39,6 +40,7 @@ export const MAIN_NAV_ITEMS: MainNavItem[] = [
   { href: ROUTES.produtos, label: "Produtos", icon: Package, dataTour: "tour-produtos" },
   { href: ROUTES.catalogo, label: "Catálogo de produtos", icon: Store, dataTour: "tour-catalogo" },
   { href: ROUTES.configuracoes, label: "Configurações", icon: Settings, dataTour: "tour-configuracoes" },
+  { href: ROUTES.contaAssinatura, label: "Assinatura Casca", icon: CreditCard, dataTour: "tour-assinatura" },
 ];
 
 /** Bottom nav: subset principal; o resto fica em «Mais» (**SHELL-3.1**, toque ≥ 44px). */

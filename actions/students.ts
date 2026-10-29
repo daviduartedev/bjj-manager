@@ -21,6 +21,7 @@ import {
 import type { StudentKind } from "@/lib/students/degree";
 import { isValidDegreeForBelt } from "@/lib/students/degree";
 import type { PlanKind } from "@/lib/students/plan-kind";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import {
   buildQuickEditFormSchema,
@@ -91,6 +92,8 @@ export async function createStudent(
     }
     const v = parsed.data as StudentFullFormValues;
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
 
     const belt = legacyGraduation && v.current_belt_id ? await resolveBelt(supabase, v.current_belt_id) : null;
     if (legacyGraduation && (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind))) {
@@ -210,6 +213,8 @@ export async function updateStudent(
     }
     const v = parsed.data as StudentFullFormValues;
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
 
     const belt = legacyGraduation && v.current_belt_id ? await resolveBelt(supabase, v.current_belt_id) : null;
     if (legacyGraduation && (!belt || !beltMatchesStudentKindForBeltRow(belt, v.kind as StudentKind))) {
@@ -318,6 +323,8 @@ export async function quickUpdateStudent(
     const ctx = await getCurrentAccount();
     if (!ctx || ctx.profile.role !== "professor") return { ok: false, error: "Operação indisponível." };
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const { data: existing, error: readErr } = await supabase
       .from("students")
       .select("id, kind")
@@ -436,6 +443,8 @@ export async function setStudentStatus(
       return { ok: false, error: "Situação inválida." };
     }
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     /** `inactive` / `paused` **não equivalem** a arquivo/remoção (**STU-3**). */
     const { error } = await supabase
       .from("students")
@@ -475,6 +484,8 @@ export async function archiveStudent(
       };
     }
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const now = new Date().toISOString();
     const stamp = lifecycleStamp(ctx.profile.id, now);
     const { data, error } = await supabase
@@ -517,6 +528,8 @@ export async function unarchiveStudent(
       };
     }
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const now = new Date().toISOString();
     const stamp = lifecycleStamp(ctx.profile.id, now);
     const { data, error } = await supabase
@@ -559,6 +572,8 @@ export async function removeStudentRecord(
       };
     }
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const now = new Date().toISOString();
     const stamp = lifecycleStamp(ctx.profile.id, now);
     const { data, error } = await supabase
@@ -600,6 +615,8 @@ export async function undoRemoveStudentRecord(
       };
     }
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
     const now = new Date().toISOString();
     const stamp = lifecycleStamp(ctx.profile.id, now);
     const { data, error } = await supabase

@@ -11,7 +11,7 @@ export default function PrivacidadePage() {
   return (
     <MarketingLegalLayout title="Política de Privacidade" updated="19 de setembro de 2026">
       <p>
-        Esta política descreve como o Casca trata dados pessoais no contexto da gestão de academias de jiu-jitsu, em linha com a Lei Geral de Proteção de Dados (Lei 13.709/2018).
+        Esta política descreve como o Casca trata dados pessoais no contexto da gestão de academias de artes marciais, em linha com a Lei Geral de Proteção de Dados (Lei 13.709/2018).
       </p>
 
       <h2>Quem controla os dados</h2>
@@ -28,7 +28,7 @@ export default function PrivacidadePage() {
 
       <h2>Para que servem</h2>
       <p>
-        Operar o cadastro da escola, a graduação, o financeiro do mês e o painel. Cumprir obrigações legais. Proteger a conta contra acesso indevido. Melhorar a estabilidade do sistema.
+        Operar o cadastro da academia, a graduação, o financeiro do mês e o painel. Cumprir obrigações legais. Proteger a conta contra acesso indevido. Melhorar a estabilidade do sistema.
       </p>
 
       <h2>Partilha</h2>
@@ -43,7 +43,7 @@ export default function PrivacidadePage() {
 
       <h2>Segurança</h2>
       <p>
-        O acesso é autenticado. Políticas de isolamento por academia restringem a leitura e a escrita aos dados da própria escola. Nenhum sistema é isento de risco. Comunicamos incidentes relevantes nos termos da LGPD.
+        O acesso é autenticado. Políticas de isolamento por academia restringem a leitura e a escrita aos dados da própria academia. Nenhum sistema é isento de risco. Comunicamos incidentes relevantes nos termos da LGPD.
       </p>
 
       <h2>Alterações</h2>

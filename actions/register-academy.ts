@@ -57,6 +57,7 @@ export async function registerAcademy(input: unknown) {
         academy_name: args.academyName,
         display_name: args.displayName,
         modality: args.modality,
+        subscription_plan_id: args.subscriptionPlanId,
       });
 
       return error ? { ok: false } : { ok: true };

@@ -25,6 +25,7 @@ import {
   ROUTES,
 } from "@/lib/routes";
 import { mapStudentServerError } from "@/lib/students/action-errors";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import {
   addGraduationSchema,
@@ -121,6 +122,8 @@ export async function promoteStudent(
     if (!toBelt) return { ok: false, error: "Faixa inválida." };
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
 
     const { data: student, error: stErr } = await supabase
       .from("students")
@@ -207,6 +210,8 @@ export async function addGraduation(
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
 
     const { data: student, error: stErr } = await supabase
       .from("students")
@@ -288,6 +293,8 @@ export async function updateGraduation(
     }
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
 
     const { data: student, error: stErr } = await supabase
       .from("students")
@@ -367,6 +374,8 @@ export async function updateGraduationWeight(
     const v = parsed.data;
 
     const supabase = await createClient();
+    const writeAccess = await requireAcademyWriteAccess(supabase);
+    if (!writeAccess.ok) return writeAccess;
 
     const { data: student, error: stErr } = await supabase
       .from("students")

@@ -1,8 +1,9 @@
 import { academyRegistrationSchema, registrationAudienceIssue, type AcademyOnboarding } from "@/lib/validations/academy-registration";
 import type { AcademyModality } from "@/lib/modalities/catalog";
+import type { SubscriptionPlanId } from "@/lib/subscriptions/catalog";
 
 export const ACADEMY_REGISTRATION_WAITING_MESSAGE =
-  "Abra o link de confirmação que enviamos, neste navegador, para entrar no painel.";
+  "Abra o link de confirmação que enviamos, neste navegador, para concluir a adesão ao Casca.";
 
 export const REGISTRATION_FAILED_MESSAGE =
   "Não foi possível concluir o cadastro. Tente novamente.";
@@ -38,6 +39,7 @@ type RegistrationDeps = {
     academyName: string;
     displayName: string;
     modality: AcademyModality;
+    subscriptionPlanId: SubscriptionPlanId;
   }) => Promise<{ ok: true } | { ok: false }>;
 };
 
@@ -165,6 +167,7 @@ export async function submitAcademyRegistration(
       academyName: parsed.data.academyName,
       displayName: parsed.data.displayName,
       modality: parsed.data.modality,
+      subscriptionPlanId: parsed.data.subscriptionPlanId,
     });
     if (!recorded.ok) return { ok: false, message: REGISTRATION_FAILED_MESSAGE };
     return { ok: true, message: ACADEMY_REGISTRATION_WAITING_MESSAGE };

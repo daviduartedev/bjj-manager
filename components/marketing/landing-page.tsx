@@ -8,12 +8,14 @@ import { LpFooter } from "@/components/marketing/lp-footer";
 import { LpHero } from "@/components/marketing/lp-hero";
 import { LpHowItWorks } from "@/components/marketing/lp-how-it-works";
 import { LpProductFlow } from "@/components/marketing/lp-product-flow";
+import { LpPricing } from "@/components/marketing/lp-pricing";
 import { LpTrust } from "@/components/marketing/lp-trust";
 
 /**
  * Ordem das seções:
- * hero (com o sistema em uso) → cumprimento → funcionalidades → como funciona →
- * faixas e graus → para quem → segurança → FAQ → CTA (azul) → rodapé (escuro).
+ * hero → cumprimento → funcionalidades (faixa verde-clara) → como funciona (verde cheio) →
+ * faixas e graus → para quem → segurança (verde-claro) → planos (única seção com cards) →
+ * FAQ → CTA em degradê → rodapé verde.
  */
 export function LandingPage() {
   return (
@@ -30,6 +32,7 @@ export function LandingPage() {
         <LpBelts />
         <LpAudience />
         <LpTrust />
+        <LpPricing />
         <LpFaq />
         <LpCta />
       </main>

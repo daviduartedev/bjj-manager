@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentAccount } from "@/lib/auth";
 import { mapDatabaseErrorToUserMessage } from "@/lib/errors/map-database-error";
 import { ROUTES, routeAulasSessao } from "@/lib/routes";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 import { createClient } from "@/lib/supabase/server";
 import {
   convertCheckInsSchema,
@@ -77,6 +78,8 @@ export async function convertCheckInsToAttendances(
   }
 
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
   const loaded = await loadSessionForProfessor(
     supabase,
     parsed.data.classSessionId,
@@ -167,6 +170,8 @@ export async function recordManualAttendance(
   }
 
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
   const loaded = await loadSessionForProfessor(
     supabase,
     parsed.data.classSessionId,
@@ -266,6 +271,8 @@ export async function removeSessionAttendance(
   }
 
   const supabase = await createClient();
+  const writeAccess = await requireAcademyWriteAccess(supabase);
+  if (!writeAccess.ok) return writeAccess;
   const loaded = await loadSessionForProfessor(
     supabase,
     parsed.data.classSessionId,

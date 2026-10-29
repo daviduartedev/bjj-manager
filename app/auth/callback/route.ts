@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { academyCallbackPath } from "@/lib/auth/academy-callback";
 import { createClient } from "@/lib/supabase/server";
+import { isPlatformOwner } from "@/lib/platform-admin/service";
 
 /**
  * Confirmação do cadastro no mesmo navegador.
@@ -26,6 +27,10 @@ export async function GET(request: Request) {
     if (error) {
       exchangeFailed = true;
     } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && isPlatformOwner(user.id, process.env.CASCA_PLATFORM_ADMIN_USER_ID)) {
+        return NextResponse.redirect(new URL("/admin/casca", requestUrl.origin));
+      }
       const { data, error: provisionError } = await supabase.rpc(
         "provision_academy_for_current_user",
       );

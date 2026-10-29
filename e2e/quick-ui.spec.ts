@@ -8,11 +8,11 @@ test.describe("Smoke UI rápido", () => {
 
     const funcionalidades = page.locator("#funcionalidades");
     await expect(funcionalidades).toBeVisible();
-    await expect(funcionalidades.getByText("O que você faz")).toBeVisible();
-    await expect(funcionalidades.getByText("dentro do Casca")).toBeVisible();
+    await expect(funcionalidades.getByText("O que a academia")).toBeVisible();
+    await expect(funcionalidades.getByText("faz no Casca")).toBeVisible();
 
     const ctaHeading = page.getByRole("heading", {
-      name: /Feito para quem ensina e para quem administra a escola/i,
+      name: /Sua academia de artes marciais, em um só sistema/i,
     });
     await expect(ctaHeading).toBeVisible();
 

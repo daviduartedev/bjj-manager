@@ -15,6 +15,7 @@ import {
   isSigningTokenExpired,
 } from "@/lib/documents/signing/token";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAcademyWriteAccess } from "@/lib/subscriptions/guards";
 
 const submitSignatureSchema = z
   .object({
@@ -97,6 +98,9 @@ export async function submitSignature(
 
   const found = await findDocumentByToken(parsed.data.token);
   if (!found.ok) return found;
+  // A sessao aqui e publica e o storage usa service_role: verificar antes de gerar/enviar artefatos.
+  const writeAccess = await requireAcademyWriteAccess(found.admin, found.doc.account_id as string);
+  if (!writeAccess.ok) return writeAccess;
 
   try {
     const payload: DocumentPayload = {

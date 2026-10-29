@@ -26,10 +26,11 @@ import { createClient } from "@/lib/supabase/client";
 import { loginSchema, type LoginFormValues } from "@/lib/validations/auth";
 
 import { ResendConfirmationForm } from "../resend-confirmation-form";
+import { getSpecialPostLoginPath } from "@/actions/login-destination";
 
 const photo = "/images/casca-login-academy-bg.png";
 
-export function LoginForm({ recoveryMessage }: { recoveryMessage: string | null }) {
+export function LoginForm({ recoveryMessage, successMessage }: { recoveryMessage: string | null; successMessage?: string | null }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [resendForEmail, setResendForEmail] = useState<string | null>(null);
@@ -61,6 +62,13 @@ export function LoginForm({ recoveryMessage }: { recoveryMessage: string | null 
       } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Não foi possível confirmar a sessão.");
+        return;
+      }
+      const specialPath = await getSpecialPostLoginPath();
+      if (specialPath) {
+        toast.success("Sessão iniciada.");
+        router.push(specialPath);
+        router.refresh();
         return;
       }
       const role = await resolveAuthRole(supabase, user.id);
@@ -126,6 +134,9 @@ export function LoginForm({ recoveryMessage }: { recoveryMessage: string | null 
             </p>
           </div>
 
+          {successMessage ? (
+            <p className="mb-6 rounded-lg bg-card/75 p-4 text-sm text-foreground" role="status">{successMessage}</p>
+          ) : null}
           {recoveryMessage ? (
             <div className="mb-6 space-y-4 rounded-lg bg-card/75 p-4 text-sm text-foreground">
               <p>{recoveryMessage}</p>
@@ -185,6 +196,11 @@ export function LoginForm({ recoveryMessage }: { recoveryMessage: string | null 
                   </FormItem>
                 )}
               />
+              <p className="text-right">
+                <Link href="/recuperar-senha" className="text-xs font-semibold text-primary hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  Esqueci a senha
+                </Link>
+              </p>
               <Button
                 type="submit"
                 className="group mt-2 h-[58px] w-full rounded-md bg-primary text-xs font-extrabold tracking-[0.18em] text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/90 active:scale-[0.98]"
