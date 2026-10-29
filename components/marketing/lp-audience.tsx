@@ -1,4 +1,4 @@
-﻿import { Check, GraduationCap, Store, UserRound } from "lucide-react";
+﻿import { GraduationCap, Store, UserRound } from "lucide-react";
 import Image from "next/image";
 
 import { LpPillCta } from "@/components/marketing/lp-chrome";
@@ -7,11 +7,9 @@ import { LpDisplay, LpEyebrow, LpReveal, LpSection } from "@/components/marketin
 const audiences = [
   {
     icon: Store,
-    head: "bg-brand-blue text-white",
-    chip: "bg-white text-brand-blue",
-    leadTone: "text-white/80",
-    check: "bg-brand-blue/10 text-brand-blue",
-    title: "Quem administra a escola",
+    accent: "text-brand-blue",
+    iconWrap: "bg-brand-blue text-white",
+    title: "Quem administra a academia",
     lead: "O mês financeiro e o painel do dia, sem caderno.",
     items: [
       "Mensalidade do mês com status explícito",
@@ -21,10 +19,8 @@ const audiences = [
   },
   {
     icon: GraduationCap,
-    head: "bg-brand-green text-white",
-    chip: "bg-white text-brand-green",
-    leadTone: "text-white/80",
-    check: "bg-brand-green/10 text-brand-green",
+    accent: "text-brand-green",
+    iconWrap: "bg-brand-green text-white",
     title: "Quem ensina",
     lead: "Alunos, faixas e aulas no mesmo lugar.",
     items: [
@@ -35,10 +31,8 @@ const audiences = [
   },
   {
     icon: UserRound,
-    head: "bg-brand-yellow text-neutral-950",
-    chip: "bg-neutral-950 text-brand-yellow",
-    leadTone: "text-neutral-950/70",
-    check: "bg-neutral-950 text-brand-yellow",
+    accent: "text-foreground",
+    iconWrap: "bg-brand-yellow text-neutral-950",
     title: "Quem treina",
     lead: "Um espaço próprio, quando a academia libera o portal.",
     items: [
@@ -51,7 +45,7 @@ const audiences = [
 
 export function LpAudience() {
   return (
-    <LpSection id="para-quem" className="relative z-10 bg-background">
+    <LpSection id="para-quem" className="relative z-10 bg-white">
       <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-16">
         <LpReveal>
           <LpEyebrow>Para quem é</LpEyebrow>
@@ -76,33 +70,21 @@ export function LpAudience() {
         </LpReveal>
       </div>
 
-      <div className="mt-16 grid gap-6 lg:grid-cols-3">
-        {audiences.map(({ icon: Icon, title, lead, items, head, chip, leadTone, check }, i) => (
-          <LpReveal key={title} delay={i * 0.1} className="h-full">
-            <div className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-black/[0.06] bg-neutral-50 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_24px_48px_-28px_rgba(0,0,0,0.3)]">
-              <div className={`relative overflow-hidden p-7 sm:p-8 ${head}`}>
-                <Icon
-                  aria-hidden
-                  className="pointer-events-none absolute -bottom-6 -right-4 h-32 w-32 opacity-[0.12] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-rotate-6 group-hover:scale-105"
-                  strokeWidth={1.5}
-                />
-                <span className={`relative inline-flex h-12 w-12 items-center justify-center rounded-2xl ${chip}`}>
-                  <Icon className="h-5 w-5" aria-hidden />
-                </span>
-                <p className="relative mt-6 font-sans text-2xl font-bold tracking-[-0.03em]">{title}</p>
-                <p className={`relative mt-2 lg:min-h-[3rem] ${leadTone}`}>{lead}</p>
-              </div>
-              <ul className="flex-1 space-y-3 p-7 sm:p-8">
-                {items.map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm leading-relaxed text-foreground">
-                    <span className={`mt-px inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${check}`}>
-                      <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
+      <div className="mt-16 grid gap-12 border-t border-black/[0.06] pt-12 lg:grid-cols-3 lg:gap-16">
+        {audiences.map(({ icon: Icon, title, lead, items, iconWrap, accent }, i) => (
+          <LpReveal key={title} delay={i * 0.08}>
+            <span className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl ${iconWrap}`}>
+              <Icon className="h-5 w-5" aria-hidden />
+            </span>
+            <p className={`mt-6 font-sans text-2xl font-bold tracking-[-0.03em] ${accent}`}>{title}</p>
+            <p className="mt-2 text-muted-foreground">{lead}</p>
+            <ul className="mt-6 space-y-3">
+              {items.map((item) => (
+                <li key={item} className="text-sm leading-relaxed text-foreground">
+                  {item}
+                </li>
+              ))}
+            </ul>
           </LpReveal>
         ))}
       </div>

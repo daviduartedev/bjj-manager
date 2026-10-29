@@ -4,14 +4,14 @@ import { MarketingLegalLayout } from "@/components/marketing/marketing-legal-lay
 
 export const metadata: Metadata = {
   title: "Termos de Uso",
-  description: "Termos de Uso do Casca, software de gestão para academias de jiu-jitsu.",
+  description: "Termos de Uso do Casca, software de gestão para academias de artes marciais.",
 };
 
 export default function TermosPage() {
   return (
     <MarketingLegalLayout title="Termos de Uso" updated="19 de setembro de 2026">
       <p>
-        Estes Termos regulam o uso do Casca, software para gestão de academias de jiu-jitsu. Ao entrar na plataforma, a academia e os utilizadores autorizados aceitam estas regras.
+        Estes Termos regulam o uso do Casca, software para gestão de academias de artes marciais. Ao entrar na plataforma, a academia e os utilizadores autorizados aceitam estas regras.
       </p>
 
       <h2>O que o Casca oferece</h2>
@@ -24,7 +24,7 @@ export default function TermosPage() {
         O acesso é pessoal e intransmissível. A academia é responsável por guardar as credenciais, pelos dados que insere e pela conformidade da operação com a legislação aplicável, incluindo regras de proteção de dados de alunos e responsáveis.
       </p>
       <p>
-        O Casca não substitui assessoria jurídica, contabilística ou desportiva. Status de mensalidade e registros de graduação são lançados pela própria escola.
+        O Casca não substitui assessoria jurídica, contabilística ou desportiva. Status de mensalidade e registros de graduação são lançados pela própria academia.
       </p>
 
       <h2>Pagamentos no produto</h2>

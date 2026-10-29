@@ -3,9 +3,6 @@ import { Check } from "lucide-react";
 import { LpPillCta } from "@/components/marketing/lp-chrome";
 import { LpDisplay, LpEyebrow, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
-const CARD_SHADOW =
-  "shadow-[0_1px_2px_rgba(0,0,0,0.04),0_16px_40px_-24px_rgba(0,0,0,0.18)]";
-
 const BELT_FILL = {
   Branca: "#f1f1ee",
   Azul: "#1d4ed8",
@@ -84,9 +81,7 @@ export function LpBelts() {
         </LpReveal>
 
         <LpReveal delay={0.1}>
-          <div
-            className={`relative rounded-3xl border border-border bg-card p-6 transition-shadow duration-300 hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_22px_48px_-18px_rgba(0,0,0,0.22)] sm:p-8 ${CARD_SHADOW}`}
-          >
+          <div className="relative sm:pl-2">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">Ficha de graduação</p>

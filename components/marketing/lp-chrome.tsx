@@ -25,7 +25,7 @@ export function LpSignupLink({ className }: { className?: string }) {
   );
 }
 
-/** Botão secundário, com contorno. `onDark` vale para o card azul. */
+/** Botão secundário, com contorno. `onDark` vale para faixas escuras. */
 export function LpOutlineLink({
   href,
   children,
@@ -72,6 +72,12 @@ const PILL_TONE = {
       "bg-white text-neutral-950 shadow-[0_12px_28px_-12px_rgba(255,255,255,0.35)] hover:bg-white/90 focus-visible:ring-white focus-visible:ring-offset-neutral-950",
     note: "text-white/60",
     strong: "text-white",
+  },
+  green: {
+    button:
+      "bg-brand-green text-white shadow-[0_12px_28px_-12px_hsl(var(--brand-green)/0.7)] hover:bg-brand-green/90 focus-visible:ring-brand-green focus-visible:ring-offset-white",
+    note: "text-muted-foreground",
+    strong: "text-foreground",
   },
 } as const;
 

@@ -13,8 +13,9 @@ import { LpTrust } from "@/components/marketing/lp-trust";
 
 /**
  * Ordem das seções:
- * hero (com o sistema em uso) → cumprimento → funcionalidades → como funciona →
- * faixas e graus → para quem → segurança → FAQ → CTA (azul) → rodapé (escuro).
+ * hero → cumprimento → funcionalidades (faixa verde-clara) → como funciona (verde cheio) →
+ * faixas e graus → para quem → segurança (verde-claro) → planos (única seção com cards) →
+ * FAQ → CTA em degradê → rodapé verde.
  */
 export function LandingPage() {
   return (
