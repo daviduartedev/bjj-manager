@@ -5,7 +5,7 @@ import { LandingPage } from "@/components/marketing/landing-page";
 export const metadata: Metadata = {
   title: "Início",
   description:
-    "A plataforma brasileira para gestão de academias de artes marciais. No Casca, você visualiza e organiza toda a gestão da sua academia em um só lugar.",
+    "A plataforma brasileira para gestão de academias de artes marciais. Acompanhe alunos, graduações, aulas e mensalidades com uma rotina feita para a sua academia.",
 };
 
 export default function HomePage() {

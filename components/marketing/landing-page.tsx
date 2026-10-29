@@ -1,22 +1,16 @@
-﻿import { LpAudience } from "@/components/marketing/lp-audience";
 import { LpBelts } from "@/components/marketing/lp-belts";
-import { LpHeader } from "@/components/marketing/lp-chrome";
+import { LpHeader } from "@/components/marketing/lp-header";
 import { LpCta } from "@/components/marketing/lp-cta";
 import { LpFaq } from "@/components/marketing/lp-faq";
 import { LpFistBump } from "@/components/marketing/lp-fist-bump";
 import { LpFooter } from "@/components/marketing/lp-footer";
 import { LpHero } from "@/components/marketing/lp-hero";
 import { LpHowItWorks } from "@/components/marketing/lp-how-it-works";
-import { LpProductFlow } from "@/components/marketing/lp-product-flow";
 import { LpPricing } from "@/components/marketing/lp-pricing";
+import { LpProductOverview } from "@/components/marketing/lp-product-overview";
 import { LpTrust } from "@/components/marketing/lp-trust";
 
-/**
- * Ordem das seções:
- * hero → cumprimento → funcionalidades (faixa verde-clara) → como funciona (verde cheio) →
- * faixas e graus → para quem → segurança (verde-claro) → planos (única seção com cards) →
- * FAQ → CTA em degradê → rodapé verde.
- */
+/** Uma narrativa curta: posição → rotina → processo → especialidade → confiança → oferta. */
 export function LandingPage() {
   return (
     <div
@@ -27,10 +21,9 @@ export function LandingPage() {
         <LpHeader />
         <LpHero />
         <LpFistBump />
-        <LpProductFlow />
+        <LpProductOverview />
         <LpHowItWorks />
         <LpBelts />
-        <LpAudience />
         <LpTrust />
         <LpPricing />
         <LpFaq />

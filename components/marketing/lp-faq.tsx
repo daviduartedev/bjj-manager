@@ -1,89 +1,66 @@
-﻿import { LpPillCta } from "@/components/marketing/lp-chrome";
-import {
-  LpDisplay,
-  LpEyebrow,
-  LpReveal,
-  LpSection,
-} from "@/components/marketing/lp-primitives";
-
-// ---------------------------------------------------------------------------
-// FAQ data — verbatim from the original landing-page.tsx (dd4d723)
-// ---------------------------------------------------------------------------
+import { LpDisplay, LpEyebrow, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 const faqItems = [
   {
-    q: "Para que tipo de academia o Casca serve?",
-    a: "Para academias de artes marciais que cadastram alunos adulto e kids, registram faixa e grau, acompanham mensalidades e precisam de um painel com o que importa no dia. O foco é quem ensina e quem administra a academia.",
+    q: "O Casca serve para quais artes marciais?",
+    a: "O sistema atende academias que trabalham com alunos de diferentes idades, turmas, presença, mensalidades e graduação. Faixas e graus fazem parte da rotina desde o cadastro.",
   },
   {
     q: "Os dados da minha academia ficam misturados com outras?",
-    a: "Não. O ambiente é multi-academia com isolamento por academia. Você vê só os seus alunos, registros e configurações.",
+    a: "Não. Cada academia acessa apenas os próprios alunos, registros e configurações. Uma operação não aparece para outra.",
   },
   {
-    q: "Alunos acessam o sistema?",
-    a: "O professor trabalha na área operacional. Quando a academia libera o portal, o aluno entra no próprio espaço para aulas, presença e financeiro. Sem portal, o Casca continua só com a equipe interna.",
+    q: "Meus alunos também podem acessar?",
+    a: "Podem, se a academia liberar o portal. A equipe continua na área operacional; o aluno entra no próprio espaço para consultar aulas, presença e financeiro.",
   },
   {
-    q: "Como funcionam os pagamentos?",
-    a: "A assinatura da academia no Casca é cobrada pelo AbacatePay. As mensalidades dos alunos continuam no controle da academia: você registra o pagamento quando confirma o recebimento na vida real.",
+    q: "Como entram as mensalidades dos alunos?",
+    a: "O Casca não recebe a mensalidade no lugar da academia. Você acompanha o mês e confirma o pagamento quando o recebimento acontece na sua operação.",
   },
   {
-    q: "Posso exportar planilha ou relatório em Excel?",
-    a: "Exportação em arquivo não está no escopo atual. O trabalho acontece dentro das telas do Casca.",
-  },
-  {
-    q: "Como obtenho login?",
-    a: "Escolha um plano, cadastre sua academia e confirme o e-mail. Depois, conclua a adesão com cartão para iniciar os 3 dias de teste. O plano é cobrado automaticamente ao final do teste; cancele antes para não ser cobrado.",
+    q: "Quando a assinatura do Casca é cobrada?",
+    a: "Depois de escolher o plano, cadastrar a academia e confirmar o e-mail, você conclui a adesão com cartão. A primeira mensalidade é cobrada na adesão e as próximas seguem o ciclo mensal.",
   },
   {
     q: "O que acontece se eu cancelar ou não pagar?",
-    a: "Ao cancelar, você mantém o acesso até o fim do período pago. Sem pagamento regularizado, a academia fica em modo somente leitura, com os dados e históricos preservados.",
+    a: "Ao cancelar, o acesso continua até o fim do período já pago. Sem pagamento regularizado, a academia passa para o modo somente leitura, com dados e históricos preservados.",
   },
 ] as const;
 
-// ---------------------------------------------------------------------------
-// LpFaq
-// ---------------------------------------------------------------------------
-
 export function LpFaq() {
   return (
-    <LpSection id="faq" className="relative z-10 bg-[#f3faf6]">
-      <div className="grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-28">
-        {/* Left column — sticky on desktop */}
-        <LpReveal>
+    <LpSection id="faq" className="relative z-10 bg-[#f4f6f8]">
+      <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-24">
+        <LpReveal direction="left" duration={1.05}>
           <div className="mb-12 lg:sticky lg:top-28 lg:mb-0">
-            <LpEyebrow>FAQ</LpEyebrow>
-            <LpDisplay surface="light" className="mt-4 text-[clamp(2.25rem,5vw,4rem)]">
-              Perguntas <span className="text-brand-blue">frequentes</span>
+            <LpEyebrow>Antes de começar</LpEyebrow>
+            <LpDisplay surface="light" className="mt-4 max-w-[13ch] text-[clamp(2.25rem,5vw,4rem)]">
+              Perguntas de quem vai colocar a academia no Casca.
             </LpDisplay>
-            <p className="mt-6 max-w-[36ch] leading-relaxed text-muted-foreground">
-              O que donos e professores perguntam antes de entrar.
+            <p className="mt-6 max-w-[38ch] leading-relaxed text-muted-foreground">
+              Respostas diretas sobre operação, acesso e cobrança.
             </p>
-            <LpPillCta align="start" className="mt-8">
-              Criar minha academia
-            </LpPillCta>
           </div>
         </LpReveal>
 
-        {/* Right column — accordion */}
-        <LpReveal delay={0.1}>
+        <LpReveal direction="right" duration={1.05}>
           <div className="flex flex-col divide-y divide-black/[0.08] border-y border-black/[0.08]">
             {faqItems.map(({ q, a }) => (
               <details
                 key={q}
-                className="group has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-[#f3faf6]"
+                className="ease-lp-expo group transition-transform duration-300 hover:translate-x-2 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-[#f4f6f8]"
               >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left text-base font-semibold text-foreground outline-none sm:gap-6 sm:py-6 sm:text-lg [&::-webkit-details-marker]:hidden">
                   <span>{q}</span>
                   <span
                     aria-hidden
-                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-green font-sans text-xl font-semibold leading-none text-white"
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-blue font-sans text-xl font-semibold leading-none text-white"
                   >
                     <span className="group-open:hidden">+</span>
                     <span className="hidden group-open:inline">−</span>
                   </span>
                 </summary>
-                <p className="max-w-[56ch] pb-5 leading-relaxed text-muted-foreground">{a}</p>
+                <p className="max-w-[58ch] pb-5 leading-relaxed text-muted-foreground">{a}</p>
               </details>
             ))}
           </div>
