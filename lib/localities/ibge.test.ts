@@ -14,7 +14,7 @@ describe("IBGE municipalities", () => {
       { id: 3550308, nome: "São Paulo" },
     ]), { status: 200, headers: { "content-type": "application/json" } }));
 
-    await expect(getBrazilianMunicipalities("SP", fetcher)).resolves.toEqual([
+    await expect(getBrazilianMunicipalities("SP", fetcher, {})).resolves.toEqual([
       { id: "3509502", name: "Campinas" },
       { id: "3550308", name: "São Paulo" },
     ]);
@@ -44,12 +44,22 @@ describe("IBGE municipalities", () => {
     )).resolves.toBe(false);
   });
 
-  it("fails closed when the official municipality service is unavailable", async () => {
+  it("fails closed when a state is missing from the snapshot and the remote services are unavailable", async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response("", { status: 503 }));
 
-    await expect(isBrazilianMunicipalitySelectionValid(
-      { state: "SP", cityId: "3509502", city: "Campinas" }, fetcher,
-    )).rejects.toThrow();
+    await expect(getBrazilianMunicipalities("SP", fetcher, {})).rejects.toThrow();
+  });
+
+  it("returns the official municipality list even when both remote services time out", async () => {
+    const fetcher = vi.fn().mockRejectedValue(new DOMException("The operation was aborted", "TimeoutError"));
+
+    const municipalities = await getBrazilianMunicipalities("SC", fetcher);
+
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(municipalities).toEqual(expect.arrayContaining([
+      { id: "4205407", name: "Florianópolis" },
+      { id: "4209102", name: "Joinville" },
+    ]));
   });
 
   it("falls back to BrasilAPI when IBGE is unavailable", async () => {
@@ -64,7 +74,7 @@ describe("IBGE municipalities", () => {
       ]), { status: 200, headers: { "content-type": "application/json" } }));
     });
 
-    await expect(getBrazilianMunicipalities("AP", fetcher)).resolves.toEqual([
+    await expect(getBrazilianMunicipalities("AP", fetcher, {})).resolves.toEqual([
       { id: "1600303", name: "Macapá" },
       { id: "1600600", name: "Santana" },
     ]);

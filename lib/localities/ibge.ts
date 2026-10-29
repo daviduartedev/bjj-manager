@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { BRAZIL_STATES, type AcademyOnboarding } from "@/lib/validations/academy-registration";
+import bundledMunicipalities from "./municipalities.json";
 
 const IBGE_BASE_URL = "https://servicodados.ibge.gov.br/api/v1/localidades/estados";
 const BRASIL_API_BASE_URL = "https://brasilapi.com.br/api/ibge/municipios/v1";
@@ -22,6 +23,10 @@ export type BrazilianMunicipality = {
 };
 
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+type MunicipalityCatalog = Record<string, readonly BrazilianMunicipality[]>;
+
+/** IBGE snapshot. The Vercel function runs in the US and both live sources time out there. */
+const OFFICIAL_MUNICIPALITIES = bundledMunicipalities as MunicipalityCatalog;
 
 function isBrazilianState(state: string): state is (typeof BRAZIL_STATES)[number] {
   return (BRAZIL_STATES as readonly string[]).includes(state);
@@ -36,12 +41,23 @@ function normalizeMunicipalityName(name: string): string {
     .toLocaleLowerCase("pt-BR");
 }
 
-/** Fetches official municipalities and lets Next cache this stable reference data for one day. */
+/**
+ * Official municipalities for a state.
+ * The committed IBGE snapshot is the source on the request path.
+ * Live IBGE and BrasilAPI remain only when a state is missing from that snapshot.
+ * `catalog` exists so tests can exercise that remote fallback.
+ */
 export async function getBrazilianMunicipalities(
   state: string,
   fetcher: Fetcher = fetch,
+  catalog: MunicipalityCatalog = OFFICIAL_MUNICIPALITIES,
 ): Promise<BrazilianMunicipality[]> {
   if (!isBrazilianState(state)) throw new Error("Estado brasileiro inválido.");
+
+  const bundled = catalog[state];
+  if (bundled?.length) {
+    return sortMunicipalities(bundled.map(({ id, name }) => ({ id: String(id), name })));
+  }
 
   try {
     return sortMunicipalities(await readIbgeMunicipalities(state, fetcher));
