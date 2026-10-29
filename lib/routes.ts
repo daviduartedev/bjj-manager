@@ -5,6 +5,8 @@
 export const ROUTES = {
   login: "/login",
   register: "/register",
+  recuperarSenha: "/recuperar-senha",
+  redefinirSenha: "/redefinir-senha",
   portal: "/portal",
   portalAulas: "/portal/aulas",
   portalPresenca: "/portal/presenca",
@@ -28,6 +30,7 @@ export const ROUTES = {
   aulasTurmasNova: "/aulas/turmas/nova",
   configuracoes: "/configuracoes",
   perfil: "/perfil",
+  contaAssinatura: "/conta/assinatura",
 } as const;
 
 /** Edição de turma, horários e inscrições. */
@@ -107,6 +110,7 @@ export const OPERATIONAL_PATH_PREFIXES: readonly string[] = [
   ROUTES.aulas,
   ROUTES.configuracoes,
   ROUTES.perfil,
+  "/conta",
 ];
 
 /** Prefixos do portal do aluno (**SPT-**, **SHELL-2**). */
