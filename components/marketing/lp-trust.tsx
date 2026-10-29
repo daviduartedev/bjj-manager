@@ -1,77 +1,60 @@
-import { Check, Lock, Shield } from "lucide-react";
+import { Check, Lock, ShieldCheck } from "lucide-react";
 
-import { LpPillCta } from "@/components/marketing/lp-chrome";
-import { LpHighlightLines } from "@/components/marketing/lp-highlight-lines";
-import { LpDisplay, LpEyebrow, LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LpDisplay, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 const points = [
   {
-    icon: Shield,
-    title: "Cada academia no seu espaço",
-    body: "O ambiente é multi-academia com isolamento por academia. Você vê só os seus alunos, registros e configurações.",
+    icon: ShieldCheck,
+    title: "Cada academia vê o que é seu",
+    body: "Alunos, mensalidades, turmas e configurações ficam isolados por academia. Uma operação não aparece para outra.",
   },
   {
     icon: Lock,
-    title: "Acesso autenticado",
-    body: "Quem ensina e quem administra entra com conta própria. O portal do aluno só existe se a academia liberar.",
+    title: "Cada ação deixa contexto",
+    body: "Graduações ficam com data e responsável. Mensalidades mostram o mês e o status. Você sabe o que aconteceu.",
   },
 ] as const;
 
-const extras = [
-  "Histórico de graduação com data",
-  "Mensalidade com status explícito",
-  "Documentos gerados a partir do cadastro",
-  "Você confirma o pagamento quando ele acontece",
+const checks = [
+  "Acesso autenticado para a equipe",
+  "Portal do aluno liberado pela academia",
+  "Histórico preservado por aluno",
+  "Pagamento confirmado por quem administra",
 ] as const;
 
 export function LpTrust() {
   return (
-    <LpSection id="seguranca" className="bg-[#dff3e8]">
-      <LpReveal>
-        <LpEyebrow tone="green">Segurança e transparência</LpEyebrow>
-        <LpDisplay surface="light" className="mt-4 max-w-[18ch] text-[clamp(2.25rem,5vw,4rem)]">
-          Os dados da academia ficam <LpMark>na academia</LpMark>
-        </LpDisplay>
-        <p className="mt-5 max-w-[52ch] text-base leading-relaxed text-neutral-700 sm:text-lg">
-          Feito para quem ensina e para quem administra a academia. Sem misturar turmas, financeiro ou
-          histórico com outra operação.
-        </p>
-      </LpReveal>
+    <LpSection id="seguranca" className="bg-brand-blue text-white">
+      <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
+        <LpReveal direction="left" duration={1.05}>
+          <p className="text-sm font-semibold text-brand-yellow">Confiança para operar</p>
+          <LpDisplay surface="dark" className="mt-4 max-w-[14ch] text-[clamp(2.25rem,5vw,4rem)]">
+            Informação clara para cuidar da sua academia.
+          </LpDisplay>
+          <p className="mt-6 max-w-[48ch] text-base leading-relaxed text-white/75 sm:text-lg">
+            O Casca foi pensado para uma responsabilidade bem brasileira: ensinar, administrar e ainda
+            manter a casa funcionando todos os dias.
+          </p>
+        </LpReveal>
 
-      <div className="mt-14 grid gap-12 lg:grid-cols-2 lg:gap-20">
-        {points.map(({ icon: Icon, title, body }, i) => (
-          <LpReveal key={title} delay={i * 0.08}>
-            <Icon className="h-8 w-8 text-brand-green" strokeWidth={1.75} aria-hidden />
-            <p className="mt-5 font-sans text-2xl font-bold tracking-[-0.03em] text-foreground">{title}</p>
-            <p className="mt-3 max-w-[46ch] leading-relaxed text-neutral-700">{body}</p>
-          </LpReveal>
-        ))}
+        <LpReveal direction="right" className="grid gap-8 sm:grid-cols-2" duration={1.05}>
+          {points.map(({ icon: Icon, title, body }) => (
+            <article key={title} className="ease-lp-expo group border-t border-white/25 pt-6 transition-transform duration-300 hover:-translate-y-2">
+              <Icon className="size-7 text-brand-yellow transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" strokeWidth={1.8} aria-hidden />
+              <h3 className="mt-5 text-xl font-bold tracking-[-0.025em] text-white">{title}</h3>
+              <p className="mt-3 leading-relaxed text-white/75">{body}</p>
+            </article>
+          ))}
+          <ul className="grid gap-3 border-t border-white/25 pt-6 sm:col-span-2 sm:grid-cols-2">
+            {checks.map((item) => (
+              <li key={item} className="flex items-start gap-2.5 text-sm text-white/85 transition-transform duration-300 hover:translate-x-1.5">
+                <Check className="mt-0.5 size-4 shrink-0 text-brand-yellow" strokeWidth={3} aria-hidden />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </LpReveal>
       </div>
-
-      <ul className="mt-14 grid gap-3 sm:grid-cols-2">
-        {extras.map((item) => (
-          <li key={item} className="flex items-start gap-3 text-sm leading-relaxed text-foreground sm:text-base">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-green" strokeWidth={3} aria-hidden />
-            {item}
-          </li>
-        ))}
-      </ul>
-
-      <LpReveal className="mt-16">
-        <LpHighlightLines
-          rows={[
-            { lead: "Dados", mark: "isolados", tone: "text-brand-green" },
-            { lead: "Acesso", mark: "autenticado", tone: "text-foreground" },
-            { lead: "Histórico", mark: "com data", tone: "text-brand-blue" },
-          ]}
-        />
-      </LpReveal>
-
-      <LpReveal className="mt-12 sm:mt-14">
-        <LpPillCta tone="green" strong="Isolamento por academia" note="em toda a operação.">
-          Criar minha academia
-        </LpPillCta>
-      </LpReveal>
     </LpSection>
   );
 }

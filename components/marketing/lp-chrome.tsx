@@ -10,7 +10,13 @@ const CTA_BUTTON =
   "inline-flex h-12 shrink-0 items-center justify-center whitespace-nowrap rounded-lg px-6 text-[13px] font-bold uppercase tracking-[0.06em] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
 
 /** Botão principal "Criar academia". O hero, o cabeçalho e o CTA final reutilizam via className. */
-export function LpSignupLink({ className }: { className?: string }) {
+export function LpSignupLink({
+  className,
+  children = "Criar academia",
+}: {
+  className?: string;
+  children?: ReactNode;
+}) {
   return (
     <Link
       href="/register"
@@ -20,7 +26,7 @@ export function LpSignupLink({ className }: { className?: string }) {
         className,
       )}
     >
-      Criar academia
+      {children}
     </Link>
   );
 }
@@ -109,7 +115,7 @@ export function LpPillCta({
       <Link
         href="/register"
         className={cn(
-          "group inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-8 text-base font-semibold tracking-[-0.01em] outline-none transition-[background-color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-offset-2 active:translate-y-0",
+          "ease-lp-enter group inline-flex h-14 items-center justify-center gap-2.5 rounded-lg px-8 text-base font-semibold tracking-[-0.01em] outline-none transition-[background-color,transform] duration-200 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-offset-2 active:translate-y-0",
           t.button,
         )}
       >

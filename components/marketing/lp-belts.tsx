@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 
 import { LpPillCta } from "@/components/marketing/lp-chrome";
-import { LpDisplay, LpEyebrow, LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LpDisplay, LpEyebrow, LpMark, LpReveal, LpScrollDrift, LpSection } from "@/components/marketing/lp-primitives";
 
 const BELT_FILL = {
   Branca: "#f1f1ee",
@@ -37,7 +37,7 @@ const points = [
   "Histórico com data a cada grau e a cada faixa",
   "Pulo de ordem pede justificativa antes de concluir",
   "Alerta de prontidão quando o aluno atinge o critério da academia",
-  "Adulto, Kids 1 e Kids 2 no mesmo cadastro",
+  "Plano e graduação acompanham o histórico do aluno",
 ] as const;
 
 const history = [
@@ -51,7 +51,7 @@ export function LpBelts() {
   return (
     <LpSection id="faixas" className="bg-background">
       <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-16">
-        <LpReveal>
+        <LpReveal direction="left" duration={1.05}>
           <LpEyebrow tone="green">Faixas e graus</LpEyebrow>
           <LpDisplay surface="light" className="mt-4 text-balance text-[clamp(2.15rem,4.2vw,3.5rem)]">
             A trajetória do aluno, registrada <LpMark>de verdade</LpMark>
@@ -62,16 +62,16 @@ export function LpBelts() {
           </p>
           <ul className="mt-8 space-y-4">
             {points.map((point) => (
-              <li key={point} className="flex items-start gap-3 text-base leading-snug text-foreground">
+              <li key={point} className="ease-lp-expo group flex items-start gap-3 text-base leading-snug text-foreground transition-transform duration-300 hover:translate-x-2">
                 <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Check className="h-4 w-4" strokeWidth={2.5} aria-hidden />
+                  <Check className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" strokeWidth={2.5} aria-hidden />
                 </span>
                 {point}
               </li>
             ))}
           </ul>
           <LpPillCta
-            align="start"
+            align="center"
             strong="Histórico com data"
             note="a cada grau e a cada faixa."
             className="mt-10"
@@ -80,14 +80,15 @@ export function LpBelts() {
           </LpPillCta>
         </LpReveal>
 
-        <LpReveal delay={0.1}>
+        <LpScrollDrift distance={58} rotate={1.8} scaleFrom={0.95}>
+        <LpReveal direction="right" delay={0.1} duration={1.05}>
           <div className="relative sm:pl-2">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">Ficha de graduação</p>
                 <p className="font-sans text-2xl font-semibold tracking-[-0.03em] text-foreground">Marina Alves</p>
               </div>
-              <span className="shrink-0 rounded-full bg-[hsl(var(--status-paid)/0.12)] px-3 py-1.5 text-xs font-semibold text-[hsl(var(--status-paid-foreground))]">
+              <span className="shrink-0 rounded-full bg-brand-green px-3 py-1.5 text-xs font-semibold text-white">
                 Promoção registrada
               </span>
             </div>
@@ -95,7 +96,7 @@ export function LpBelts() {
               {history.map((item, index) => {
                 const isLast = index === history.length - 1;
                 return (
-                  <li key={item.title} className="flex gap-4">
+                  <li key={item.title} className="ease-lp-expo group flex gap-4 transition-transform duration-300 hover:translate-x-2">
                     <div className="flex w-3 shrink-0 flex-col items-center">
                       <span aria-hidden className="mt-1.5 h-3 w-3 shrink-0 rounded-full bg-primary ring-4 ring-card" />
                       {isLast ? null : <span aria-hidden className="mt-1 w-px flex-1 bg-border" />}
@@ -115,6 +116,7 @@ export function LpBelts() {
             </ol>
           </div>
         </LpReveal>
+        </LpScrollDrift>
       </div>
     </LpSection>
   );

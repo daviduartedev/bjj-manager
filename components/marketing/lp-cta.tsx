@@ -1,55 +1,38 @@
-import Image from "next/image";
+import Link from "next/link";
 
-import { LpSignupLink } from "@/components/marketing/lp-chrome";
+import { LpAnimatedLogo } from "@/components/marketing/lp-animated-logo";
 import { LpMark, LpReveal } from "@/components/marketing/lp-primitives";
 
-/** CTA final em degradê, no mesmo espírito da faixa de fechamento da AbacatePay. */
 export function LpCta() {
   return (
-    <section className="relative overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#eef8f2_38%,#8ed4a8_72%,#1f7a4d_100%)] px-5 pb-0 pt-24 sm:px-10 sm:pt-32 lg:px-16">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%] bg-[radial-gradient(ellipse_at_center,hsl(var(--brand-green)/0.35)_0%,transparent_70%)]"
-      />
-
-      <Image
-        src="/marketing/logo-emblem-light.png"
-        alt=""
-        width={720}
-        height={720}
-        aria-hidden
-        className="pointer-events-none absolute -bottom-16 -left-24 hidden w-[min(42vw,28rem)] select-none opacity-80 lg:block"
-      />
-      <Image
-        src="/marketing/logo-emblem-light.png"
-        alt=""
-        width={720}
-        height={720}
-        aria-hidden
-        className="pointer-events-none absolute -bottom-20 -right-28 hidden w-[min(42vw,28rem)] scale-x-[-1] select-none opacity-80 lg:block"
-      />
-
-      <LpReveal className="relative z-10 mx-auto max-w-3xl pb-40 text-center sm:pb-52">
-        <Image
-          src="/marketing/casca-logo-dark.png"
-          alt="Casca"
-          width={3068}
-          height={945}
-          className="mx-auto h-8 w-auto sm:h-10"
-          data-testid="landing-cta-logo"
-        />
-        <h2 className="mt-8 text-balance font-sans text-[clamp(2.15rem,5vw,3.75rem)] font-bold leading-[1.08] tracking-[-0.035em] text-neutral-950">
-          Sua academia de artes marciais, <LpMark>em um só sistema</LpMark>.
-        </h2>
-        <p className="mx-auto mt-5 max-w-[46ch] text-base leading-relaxed text-neutral-700 sm:text-lg">
-          Cadastro em minutos, 3 dias de teste com cartão e a primeira cobrança só depois do período de
-          avaliação.
-        </p>
-        <div className="mt-8 flex justify-center">
-          <LpSignupLink className="h-14 rounded-full bg-brand-green px-8 text-sm text-white hover:bg-brand-green/90" />
-        </div>
-        <p className="mt-4 text-sm text-neutral-700/80">Sem mensalidade do aluno no meio. Você confirma o recebimento.</p>
-      </LpReveal>
+    <section className="relative overflow-hidden bg-brand-blue px-5 pb-32 pt-20 text-white sm:px-10 sm:pb-40 sm:pt-28 lg:px-16">
+      <div className="mx-auto max-w-4xl text-center">
+        <LpAnimatedLogo />
+        <LpReveal direction="scale" duration={1.1}>
+          <h2 className="mx-auto mt-4 max-w-[18ch] text-balance font-sans text-[clamp(2.15rem,5vw,3.75rem)] font-bold leading-[1.08] tracking-[-0.035em] text-white">
+            Sua academia ensina. O Casca deixa a operação pronta para o <LpMark className="text-neutral-950">próximo treino</LpMark>.
+          </h2>
+        </LpReveal>
+        <LpReveal direction="left" delay={0.08}>
+          <p className="mx-auto mt-6 max-w-[52ch] text-base leading-relaxed text-white/75 sm:text-lg">
+            Cadastre alunos, registre graduações, acompanhe mensalidades e abra o painel sabendo o que pede
+            atenção hoje.
+          </p>
+        </LpReveal>
+        <LpReveal direction="right" delay={0.14}>
+          <div className="mt-9 flex justify-center">
+            <Link
+              href="/register"
+              className="inline-flex h-14 items-center justify-center rounded-lg bg-brand-green px-8 text-sm font-semibold text-white outline-none transition-[background-color,transform] duration-200 hover:-translate-y-1 hover:bg-brand-green/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-blue active:translate-y-0"
+            >
+              Criar minha academia
+            </Link>
+          </div>
+        </LpReveal>
+        <LpReveal direction="up" delay={0.2}>
+          <p className="mt-4 text-sm text-white/65">Cobrança mensal na adesão. Cancele quando quiser.</p>
+        </LpReveal>
+      </div>
     </section>
   );
 }

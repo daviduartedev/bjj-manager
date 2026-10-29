@@ -1,70 +1,55 @@
-﻿import { LpPillCta } from "@/components/marketing/lp-chrome";
-import { LpHighlightLines } from "@/components/marketing/lp-highlight-lines";
-import { LpDisplay, LpEyebrow, LpMark, LpReveal } from "@/components/marketing/lp-primitives";
+import { LpPillCta } from "@/components/marketing/lp-chrome";
+import { LpDisplay, LpMark, LpReveal, LpScrollDrift } from "@/components/marketing/lp-primitives";
 
 const steps = [
   {
-    n: "01",
-    title: "Cadastre a academia",
-    body: "Aluno adulto ou kids, plano, faixa e grau de partida, contato e observações. A ficha nasce completa e organizada.",
+    title: "Cadastre quem treina",
+    body: "Comece pela ficha do aluno: turma, plano, faixa, grau, contato e vencimento.",
   },
   {
-    n: "02",
-    title: "Registre a rotina",
-    body: "Promova grau ou faixa com data, confirme a mensalidade quando ela acontece e gere certificados e recibos.",
+    title: "Registre o que acontece",
+    body: "Aulas, presença, graduação e mensalidade entram no histórico quando a rotina acontece.",
   },
   {
-    n: "03",
-    title: "Acompanhe o dia",
-    body: "O painel mostra atrasos, aniversariantes e alertas de graduação. Você abre e já sabe onde agir.",
+    title: "Abra o painel e decida",
+    body: "Veja o que venceu, quem faz aniversário e quais graduações pedem atenção.",
   },
 ] as const;
 
 export function LpHowItWorks() {
   return (
-    <section id="como-funciona" className="scroll-mt-16 bg-brand-green px-5 py-24 text-white sm:px-10 sm:py-32 lg:px-16">
-      <div className="mx-auto w-full max-w-7xl">
-        <LpReveal>
-          <LpEyebrow className="text-white/75">Como funciona</LpEyebrow>
-          <LpDisplay surface="dark" className="mt-4 text-[clamp(2.25rem,5vw,4rem)]">
-            Da matrícula ao fim do mês,
-            <br />
-            <LpMark className="bg-[linear-gradient(transparent_58%,hsl(var(--brand-yellow))_58%,hsl(var(--brand-yellow))_92%,transparent_92%)] text-neutral-950">
-              sem planilha solta
-            </LpMark>
+    <section id="como-funciona" className="scroll-mt-20 bg-white px-5 py-20 sm:px-10 sm:py-28 lg:px-16">
+      <LpScrollDrift distance={48} rotate={1.2} scaleFrom={0.97} className="mx-auto max-w-7xl">
+      <div className="overflow-hidden rounded-[2.25rem] bg-brand-green px-6 py-12 text-white sm:rounded-[3rem] sm:px-12 sm:py-16 lg:px-16 lg:py-20">
+        <LpReveal direction="left" duration={1.05}>
+          <p className="text-sm font-semibold text-white/75">Como funciona</p>
+          <LpDisplay surface="dark" className="mt-4 max-w-[17ch] text-[clamp(2.25rem,5vw,4rem)]">
+            Da matrícula ao fim do mês, <LpMark className="text-neutral-950">sem perder o fio</LpMark>.
           </LpDisplay>
-          <p className="mt-6 max-w-[52ch] text-base leading-relaxed text-white/75 sm:text-lg">
-            Três movimentos simples que cobrem o dia a dia de quem ensina e de quem administra a academia.
+          <p className="mt-6 max-w-[54ch] text-base leading-relaxed text-white/80 sm:text-lg">
+            O Casca segue a ordem natural da academia. Você registra uma vez e usa a mesma informação na
+            rotina, no histórico e no painel.
           </p>
         </LpReveal>
 
-        <div className="mt-16 grid gap-10 border-t border-white/20 pt-12 lg:grid-cols-3 lg:gap-16">
-          {steps.map(({ n, title, body }, i) => (
-            <LpReveal key={title} delay={i * 0.08}>
-              <p className="font-sans text-sm font-semibold tracking-[0.18em] text-brand-yellow">{n}</p>
-              <p className="mt-5 font-sans text-2xl font-bold tracking-[-0.03em] lg:text-[1.75rem]">{title}</p>
-              <p className="mt-3 text-base leading-relaxed text-white/75">{body}</p>
-            </LpReveal>
-          ))}
-        </div>
-
-        <LpReveal className="mt-16 sm:mt-20">
-          <LpHighlightLines
-            onDark
-            rows={[
-              { lead: "Cadastro", mark: "em dia", tone: "text-white" },
-              { lead: "Rotina", mark: "em dia", tone: "text-brand-yellow" },
-              { lead: "Painel", mark: "em dia", tone: "text-white" },
-            ]}
-          />
+        <LpReveal direction="scale" className="mt-12 sm:mt-16" duration={1.05}>
+          <ol className="grid gap-8 border-t border-white/25 pt-10 lg:grid-cols-3 lg:gap-12">
+            {steps.map(({ title, body }) => (
+              <li key={title} className="ease-lp-expo transition-transform duration-300 hover:-translate-y-2">
+                <h3 className="text-2xl font-bold tracking-[-0.03em] text-white">{title}</h3>
+                <p className="mt-3 max-w-[35ch] leading-relaxed text-white/75">{body}</p>
+              </li>
+            ))}
+          </ol>
         </LpReveal>
 
-        <LpReveal className="mt-14 sm:mt-16">
-          <LpPillCta tone="yellow" strong="Adulto, Kids 1 e Kids 2" note="no mesmo cadastro.">
-            Começar o cadastro
+        <LpReveal direction="right" className="mt-12 sm:mt-14">
+          <LpPillCta tone="yellow" align="center">
+            Organizar minha academia
           </LpPillCta>
         </LpReveal>
       </div>
+      </LpScrollDrift>
     </section>
   );
 }

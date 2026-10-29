@@ -2,6 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+/* O scroll da landing usa o viewport como referência de movimento. */
+html {
+  position: relative;
+}
+
+@layer utilities {
+  .ease-lp-enter {
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .ease-lp-expo {
+    transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+  }
+}
+
+/* Fallback acessível para a composição da marca no fechamento. */
+@media (prefers-reduced-motion: reduce) {
+  .lp-motion-reveal,
+  .lp-scroll-drift {
+    opacity: 1 !important;
+    filter: none !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+
+  .lp-logo-emblem {
+    animation: none !important;
+    opacity: 0 !important;
+    transform: none !important;
+  }
+
+  .lp-logo-wordmark {
+    animation: none !important;
+    opacity: 1 !important;
+    clip-path: inset(0 0% 0 0% round 1rem) !important;
+    transform: none !important;
+  }
+}
+
+/* O parallax é mais contido em telas curtas, onde o scroll por impulso amplifica o movimento. */
+@media (max-width: 767px) {
+  .lp-scroll-drift {
+    transform: none !important;
+  }
+}
+
 /* =====================================================
  * Casca - Design Tokens
  * Paleta da marca (referencia CBJ):
