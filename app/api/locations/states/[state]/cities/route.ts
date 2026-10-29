@@ -4,6 +4,7 @@ import { getBrazilianMunicipalities } from "@/lib/localities/ibge";
 import { BRAZIL_STATES } from "@/lib/validations/academy-registration";
 
 export const revalidate = 86_400;
+export const maxDuration = 20;
 
 export async function GET(
   _request: Request,

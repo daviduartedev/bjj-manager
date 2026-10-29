@@ -51,4 +51,22 @@ describe("IBGE municipalities", () => {
       { state: "SP", cityId: "3509502", city: "Campinas" }, fetcher,
     )).rejects.toThrow();
   });
+
+  it("falls back to BrasilAPI when IBGE is unavailable", async () => {
+    const fetcher = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("servicodados.ibge.gov.br")) {
+        return Promise.resolve(new Response("", { status: 503 }));
+      }
+      return Promise.resolve(new Response(JSON.stringify([
+        { codigo_ibge: "1600303", nome: "Macapá" },
+        { codigo_ibge: 1600600, nome: "Santana" },
+      ]), { status: 200, headers: { "content-type": "application/json" } }));
+    });
+
+    await expect(getBrazilianMunicipalities("AP", fetcher)).resolves.toEqual([
+      { id: "1600303", name: "Macapá" },
+      { id: "1600600", name: "Santana" },
+    ]);
+  });
 });

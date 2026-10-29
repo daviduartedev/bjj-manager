@@ -127,6 +127,8 @@ export function RegisterForm({ initialPlanId = "essencial" }: { initialPlanId?: 
     }
 
     const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 12_000);
+    let cancelled = false;
     setMunicipalities([]);
     setMunicipalitiesError(null);
     setMunicipalitiesLoading(true);
@@ -139,17 +141,25 @@ export function RegisterForm({ initialPlanId = "essencial" }: { initialPlanId?: 
         }
         return payload.municipalities.map(({ id, name }) => ({ id: String(id), label: name }));
       })
-      .then(setMunicipalities)
+      .then((options) => {
+        if (!cancelled) setMunicipalities(options);
+      })
       .catch((error: unknown) => {
-        if (!controller.signal.aborted) {
-          setMunicipalitiesError(error instanceof Error ? error.message : "Não foi possível carregar as cidades agora. Tente novamente.");
-        }
+        if (cancelled) return;
+        setMunicipalitiesError(error instanceof Error && error.name !== "AbortError"
+          ? error.message
+          : "Não foi possível carregar as cidades agora. Tente novamente.");
       })
       .finally(() => {
-        if (!controller.signal.aborted) setMunicipalitiesLoading(false);
+        window.clearTimeout(timeoutId);
+        if (!cancelled) setMunicipalitiesLoading(false);
       });
 
-    return () => controller.abort();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [selectedState, municipalitiesRetry]);
 
   useEffect(() => {
@@ -266,7 +276,7 @@ export function RegisterForm({ initialPlanId = "essencial" }: { initialPlanId?: 
                   {step === 0 && <div className="space-y-8">
                     <section className="space-y-5">
                       <TextField control={form.control} name="academyName" label="Nome da academia" placeholder="Ex.: Academia Caminho Suave" autoComplete="organization" />
-                      <div className="grid gap-5 sm:grid-cols-2">
+                      <div className="grid items-start gap-5 sm:grid-cols-2">
                         <FormField control={form.control} name="onboarding.state" render={({ field, fieldState }) => <CascaSelectField
                           label="Estado" value={field.value ?? ""} options={STATE_OPTIONS} placeholder="Selecione o estado"
                           onChange={(state) => {
@@ -278,7 +288,13 @@ export function RegisterForm({ initialPlanId = "essencial" }: { initialPlanId?: 
                         />} />
                         <FormField control={form.control} name="onboarding.city" render={({ field, fieldState }) => {
                           const cityIdError = form.getFieldState("onboarding.cityId").error?.message;
-                          return <div className="space-y-2">
+                          const cityDescription = !selectedState
+                            ? "As cidades aparecem depois da seleção do estado."
+                            : municipalitiesLoading
+                              ? "Carregando cidades…"
+                              : "Escolha uma cidade da lista para validar o município.";
+                          return (
+                            <div>
                             <CascaComboBoxField label="Cidade" inputValue={field.value ?? ""} selectedKey={selectedCityId ?? ""}
                               options={cityOptions} placeholder={selectedState ? "Digite para buscar sua cidade" : "Selecione primeiro o estado"}
                               emptyMessage={cityQuery.length < 2 ? "Digite ao menos duas letras para buscar." : "Nenhuma cidade encontrada para esta busca."}
@@ -293,13 +309,13 @@ export function RegisterForm({ initialPlanId = "essencial" }: { initialPlanId?: 
                                 form.clearErrors(["onboarding.city", "onboarding.cityId"]);
                                 form.setValue("onboarding.cityId", option?.id ?? "", { shouldDirty: true, shouldValidate: true });
                               }}
-                              inputRef={field.ref} isRequired isDisabled={!selectedState || municipalitiesLoading || Boolean(municipalitiesError)}
+                              inputRef={field.ref} isRequired isDisabled={!selectedState || Boolean(municipalitiesError)}
                               isInvalid={fieldState.invalid || Boolean(cityIdError)} errorMessage={fieldState.error?.message ?? cityIdError}
-                              description={selectedState ? "Escolha uma cidade da lista para validar o município." : "As cidades aparecem depois da seleção do estado."}
+                              description={cityDescription}
                             />
-                            {municipalitiesLoading && <p role="status" aria-live="polite" className="text-crm-sm text-muted-foreground">Carregando cidades…</p>}
-                            {municipalitiesError && <div className="flex flex-wrap items-center gap-3" role="alert"><p className="text-crm-sm text-destructive">{municipalitiesError}</p><CascaButton type="button" variant="outline" className="min-h-9 px-3" onPress={() => setMunicipalitiesRetry(value => value + 1)}>Tentar novamente</CascaButton></div>}
-                          </div>;
+                            {municipalitiesError && <div className="mt-2 flex flex-wrap items-center gap-3" role="alert"><p className="text-crm-sm text-destructive">{municipalitiesError}</p><CascaButton type="button" variant="outline" className="min-h-9 px-3" onPress={() => setMunicipalitiesRetry(value => value + 1)}>Tentar novamente</CascaButton></div>}
+                            </div>
+                          );
                         }} />
                       </div>
                     </section>

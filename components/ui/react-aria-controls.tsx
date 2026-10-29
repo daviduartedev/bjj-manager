@@ -165,7 +165,7 @@ export function CascaSelectField({
       className={cn("flex min-w-0 flex-col gap-2", className)}
     >
       <Label className="type-field-label">{label}</Label>
-      <AriaButton className={cn(FIELD_CONTROL_CLASS, "flex items-center justify-between text-left data-[open]:ring-2 data-[open]:ring-ring")}>
+      <AriaButton className={cn(FIELD_CONTROL_CLASS, "inline-flex items-center justify-between gap-2 text-left data-[open]:ring-2 data-[open]:ring-ring")}>
         <SelectValue className="min-w-0 flex-1 truncate" />
         <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
       </AriaButton>
@@ -235,9 +235,9 @@ export function CascaComboBoxField({
       className={cn("flex min-w-0 flex-col gap-2", className)}
     >
       <Label className="type-field-label">{label}</Label>
-      <Group className={cn(FIELD_CONTROL_CLASS, "flex items-center gap-2 p-0 pr-2 focus-within:ring-2 focus-within:ring-ring data-[focus-within]:ring-2 data-[focus-within]:ring-ring")}>
-        <AriaInput ref={inputRef} placeholder={placeholder} className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground" />
-        <AriaButton aria-label={`Mostrar opções de ${label}`} className="grid size-8 shrink-0 place-items-center rounded-sm text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring">
+      <Group className={cn(FIELD_CONTROL_CLASS, "inline-flex items-center justify-between gap-2 p-0 focus-within:ring-2 focus-within:ring-ring data-[focus-within]:ring-2 data-[focus-within]:ring-ring")}>
+        <AriaInput ref={inputRef} placeholder={placeholder} className="h-11 min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground" />
+        <AriaButton aria-label={`Mostrar opções de ${label}`} className="mr-1 grid size-8 shrink-0 place-items-center rounded-sm text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring">
           <ChevronDown className="size-4" aria-hidden />
         </AriaButton>
       </Group>
