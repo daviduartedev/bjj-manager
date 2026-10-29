@@ -4,7 +4,7 @@ import { getCurrentAccount } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-import { createAbacatePayGateway } from "./abacatepay";
+import { commercialTrialsConfigured, createAbacatePayGateway } from "./abacatepay";
 import { createSubscriptionRepository, SUBSCRIPTION_COLUMNS } from "./repository";
 import { createSubscriptionService } from "./service";
 import type { SubscriptionActor, SubscriptionRecord } from "./types";
@@ -41,6 +41,7 @@ export async function getCurrentSubscription() {
     activeStudentCount: countResult.count ?? 0,
     enforcementEnabled: !(["42P01", "PGRST205"].includes(settingsResult.error?.code ?? "") || settingsResult.data?.enforcement_enabled === false),
     configured: Boolean(getSubscriptionService()),
+    trialsEnabled: commercialTrialsConfigured(process.env),
     unavailable: Boolean(subscriptionResult.error || countResult.error || (settingsResult.error && !["42P01", "PGRST205"].includes(settingsResult.error.code)) || (!settingsResult.error && typeof settingsResult.data?.enforcement_enabled !== "boolean")),
   };
 }

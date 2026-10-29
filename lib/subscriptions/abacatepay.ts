@@ -16,6 +16,13 @@ export type AbacatePayGateway = SubscriptionGateway & {
   changePlan(input: { subscriptionId: string; planId: SubscriptionPlanId }): Promise<ProviderPlanChange>;
 };
 
+const PLAN_IDS = ["essencial", "academia", "evolucao"] as const;
+
+/** True only when the three optional trial products are present. Absent products charge the monthly price. */
+export function commercialTrialsConfigured(environment: BillingEnvironment): boolean {
+  return PLAN_IDS.every((id) => environment[`CASCA_ABACATEPAY_PRODUCT_${id.toUpperCase()}_TRIAL`]?.trim()?.startsWith("prod_") === true);
+}
+
 export function createAbacatePayGateway(environment: BillingEnvironment, fetcher: typeof fetch = fetch): AbacatePayGateway {
   const key = environment.CASCA_ABACATEPAY_API_KEY?.trim();
   const mode = environment.CASCA_ABACATEPAY_ENV;
@@ -23,15 +30,23 @@ export function createAbacatePayGateway(environment: BillingEnvironment, fetcher
   if (!key || !["sandbox", "production"].includes(mode ?? "") || !["http:", "https:"].includes(appUrl.protocol)) throw new Error("billing_configuration_missing");
   if (mode === "production" && appUrl.protocol !== "https:") throw new Error("billing_origin_invalid");
 
-  function productId(planId: SubscriptionPlanId, trial: boolean): string {
+  function readProductId(planId: SubscriptionPlanId, trial: boolean): string | null {
     const name = `CASCA_ABACATEPAY_PRODUCT_${planId.toUpperCase()}${trial ? "_TRIAL" : ""}`;
     const id = environment[name]?.trim();
-    if (!id?.startsWith("prod_")) throw new Error("billing_product_missing");
+    if (!id) return null;
+    if (!id.startsWith("prod_")) throw new Error("billing_product_missing");
     return id;
   }
-  for (const id of ["essencial", "academia", "evolucao"] as const) {
-    productId(id, true);
-    productId(id, false);
+  function productId(planId: SubscriptionPlanId, trial: boolean): string {
+    const id = (trial ? readProductId(planId, true) : null) ?? readProductId(planId, false);
+    if (!id) throw new Error("billing_product_missing");
+    return id;
+  }
+  function usesTrialProduct(planId: SubscriptionPlanId, trial: boolean): boolean {
+    return trial && readProductId(planId, true) !== null;
+  }
+  for (const id of PLAN_IDS) {
+    if (!readProductId(id, false)) throw new Error("billing_product_missing");
   }
 
   async function request<T>(path: string, body?: unknown): Promise<T> {
@@ -48,9 +63,10 @@ export function createAbacatePayGateway(environment: BillingEnvironment, fetcher
   }
 
   async function validateProduct(planId: SubscriptionPlanId, trial: boolean) {
+    const withTrial = usesTrialProduct(planId, trial);
     const id = productId(planId, trial);
     const product = await request<{ id: string; price: number; currency: string; cycle: string | null; trialDays?: number | null; devMode: boolean; status: string }>(`/products/get?id=${encodeURIComponent(id)}`);
-    if (product.id !== id || product.price !== getSubscriptionPlan(planId)?.priceCents || product.currency !== "BRL" || product.cycle !== "MONTHLY" || product.devMode !== (mode === "sandbox") || product.status !== "ACTIVE" || (trial ? product.trialDays !== 3 : Boolean(product.trialDays))) throw new Error("billing_product_invalid");
+    if (product.id !== id || product.price !== getSubscriptionPlan(planId)?.priceCents || product.currency !== "BRL" || product.cycle !== "MONTHLY" || product.devMode !== (mode === "sandbox") || product.status !== "ACTIVE" || (withTrial ? product.trialDays !== 3 : Boolean(product.trialDays))) throw new Error("billing_product_invalid");
   }
 
   return {
@@ -75,6 +91,7 @@ export function createAbacatePayGateway(environment: BillingEnvironment, fetcher
     },
     async createCheckout(input) {
       if (!getSubscriptionPlan(input.planId)) throw new Error("billing_plan_invalid");
+      const withTrial = usesTrialProduct(input.planId, input.trial);
       await validateProduct(input.planId, input.trial);
       const result = await request<ProviderCheckout>("/subscriptions/create", {
         items: [{ id: productId(input.planId, input.trial), quantity: 1 }],
@@ -85,7 +102,7 @@ export function createAbacatePayGateway(environment: BillingEnvironment, fetcher
         completionUrl: new URL("/conta/assinatura?contratacao=recebida", appUrl).toString(),
         retryPolicy: { maxRetry: 3, retryEvery: 1 },
       });
-      const amountMatches = result.amount === getSubscriptionPlan(input.planId)?.priceCents || (input.trial && result.amount === 0);
+      const amountMatches = result.amount === getSubscriptionPlan(input.planId)?.priceCents || (withTrial && result.amount === 0);
       if (result.devMode !== (mode === "sandbox") || result.externalId !== input.operationId || result.customerId !== input.customerId || !amountMatches || result.items?.length !== 1 || result.items[0].id !== productId(input.planId, input.trial) || result.items[0].quantity !== 1) throw new Error("billing_checkout_invalid");
       return safeCheckout(result);
     },

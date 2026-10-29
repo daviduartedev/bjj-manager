@@ -11,10 +11,11 @@ import type { SubscriptionRecord } from "@/lib/subscriptions/types";
 const STATUS_LABELS = { pending: "Adesão pendente", trialing: "Em avaliação", active: "Assinatura ativa", past_due: "Pagamento pendente", cancelled: "Renovação cancelada" };
 const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 2 }).format(cents / 100);
 
-export function SubscriptionPanel({ subscription, activeStudentCount, configured, unavailable, checkoutReceived }: {
+export function SubscriptionPanel({ subscription, activeStudentCount, configured, trialsEnabled, unavailable, checkoutReceived }: {
   subscription: SubscriptionRecord | null;
   activeStudentCount: number;
   configured: boolean;
+  trialsEnabled: boolean;
   unavailable: boolean;
   checkoutReceived?: boolean;
 }) {
@@ -98,10 +99,10 @@ export function SubscriptionPanel({ subscription, activeStudentCount, configured
         <h2 id="choose-plan-title" className="text-lg font-semibold">Escolha o plano da academia</h2>
         <PlanPicker selected={selected} onChange={setSelected} disabled={pending} />
         <div className="rounded-2xl border border-border bg-card p-5">
-          <p className="text-sm">{subscription.trial_used ? "A avaliação gratuita já foi utilizada. A contratação inicia com o pagamento da mensalidade." : "Experimente por 3 dias com cartão na adesão. A primeira cobrança acontece automaticamente ao final da avaliação, pelo valor mensal do plano escolhido."}</p>
+          <p className="text-sm">{subscription.trial_used || !trialsEnabled ? "A contratação inicia com o pagamento da mensalidade no cartão." : "Experimente por 3 dias com cartão na adesão. A primeira cobrança acontece automaticamente ao final da avaliação, pelo valor mensal do plano escolhido."}</p>
           <p className="mt-2 text-sm text-muted-foreground">Você verá as condições no checkout seguro do AbacatePay e poderá cancelar a renovação pelo Casca.</p>
           {error ? <p className="mt-3 text-sm text-destructive" role="alert">{error}</p> : null}
-          <Button className="mt-4 min-h-11" disabled={pending || !configured || unavailable} onClick={contract}>{pending ? <Loader2 className="animate-spin" /> : <CreditCard />}{pending ? "Preparando contratação…" : subscription.trial_used ? "Contratar plano" : "Iniciar avaliação de 3 dias"}</Button>
+          <Button className="mt-4 min-h-11" disabled={pending || !configured || unavailable} onClick={contract}>{pending ? <Loader2 className="animate-spin" /> : <CreditCard />}{pending ? "Preparando contratação…" : subscription.trial_used || !trialsEnabled ? "Contratar plano" : "Iniciar avaliação de 3 dias"}</Button>
         </div>
       </section> : null}
 

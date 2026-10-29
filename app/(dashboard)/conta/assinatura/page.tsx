@@ -13,5 +13,5 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   if (!data) redirect("/login");
   const params = await searchParams;
   const token = Array.isArray(params.contratacao) ? params.contratacao[0] : params.contratacao;
-  return <PageFrame title="Assinatura do Casca" emoji="" icon={CreditCard} context="Plano e contratação da sua academia" tone="sky"><SubscriptionPanel subscription={data.subscription} activeStudentCount={data.activeStudentCount} configured={data.configured} unavailable={data.unavailable} checkoutReceived={token === "recebida"} /></PageFrame>;
+  return <PageFrame title="Assinatura do Casca" emoji="" icon={CreditCard} context="Plano e contratação da sua academia" tone="sky"><SubscriptionPanel subscription={data.subscription} activeStudentCount={data.activeStudentCount} configured={data.configured} trialsEnabled={data.trialsEnabled} unavailable={data.unavailable} checkoutReceived={token === "recebida"} /></PageFrame>;
 }

@@ -86,7 +86,7 @@ function TextField({ control, name, label, placeholder, autoComplete, type = "te
   )} />;
 }
 
-export function RegisterForm({ initialPlanId = "essencial" }: { initialPlanId?: SubscriptionPlanId }) {
+export function RegisterForm({ initialPlanId = "essencial", trialsEnabled = true }: { initialPlanId?: SubscriptionPlanId; trialsEnabled?: boolean }) {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [waiting, setWaiting] = useState<{ message: string; email: string } | null>(null);
@@ -262,7 +262,7 @@ export function RegisterForm({ initialPlanId = "essencial" }: { initialPlanId?: 
             <Form {...form}>
               <form onSubmit={advance} noValidate>
                 <div className="grid gap-4 border-b border-border bg-primary/5 px-6 py-5 sm:grid-cols-[minmax(0,1fr)_minmax(220px,320px)] sm:items-center sm:px-9">
-                  <div><p className="font-semibold">3 dias para conhecer o Casca</p><p className="mt-1 text-sm leading-6 text-muted-foreground">Após confirmar o e-mail, informe o cartão na adesão. Os 3 dias começam após concluir a adesão; depois, cobrança automática de {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(selectedPlan.priceCents / 100)} por mês. Cancele antes do fim do teste para não ser cobrado.</p></div>
+                  <div><p className="font-semibold">{trialsEnabled ? "3 dias para conhecer o Casca" : "Assinatura da academia"}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{trialsEnabled ? `Após confirmar o e-mail, informe o cartão na adesão. Os 3 dias começam após concluir a adesão; depois, cobrança automática de ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(selectedPlan.priceCents / 100)} por mês. Cancele antes do fim do teste para não ser cobrado.` : `Após confirmar o e-mail, informe o cartão na adesão. A cobrança de ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(selectedPlan.priceCents / 100)} por mês começa na contratação.`}</p></div>
                   <FormField control={form.control} name="subscriptionPlanId" render={({ field, fieldState }) => <CascaSelectField label="Plano do Casca" value={field.value} onChange={field.onChange} options={SUBSCRIPTION_PLANS.map(plan => ({ id: plan.id, label: `${plan.name} · até ${plan.activeStudentLimit} alunos · R$ ${plan.priceCents / 100}/mês` }))} isRequired isInvalid={fieldState.invalid} errorMessage={fieldState.error?.message} isDisabled={loading} />} />
                 </div>
                 <div className="grid lg:grid-cols-[240px_minmax(0,1fr)]">
@@ -382,7 +382,7 @@ export function RegisterForm({ initialPlanId = "essencial" }: { initialPlanId?: 
                     <div className="rounded-md border border-border bg-background p-5">
                       <p className="flex items-center gap-2 font-semibold"><Building2 className="size-5 text-primary" aria-hidden />{form.getValues("academyName")}</p>
                       <p className="mt-2 text-sm text-muted-foreground">{form.getValues("onboarding.city")} / {form.getValues("onboarding.state")} · {selectedModality ? MODALITY_LABELS[selectedModality] : "Modalidade não escolhida"}</p>
-                      <p className="mt-4 border-t border-border pt-4 text-sm leading-6 text-muted-foreground">Depois de confirmar o e-mail neste navegador, você conclui a adesão ao plano {selectedPlan.name} com cartão para iniciar o teste de 3 dias. {selectedModality === "jiu_jitsu" ? "A academia começa com os planos de mensalidade Baby, Kids 1, Kids 2 e Adulto." : "O atendimento é adulto, de 18 anos ou mais. A rotina não abre Kids nem Baby."}</p>
+                      <p className="mt-4 border-t border-border pt-4 text-sm leading-6 text-muted-foreground">Depois de confirmar o e-mail neste navegador, você conclui a adesão ao plano {selectedPlan.name} com cartão{trialsEnabled ? " para iniciar o teste de 3 dias" : ""}. {selectedModality === "jiu_jitsu" ? "A academia começa com os planos de mensalidade Baby, Kids 1, Kids 2 e Adulto." : "O atendimento é adulto, de 18 anos ou mais. A rotina não abre Kids nem Baby."}</p>
                     </div>
                   </div>}
                   </fieldset>

@@ -61,6 +61,16 @@ describe("contrato HTTP de contratação AbacatePay", () => {
     expect(JSON.parse(String(fetcher.mock.calls[1][1]?.body))).not.toHaveProperty("amount");
   });
 
+  it("cobra o produto mensal quando a variante de avaliação não está configurada", async () => {
+    const paidOnly = Object.fromEntries(Object.entries(configuration).filter(([key]) => !key.endsWith("_TRIAL")));
+    const monthly = { id: "prod_essencial", price: 9900, currency: "BRL", cycle: "MONTHLY", trialDays: null, devMode: true, status: "ACTIVE" };
+    const checkout = { id: "bill_paid", url: "https://app.abacatepay.com/pay/bill_paid", externalId: "op_paid", customerId: "cust_owner", devMode: true, amount: 9900, items: [{ id: "prod_essencial", quantity: 1 }] };
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json({ success: true, data: monthly, error: null })).mockResolvedValueOnce(Response.json({ success: true, data: checkout, error: null }));
+    const gateway = createAbacatePayGateway(paidOnly, fetcher);
+    expect(await gateway.createCheckout({ operationId: "op_paid", planId: "essencial", customerId: "cust_owner", trial: true })).toEqual({ id: "bill_paid", url: "https://app.abacatepay.com/pay/bill_paid" });
+    expect(JSON.parse(String(fetcher.mock.calls[1][1]?.body))).toMatchObject({ items: [{ id: "prod_essencial", quantity: 1 }] });
+  });
+
   it("agenda a troca recorrente pelo produto do catálogo, sem preço do navegador", async () => {
     const monthly = { id: "prod_academia", price: 17900, currency: "BRL", cycle: "MONTHLY", trialDays: null, devMode: true, status: "ACTIVE" };
     const update = { id: "subu_a", subscriptionId: "subs_a", productId: "prod_academia", newAmount: 17900, status: "PENDING" };
