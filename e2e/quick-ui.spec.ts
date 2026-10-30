@@ -29,6 +29,19 @@ test.describe("Smoke UI rápido", () => {
     await expect(rotina.getByRole("link", { name: "Organizar minha academia" })).toHaveAttribute("href", "/register");
   });
 
+  test("landing: primeiros passos continuam legíveis no celular com movimento reduzido", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/#como-funciona", { waitUntil: "domcontentloaded" });
+    const jornada = page.getByRole("region", { name: "Seu próximo passo começa por aqui" });
+    await expect(jornada.getByRole("heading", { name: "Cadastre quem treina com você." })).toBeVisible();
+    await expect(jornada.getByRole("heading", { name: "Dê um lugar para cada tarefa." })).toBeVisible();
+    await expect(jornada.getByRole("heading", { name: "Acompanhe. Ajuste. Siga em frente." })).toBeVisible();
+    await expect(jornada.getByRole("link", { name: "Organizar minha academia" })).toHaveAttribute("href", "/register");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+
   test("alunos: filtro Plano lista Adulto, Kids 1 e Kids 2", async ({ page }) => {
     const email = process.env.E2E_USER_A_EMAIL;
     const password = process.env.E2E_USER_A_PASSWORD;

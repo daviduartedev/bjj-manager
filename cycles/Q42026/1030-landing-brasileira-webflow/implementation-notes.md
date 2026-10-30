@@ -22,3 +22,10 @@
 - Nova composição com introdução fixa apenas em desktop e cenas sequenciais de cadastro, presença, mensalidades e painel; no celular, fluxo vertical nativo.
 - Exemplos identificados como ilustrativos; recebimento das mensalidades continua sob controle da academia.
 - GREEN: 2/2 cenários públicos passaram; type-check passou.
+
+## #93 — Jornada dos primeiros passos
+
+- RED: cenário no celular não encontrou os três passos na seção antiga.
+- Grande painel verde substituído por trilha em três passos com linha de progresso ligada à rolagem nativa; sequência vertical no celular.
+- Movimento reduzido deixa a linha completa e o conteúdo disponível. Elementos de trilha são decorativos, fora da lista semântica de passos.
+- GREEN: 3/3 cenários públicos passaram, incluindo celular com movimento reduzido; type-check passou.
