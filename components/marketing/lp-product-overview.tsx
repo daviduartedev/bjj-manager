@@ -1,87 +1,119 @@
-import { CalendarCheck, GraduationCap, LayoutDashboard, Users } from "lucide-react";
-import Link from "next/link";
+import { CalendarDays, Check, CheckCheck, CircleUserRound, LayoutDashboard, type LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
-import { LpDisplay, LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LpSignupLink } from "@/components/marketing/lp-chrome";
+import { LpReveal } from "@/components/marketing/lp-primitives";
 
-const routines = [
-  {
-    icon: Users,
-    eyebrow: "Cadastro",
-    title: "Uma ficha que acompanha quem treina",
-    body: "Adulto ou kids, contato, plano, faixa, grau e observações. O histórico continua com o aluno desde a matrícula.",
-    detail: "Aluno ativo · faixa azul · grau 2",
-    accent: "bg-brand-blue text-white",
-  },
-  {
-    icon: GraduationCap,
-    eyebrow: "Graduação",
-    title: "Cada promoção deixa uma história",
-    body: "Registre grau ou faixa com data e responsável. Se a ordem for pulada, o Casca pede a justificativa antes de concluir.",
-    detail: "Promoção registrada em 08/10/2026",
-    accent: "bg-brand-green text-white",
-  },
-  {
-    icon: CalendarCheck,
-    eyebrow: "Mensalidades",
-    title: "O mês financeiro com status claro",
-    body: "Veja vencimentos e atrasos por aluno. Quando o pagamento acontece na academia, você confirma o recebimento no Casca.",
-    detail: "Outubro · recebido",
-    accent: "bg-brand-yellow text-neutral-950",
-  },
-  {
-    icon: LayoutDashboard,
-    eyebrow: "Painel",
-    title: "Abra o dia sabendo onde agir",
-    body: "Alunos ativos, aniversariantes, mensalidades em atraso e alertas de graduação aparecem juntos no painel.",
-    detail: "3 pendências pedem atenção hoje",
-    accent: "bg-neutral-950 text-white",
-  },
+const STUDENTS = [
+  ["MA", "Marina Alves", "Turma da noite", "Adulto"],
+  ["LS", "Lucas Santos", "Turma da manhã", "Adulto"],
+  ["RC", "Rafael Costa", "Kids", "Kids 1"],
 ] as const;
 
+function RoutineCard({
+  icon: Icon,
+  name,
+  title,
+  body,
+  className,
+  delay,
+  children,
+}: {
+  icon: LucideIcon;
+  name: string;
+  title: string;
+  body: string;
+  className?: string;
+  delay?: number;
+  children: ReactNode;
+}) {
+  return (
+    <LpReveal className={className} delay={delay}>
+      <article className="flex h-full flex-col overflow-hidden rounded-3xl bg-white p-7 shadow-[0_10px_60px_-32px_rgba(0,0,0,0.22)] ring-1 ring-black/[0.06] transition-transform duration-500 [transition-timing-function:cubic-bezier(0.19,1,0.22,1)] hover:-translate-y-1 sm:p-9">
+        <p className="inline-flex items-center gap-2 text-sm font-semibold text-brand-green">
+          <Icon className="size-4" aria-hidden />
+          {name}
+        </p>
+        <h3 className="mt-5 max-w-[22ch] text-2xl font-semibold leading-tight tracking-[-0.035em] text-foreground sm:text-[1.75rem]">{title}</h3>
+        <p className="mt-3 max-w-[44ch] leading-relaxed text-muted-foreground">{body}</p>
+        <div aria-hidden className="mt-auto pt-9">{children}</div>
+      </article>
+    </LpReveal>
+  );
+}
+
+/** Rotina em grade bento: as quatro tarefas visíveis de uma vez, cada uma com sua prévia. */
 export function LpProductOverview() {
   return (
-    <LpSection id="funcionalidades" className="bg-[#f4f6f8]">
-      <LpReveal>
-        <LpDisplay surface="light" className="max-w-[17ch] text-[clamp(2.25rem,5vw,4rem)]">
-          O Casca conhece o trabalho por trás de <LpMark>cada aula</LpMark>.
-        </LpDisplay>
-        <p className="mt-6 max-w-[58ch] text-base leading-relaxed text-muted-foreground sm:text-lg">
-          A gestão não começa no relatório. Ela começa quando um aluno entra, muda de faixa, vence a
-          mensalidade ou precisa de atenção. É essa rotina que o Casca organiza.
-        </p>
-      </LpReveal>
+    <section id="funcionalidades" aria-label="A rotina da academia, no seu lugar" className="scroll-mt-24 bg-white py-20 sm:py-28">
+      <div className="mx-auto max-w-7xl px-5 sm:px-10 lg:px-16">
+        <LpReveal className="grid gap-7 lg:grid-cols-2 lg:items-end lg:gap-20">
+          <h2 className="max-w-[16ch] text-[clamp(2.5rem,4.5vw,4rem)] font-bold leading-[1.08] tracking-[-0.045em] text-foreground">A rotina da academia, <span className="text-brand-green">no seu lugar.</span></h2>
+          <p className="max-w-[42ch] text-lg leading-relaxed text-muted-foreground">Quem toca uma academia sabe: o trabalho continua quando a aula termina. Encontre o que precisa para cuidar dessa parte também.</p>
+        </LpReveal>
 
-      <div className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-2">
-          {routines.map(({ icon: Icon, eyebrow, title, body, detail, accent }, index) => (
-            <LpReveal
-              key={title}
-              direction={index % 2 === 0 ? "left" : "right"}
-              delay={(index % 2) * 0.08}
-              duration={1.02}
-            >
-            <article className="ease-lp-expo group rounded-[2rem] border border-black/[0.07] bg-white p-6 transition-transform duration-300 hover:-translate-y-2 sm:p-8">
-              <div className={`inline-flex size-11 items-center justify-center rounded-2xl ${accent}`}>
-                <Icon className="ease-lp-expo size-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" aria-hidden />
+        <div className="mt-12 grid gap-4 sm:mt-16 sm:grid-cols-2 lg:grid-cols-6 lg:gap-5">
+          <RoutineCard className="sm:col-span-2 lg:col-span-4" icon={CircleUserRound} name="Alunos" title="Chegou aluno novo? Pode deixar organizado." body="Nome, contato, turma e plano. A ficha acompanha quem treina desde a matrícula.">
+            <ul className="divide-y divide-black/[0.05] rounded-2xl bg-neutral-50 px-4 sm:px-5">
+              {STUDENTS.map(([initials, name, group, plan]) => (
+                <li key={name} className="flex items-center gap-3 py-3.5 text-sm">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-xs font-semibold text-brand-blue">{initials}</span>
+                  <span className="min-w-0 flex-1 truncate font-medium">{name}</span>
+                  <span className="hidden text-muted-foreground sm:block sm:w-32">{group}</span>
+                  <span className="hidden text-muted-foreground md:block md:w-16">{plan}</span>
+                  <span className="rounded-full bg-brand-green/10 px-2.5 py-1 text-xs font-medium text-brand-green">Ativo</span>
+                </li>
+              ))}
+            </ul>
+          </RoutineCard>
+
+          <RoutineCard className="lg:col-span-2" delay={0.08} icon={CalendarDays} name="Aulas" title="O treino começa com a turma em dia." body="Consulte as aulas, registre a presença e acompanhe quem está participando.">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-5xl font-semibold tracking-[-0.05em] text-foreground">19h</p>
+                <p className="mt-2 text-sm text-muted-foreground">Turma da noite</p>
               </div>
-              <p className="mt-8 text-sm font-semibold text-brand-blue">{eyebrow}</p>
-              <h3 className="mt-2 max-w-[20ch] text-2xl font-bold leading-tight tracking-[-0.03em] text-foreground">
-                {title}
-              </h3>
-              <p className="mt-4 max-w-[48ch] leading-relaxed text-muted-foreground">{body}</p>
-              <p className="mt-7 border-t border-border pt-4 text-sm font-medium text-foreground">{detail}</p>
-            </article>
-            </LpReveal>
-          ))}
-      </div>
+              <div className="text-right">
+                <div className="flex justify-end -space-x-2">
+                  {["MA", "LS", "RC"].map((initials) => (
+                    <span key={initials} className="flex size-8 items-center justify-center rounded-full bg-brand-green text-[10px] font-semibold text-white ring-2 ring-white">{initials}</span>
+                  ))}
+                </div>
+                <p className="mt-2 flex items-center justify-end gap-1 text-sm font-medium text-brand-green"><Check className="size-4" />12 presentes</p>
+              </div>
+            </div>
+          </RoutineCard>
 
-      <LpReveal className="mt-10 flex justify-center">
-        <Link
-          href="/register"
-          className="inline-flex h-12 items-center justify-center rounded-lg bg-brand-blue px-6 text-sm font-semibold text-white outline-none transition-colors hover:bg-brand-blue/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          Organizar minha academia
-        </Link>
-      </LpReveal>
-    </LpSection>
+          <RoutineCard className="lg:col-span-2" icon={CheckCheck} name="Mensalidades" title="Recebeu? Registre. Precisou? Confira." body="Você recebe na academia e confirma o pagamento no Casca.">
+            <div className="flex items-baseline justify-between text-sm">
+              <span className="font-medium">Outubro</span>
+              <span className="text-muted-foreground">38 de 42 confirmadas</span>
+            </div>
+            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-neutral-100">
+              <div className="h-full w-[90%] rounded-full bg-brand-green" />
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground">Recebimento confirmado pela academia.</p>
+          </RoutineCard>
+
+          <RoutineCard className="sm:col-span-2 lg:col-span-4" delay={0.08} icon={LayoutDashboard} name="Painel" title="Abra o dia sabendo por onde começar." body="Alunos ativos, aniversariantes e mensalidades que pedem atenção, juntos no painel.">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+              {[
+                ["42", "alunos ativos", "text-brand-green"],
+                ["3", "mensalidades para conferir", "text-brand-blue"],
+                ["1", "aniversariante hoje", "text-foreground"],
+              ].map(([value, label, tone]) => (
+                <div key={label} className="rounded-2xl bg-neutral-50 p-4 sm:p-5">
+                  <p className={`text-3xl font-semibold tracking-[-0.05em] sm:text-4xl ${tone}`}>{value}</p>
+                  <p className="mt-2 text-xs leading-snug text-muted-foreground sm:text-sm">{label}</p>
+                </div>
+              ))}
+            </div>
+          </RoutineCard>
+        </div>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">Exemplos ilustrativos do Casca.</p>
+        <div className="mt-10 flex justify-center"><LpSignupLink>Organizar minha academia</LpSignupLink></div>
+      </div>
+    </section>
   );
 }

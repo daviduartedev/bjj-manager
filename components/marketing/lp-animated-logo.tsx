@@ -3,10 +3,12 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
+import { useLandingReducedMotion } from "@/components/marketing/use-landing-reduced-motion";
 
 /** Uma composição: o emblema chega primeiro e resolve na assinatura completa do Casca. */
 export function LpAnimatedLogo() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const shouldReduce = useLandingReducedMotion();
   const { scrollYProgress } = useScroll({
     target: rootRef,
     offset: ["start 88%", "center 55%"],
@@ -27,28 +29,28 @@ export function LpAnimatedLogo() {
     <div
       ref={rootRef}
       data-testid="landing-cta-logo"
-      className="relative mx-auto h-56 w-full max-w-6xl sm:h-72 lg:h-[24rem]"
+      className="relative mx-auto h-32 w-full max-w-3xl sm:h-44 lg:h-52"
       role="img"
       aria-label="Casca"
     >
       <motion.div
         aria-hidden
         className="lp-logo-emblem absolute inset-0 flex items-center justify-center"
-        style={{ opacity: emblemOpacity, scale: emblemScale, y: emblemY, willChange: "transform, opacity" }}
+        style={shouldReduce ? { opacity: 0 } : { opacity: emblemOpacity, scale: emblemScale, y: emblemY }}
       >
         <Image
-          src="/marketing/logo-emblem-light.png"
+          src="/marketing/logo-emblem-dark.png"
           alt=""
           width={1024}
           height={1024}
-          className="h-40 w-40 object-contain sm:h-56 sm:w-56 lg:h-64 lg:w-64"
+          className="h-24 w-24 object-contain sm:h-32 sm:w-32"
         />
       </motion.div>
 
       <motion.div
         aria-hidden
         className="lp-logo-wordmark absolute inset-0 flex items-center justify-center"
-        style={{
+        style={shouldReduce ? { opacity: 1 } : {
           opacity: logoOpacity,
           clipPath: logoClip,
           scale: logoScale,
@@ -56,11 +58,11 @@ export function LpAnimatedLogo() {
         }}
       >
         <Image
-          src="/marketing/casca-logo-light.png"
+          src="/marketing/casca-logo-dark.png"
           alt=""
           width={3068}
           height={945}
-          className="h-auto w-[min(88vw,50rem)] object-contain"
+          className="h-auto w-[min(75vw,32rem)] object-contain"
         />
       </motion.div>
     </div>
