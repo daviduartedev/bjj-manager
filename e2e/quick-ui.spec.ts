@@ -17,6 +17,18 @@ test.describe("Smoke UI rápido", () => {
     await expect(page.getByTestId("lp-fist-bump")).toBeVisible();
   });
 
+  test("landing: demonstra tarefas reais sem prometer cobrança dos alunos", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/#funcionalidades", { waitUntil: "domcontentloaded" });
+    const rotina = page.getByRole("region", { name: "A rotina da academia, no seu lugar" });
+    await expect(rotina.getByRole("heading", { name: "Chegou aluno novo? Pode deixar organizado." })).toBeVisible();
+    await expect(rotina.getByRole("heading", { name: "O treino começa com a turma em dia." })).toBeVisible();
+    await expect(rotina.getByRole("heading", { name: "Recebeu? Registre. Precisou? Confira." })).toBeVisible();
+    await expect(rotina.getByText("Você recebe na academia e confirma o pagamento no Casca.", { exact: true })).toBeVisible();
+    await expect(rotina.getByRole("heading", { name: "Abra o dia sabendo por onde começar." })).toBeVisible();
+    await expect(rotina.getByRole("link", { name: "Organizar minha academia" })).toHaveAttribute("href", "/register");
+  });
+
   test("alunos: filtro Plano lista Adulto, Kids 1 e Kids 2", async ({ page }) => {
     const email = process.env.E2E_USER_A_EMAIL;
     const password = process.env.E2E_USER_A_PASSWORD;

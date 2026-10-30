@@ -15,3 +15,10 @@
 - Abertura e CTAs reescritos, quatro modalidades identificadas, demonstração preservada e soquinho integrado à rotina.
 - Primitivos de marketing usam ênfase cromática, títulos semânticos e suporte a movimento reduzido.
 - GREEN: smoke público da abertura passou (1/1), type-check passou e testes de mídia passaram (3/3).
+
+## #92 — Cenas da rotina
+
+- RED: teste público não encontrou a nova região nem os exemplos de tarefas na seção antiga.
+- Nova composição com introdução fixa apenas em desktop e cenas sequenciais de cadastro, presença, mensalidades e painel; no celular, fluxo vertical nativo.
+- Exemplos identificados como ilustrativos; recebimento das mensalidades continua sob controle da academia.
+- GREEN: 2/2 cenários públicos passaram; type-check passou.
