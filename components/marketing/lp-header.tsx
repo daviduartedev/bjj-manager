@@ -40,7 +40,7 @@ export function LpHeader() {
             className="inline-flex h-10 items-center justify-center rounded-lg bg-brand-blue px-4 text-xs font-semibold text-white outline-none transition-colors hover:bg-brand-blue/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <span className="sm:hidden">Começar</span>
-            <span className="hidden sm:inline">Começar com o Casca</span>
+            <span className="hidden sm:inline">Organizar minha academia</span>
           </Link>
         </div>
       </div>

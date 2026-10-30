@@ -1,67 +1,51 @@
 import { Geologica } from "next/font/google";
 import Link from "next/link";
 
-import { LpOutlineLink } from "@/components/marketing/lp-chrome";
-import { LpReveal, LpScrollDrift } from "@/components/marketing/lp-primitives";
+import { LpReveal } from "@/components/marketing/lp-primitives";
 import { LpSystemVideo } from "@/components/marketing/lp-system-video";
 
-const heroDisplay = Geologica({
-  subsets: ["latin"],
-  weight: "700",
-  display: "swap",
-});
-
-const CAPABILITIES = ["Cadastro completo", "Faixas e graus", "Mensalidade do mês", "Painel do dia"] as const;
+const heroDisplay = Geologica({ subsets: ["latin"], weight: "700", display: "swap" });
 
 export function LpHero() {
   return (
-    <section className="bg-white pb-10 pt-28 sm:pb-14 sm:pt-36">
-      <div className="mx-auto w-full max-w-7xl px-5 sm:px-10 lg:px-16">
-        <div className="max-w-5xl">
-          <LpReveal onLoad direction="drop" duration={1.05}>
-            <h1
-              className={`${heroDisplay.className} max-w-[18ch] text-[clamp(2.5rem,5.2vw,4.75rem)] leading-[1.02] tracking-[-0.05em] text-foreground`}
-            >
-              A plataforma <span className="text-brand-blue">brasileira</span> para gestão de academias de{" "}
-              <span className="text-brand-green">artes marciais</span>.
-            </h1>
-          </LpReveal>
-          <LpReveal onLoad direction="left" delay={0.12}>
-            <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Do primeiro cadastro à troca de faixa: acompanhe alunos, aulas e mensalidades com uma rotina
-              feita para quem ensina e administra no Brasil.
+    <section aria-label="Conheça o Casca" className="bg-white pb-8 pt-32 sm:pt-44">
+      <div className="mx-auto max-w-7xl px-5 sm:px-10 lg:px-16">
+        <LpReveal onLoad>
+          <h1 className={`${heroDisplay.className} max-w-[19ch] text-[clamp(2.75rem,6.1vw,5.25rem)] leading-[1.06] tracking-[-0.055em] text-foreground`}>
+            Sua academia <span className="text-brand-blue">organizada</span> para dar o{" "}
+            <span className="text-brand-green">próximo passo.</span>
+          </h1>
+        </LpReveal>
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-20">
+          <LpReveal onLoad delay={0.1}>
+            <p className="max-w-[57ch] text-base leading-relaxed text-muted-foreground sm:text-lg">
+              Você dá aula, acompanha os alunos e ainda cuida do negócio. O Casca reúne cadastros,
+              treinos e mensalidades em uma plataforma brasileira para ajudar sua academia a crescer.
             </p>
           </LpReveal>
-          <LpReveal onLoad direction="scale" delay={0.22}>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link
-                href="/register"
-                className="inline-flex h-12 items-center justify-center rounded-lg bg-brand-blue px-6 text-sm font-semibold text-white outline-none transition-[background-color,transform] duration-200 hover:-translate-y-1 hover:bg-brand-blue/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:translate-y-0"
-              >
-                Começar com o Casca
+          <LpReveal onLoad delay={0.18}>
+            <div className="flex flex-wrap items-center gap-4">
+              <Link href="/register" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-brand-blue px-6 text-sm font-semibold text-white transition-colors hover:bg-brand-blue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-blue">
+                Organizar minha academia
               </Link>
-              <LpOutlineLink href="#como-funciona">Ver como funciona</LpOutlineLink>
+              <Link href="#sistema" className="inline-flex min-h-12 items-center text-sm font-semibold text-foreground underline decoration-border underline-offset-8 transition-colors hover:text-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-blue">
+                Conhecer o Casca
+              </Link>
             </div>
           </LpReveal>
         </div>
-
-        <LpScrollDrift distance={54} rotate={0} scaleFrom={1} className="mt-12 sm:mt-16">
-          <div className="rounded-[1.5rem] border border-black/[0.06] bg-[#f2f5f8] p-2 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_24px_60px_-28px_rgba(16,24,40,0.28)] sm:rounded-[2rem] sm:p-3">
-            <div className="overflow-hidden rounded-[1.1rem] border border-white bg-[#111416] sm:rounded-[1.5rem]">
+        <p className="mt-10 max-w-2xl text-sm leading-7 text-muted-foreground">
+          <span className="font-medium text-foreground">Muay Thai, Boxe, Jiu-Jítsu e Judô.</span>{" "}
+          Cada modalidade com sua história. Sua academia com tudo organizado.
+        </p>
+        <LpReveal className="mt-12 sm:mt-16" direction="scale">
+          <div className="overflow-hidden rounded-2xl border border-border bg-white p-1.5 sm:rounded-3xl sm:p-2">
+            <div className="overflow-hidden rounded-xl sm:rounded-2xl">
               <LpSystemVideo compact />
             </div>
           </div>
-        </LpScrollDrift>
-
-        <div className="grid grid-cols-2 gap-x-6 gap-y-5 border-b border-border py-9 text-foreground sm:grid-cols-4">
-          {CAPABILITIES.map((capability, index) => (
-            <LpReveal key={capability} direction={index % 2 === 0 ? "left" : "right"}>
-              <span className={`${heroDisplay.className} text-base leading-tight tracking-[-0.03em] sm:text-xl`}>
-                {capability}
-              </span>
-            </LpReveal>
-          ))}
-        </div>
+          <p className="mt-4 text-center text-xs leading-5 text-muted-foreground">Um olhar por dentro do Casca. Demonstração com dados de exemplo.</p>
+        </LpReveal>
       </div>
     </section>
   );

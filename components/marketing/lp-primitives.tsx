@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import type { ReactNode } from "react";
 import { useRef } from "react";
 
@@ -26,7 +26,7 @@ export function LpSection({
   );
 }
 
-/** Marca-texto amarelo atrás de uma palavra, no mesmo espírito de “em dia”. */
+/** Ênfase cromática da landing, sem superfície atrás do texto. */
 export function LpMark({
   children,
   className,
@@ -37,7 +37,7 @@ export function LpMark({
   return (
     <span
       className={cn(
-        "bg-[linear-gradient(transparent_58%,hsl(var(--brand-yellow)/0.55)_58%,hsl(var(--brand-yellow)/0.55)_92%,transparent_92%)] px-1",
+        "text-brand-green",
         className,
       )}
     >
@@ -52,7 +52,7 @@ export function LpMark({
 
 export function LpDisplay({
   className,
-  surface = "dark",
+  surface = "light",
   children,
 }: {
   className?: string;
@@ -60,7 +60,7 @@ export function LpDisplay({
   children: ReactNode;
 }) {
   return (
-    <p
+    <h2
       className={cn(
         "font-sans font-bold tracking-[-0.035em]",
         className,
@@ -69,7 +69,7 @@ export function LpDisplay({
       )}
     >
       {children}
-    </p>
+    </h2>
   );
 }
 
@@ -82,48 +82,11 @@ const revealEase = [0.19, 1, 0.22, 1] as const;
 type RevealDirection = "up" | "left" | "right" | "scale" | "drop";
 
 const revealInitial = {
-  up: {
-    opacity: 0,
-    y: 72,
-    scale: 0.96,
-    rotateX: 8,
-    filter: "blur(10px)",
-    clipPath: "inset(22% 0 0 0 round 0.75rem)",
-  },
-  left: {
-    opacity: 0,
-    x: -96,
-    y: 18,
-    rotate: -2.5,
-    scale: 0.96,
-    filter: "blur(10px)",
-    clipPath: "inset(0 0 0 22% round 0.75rem)",
-  },
-  right: {
-    opacity: 0,
-    x: 96,
-    y: 18,
-    rotate: 2.5,
-    scale: 0.96,
-    filter: "blur(10px)",
-    clipPath: "inset(0 22% 0 0 round 0.75rem)",
-  },
-  scale: {
-    opacity: 0,
-    scale: 0.82,
-    y: 28,
-    rotate: -1.5,
-    filter: "blur(12px)",
-    clipPath: "inset(12% 12% 12% 12% round 1rem)",
-  },
-  drop: {
-    opacity: 0,
-    y: -72,
-    scale: 0.96,
-    rotateX: -8,
-    filter: "blur(10px)",
-    clipPath: "inset(0 0 22% 0 round 0.75rem)",
-  },
+  up: { opacity: 0, y: 28 },
+  left: { opacity: 0, x: -28 },
+  right: { opacity: 0, x: 28 },
+  scale: { opacity: 0, scale: 0.97, y: 16 },
+  drop: { opacity: 0, y: -16 },
 } as const;
 
 const revealVisible = {
@@ -141,7 +104,7 @@ export function LpReveal({
   className,
   delay,
   direction = "up",
-  duration = 0.92,
+  duration = 0.7,
   onLoad = false,
   children,
 }: {
@@ -153,14 +116,15 @@ export function LpReveal({
   onLoad?: boolean;
   children: ReactNode;
 }) {
+  const shouldReduce = useReducedMotion();
   return (
     <motion.div
       className={cn(className, "lp-motion-reveal")}
-      initial={revealInitial[direction]}
+      initial={shouldReduce ? false : revealInitial[direction]}
       animate={onLoad ? revealVisible : undefined}
       whileInView={onLoad ? undefined : revealVisible}
       viewport={onLoad ? undefined : { once: true, margin: "0px 0px -10% 0px" }}
-      transition={{ duration, delay: delay ?? 0, ease: revealEase }}
+      transition={{ duration: shouldReduce ? 0 : duration, delay: shouldReduce ? 0 : delay ?? 0, ease: revealEase }}
     >
       {children}
     </motion.div>
@@ -171,9 +135,9 @@ export function LpReveal({
 export function LpScrollDrift({
   className,
   children,
-  distance = 72,
-  rotate = 2,
-  scaleFrom = 0.94,
+  distance = 24,
+  rotate = 0,
+  scaleFrom = 0.99,
 }: {
   className?: string;
   children: ReactNode;
@@ -182,6 +146,7 @@ export function LpScrollDrift({
   scaleFrom?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const shouldReduce = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
@@ -194,7 +159,7 @@ export function LpScrollDrift({
     <motion.div
       ref={ref}
       className={cn("lp-scroll-drift", className)}
-      style={{ y, scale, ...(rotate === 0 ? {} : { rotate: turn }), willChange: "transform" }}
+      style={shouldReduce ? undefined : { y, scale, ...(rotate === 0 ? {} : { rotate: turn }) }}
     >
       {children}
     </motion.div>

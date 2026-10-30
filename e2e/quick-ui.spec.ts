@@ -3,20 +3,18 @@ import { test, expect } from "./fixtures";
 import { loginAs } from "./helpers/auth";
 
 test.describe("Smoke UI rápido", () => {
-  test("landing: secção funcionalidades e CTA com logo Casca", async ({ page }) => {
+  test("landing: abertura apresenta a academia e oferece cadastro e demonstração", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-
-    const funcionalidades = page.locator("#funcionalidades");
-    await expect(funcionalidades).toBeVisible();
-    await expect(funcionalidades.getByText("O Casca conhece o trabalho por trás de")).toBeVisible();
-    await expect(funcionalidades.getByText("cada aula")).toBeVisible();
-
-    const ctaHeading = page.getByRole("heading", {
-      name: /Sua academia ensina\. O Casca deixa a operação pronta para o próximo treino/i,
-    });
-    await expect(ctaHeading).toBeVisible();
-
-    await expect(page.getByTestId("landing-cta-logo")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Sua academia organizada para dar o próximo passo.",
+    );
+    await expect(page.getByText("Muay Thai, Boxe, Jiu-Jítsu e Judô.", { exact: false })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Organizar minha academia", exact: true }).first()).toHaveAttribute("href", "/register");
+    await page.getByRole("link", { name: "Conhecer o Casca", exact: true }).click();
+    await expect(page).toHaveURL(/#sistema$/);
+    await expect(page.getByLabel("O sistema em uso")).toBeInViewport();
+    await expect(page.getByTestId("lp-fist-bump")).toBeVisible();
   });
 
   test("alunos: filtro Plano lista Adulto, Kids 1 e Kids 2", async ({ page }) => {
