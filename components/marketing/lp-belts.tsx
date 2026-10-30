@@ -1,121 +1,52 @@
 import { Check } from "lucide-react";
 
-import { LpPillCta } from "@/components/marketing/lp-chrome";
-import { LpDisplay, LpMark, LpReveal, LpScrollDrift, LpSection } from "@/components/marketing/lp-primitives";
+import { LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
-const BELT_FILL = {
-  Branca: "#f1f1ee",
-  Azul: "#1d4ed8",
-  Roxa: "#7e22ce",
-  Marrom: "#78350f",
-  Preta: "#16181d",
-} as const;
-
-/** Ponteira da faixa preta. Cor real de faixa, distinta da marca. */
-const BELT_TIP_RED = "#C8102E";
-
-function Belt({ belt, degrees = 0 }: { belt: keyof typeof BELT_FILL; degrees?: number }) {
-  return (
-    <span
-      aria-hidden
-      className="relative inline-block h-5 w-36 shrink-0 overflow-hidden rounded-[7px] border border-black/25"
-      style={{ backgroundColor: BELT_FILL[belt] }}
-    >
-      <span
-        className="absolute bottom-0 right-3 top-0 flex w-12 items-center justify-end gap-[3px] pr-1.5"
-        style={{ backgroundColor: belt === "Preta" ? BELT_TIP_RED : "#0b0b0d" }}
-      >
-        {Array.from({ length: degrees }).map((_, i) => (
-          <span key={i} className="h-3.5 w-[3px] bg-white" />
-        ))}
-      </span>
-    </span>
-  );
-}
-
-const points = [
-  "Histórico com data a cada grau e a cada faixa",
-  "Pulo de ordem pede justificativa antes de concluir",
-  "Alerta de prontidão quando o aluno atinge o critério da academia",
-  "Plano e graduação acompanham o histórico do aluno",
-] as const;
-
-const history = [
-  { belt: "Roxa", degrees: 0, title: "Faixa roxa", meta: "08/10/2026 · avaliação técnica aprovada" },
-  { belt: "Azul", degrees: 4, title: "Grau 4 · Faixa azul", meta: "12/03/2026 · Prof. Marcos" },
-  { belt: "Azul", degrees: 3, title: "Grau 3 · Faixa azul", meta: "21/11/2025 · Prof. Marcos" },
-  { belt: "Azul", degrees: 2, title: "Grau 2 · Faixa azul", meta: "09/06/2025 · Prof. Marcos" },
+const HISTORY = [
+  { date: "08 out", title: "Uma nova conquista", body: "Graduação registrada com data e responsável.", kind: "graduacao" },
+  { date: "06 out", title: "Mais um treino na conta", body: "Presença confirmada na turma da noite.", kind: "aula" },
+  { date: "01 out", title: "Mês organizado", body: "Recebimento da mensalidade confirmado.", kind: "mensalidade" },
 ] as const;
 
 export function LpBelts() {
   return (
-    <LpSection id="faixas" className="bg-background">
-      <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-16">
-        <LpReveal direction="left" duration={1.05}>
-          <LpDisplay surface="light" className="text-balance text-[clamp(2.15rem,4.2vw,3.5rem)]">
-            A trajetória do aluno, registrada <LpMark>de verdade</LpMark>
-          </LpDisplay>
-          <p className="mt-6 max-w-[48ch] text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Cada promoção fica no histórico, com data e quem aprovou. Nada de lembrar de cabeça quando o
-            aluno completou o último grau.
-          </p>
-          <ul className="mt-8 space-y-4">
-            {points.map((point) => (
-              <li key={point} className="ease-lp-expo group flex items-start gap-3 text-base leading-snug text-foreground transition-transform duration-300 hover:translate-x-2">
-                <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Check className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" strokeWidth={2.5} aria-hidden />
-                </span>
-                {point}
-              </li>
+    <LpSection id="faixas" className="scroll-mt-24 bg-white">
+      <div className="grid items-center gap-12 border-t border-border pt-12 lg:grid-cols-2 lg:gap-24">
+        <LpReveal>
+          <h2 className="max-w-[16ch] text-[clamp(2.5rem,4.5vw,4rem)] font-bold leading-[1.08] tracking-[-0.045em] text-foreground">
+            Cada aluno tem uma história. <span className="text-brand-green">Acompanhe de perto.</span>
+          </h2>
+          <p className="mt-6 max-w-[42ch] text-lg leading-relaxed text-muted-foreground">Da matrícula aos próximos treinos, os registros ajudam você a conhecer o caminho de quem faz parte da academia.</p>
+          <ul className="mt-7 space-y-4 text-muted-foreground">
+            {["Cadastro, aulas e presença para acompanhar a rotina.", "Mensalidades organizadas ao longo dos meses.", "Histórico de graduação nas modalidades que a utilizam."].map((point) => (
+              <li key={point} className="flex items-start gap-3"><Check className="mt-0.5 size-5 shrink-0 text-brand-green" aria-hidden /><span className="leading-relaxed">{point}</span></li>
             ))}
           </ul>
-          <LpPillCta
-            align="center"
-            strong="Histórico com data"
-            note="a cada grau e a cada faixa."
-            className="mt-10"
-          >
-            Organizar as faixas
-          </LpPillCta>
+          <p className="mt-6 max-w-[45ch] text-sm leading-relaxed text-muted-foreground">No Boxe, o acompanhamento segue com alunos, aulas, presenças e mensalidades. Faixa e grau não são obrigatórios.</p>
         </LpReveal>
-
-        <LpScrollDrift distance={58} rotate={1.8} scaleFrom={0.95}>
-        <LpReveal direction="right" delay={0.1} duration={1.05}>
-          <div className="relative sm:pl-2">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm text-muted-foreground">Ficha de graduação</p>
-                <p className="font-sans text-2xl font-semibold tracking-[-0.03em] text-foreground">Marina Alves</p>
-              </div>
-              <span className="shrink-0 rounded-full bg-brand-green px-3 py-1.5 text-xs font-semibold text-white">
-                Promoção registrada
-              </span>
-            </div>
-            <ol className="mt-8">
-              {history.map((item, index) => {
-                const isLast = index === history.length - 1;
-                return (
-                  <li key={item.title} className="ease-lp-expo group flex gap-4 transition-transform duration-300 hover:translate-x-2">
-                    <div className="flex w-3 shrink-0 flex-col items-center">
-                      <span aria-hidden className="mt-1.5 h-3 w-3 shrink-0 rounded-full bg-primary ring-4 ring-card" />
-                      {isLast ? null : <span aria-hidden className="mt-1 w-px flex-1 bg-border" />}
-                    </div>
-                    <div
-                      className={`flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-2 ${isLast ? "" : "pb-6"}`}
-                    >
-                      <Belt belt={item.belt} degrees={item.degrees} />
-                      <div className="min-w-0">
-                        <p className="font-semibold text-foreground">{item.title}</p>
-                        <p className="text-sm text-muted-foreground">{item.meta}</p>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
+        <LpReveal direction="right">
+          <figure aria-label="Exemplo de histórico de uma aluna de Jiu-Jitsu" className="rounded-2xl border border-border bg-white p-6 sm:p-8">
+            <figcaption className="border-b border-border pb-5">
+              <p className="text-sm text-muted-foreground">Histórico do aluno</p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight">Marina Alves</p>
+              <p className="mt-1 text-sm text-brand-blue">Exemplo de Jiu-Jitsu</p>
+            </figcaption>
+            <ol className="mt-6">
+              {HISTORY.map(({ date, title, body, kind }, index) => (
+                <li key={title} className="relative grid grid-cols-[3.5rem_1fr] gap-4 pb-7 last:pb-0">
+                  <span className="pt-1 text-xs text-muted-foreground">{date}</span>
+                  <div className="relative border-l border-border pl-5">
+                    <span aria-hidden className={`absolute -left-[4px] top-2 size-[7px] rounded-full ${index === 0 ? "bg-brand-green" : "bg-brand-blue"}`} />
+                    <p className="font-semibold">{title}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{body}</p>
+                    {kind === "graduacao" ? <span className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-brand-green"><Check className="size-3.5" aria-hidden />Faixa roxa registrada</span> : null}
+                  </div>
+                </li>
+              ))}
             </ol>
-          </div>
+            <p className="mt-6 border-t border-border pt-4 text-xs text-muted-foreground">Demonstração com dados de exemplo.</p>
+          </figure>
         </LpReveal>
-        </LpScrollDrift>
       </div>
     </LpSection>
   );

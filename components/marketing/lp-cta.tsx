@@ -1,37 +1,27 @@
 import Link from "next/link";
 
 import { LpAnimatedLogo } from "@/components/marketing/lp-animated-logo";
-import { LpMark, LpReveal } from "@/components/marketing/lp-primitives";
+import { LpReveal } from "@/components/marketing/lp-primitives";
 
 export function LpCta() {
   return (
-    <section className="relative overflow-hidden bg-brand-blue px-5 pb-32 pt-20 text-white sm:px-10 sm:pb-40 sm:pt-28 lg:px-16">
-      <div className="mx-auto max-w-4xl text-center">
-        <LpAnimatedLogo />
-        <LpReveal direction="scale" duration={1.1}>
-          <h2 className="mx-auto mt-4 max-w-[18ch] text-balance font-sans text-[clamp(2.15rem,5vw,3.75rem)] font-bold leading-[1.08] tracking-[-0.035em] text-white">
-            Sua academia ensina. O Casca deixa a operação pronta para o <LpMark className="text-neutral-950">próximo treino</LpMark>.
-          </h2>
-        </LpReveal>
-        <LpReveal direction="left" delay={0.08}>
-          <p className="mx-auto mt-6 max-w-[52ch] text-base leading-relaxed text-white/75 sm:text-lg">
-            Cadastre alunos, registre graduações, acompanhe mensalidades e abra o painel sabendo o que pede
-            atenção hoje.
-          </p>
-        </LpReveal>
-        <LpReveal direction="right" delay={0.14}>
-          <div className="mt-9 flex justify-center">
-            <Link
-              href="/register"
-              className="inline-flex h-14 items-center justify-center rounded-lg bg-brand-green px-8 text-sm font-semibold text-white outline-none transition-[background-color,transform] duration-200 hover:-translate-y-1 hover:bg-brand-green/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-blue active:translate-y-0"
-            >
-              Criar minha academia
+    <section aria-label="Organize o próximo passo da sua academia" className="overflow-hidden bg-white py-20 sm:py-28">
+      <div className="mx-auto max-w-7xl px-5 sm:px-10 lg:px-16">
+        <div className="border-t border-border pt-12 text-center sm:pt-16">
+          <LpAnimatedLogo />
+          <LpReveal>
+            <h2 className="mx-auto mt-5 max-w-[22ch] text-balance text-[clamp(2.5rem,5vw,4.5rem)] font-bold leading-[1.08] tracking-[-0.045em] text-foreground">
+              O próximo passo da sua academia começa com <span className="text-brand-green">organização.</span>
+            </h2>
+            <p className="mx-auto mt-6 max-w-[49ch] text-lg leading-relaxed text-muted-foreground">
+              Para quem está começando e para quem já tem muita história. Junte alunos, treinos e mensalidades no Casca e cuide do que vem pela frente.
+            </p>
+            <Link href="/register" className="mt-8 inline-flex min-h-14 items-center justify-center rounded-xl bg-brand-blue px-8 text-base font-semibold text-white transition-colors hover:bg-brand-blue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-blue">
+              Organizar minha academia
             </Link>
-          </div>
-        </LpReveal>
-        <LpReveal direction="up" delay={0.2}>
-          <p className="mt-4 text-sm text-white/65">Cobrança mensal na adesão. Cancele quando quiser.</p>
-        </LpReveal>
+            <p className="mt-4 text-sm text-muted-foreground">Assinatura mensal a partir da adesão. Cancele quando quiser.</p>
+          </LpReveal>
+        </div>
       </div>
     </section>
   );

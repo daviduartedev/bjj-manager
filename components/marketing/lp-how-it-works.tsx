@@ -1,10 +1,11 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll } from "framer-motion";
+import { motion, useScroll } from "framer-motion";
 import { useRef } from "react";
 
 import { LpSignupLink } from "@/components/marketing/lp-chrome";
 import { LpReveal } from "@/components/marketing/lp-primitives";
+import { useLandingReducedMotion } from "@/components/marketing/use-landing-reduced-motion";
 
 const STEPS = [
   {
@@ -26,7 +27,7 @@ const STEPS = [
 
 export function LpHowItWorks() {
   const journeyRef = useRef<HTMLDivElement>(null);
-  const shouldReduce = useReducedMotion();
+  const shouldReduce = useLandingReducedMotion();
   const { scrollYProgress } = useScroll({ target: journeyRef, offset: ["start 85%", "end 45%"] });
 
   return (

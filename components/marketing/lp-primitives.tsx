@@ -1,10 +1,11 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import type { ReactNode } from "react";
 import { useRef } from "react";
 
 import { cn } from "@/lib/utils";
+import { useLandingReducedMotion } from "@/components/marketing/use-landing-reduced-motion";
 
 // ---------------------------------------------------------------------------
 // LpSection — server-safe layout wrapper
@@ -20,8 +21,8 @@ export function LpSection({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className={cn("relative px-5 py-24 sm:px-10 sm:py-32 lg:px-16", className)}>
-      <div className="relative z-10 mx-auto w-full max-w-7xl">{children}</div>
+    <section id={id} className={cn("relative py-20 sm:py-28", className)}>
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-10 lg:px-16">{children}</div>
     </section>
   );
 }
@@ -94,10 +95,6 @@ const revealVisible = {
   x: 0,
   y: 0,
   scale: 1,
-  rotate: 0,
-  rotateX: 0,
-  filter: "blur(0px)",
-  clipPath: "inset(0 0 0 0 round 0.75rem)",
 };
 
 export function LpReveal({
@@ -116,7 +113,7 @@ export function LpReveal({
   onLoad?: boolean;
   children: ReactNode;
 }) {
-  const shouldReduce = useReducedMotion();
+  const shouldReduce = useLandingReducedMotion();
   return (
     <motion.div
       className={cn(className, "lp-motion-reveal")}
@@ -146,7 +143,7 @@ export function LpScrollDrift({
   scaleFrom?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const shouldReduce = useReducedMotion();
+  const shouldReduce = useLandingReducedMotion();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],

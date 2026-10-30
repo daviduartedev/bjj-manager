@@ -32,11 +32,11 @@ export function LpPricing() {
     <LpSection id="planos" className="scroll-mt-16 bg-white">
       <LpReveal direction="left" duration={1.05}>
         <h2 className="max-w-3xl text-balance font-sans text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.08] tracking-[-0.035em]">
-          Escolha pelo número de alunos. <LpMark>O resto já vem junto</LpMark>.
+          Um plano para o tamanho da <LpMark>sua academia.</LpMark>
         </h2>
         <p className="mt-6 max-w-2xl leading-relaxed text-muted-foreground">
-          Todos os recursos atuais estão em todos os planos. O que muda é a quantidade de alunos ativos que
-          a sua academia acompanha.
+          Começando agora ou com a turma crescendo? Todos os planos incluem os recursos atuais do Casca.
+          Você escolhe pela quantidade de alunos ativos.
         </p>
       </LpReveal>
 
@@ -58,13 +58,13 @@ export function LpPricing() {
             >
             <article
               className={cn(
-                "ease-lp-expo relative flex min-w-0 flex-col rounded-3xl border bg-[#f4f6f8] p-6 transition-transform duration-300 hover:-translate-y-2 sm:p-8",
+                "relative flex h-full min-w-0 flex-col rounded-2xl border bg-white p-6 sm:p-8",
                 recommended ? "border-brand-green ring-1 ring-brand-green" : "border-black/[0.08]",
               )}
             >
               {recommended ? (
                 <p className="mb-5 w-fit rounded-full bg-brand-green px-3 py-1 text-xs font-semibold text-white">
-                  O mais escolhido
+                  Recomendado
                 </p>
               ) : null}
               <h3 className={cn("text-xl font-semibold", !recommended && "lg:mt-12")}>{plan.name}</h3>
@@ -104,7 +104,7 @@ export function LpPricing() {
       </div>
 
       <LpReveal direction="up" className="mt-7">
-      <div className="flex flex-col gap-4 rounded-2xl bg-[#f4f6f8] p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 border-t border-border bg-white py-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="flex items-start gap-3 text-sm leading-6 text-muted-foreground">
           <CreditCard className="mt-1 size-4 shrink-0 text-brand-blue" aria-hidden />
           A mensalidade é cobrada quando a adesão é confirmada. Alunos inativos não ocupam vagas do plano.

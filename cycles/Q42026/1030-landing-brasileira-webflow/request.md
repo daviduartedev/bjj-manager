@@ -27,11 +27,11 @@ Dar atenção especial às seções atualmente intituladas “O Casca conhece o 
 ## Entrega desta etapa
 
 - Especificação proposta em `spec-delta.md`, sem promover conteúdo para `spec/` antes de implementação e validação.
-- Quatro tickets em rascunho e um índice de revisão em `.scratch/landing-brasileira-webflow/`.
+- Quatro tickets publicados (#91–#94), com os rascunhos e índice de revisão preservados em `.scratch/landing-brasileira-webflow/`.
 - Tracker configurado: GitHub Issues de `daviduartedev/bjj-manager`; etiqueta `ready-for-agent` já existente.
 - O usuário aprovou o ponto de teste e a divisão e pediu implementação com um commit dedicado por ticket, seguida de dvd-tests.
 - Na publicação, criar uma issue de spec e quatro tickets novos; não fechar ou modificar issues anteriores da landing.
-- Criar o plano, tarefas e cenários de execução do cycle a partir da divisão aprovada antes de implementar.
+- Plano, tarefas e cenários criados a partir da divisão aprovada antes da implementação.
 
 ## Limites
 

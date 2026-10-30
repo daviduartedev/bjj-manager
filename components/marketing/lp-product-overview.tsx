@@ -91,8 +91,8 @@ function RoutinePreview({ id }: { id: RoutineId }) {
 
 export function LpProductOverview() {
   return (
-    <section id="funcionalidades" aria-label="A rotina da academia, no seu lugar" className="scroll-mt-24 bg-white px-5 py-20 sm:px-10 sm:py-28 lg:px-16">
-      <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24">
+    <section id="funcionalidades" aria-label="A rotina da academia, no seu lugar" className="scroll-mt-24 bg-white py-20 sm:py-28">
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24 lg:px-16">
         <div className="self-start lg:sticky lg:top-32">
           <LpReveal>
             <h2 className="max-w-[13ch] text-[clamp(2.5rem,4.5vw,4rem)] font-bold leading-[1.08] tracking-[-0.045em] text-foreground">
@@ -111,7 +111,7 @@ export function LpProductOverview() {
                 <Icon className="mb-5 size-6 text-brand-blue" strokeWidth={1.6} aria-hidden />
                 <h3 className="max-w-[23ch] text-2xl font-semibold leading-tight tracking-[-0.035em] text-foreground sm:text-3xl">{title}</h3>
                 <p className="mt-4 max-w-[48ch] leading-relaxed text-muted-foreground">
-                  {id === "mensalidades" ? <>Veja os vencimentos e acompanhe a situação de cada aluno no mês. <span>Você recebe na academia e confirma o pagamento no Casca.</span></> : body}
+                  {body}
                 </p>
               </LpReveal>
               <LpScrollDrift distance={16} className="mt-7">

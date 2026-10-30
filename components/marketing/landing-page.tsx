@@ -9,15 +9,15 @@ import { LpHowItWorks } from "@/components/marketing/lp-how-it-works";
 import { LpPricing } from "@/components/marketing/lp-pricing";
 import { LpProductOverview } from "@/components/marketing/lp-product-overview";
 
-/** Uma narrativa curta: posição → rotina → processo → especialidade → oferta. */
+/** Organização → rotina → primeiros passos → evolução → oferta. */
 export function LandingPage() {
   return (
     <div
       id="top"
       className="relative min-h-screen overflow-x-clip bg-white text-foreground [--background:0_0%_100%]"
     >
+      <LpHeader />
       <main className="relative z-10">
-        <LpHeader />
         <LpHero />
         <LpFistBump />
         <LpProductOverview />
