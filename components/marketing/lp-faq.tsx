@@ -13,14 +13,14 @@ const FAQ_ITEMS = [
 export function LpFaq() {
   return (
     <LpSection id="faq" className="scroll-mt-24 bg-white">
-      <div className="grid gap-10 border-t border-border pt-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+      <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
         <LpReveal>
           <h2 className="max-w-[17ch] text-[clamp(2.5rem,4.5vw,4rem)] font-bold leading-[1.08] tracking-[-0.045em] text-foreground">
             Ficou alguma dúvida? <span className="text-brand-blue">Vamos por partes.</span>
           </h2>
           <p className="mt-6 max-w-[35ch] text-lg leading-relaxed text-muted-foreground">Sobre a academia, os alunos e a assinatura. Tudo explicado para você decidir.</p>
         </LpReveal>
-        <div className="divide-y divide-border">
+        <div className="space-y-2">
           {FAQ_ITEMS.map(({ q, a }) => (
             <details key={q} className="group">
               <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-5 text-base font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-blue [&::-webkit-details-marker]:hidden">

@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { CascaNavLogo } from "@/components/marketing/casca-nav-logo";
+import { LP_PRIMARY_CTA } from "@/components/marketing/lp-cta-styles";
 import { LP_NAVIGATION } from "@/components/marketing/lp-navigation";
+import { cn } from "@/lib/utils";
 
 const FOCUS = "outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-4";
 
@@ -38,7 +40,7 @@ export function LpHeader() {
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-3">
           <Link href="/login" className={`hidden min-h-11 items-center text-sm font-medium text-muted-foreground hover:text-brand-blue sm:inline-flex ${FOCUS}`}>Entrar</Link>
-          <Link href="/register" className={`inline-flex min-h-11 items-center justify-center rounded-lg bg-brand-blue px-4 text-xs font-semibold text-white transition-colors hover:bg-brand-blue/90 ${FOCUS}`}>
+          <Link href="/register" className={cn(LP_PRIMARY_CTA, "min-h-11 px-4 text-xs")}>
             <span className="sm:hidden">Começar</span><span className="hidden sm:inline">Organizar minha academia</span>
           </Link>
           <button ref={menuButtonRef} type="button" aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={isMenuOpen} aria-controls="landing-mobile-menu" onClick={() => setIsMenuOpen(!isMenuOpen)} className={`inline-flex size-11 items-center justify-center lg:hidden ${FOCUS}`}>
@@ -48,7 +50,7 @@ export function LpHeader() {
       </div>
       <nav id="landing-mobile-menu" aria-label="Menu da página" hidden={!isMenuOpen} className="absolute inset-x-0 top-16 border-b border-border bg-white px-5 pb-5 shadow-sm lg:hidden">
         {[...LP_NAVIGATION, { href: "/login", label: "Entrar" }].map((item) => (
-          <Link key={item.href} href={item.href} onClick={() => setIsMenuOpen(false)} className={`flex min-h-12 items-center border-t border-border text-sm font-medium ${FOCUS}`}>{item.label}</Link>
+          <Link key={item.href} href={item.href} onClick={() => setIsMenuOpen(false)} className={`flex min-h-12 items-center text-sm font-medium ${FOCUS}`}>{item.label}</Link>
         ))}
       </nav>
     </header>

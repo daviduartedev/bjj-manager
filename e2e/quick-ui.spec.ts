@@ -3,7 +3,7 @@ import { test, expect } from "./fixtures";
 import { loginAs } from "./helpers/auth";
 
 test.describe("Smoke UI rápido", () => {
-  test("landing: abertura apresenta a academia e oferece cadastro e demonstração", async ({ page }) => {
+  test("landing: hero restaurada mantém apenas o CTA de cadastro", async ({ page }) => {
     const browserErrors: string[] = [];
     page.on("pageerror", (error) => browserErrors.push(error.message));
     page.on("console", (message) => {
@@ -12,12 +12,13 @@ test.describe("Smoke UI rápido", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "Sua academia organizada para dar o próximo passo.",
+      "A plataforma brasileira para gestão de academias de artes marciais.",
     );
-    await expect(page.getByText("Muay Thai, Boxe, Jiu-Jítsu e Judô.", { exact: false })).toBeVisible();
+    await expect(page.getByText("Cada modalidade com sua história. Sua academia com tudo organizado.", { exact: false })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Organizar minha academia", exact: true }).first()).toHaveAttribute("href", "/register");
-    await page.getByRole("link", { name: "Conhecer o Casca", exact: true }).click();
-    await expect(page).toHaveURL(/#sistema$/);
+    await expect(page.getByRole("link", { name: "Conhecer o Casca", exact: true })).toHaveCount(0);
+    await expect(page.getByText("Um olhar por dentro do Casca. Demonstração com dados de exemplo.", { exact: true })).toHaveCount(0);
+    await page.getByLabel("O sistema em uso").scrollIntoViewIfNeeded();
     await expect(page.getByLabel("O sistema em uso")).toBeInViewport();
     await expect(page.getByTestId("lp-fist-bump")).toBeVisible();
     expect(browserErrors).toEqual([]);
@@ -27,11 +28,16 @@ test.describe("Smoke UI rápido", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/#funcionalidades", { waitUntil: "domcontentloaded" });
     const rotina = page.getByRole("region", { name: "A rotina da academia, no seu lugar" });
-    await expect(rotina.getByRole("heading", { name: "Chegou aluno novo? Pode deixar organizado." })).toBeVisible();
-    await expect(rotina.getByRole("heading", { name: "O treino começa com a turma em dia." })).toBeVisible();
-    await expect(rotina.getByRole("heading", { name: "Recebeu? Registre. Precisou? Confira." })).toBeVisible();
+    for (const tarefa of [
+      "Chegou aluno novo? Pode deixar organizado.",
+      "O treino começa com a turma em dia.",
+      "Recebeu? Registre. Precisou? Confira.",
+      "Abra o dia sabendo por onde começar.",
+    ]) {
+      await expect(rotina.getByRole("heading", { name: tarefa })).toBeVisible();
+    }
     await expect(rotina.getByText("Você recebe na academia e confirma o pagamento no Casca.")).toBeVisible();
-    await expect(rotina.getByRole("heading", { name: "Abra o dia sabendo por onde começar." })).toBeVisible();
+    await expect(rotina.getByRole("button")).toHaveCount(0);
     await expect(rotina.getByRole("link", { name: "Organizar minha academia" })).toHaveAttribute("href", "/register");
   });
 
@@ -43,6 +49,7 @@ test.describe("Smoke UI rápido", () => {
     await expect(jornada.getByRole("heading", { name: "Cadastre quem treina com você." })).toBeVisible();
     await expect(jornada.getByRole("heading", { name: "Dê um lugar para cada tarefa." })).toBeVisible();
     await expect(jornada.getByRole("heading", { name: "Acompanhe. Ajuste. Siga em frente." })).toBeVisible();
+    await expect(jornada.getByText("O que pede atenção hoje", { exact: true })).toBeVisible();
     await expect(jornada.getByRole("link", { name: "Organizar minha academia" })).toHaveAttribute("href", "/register");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -80,6 +87,32 @@ test.describe("Smoke UI rápido", () => {
     await expect(menu).toBeHidden();
     await expect(page.getByRole("heading", { name: "Seu próximo passo começa por aqui." })).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+
+  test("landing: manifesto cita mestres e lutadores de várias modalidades", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/#manifesto", { waitUntil: "domcontentloaded" });
+    const manifesto = page.getByRole("region", { name: "Manifesto do Casca" });
+    await expect(manifesto.getByText("Por que existimos", { exact: true })).toHaveCount(0);
+    await expect(manifesto).toBeVisible();
+    for (const nome of ["Jigoro Kano", "Rillion Gracie", "Anderson Silva", "Éder Jofre", "Natália Falavigna"]) {
+      await expect(manifesto.getByText(nome, { exact: true })).toBeVisible();
+    }
+    await expect(manifesto).toContainText("O Casca existe para que a sua continue abrindo");
+  });
+
+  test("landing: tarja alterna modalidades sem controles e respeita movimento reduzido", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const tarja = page.getByRole("region", { name: "O Casca nasceu para ajudar sua academia" });
+    await tarja.scrollIntoViewIfNeeded();
+    const modalidade = tarja.getByTestId("landing-current-modality");
+    await expect(modalidade).toBeVisible();
+    const primeira = await modalidade.innerText();
+    await expect(modalidade).not.toHaveText(primeira, { timeout: 6_000 });
+    await expect(tarja.getByRole("button")).toHaveCount(0);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(tarja.getByText("Judô, Jiu-Jitsu, Muay Thai e Boxe", { exact: true })).toBeVisible();
+    await expect(tarja.getByRole("button")).toHaveCount(0);
   });
 
   test("alunos: filtro Plano lista Adulto, Kids 1 e Kids 2", async ({ page }) => {

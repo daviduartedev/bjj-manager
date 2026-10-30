@@ -37,4 +37,24 @@ Ponto aprovado: landing pública no navegador, sem sessão. Alterar o smoke exis
 
 ## Revisão
 
+### Direção da segunda revisão visual
+
+- Hero com o título anterior, amarelo em elemento gráfico e apenas o CTA verde.
+- CTAs com o mesmo verde, formato de pílula, peso e tratamento de foco; tamanhos adaptados ao contexto.
+- Rotina: demonstração ampla da interface em camadas, com resumo das quatro tarefas abaixo; eliminar a longa coluna de cenas e introdução fixa.
+- Primeiros passos: lista de etapas selecionáveis e demonstração lateral que responde à seleção, com descrições sempre legíveis; eliminar a trilha horizontal anterior.
+- Evolução: percurso visual do aluno em composição horizontal conectada, com cadastro, presença, mensalidade e graduação quando aplicável; eliminar o antigo cartão de histórico vertical.
+- Tarja amarela de altura generosa como exceção expressamente solicitada ao fundo branco das seções. Texto escuro, modalidade em verde, transição de opacidade/deslocamento em 280 ms a cada 2,8 segundos. Pausa ao sair da tela e controle explícito de pausa; em movimento reduzido, mostrar as modalidades sem troca automática.
+- Animações seguem leitura nativa e estados finais acessíveis. Sem dependências novas, mudança de produto, commit ou publicação remota nesta revisão.
+
 Usar code-review nas dimensões Standards e Spec, em paralelo, sobre a base `5fd8f48` e o trabalho deste cycle. Corrigir achados antes da conclusão. O encerramento do dvd-tests será na conversa, sem criar arquivo de validação nessa etapa.
+
+### Terceira revisão e protótipo de cores
+
+- CTAs: `rounded-lg`, verdes e centralizados nas seções; hero sem coluna de ação à direita.
+- Rotina: quatro opções selecionáveis e detalhe com demonstração própria da tarefa, em vez do dashboard panorâmico anterior.
+- Primeiros passos: três painéis de leitura que se sobrepõem suavemente durante o scroll em desktop; fluxo normal no celular e em movimento reduzido.
+- Evolução: ficha de aluno em destaque à esquerda e mensagem à direita, sem a sequência de quatro cartões anterior.
+- Tarja depois da evolução, antes dos planos, com logo oficial e troca contínua de modalidades, sem play/pause; respeitar movimento reduzido.
+- Protótipo descartável ao lado dos componentes de marketing, na rota existente: `?variant=A` verde, `B` azul, `C` branca. Mesma composição por pedido explícito de comparação de cores. Seletor flutuante e teclas esquerda/direita apenas em desenvolvimento. Sem persistência, novas dependências, testes específicos de protótipo ou commits.
+- Remover divisores de fechamento, FAQ e área de informações comerciais; usar espaço para separar seções.

@@ -2,6 +2,7 @@ import { ArrowRight, Check, CreditCard } from "lucide-react";
 import Link from "next/link";
 
 import { LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { LP_PRIMARY_CTA } from "@/components/marketing/lp-cta-styles";
 import { SUBSCRIPTION_PLANS } from "@/lib/subscriptions/catalog";
 import { cn } from "@/lib/utils";
 
@@ -85,10 +86,8 @@ export function LpPricing() {
               <Link
                 href={`/register?plano=${plan.id}`}
                 className={cn(
-                  "inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-5 py-3 text-center text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  recommended
-                    ? "bg-brand-green text-white hover:bg-brand-green/90"
-                    : "bg-brand-blue text-white hover:bg-brand-blue/90",
+                  LP_PRIMARY_CTA,
+                  "gap-2 px-5",
                 )}
               >
                 Escolher {plan.name}
@@ -104,7 +103,7 @@ export function LpPricing() {
       </div>
 
       <LpReveal direction="up" className="mt-7">
-      <div className="flex flex-col gap-4 border-t border-border bg-white py-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 bg-white py-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="flex items-start gap-3 text-sm leading-6 text-muted-foreground">
           <CreditCard className="mt-1 size-4 shrink-0 text-brand-blue" aria-hidden />
           A mensalidade é cobrada quando a adesão é confirmada. Alunos inativos não ocupam vagas do plano.
@@ -114,7 +113,7 @@ export function LpPricing() {
           {consultationUrl ? (
             <a
               href={consultationUrl}
-              className="mt-1 inline-flex min-h-11 items-center font-semibold text-brand-blue underline underline-offset-4"
+              className="mt-1 inline-flex min-h-11 items-center font-semibold text-brand-green underline underline-offset-4"
             >
               Consultar capacidade
             </a>

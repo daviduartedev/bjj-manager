@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { CascaNavLogo } from "@/components/marketing/casca-nav-logo";
+import { LP_PRIMARY_CTA } from "@/components/marketing/lp-cta-styles";
 import { cn } from "@/lib/utils";
 
 /** Par de CTAs: preenchido e contorno, mesma altura e o mesmo raio. */
@@ -21,8 +22,7 @@ export function LpSignupLink({
     <Link
       href="/register"
       className={cn(
-        CTA_BUTTON,
-        "bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-offset-card",
+        LP_PRIMARY_CTA,
         className,
       )}
     >

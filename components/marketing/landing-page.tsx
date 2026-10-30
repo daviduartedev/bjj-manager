@@ -6,10 +6,12 @@ import { LpFistBump } from "@/components/marketing/lp-fist-bump";
 import { LpFooter } from "@/components/marketing/lp-footer";
 import { LpHero } from "@/components/marketing/lp-hero";
 import { LpHowItWorks } from "@/components/marketing/lp-how-it-works";
+import { LpManifesto } from "@/components/marketing/lp-manifesto";
+import { LpModalitiesBanner } from "@/components/marketing/lp-modalities-banner";
 import { LpPricing } from "@/components/marketing/lp-pricing";
 import { LpProductOverview } from "@/components/marketing/lp-product-overview";
 
-/** Organização → rotina → primeiros passos → evolução → oferta. */
+/** Organização → manifesto → rotina → primeiros passos → evolução → oferta. */
 export function LandingPage() {
   return (
     <div
@@ -20,9 +22,11 @@ export function LandingPage() {
       <main className="relative z-10">
         <LpHero />
         <LpFistBump />
+        <LpManifesto />
         <LpProductOverview />
         <LpHowItWorks />
         <LpBelts />
+        <LpModalitiesBanner />
         <LpPricing />
         <LpFaq />
         <LpCta />

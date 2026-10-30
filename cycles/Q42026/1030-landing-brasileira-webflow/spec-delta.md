@@ -85,6 +85,8 @@ A narrativa começa pela organização e pelo próximo passo da academia, demons
 
 ## Testing Decisions
 
+As decisões abaixo também cobrem a revisão visual solicitada pelo usuário após a primeira implementação: hero com título anterior e sem CTA secundário; CTAs verdes; três layouts refeitos; tarja com modalidades alternadas. A nova tarja amarela é uma exceção explícita à superfície branca da página, com controle de pausa e apresentação estática das quatro modalidades em movimento reduzido. A aprovação anterior da copy de abertura e da identificação de modalidades na hero fica substituída por este pedido mais recente, registrado no request do cycle.
+
 - Ponto principal de teste proposto: a landing pública completa no navegador, sem sessão. É o nível mais alto que comprova a narrativa e os destinos das ações sem testar contratos internos dos componentes.
 - Validar comportamento observável: acesso público, título e proposta, quatro modalidades, navegação por âncoras, CTAs para cadastro, escolha de plano preservada, FAQ utilizável, mídia/demonstrações legíveis e rodapé acessível.
 - Reutilizar os testes de rotas públicas e o smoke de interface já existentes, atualizando as expectativas da copy antiga que foi substituída. Não manter uma expectativa obsoleta apenas para conservar o teste verde.

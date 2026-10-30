@@ -1,53 +1,66 @@
-import { Check } from "lucide-react";
+"use client";
 
-import { LpReveal, LpSection } from "@/components/marketing/lp-primitives";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Award, CalendarCheck, CheckCheck, UserPlus } from "lucide-react";
+import { useRef } from "react";
 
-const HISTORY = [
-  { date: "08 out", title: "Uma nova conquista", body: "Graduação registrada com data e responsável.", kind: "graduacao" },
-  { date: "06 out", title: "Mais um treino na conta", body: "Presença confirmada na turma da noite.", kind: "aula" },
-  { date: "01 out", title: "Mês organizado", body: "Recebimento da mensalidade confirmado.", kind: "mensalidade" },
+import { LpReveal } from "@/components/marketing/lp-primitives";
+import { useLandingReducedMotion } from "@/components/marketing/use-landing-reduced-motion";
+
+const MILESTONES = [
+  { icon: UserPlus, when: "08 de outubro", title: "Matrícula", body: "Marina entra para a turma da noite." },
+  { icon: CalendarCheck, when: "12 treinos", title: "Presença", body: "Cada aula fica registrada." },
+  { icon: CheckCheck, when: "Outubro", title: "Mensalidade", body: "Em dia, confirmada pela academia." },
+  { icon: Award, when: "Dezembro", title: "Graduação", body: "Faixa azul, com data e responsável." },
 ] as const;
 
+/** Ficha do aluno com linha do tempo que se completa durante o scroll. */
 export function LpBelts() {
+  const shouldReduce = useLandingReducedMotion();
+  const timelineRef = useRef<HTMLOListElement>(null);
+  const { scrollYProgress } = useScroll({ target: timelineRef, offset: ["start 0.85", "end 0.55"] });
+  const fill = useTransform(scrollYProgress, [0, 1], [0, 1]);
+
   return (
-    <LpSection id="faixas" className="scroll-mt-24 bg-white">
-      <div className="grid items-center gap-12 border-t border-border pt-12 lg:grid-cols-2 lg:gap-24">
-        <LpReveal>
-          <h2 className="max-w-[16ch] text-[clamp(2.5rem,4.5vw,4rem)] font-bold leading-[1.08] tracking-[-0.045em] text-foreground">
-            Cada aluno tem uma história. <span className="text-brand-green">Acompanhe de perto.</span>
-          </h2>
-          <p className="mt-6 max-w-[42ch] text-lg leading-relaxed text-muted-foreground">Da matrícula aos próximos treinos, os registros ajudam você a conhecer o caminho de quem faz parte da academia.</p>
-          <ul className="mt-7 space-y-4 text-muted-foreground">
-            {["Cadastro, aulas e presença para acompanhar a rotina.", "Mensalidades organizadas ao longo dos meses.", "Histórico de graduação nas modalidades que a utilizam."].map((point) => (
-              <li key={point} className="flex items-start gap-3"><Check className="mt-0.5 size-5 shrink-0 text-brand-green" aria-hidden /><span className="leading-relaxed">{point}</span></li>
-            ))}
-          </ul>
-          <p className="mt-6 max-w-[45ch] text-sm leading-relaxed text-muted-foreground">No Boxe, o acompanhamento segue com alunos, aulas, presenças e mensalidades. Faixa e grau não são obrigatórios.</p>
+    <section id="faixas" aria-label="Cada aluno tem uma história" className="scroll-mt-24 bg-white py-20 sm:py-28">
+      <div className="mx-auto max-w-7xl px-5 sm:px-10 lg:px-16">
+        <LpReveal className="mx-auto max-w-3xl text-center">
+          <h2 className="text-balance text-[clamp(2.5rem,4.5vw,4rem)] font-bold leading-[1.08] tracking-[-0.045em] text-foreground">Cada aluno tem uma história. <span className="text-brand-green">Acompanhe de perto.</span></h2>
+          <p className="mx-auto mt-6 max-w-[48ch] text-lg leading-relaxed text-muted-foreground">O aluno chega para treinar. A ficha vai além do nome: reúne os registros que ajudam você a acompanhar quem está na academia.</p>
         </LpReveal>
-        <LpReveal direction="right">
-          <figure aria-label="Exemplo de histórico de uma aluna de Jiu-Jitsu" className="rounded-2xl border border-border bg-white p-6 sm:p-8">
-            <figcaption className="border-b border-border pb-5">
-              <p className="text-sm text-muted-foreground">Histórico do aluno</p>
-              <p className="mt-2 text-2xl font-semibold tracking-tight">Marina Alves</p>
-              <p className="mt-1 text-sm text-brand-blue">Exemplo de Jiu-Jitsu</p>
-            </figcaption>
-            <ol className="mt-6">
-              {HISTORY.map(({ date, title, body, kind }, index) => (
-                <li key={title} className="relative grid grid-cols-[3.5rem_1fr] gap-4 pb-7 last:pb-0">
-                  <span className="pt-1 text-xs text-muted-foreground">{date}</span>
-                  <div className="relative border-l border-border pl-5">
-                    <span aria-hidden className={`absolute -left-[4px] top-2 size-[7px] rounded-full ${index === 0 ? "bg-brand-green" : "bg-brand-blue"}`} />
-                    <p className="font-semibold">{title}</p>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{body}</p>
-                    {kind === "graduacao" ? <span className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-brand-green"><Check className="size-3.5" aria-hidden />Faixa roxa registrada</span> : null}
-                  </div>
+
+        <LpReveal direction="scale" className="mt-12 sm:mt-16">
+          <figure aria-label="Exemplo da ficha de uma aluna de Jiu-Jitsu" className="rounded-3xl bg-neutral-50 p-6 sm:p-10 lg:p-12">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+              <span aria-hidden className="flex size-16 items-center justify-center rounded-full bg-brand-yellow/25 text-xl font-semibold text-foreground">MA</span>
+              <div>
+                <p className="text-2xl font-semibold tracking-tight sm:text-3xl">Marina Alves</p>
+                <p className="mt-1 text-sm text-muted-foreground">Jiu-Jitsu · Turma da noite · Aluna ativa</p>
+              </div>
+              <span className="rounded-full bg-brand-green/10 px-3 py-1.5 text-xs font-semibold text-brand-green sm:ml-auto">Mensalidade em dia</span>
+            </div>
+
+            <ol ref={timelineRef} className="relative mt-10 grid gap-8 pl-12 sm:mt-12 md:grid-cols-4 md:gap-6 md:pl-0 md:pt-14">
+              <span aria-hidden className="absolute bottom-2 left-[19px] top-2 w-0.5 bg-neutral-200 md:bottom-auto md:left-5 md:right-5 md:top-[19px] md:h-0.5 md:w-auto" />
+              <motion.span aria-hidden style={shouldReduce ? undefined : { scaleY: fill }} className="absolute bottom-2 left-[19px] top-2 w-0.5 origin-top bg-brand-green md:hidden" />
+              <motion.span aria-hidden style={shouldReduce ? undefined : { scaleX: fill }} className="absolute left-5 right-5 top-[19px] hidden h-0.5 origin-left bg-brand-green md:block" />
+              {MILESTONES.map(({ icon: Icon, when, title, body }) => (
+                <li key={title} className="relative">
+                  <span aria-hidden className="absolute -left-12 top-0 flex size-10 items-center justify-center rounded-full bg-brand-green text-white ring-4 ring-neutral-50 md:-top-14 md:left-0">
+                    <Icon className="size-4" />
+                  </span>
+                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">{when}</p>
+                  <p className="mt-2 text-lg font-semibold tracking-tight text-foreground">{title}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{body}</p>
                 </li>
               ))}
             </ol>
-            <p className="mt-6 border-t border-border pt-4 text-xs text-muted-foreground">Demonstração com dados de exemplo.</p>
+            <figcaption className="mt-10 text-xs text-muted-foreground">Ficha ilustrativa de Jiu-Jitsu.</figcaption>
           </figure>
         </LpReveal>
+
+        <p className="mx-auto mt-8 max-w-[52ch] text-center text-sm leading-relaxed text-muted-foreground">No Boxe, o acompanhamento segue com alunos, aulas, presenças e mensalidades. Faixa e grau não são obrigatórios.</p>
       </div>
-    </LpSection>
+    </section>
   );
 }

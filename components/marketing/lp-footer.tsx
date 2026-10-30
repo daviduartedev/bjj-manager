@@ -38,7 +38,7 @@ export function LpFooter() {
             ))}
           </div>
         </div>
-        <p className="mt-12 border-t border-border pt-6 text-xs leading-relaxed text-muted-foreground">
+        <p className="mt-12 text-xs leading-relaxed text-muted-foreground">
           A assinatura do Casca é processada pela AbacatePay. As mensalidades dos alunos são recebidas pela academia e registradas no Casca.
         </p>
       </div>
