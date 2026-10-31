@@ -5,7 +5,7 @@
  */
 export type LandingAcademy = {
   name: string;
-  /** Caminho da logo em /public. Sem logo, a seção mostra as iniciais. */
+  /** Caminho da logo em /public. Sem logo, a seção mostra as iniciais abaixo. */
   logo?: string;
   initials: string;
 };

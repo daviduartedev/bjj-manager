@@ -129,13 +129,20 @@ test.describe("Smoke UI rápido", () => {
     await expect(cartoes.nth(1)).toHaveAttribute("aria-pressed", "true");
     await expect(citacao).not.toHaveText(primeira);
     await expect(secao.getByRole("list", { name: "Academias que já usam o Casca" }).getByRole("listitem")).toHaveCount(3);
-    await expect(secao.getByRole("img", { name: /^Logo da / }).first()).toBeVisible();
+    await expect(secao.getByRole("img", { name: /Professor de Jiu-Jitsu/ })).toBeVisible();
     await expect(page.getByLabel("Protótipo de depoimentos")).toHaveCount(0);
 
-    await page.setViewportSize({ width: 320, height: 720 });
-    await secao.scrollIntoViewIfNeeded();
-    await expect(cartoes.first()).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    await cartoes.first().focus();
+    await page.keyboard.press("Enter");
+    await expect(cartoes.first()).toHaveAttribute("aria-pressed", "true");
+    await expect(citacao).toHaveText(primeira);
+
+    for (const width of [1440, 375, 320]) {
+      await page.setViewportSize({ width, height: 800 });
+      await secao.scrollIntoViewIfNeeded();
+      await expect(cartoes.first()).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    }
   });
 
   test("landing: FAQ chama o mestrão e responde pelo Casca", async ({ page }) => {
@@ -159,6 +166,10 @@ test.describe("Smoke UI rápido", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(tarja.getByText("Judô, Jiu-Jitsu, Muay Thai e Boxe", { exact: true })).toBeVisible();
     await expect(tarja.getByRole("button")).toHaveCount(0);
+    await page.setViewportSize({ width: 320, height: 720 });
+    await tarja.scrollIntoViewIfNeeded();
+    await expect(tarja.getByText("O", { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   });
 
   test("alunos: filtro Plano lista Adulto, Kids 1 e Kids 2", async ({ page }) => {
