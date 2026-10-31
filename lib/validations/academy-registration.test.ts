@@ -18,7 +18,7 @@ describe("academyRegistrationSchema", () => {
       academyName: "  Casca  ",
       displayName: "  Ana  ",
       modality: "jiu_jitsu",
-      subscriptionPlanId: "essencial",
+      subscriptionPlanId: "inicial",
     });
 
     expect(parsed.success).toBe(true);
@@ -29,7 +29,7 @@ describe("academyRegistrationSchema", () => {
       academyName: "Casca",
       displayName: "Ana",
       modality: "jiu_jitsu",
-      subscriptionPlanId: "essencial",
+      subscriptionPlanId: "inicial",
     });
   });
 

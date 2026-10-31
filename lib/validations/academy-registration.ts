@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { newPasswordField } from "@/lib/auth/password-policy";
 import { ACADEMY_MODALITIES, type AcademyModality } from "@/lib/modalities/catalog";
+import { DEFAULT_SUBSCRIPTION_PLAN_ID, OFFERED_SUBSCRIPTION_PLAN_IDS } from "@/lib/subscriptions/catalog";
 
 const academyNameMessage = "O nome da academia precisa ter entre 2 e 80 caracteres.";
 const displayNameMessage = "O seu nome precisa ter entre 2 e 80 caracteres.";
@@ -69,9 +70,9 @@ export const academyRegistrationSchema = z
     academyName: z.string().trim().min(2, academyNameMessage).max(80, academyNameMessage),
     displayName: z.string().trim().min(2, displayNameMessage).max(80, displayNameMessage),
     modality: z.enum(ACADEMY_MODALITIES, { errorMap: () => ({ message: "Selecione a modalidade da academia." }) }),
-    subscriptionPlanId: z.enum(["essencial", "academia", "evolucao"], {
+    subscriptionPlanId: z.enum(OFFERED_SUBSCRIPTION_PLAN_IDS, {
       errorMap: () => ({ message: "Selecione um plano válido do Casca." }),
-    }).default("essencial"),
+    }).default(DEFAULT_SUBSCRIPTION_PLAN_ID),
     onboarding: academyOnboardingSchema.optional(),
   })
   .strict();

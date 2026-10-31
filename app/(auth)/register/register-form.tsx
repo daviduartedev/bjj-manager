@@ -15,7 +15,7 @@ import { PASSWORD_MIN_LENGTH } from "@/lib/auth/password-policy";
 import { cn } from "@/lib/utils";
 import { ACADEMY_MODALITIES, MODALITY_LABELS, type AcademyModality } from "@/lib/modalities/catalog";
 import { academyRegistrationSchema, academyOnboardingSchema, BRAZIL_STATES, BRAZIL_STATE_NAMES } from "@/lib/validations/academy-registration";
-import { SUBSCRIPTION_PLANS, getSubscriptionPlan, type SubscriptionPlanId } from "@/lib/subscriptions/catalog";
+import { DEFAULT_SUBSCRIPTION_PLAN_ID, SUBSCRIPTION_PLANS, getSubscriptionPlan, type OfferedSubscriptionPlanId } from "@/lib/subscriptions/catalog";
 
 import { ResendConfirmationForm } from "../resend-confirmation-form";
 
@@ -87,7 +87,7 @@ function TextField({ control, name, label, placeholder, autoComplete, type = "te
   )} />;
 }
 
-export function RegisterForm({ initialPlanId = "essencial", trialsEnabled = true }: { initialPlanId?: SubscriptionPlanId; trialsEnabled?: boolean }) {
+export function RegisterForm({ initialPlanId = DEFAULT_SUBSCRIPTION_PLAN_ID, trialsEnabled = true }: { initialPlanId?: OfferedSubscriptionPlanId; trialsEnabled?: boolean }) {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [waiting, setWaiting] = useState<{ message: string; email: string } | null>(null);
