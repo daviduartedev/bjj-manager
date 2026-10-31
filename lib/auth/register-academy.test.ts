@@ -288,7 +288,7 @@ describe("submitAcademyRegistration", () => {
     expect(result.ok).toBe(false);
     if (result.ok || !("fieldErrors" in result)) return;
     expect(result.fieldErrors?.password?.[0]).toBe(
-      "A senha precisa ter pelo menos 15 caracteres.",
+      "A senha precisa ter pelo menos 8 caracteres.",
     );
     expect(signUp).not.toHaveBeenCalled();
     expect(recordIntent).not.toHaveBeenCalled();

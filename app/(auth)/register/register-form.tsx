@@ -377,7 +377,7 @@ export function RegisterForm({ initialPlanId = "essencial", trialsEnabled = true
                     <TextField control={form.control} name="displayName" label="Seu nome" placeholder="Como você prefere ser chamado?" autoComplete="name" />
                     <div className="grid gap-5 sm:grid-cols-2">
                       <TextField control={form.control} name="email" label="E-mail" type="email" placeholder="voce@exemplo.com" autoComplete="email" />
-                      <TextField control={form.control} name="password" label="Crie uma senha" type="password" autoComplete="new-password" description="Use pelo menos 15 caracteres. Uma frase-senha funciona bem; não precisa misturar símbolos e números." />
+                      <TextField control={form.control} name="password" label="Crie uma senha" type="password" autoComplete="new-password" description="Use pelo menos 8 caracteres. Não precisa misturar símbolos e números." />
                     </div>
                     <div className="rounded-md border border-border bg-background p-5">
                       <p className="flex items-center gap-2 font-semibold"><Building2 className="size-5 text-primary" aria-hidden />{form.getValues("academyName")}</p>

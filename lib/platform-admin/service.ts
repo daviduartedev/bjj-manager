@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { newPasswordField, PASSWORD_MIN_LENGTH } from "@/lib/auth/password-policy";
 import { ACADEMY_MODALITIES } from "@/lib/modalities/catalog";
 import { getSubscriptionPlan, type SubscriptionPlanId } from "@/lib/subscriptions/catalog";
 import type { SubscriptionKind, SubscriptionStatus } from "@/lib/subscriptions/types";
@@ -13,7 +14,7 @@ const kindChangeSchema = z.object({
 const internalSchema = z.object({
   requestId: z.string().uuid(), academyName: z.string().trim().min(2).max(80),
   email: z.string().trim().email().transform(value => value.toLowerCase()),
-  password: z.string().min(15).refine(value => new TextEncoder().encode(value).length <= 72),
+  password: newPasswordField,
   modality: z.enum(ACADEMY_MODALITIES), planId: planSchema,
 }).strict();
 
@@ -96,7 +97,7 @@ export function createPlatformAdminService(deps: PlatformAdminDependencies) {
     async createInternal(userId: string, input: unknown): Promise<AdminResult<{ accountId: string }>> {
       if (denied(userId)) return accessDenied;
       const parsed = internalSchema.safeParse(input);
-      if (!parsed.success) return { ok: false, error: "Informe nome, modalidade, plano, e-mail novo e senha com pelo menos 15 caracteres." };
+      if (!parsed.success) return { ok: false, error: `Informe nome, modalidade, plano, e-mail novo e senha com pelo menos ${PASSWORD_MIN_LENGTH} caracteres.` };
       try {
         const { password, ...details } = parsed.data;
         const request = await deps.repository.reserveInternal({ ...details, actorUserId: userId });

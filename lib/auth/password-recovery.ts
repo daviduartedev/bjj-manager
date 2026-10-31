@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { newPasswordField } from "@/lib/auth/password-policy";
+
 const SERVER_APP_FALLBACK = "http://localhost:3000";
 
 export const PASSWORD_RECOVERY_SENT_MESSAGE =
@@ -31,9 +33,7 @@ export const recoveryEmailSchema = z.object({
 }).strict();
 
 export const newPasswordSchema = z.object({
-  password: z.string()
-    .refine((value) => Array.from(value).length >= 15, "A senha precisa ter pelo menos 15 caracteres.")
-    .refine((value) => new TextEncoder().encode(value).length <= 72, "A senha excede o limite aceito pelo provedor de autenticação."),
+  password: newPasswordField,
 }).strict();
 
 export async function requestPasswordRecovery(

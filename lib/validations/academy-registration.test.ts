@@ -44,27 +44,27 @@ describe("academyRegistrationSchema", () => {
     expect(parsed.error.flatten().fieldErrors.email?.[0]).toBe("Digite um e-mail válido.");
   });
 
-  it("recusa senha com menos de 15 caracteres", () => {
+  it("recusa senha com menos de 8 caracteres", () => {
     const parsed = academyRegistrationSchema.safeParse({
       ...valid,
-      password: "curta-14-chars",
+      password: "curta-7",
     });
 
     expect(parsed.success).toBe(false);
     if (parsed.success) return;
     expect(parsed.error.flatten().fieldErrors.password?.[0]).toBe(
-      "A senha precisa ter pelo menos 15 caracteres.",
+      "A senha precisa ter pelo menos 8 caracteres.",
     );
   });
 
-  it("aceita 15 caracteres sem exigir classes artificiais e suporta Unicode dentro do limite do Auth", () => {
+  it("aceita 8 caracteres sem exigir classes artificiais e suporta Unicode dentro do limite do Auth", () => {
     expect(academyRegistrationSchema.safeParse({
       ...valid,
-      password: "a".repeat(15),
+      password: "a".repeat(8),
     }).success).toBe(true);
     expect(academyRegistrationSchema.safeParse({
       ...valid,
-      password: "😀".repeat(15),
+      password: "😀".repeat(8),
     }).success).toBe(true);
   });
 

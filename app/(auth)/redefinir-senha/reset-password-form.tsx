@@ -39,7 +39,7 @@ export function ResetPasswordForm() {
     <section className="w-full max-w-md space-y-6 rounded-2xl border border-border bg-card p-6 sm:p-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Nova senha</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Defina uma senha com pelo menos 15 caracteres para voltar à sua academia.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Defina uma senha com pelo menos 8 caracteres para voltar à sua academia.</p>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

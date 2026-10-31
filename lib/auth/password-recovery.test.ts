@@ -2,12 +2,21 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   PASSWORD_RECOVERY_SENT_MESSAGE,
+  newPasswordSchema,
   passwordRecoveryCallbackUrl,
   recoveryCallbackPath,
   requestPasswordRecovery,
 } from "./password-recovery";
 
 describe("recuperação de senha", () => {
+  it("nova senha aceita 8 caracteres e recusa 7, com a mesma mensagem do cadastro", () => {
+    expect(newPasswordSchema.safeParse({ password: "a".repeat(8) }).success).toBe(true);
+    const curta = newPasswordSchema.safeParse({ password: "a".repeat(7) });
+    expect(curta.success).toBe(false);
+    if (curta.success) return;
+    expect(curta.error.flatten().fieldErrors.password?.[0]).toBe("A senha precisa ter pelo menos 8 caracteres.");
+  });
+
   it("usa callback fixo no servidor, sem destino escolhido pelo navegador", () => {
     expect(passwordRecoveryCallbackUrl({ NEXT_PUBLIC_APP_URL: "https://app.casca.test/" })).toBe("https://app.casca.test/auth/recovery");
     expect(recoveryCallbackPath({ code: "pkce", exchangeFailed: false })).toBe("/redefinir-senha");
