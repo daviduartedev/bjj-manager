@@ -105,6 +105,8 @@ test.describe("Smoke UI rápido", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const tarja = page.getByRole("region", { name: "O Casca nasceu para ajudar sua academia" });
     await tarja.scrollIntoViewIfNeeded();
+    await expect(tarja.getByText("O", { exact: true })).toBeVisible();
+    await expect(tarja.getByRole("heading", { name: /^O Casca nasceu para ajudar sua academia de/ })).toHaveCount(1);
     const modalidade = tarja.getByTestId("landing-current-modality");
     await expect(modalidade).toBeVisible();
     const primeira = await modalidade.innerText();
