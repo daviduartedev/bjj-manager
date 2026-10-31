@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { newPasswordField } from "@/lib/auth/password-policy";
 import { ACADEMY_MODALITIES, type AcademyModality } from "@/lib/modalities/catalog";
 
 const academyNameMessage = "O nome da academia precisa ter entre 2 e 80 caracteres.";
@@ -64,9 +65,7 @@ export const academyRegistrationSchema = z
       .min(1, "Informe o e-mail.")
       .email("Digite um e-mail válido.")
       .transform((value) => value.toLowerCase()),
-    password: z.string()
-      .refine((value) => Array.from(value).length >= 15, "A senha precisa ter pelo menos 15 caracteres.")
-      .refine((value) => new TextEncoder().encode(value).length <= 72, "A senha excede o limite aceito pelo provedor de autenticação."),
+    password: newPasswordField,
     academyName: z.string().trim().min(2, academyNameMessage).max(80, academyNameMessage),
     displayName: z.string().trim().min(2, displayNameMessage).max(80, displayNameMessage),
     modality: z.enum(ACADEMY_MODALITIES, { errorMap: () => ({ message: "Selecione a modalidade da academia." }) }),

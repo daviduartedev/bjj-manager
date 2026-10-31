@@ -95,16 +95,97 @@ test.describe("Smoke UI rápido", () => {
     const manifesto = page.getByRole("region", { name: "Manifesto do Casca" });
     await expect(manifesto.getByText("Por que existimos", { exact: true })).toHaveCount(0);
     await expect(manifesto).toBeVisible();
-    for (const nome of ["Jigoro Kano", "Rillion Gracie", "Anderson Silva", "Éder Jofre", "Natália Falavigna"]) {
+    for (const nome of ["Royce Gracie", "Rodolfo Vieira", "Anderson Silva", "José Aldo", "Éder Jofre", "Popó Freitas", "Rafaela Silva"]) {
       await expect(manifesto.getByText(nome, { exact: true })).toBeVisible();
     }
-    await expect(manifesto).toContainText("O Casca existe para que a sua continue abrindo");
+    for (const fora of ["Jigoro Kano", "Buakaw", "Hélio Gracie"]) {
+      await expect(manifesto.getByText(fora, { exact: true })).toHaveCount(0);
+    }
+    await expect(manifesto).toContainText("O Casca organiza a academia para você voltar ao que importa: o tatame.");
+  });
+
+  test("landing: continua clara quando o aparelho usa modo escuro", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute("content", "only light");
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#ffffff");
+    const cores = await page.evaluate(() => ({
+      esquema: getComputedStyle(document.documentElement).colorScheme.split(" ").sort().join(" "),
+      fundoLanding: getComputedStyle(document.getElementById("top")!.parentElement!).backgroundColor,
+    }));
+    expect(cores).toEqual({ esquema: "light only", fundoLanding: "rgb(255, 255, 255)" });
+  });
+
+  test("landing: depoimentos alternam sozinhos, aceitam escolha e mostram as academias", async ({ page }) => {
+    await page.clock.install();
+    await page.goto("/#depoimentos", { waitUntil: "load" });
+    const secao = page.getByRole("region", { name: "Depoimentos de quem usa o Casca" });
+    await expect(secao.getByRole("heading", { level: 2 })).toHaveText("Quem gerencia a academia usando o Casca conta como é.");
+    const cartoes = secao.getByRole("button", { name: /^Ler depoimento de / });
+    await expect(cartoes).toHaveCount(2);
+    await expect(cartoes.first()).toHaveAttribute("aria-pressed", "true");
+    const citacao = secao.getByTestId("landing-testimonial-quote");
+    const primeira = await citacao.innerText();
+
+    // Avança o relógio aos poucos até a página hidratar e a troca automática acontecer.
+    await expect
+      .poll(async () => {
+        await page.clock.runFor(1_000);
+        return cartoes.nth(1).getAttribute("aria-pressed");
+      }, { timeout: 30_000 })
+      .toBe("true");
+    await expect(citacao).not.toHaveText(primeira);
+
+    await cartoes.first().click();
+    await expect(citacao).toHaveText(primeira);
+    await page.mouse.move(0, 0);
+    await page.clock.runFor(13_000);
+    await expect(cartoes.first()).toHaveAttribute("aria-pressed", "true");
+
+    await expect(secao.getByRole("heading", { name: "Já contam com a gente na gestão" })).toBeVisible();
+    await expect(secao.getByRole("list", { name: "Já contam com a gente na gestão" }).getByRole("listitem")).toHaveCount(3);
+    await expect(secao.getByRole("img", { name: /Professor de Jiu-Jitsu/ })).toBeVisible();
+    await expect(page.getByLabel("Protótipo de depoimentos")).toHaveCount(0);
+    await expect(page.getByLabel("Protótipo dos cartões de depoimento")).toHaveCount(0);
+
+    await cartoes.nth(1).focus();
+    await page.keyboard.press("Enter");
+    await expect(cartoes.nth(1)).toHaveAttribute("aria-pressed", "true");
+    await expect(citacao).not.toHaveText(primeira);
+
+    for (const width of [1440, 375, 320]) {
+      await page.setViewportSize({ width, height: 800 });
+      await secao.scrollIntoViewIfNeeded();
+      await expect(cartoes.first()).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    }
+  });
+
+  test("landing: depoimentos não alternam com movimento reduzido", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.clock.install();
+    await page.goto("/#depoimentos", { waitUntil: "load" });
+    const cartoes = page
+      .getByRole("region", { name: "Depoimentos de quem usa o Casca" })
+      .getByRole("button", { name: /^Ler depoimento de / });
+    await expect(cartoes.first()).toHaveAttribute("aria-pressed", "true");
+    await page.clock.runFor(13_000);
+    await expect(cartoes.first()).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("landing: FAQ chama o mestrão e responde pelo Casca", async ({ page }) => {
+    await page.goto("/#faq", { waitUntil: "domcontentloaded" });
+    const titulo = page.locator("#faq").getByRole("heading", { level: 2 });
+    await expect(titulo).toHaveText("Ficou com alguma dúvida, mestrão? O Casca responde.");
+    await expect(titulo.getByText("O Casca responde.", { exact: true })).toHaveClass(/text-brand-blue/);
   });
 
   test("landing: tarja alterna modalidades sem controles e respeita movimento reduzido", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const tarja = page.getByRole("region", { name: "O Casca nasceu para ajudar sua academia" });
     await tarja.scrollIntoViewIfNeeded();
+    await expect(tarja.getByText("O", { exact: true })).toBeVisible();
+    await expect(tarja.getByRole("heading", { name: /^O Casca nasceu para ajudar sua academia de/ })).toHaveCount(1);
     const modalidade = tarja.getByTestId("landing-current-modality");
     await expect(modalidade).toBeVisible();
     const primeira = await modalidade.innerText();
@@ -113,6 +194,10 @@ test.describe("Smoke UI rápido", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(tarja.getByText("Judô, Jiu-Jitsu, Muay Thai e Boxe", { exact: true })).toBeVisible();
     await expect(tarja.getByRole("button")).toHaveCount(0);
+    await page.setViewportSize({ width: 320, height: 720 });
+    await tarja.scrollIntoViewIfNeeded();
+    await expect(tarja.getByText("O", { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   });
 
   test("alunos: filtro Plano lista Adulto, Kids 1 e Kids 2", async ({ page }) => {

@@ -11,6 +11,7 @@ import { z } from "zod";
 import { registerAcademy } from "@/actions/register-academy";
 import { CascaButton, CascaComboBoxField, CascaSelectField, CascaTextField, type CascaOption } from "@/components/ui/react-aria-controls";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { PASSWORD_MIN_LENGTH } from "@/lib/auth/password-policy";
 import { cn } from "@/lib/utils";
 import { ACADEMY_MODALITIES, MODALITY_LABELS, type AcademyModality } from "@/lib/modalities/catalog";
 import { academyRegistrationSchema, academyOnboardingSchema, BRAZIL_STATES, BRAZIL_STATE_NAMES } from "@/lib/validations/academy-registration";
@@ -377,7 +378,7 @@ export function RegisterForm({ initialPlanId = "essencial", trialsEnabled = true
                     <TextField control={form.control} name="displayName" label="Seu nome" placeholder="Como você prefere ser chamado?" autoComplete="name" />
                     <div className="grid gap-5 sm:grid-cols-2">
                       <TextField control={form.control} name="email" label="E-mail" type="email" placeholder="voce@exemplo.com" autoComplete="email" />
-                      <TextField control={form.control} name="password" label="Crie uma senha" type="password" autoComplete="new-password" description="Use pelo menos 15 caracteres. Uma frase-senha funciona bem; não precisa misturar símbolos e números." />
+                      <TextField control={form.control} name="password" label="Crie uma senha" type="password" autoComplete="new-password" description={`Use pelo menos ${PASSWORD_MIN_LENGTH} caracteres. Uma frase-senha funciona bem; não precisa misturar símbolos e números.`} />
                     </div>
                     <div className="rounded-md border border-border bg-background p-5">
                       <p className="flex items-center gap-2 font-semibold"><Building2 className="size-5 text-primary" aria-hidden />{form.getValues("academyName")}</p>

@@ -13,19 +13,16 @@ const name = (text: string, after = ","): Token => ({ text, tone: "name", after 
 const plain = (text: string): Token[] => text.split(" ").map((word) => ({ text: word }));
 
 const TOKENS: Token[] = [
-  name("Jigoro Kano"),
-  name("Hélio Gracie"),
-  name("Rillion Gracie"),
+  name("Royce Gracie"),
+  name("Rodolfo Vieira"),
   name("Anderson Silva"),
+  name("José Aldo"),
   name("Éder Jofre"),
   name("Popó Freitas"),
-  name("Rafaela Silva"),
-  name("Aurélio Miguel"),
-  name("Natália Falavigna"),
-  name("Buakaw", "."),
+  name("Rafaela Silva", "."),
   ...plain("Antes de virar referência, cada um teve um professor, um tatame e uma academia que abriu as portas no dia seguinte. O"),
   { text: "Casca", tone: "brand" },
-  ...plain("existe para que a sua continue abrindo, aula após aula, inclusive no aperto do fim do mês."),
+  ...plain("organiza a academia para você voltar ao que importa: o tatame."),
 ];
 
 const SENTENCE = TOKENS.map((token) => token.text + (token.after ?? "")).join(" ");

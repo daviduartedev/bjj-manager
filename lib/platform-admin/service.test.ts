@@ -89,4 +89,13 @@ describe("administracao comercial da plataforma", () => {
     expect(deps.createInternalUser).toHaveBeenCalledOnce();
     expect(deps.repository.reserveInternal).toHaveBeenCalledWith(expect.not.objectContaining({ password: expect.anything() }));
   });
+
+  it("acesso de teste aceita senha de 8 caracteres e recusa 7 antes de reservar", async () => {
+    const { deps, service } = setup();
+    const input = { requestId: REQUEST, academyName: "Academia interna", email: "teste@example.test", modality: "jiu_jitsu", planId: "academia" };
+    const curta = await service.createInternal(OWNER, { ...input, password: "a".repeat(7) });
+    expect(curta).toEqual({ ok: false, error: "Informe nome, modalidade, plano, e-mail novo e senha com pelo menos 8 caracteres." });
+    expect(deps.repository.reserveInternal).not.toHaveBeenCalled();
+    expect((await service.createInternal(OWNER, { ...input, password: "a".repeat(8) })).ok).toBe(true);
+  });
 });

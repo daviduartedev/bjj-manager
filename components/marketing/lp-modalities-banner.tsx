@@ -25,7 +25,10 @@ export function LpModalitiesBanner() {
         <h2 className="sr-only">O Casca nasceu para ajudar sua academia de Judô, Jiu-Jitsu, Muay Thai e Boxe a crescer.</h2>
         <div aria-hidden className="text-center text-[clamp(1.9rem,4vw,3.5rem)] font-bold leading-[1.2] tracking-[-0.04em]">
           <div className="flex flex-col items-center justify-center gap-x-[0.35em] gap-y-3 sm:flex-row">
-            <CascaNavLogo asLink={false} tone="dark-bg" className="relative sm:top-[0.08em]" imgClassName="h-[1.15em] sm:h-[1.15em]" />
+            <span className="flex items-center gap-x-[0.3em]">
+              <span>O</span>
+              <CascaNavLogo asLink={false} tone="dark-bg" className="relative sm:top-[0.08em]" imgClassName="h-[1.15em] sm:h-[1.15em]" />
+            </span>
             <span>nasceu para ajudar</span>
           </div>
           {shouldReduce ? (

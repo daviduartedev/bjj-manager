@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PASSWORD_MIN_LENGTH } from "@/lib/auth/password-policy";
 import { newPasswordSchema } from "@/lib/auth/password-recovery";
 import { createClient } from "@/lib/supabase/client";
 
@@ -39,7 +40,7 @@ export function ResetPasswordForm() {
     <section className="w-full max-w-md space-y-6 rounded-2xl border border-border bg-card p-6 sm:p-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Nova senha</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Defina uma senha com pelo menos 15 caracteres para voltar à sua academia.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Defina uma senha com pelo menos {PASSWORD_MIN_LENGTH} caracteres para voltar à sua academia.</p>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
