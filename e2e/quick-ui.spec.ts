@@ -66,7 +66,32 @@ test.describe("Smoke UI rápido", () => {
     await page.getByText("O Casca recebe as mensalidades dos meus alunos?", { exact: true }).click();
     await expect(page.getByText("A academia continua recebendo dos alunos. Você acompanha os vencimentos e confirma no Casca quando o pagamento acontece.", { exact: true })).toBeVisible();
     await page.getByRole("link", { name: "Escolher Academia", exact: true }).click();
-    await expect(page).toHaveURL(/\/register\?plano=academia$/, { timeout: 30_000 });
+    await expect(page).toHaveURL(/\/register\?plano=academia_100$/, { timeout: 30_000 });
+  });
+
+  test("landing: planos mostram preço com centavos, capacidade e os recursos atuais", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 740 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/#planos", { waitUntil: "domcontentloaded" });
+    const planos = page.locator("#planos");
+    const cards = planos.locator("article");
+    await expect(cards).toHaveCount(3);
+    const esperado = [
+      { nome: "Inicial", preco: "R$ 79,90", capacidade: "Até 50 alunos ativos", plano: "inicial" },
+      { nome: "Academia", preco: "R$ 129,90", capacidade: "Até 100 alunos ativos", plano: "academia_100" },
+      { nome: "Ilimitado", preco: "R$ 159,90", capacidade: "Alunos ativos ilimitados", plano: "ilimitado" },
+    ];
+    for (const [index, plano] of esperado.entries()) {
+      const card = cards.nth(index);
+      await expect(card.getByRole("heading", { name: plano.nome, exact: true })).toBeVisible();
+      await expect(card.getByText(plano.preco, { exact: true })).toBeVisible();
+      await expect(card.getByText(plano.capacidade, { exact: true })).toBeVisible();
+      await expect(card.getByRole("listitem")).toHaveCount(10);
+      await expect(card.getByText("Loja virtual para venda de produtos", { exact: true })).toBeVisible();
+      await expect(card.getByRole("link", { name: `Escolher ${plano.nome}`, exact: true })).toHaveAttribute("href", `/register?plano=${plano.plano}`);
+    }
+    await expect(planos.getByText(/Mais de 300 alunos/)).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 
   test("landing: menu móvel funciona por teclado e fecha ao navegar", async ({ page }) => {

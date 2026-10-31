@@ -3,32 +3,32 @@ import Link from "next/link";
 
 import { LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 import { LP_PRIMARY_CTA } from "@/components/marketing/lp-cta-styles";
-import { SUBSCRIPTION_PLANS } from "@/lib/subscriptions/catalog";
+import { SUBSCRIPTION_PLANS, hasStudentLimit, type SubscriptionPlan } from "@/lib/subscriptions/catalog";
 import { cn } from "@/lib/utils";
 
+/** Só o que o Casca já entrega. Recurso novo entra aqui quando estiver no produto. */
 const INCLUDED = [
-  "Cadastro e histórico dos alunos",
-  "Aulas, presenças e graduações",
-  "Controle de mensalidades e documentos",
-  "Portal do aluno opcional",
+  "Controle completo de alunos",
+  "Turmas, aulas e frequência com check-in",
+  "Gestão de graduações",
+  "Mensalidades e controle financeiro",
+  "Portal do aluno",
+  "Planos de aula",
+  "Matrícula e termos com assinatura digital",
+  "Documentos e recibos",
+  "Lembretes de cobrança pelo WhatsApp",
+  "Loja virtual para venda de produtos",
 ] as const;
 
-function contactUrl(): string | null {
-  const configured = process.env.CASCA_CONTACT_URL?.trim();
-  if (!configured || /[\r\n]/.test(configured)) return null;
-  try {
-    const url = new URL(configured);
-    return ["https:", "mailto:"].includes(url.protocol) && !url.username && !url.password
-      ? url.toString()
-      : null;
-  } catch {
-    return null;
-  }
+const RECOMMENDED_PLAN_ID = "academia_100";
+
+const priceFormat = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+function capacityLabel(plan: SubscriptionPlan): string {
+  return hasStudentLimit(plan) ? `Até ${plan.activeStudentLimit} alunos ativos` : "Alunos ativos ilimitados";
 }
 
 export function LpPricing() {
-  const consultationUrl = contactUrl();
-
   return (
     <LpSection id="planos" className="scroll-mt-16 bg-white">
       <LpReveal direction="left" duration={1.05}>
@@ -43,12 +43,8 @@ export function LpPricing() {
 
       <div className="mt-12 grid gap-5 lg:grid-cols-3">
         {SUBSCRIPTION_PLANS.map((plan, index) => {
-          const recommended = plan.id === "academia";
-          const price = new Intl.NumberFormat("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-            maximumFractionDigits: 0,
-          }).format(plan.priceCents / 100);
+          const recommended = plan.id === RECOMMENDED_PLAN_ID;
+          const price = priceFormat.format(plan.priceCents / 100);
 
           return (
             <LpReveal
@@ -73,7 +69,7 @@ export function LpPricing() {
                 <span className="text-4xl font-bold tracking-tight">{price}</span>
                 <span className="text-sm text-muted-foreground">/mês</span>
               </p>
-              <p className="mt-3 font-medium">Até {plan.activeStudentLimit} alunos ativos</p>
+              <p className="mt-3 font-medium">{capacityLabel(plan)}</p>
               <p className="mt-1 text-sm text-muted-foreground">Uma academia por assinatura.</p>
               <ul className="my-7 flex-1 space-y-3 text-sm">
                 {INCLUDED.map((feature) => (
@@ -103,22 +99,11 @@ export function LpPricing() {
       </div>
 
       <LpReveal direction="up" className="mt-7">
-      <div className="flex flex-col gap-4 bg-white py-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="bg-white py-5">
         <p className="flex items-start gap-3 text-sm leading-6 text-muted-foreground">
           <CreditCard className="mt-1 size-4 shrink-0 text-brand-blue" aria-hidden />
           A mensalidade é cobrada quando a adesão é confirmada. Alunos inativos não ocupam vagas do plano.
         </p>
-        <div className="shrink-0 text-sm">
-          <p className="font-medium">Mais de 300 alunos? Capacidade sob consulta.</p>
-          {consultationUrl ? (
-            <a
-              href={consultationUrl}
-              className="mt-1 inline-flex min-h-11 items-center font-semibold text-brand-green underline underline-offset-4"
-            >
-              Consultar capacidade
-            </a>
-          ) : null}
-        </div>
       </div>
       </LpReveal>
     </LpSection>
