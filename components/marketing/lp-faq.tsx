@@ -16,7 +16,7 @@ export function LpFaq() {
       <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
         <LpReveal>
           <h2 className="max-w-[17ch] text-[clamp(2.5rem,4.5vw,4rem)] font-bold leading-[1.08] tracking-[-0.045em] text-foreground">
-            Ficou alguma dúvida? <span className="text-brand-blue">Vamos por partes.</span>
+            Ficou com alguma dúvida, mestrão? <span className="block text-brand-blue">O Casca responde.</span>
           </h2>
           <p className="mt-6 max-w-[35ch] text-lg leading-relaxed text-muted-foreground">Sobre a academia, os alunos e a assinatura. Tudo explicado para você decidir.</p>
         </LpReveal>

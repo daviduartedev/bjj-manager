@@ -101,6 +101,13 @@ test.describe("Smoke UI rápido", () => {
     await expect(manifesto).toContainText("O Casca existe para que a sua continue abrindo");
   });
 
+  test("landing: FAQ chama o mestrão e responde pelo Casca", async ({ page }) => {
+    await page.goto("/#faq", { waitUntil: "domcontentloaded" });
+    const titulo = page.locator("#faq").getByRole("heading", { level: 2 });
+    await expect(titulo).toHaveText("Ficou com alguma dúvida, mestrão? O Casca responde.");
+    await expect(titulo.getByText("O Casca responde.", { exact: true })).toHaveClass(/text-brand-blue/);
+  });
+
   test("landing: tarja alterna modalidades sem controles e respeita movimento reduzido", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const tarja = page.getByRole("region", { name: "O Casca nasceu para ajudar sua academia" });
