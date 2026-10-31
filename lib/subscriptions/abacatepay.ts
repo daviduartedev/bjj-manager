@@ -1,4 +1,4 @@
-import { getSubscriptionPlan, type SubscriptionPlanId } from "./catalog";
+import { OFFERED_SUBSCRIPTION_PLAN_IDS, SUBSCRIPTION_PLAN_IDS, getSubscriptionPlan, type SubscriptionPlanId } from "./catalog";
 import type { ProviderCheckout as OneOffCheckout, ProviderPlanChange, ProviderSubscription, SubscriptionGateway } from "./types";
 import { providerSubscriptionSchema } from "./validation";
 
@@ -16,11 +16,16 @@ export type AbacatePayGateway = SubscriptionGateway & {
   changePlan(input: { subscriptionId: string; planId: SubscriptionPlanId }): Promise<ProviderPlanChange>;
 };
 
-const PLAN_IDS = ["essencial", "academia", "evolucao"] as const;
 const BILLING_ENV_KEYS = [
   "CASCA_ABACATEPAY_API_KEY",
   "CASCA_ABACATEPAY_ENV",
   "NEXT_PUBLIC_APP_URL",
+  "CASCA_ABACATEPAY_PRODUCT_INICIAL",
+  "CASCA_ABACATEPAY_PRODUCT_INICIAL_TRIAL",
+  "CASCA_ABACATEPAY_PRODUCT_ACADEMIA_100",
+  "CASCA_ABACATEPAY_PRODUCT_ACADEMIA_100_TRIAL",
+  "CASCA_ABACATEPAY_PRODUCT_ILIMITADO",
+  "CASCA_ABACATEPAY_PRODUCT_ILIMITADO_TRIAL",
   "CASCA_ABACATEPAY_PRODUCT_ESSENCIAL",
   "CASCA_ABACATEPAY_PRODUCT_ESSENCIAL_TRIAL",
   "CASCA_ABACATEPAY_PRODUCT_ACADEMIA",
@@ -44,6 +49,12 @@ export function readProcessBillingEnvironment(): BillingEnvironment {
     CASCA_ABACATEPAY_API_KEY: process.env.CASCA_ABACATEPAY_API_KEY,
     CASCA_ABACATEPAY_ENV: process.env.CASCA_ABACATEPAY_ENV,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    CASCA_ABACATEPAY_PRODUCT_INICIAL: process.env.CASCA_ABACATEPAY_PRODUCT_INICIAL,
+    CASCA_ABACATEPAY_PRODUCT_INICIAL_TRIAL: process.env.CASCA_ABACATEPAY_PRODUCT_INICIAL_TRIAL,
+    CASCA_ABACATEPAY_PRODUCT_ACADEMIA_100: process.env.CASCA_ABACATEPAY_PRODUCT_ACADEMIA_100,
+    CASCA_ABACATEPAY_PRODUCT_ACADEMIA_100_TRIAL: process.env.CASCA_ABACATEPAY_PRODUCT_ACADEMIA_100_TRIAL,
+    CASCA_ABACATEPAY_PRODUCT_ILIMITADO: process.env.CASCA_ABACATEPAY_PRODUCT_ILIMITADO,
+    CASCA_ABACATEPAY_PRODUCT_ILIMITADO_TRIAL: process.env.CASCA_ABACATEPAY_PRODUCT_ILIMITADO_TRIAL,
     CASCA_ABACATEPAY_PRODUCT_ESSENCIAL: process.env.CASCA_ABACATEPAY_PRODUCT_ESSENCIAL,
     CASCA_ABACATEPAY_PRODUCT_ESSENCIAL_TRIAL: process.env.CASCA_ABACATEPAY_PRODUCT_ESSENCIAL_TRIAL,
     CASCA_ABACATEPAY_PRODUCT_ACADEMIA: process.env.CASCA_ABACATEPAY_PRODUCT_ACADEMIA,
@@ -59,10 +70,10 @@ function normalizeBillingEnvironment(environment: BillingEnvironment): BillingEn
   return { ...normalized, CASCA_ABACATEPAY_ENV: mode };
 }
 
-/** True only when the three optional trial products are present. Absent products charge the monthly price. */
+/** True only when every offered plan has its optional trial product. Absent products charge the monthly price. */
 export function commercialTrialsConfigured(environment: BillingEnvironment): boolean {
   const normalized = normalizeBillingEnvironment(environment);
-  return PLAN_IDS.every((id) => normalized[`CASCA_ABACATEPAY_PRODUCT_${id.toUpperCase()}_TRIAL`]?.startsWith("prod_") === true);
+  return OFFERED_SUBSCRIPTION_PLAN_IDS.every((id) => normalized[`CASCA_ABACATEPAY_PRODUCT_${id.toUpperCase()}_TRIAL`]?.startsWith("prod_") === true);
 }
 
 export function createAbacatePayGateway(source: BillingEnvironment, fetcher: typeof fetch = fetch): AbacatePayGateway {
@@ -93,8 +104,13 @@ export function createAbacatePayGateway(source: BillingEnvironment, fetcher: typ
   function usesTrialProduct(planId: SubscriptionPlanId, trial: boolean): boolean {
     return trial && readProductId(planId, true) !== null;
   }
-  for (const id of PLAN_IDS) {
+  // Novas contratações usam só a oferta atual. Produtos legados são opcionais, mas validados quando presentes.
+  for (const id of OFFERED_SUBSCRIPTION_PLAN_IDS) {
     if (!readProductId(id, false)) throw new Error("billing_product_missing");
+  }
+  for (const id of SUBSCRIPTION_PLAN_IDS) {
+    readProductId(id, false);
+    readProductId(id, true);
   }
 
   async function request<T>(path: string, body?: unknown): Promise<T> {

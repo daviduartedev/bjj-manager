@@ -15,7 +15,9 @@ import { PASSWORD_MIN_LENGTH } from "@/lib/auth/password-policy";
 import { cn } from "@/lib/utils";
 import { ACADEMY_MODALITIES, MODALITY_LABELS, type AcademyModality } from "@/lib/modalities/catalog";
 import { academyRegistrationSchema, academyOnboardingSchema, BRAZIL_STATES, BRAZIL_STATE_NAMES } from "@/lib/validations/academy-registration";
-import { SUBSCRIPTION_PLANS, getSubscriptionPlan, type SubscriptionPlanId } from "@/lib/subscriptions/catalog";
+import { DEFAULT_SUBSCRIPTION_PLAN_ID, SUBSCRIPTION_PLANS, capacityLabel, getSubscriptionPlan, type OfferedSubscriptionPlanId } from "@/lib/subscriptions/catalog";
+
+const planPrice = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
 import { ResendConfirmationForm } from "../resend-confirmation-form";
 
@@ -87,7 +89,7 @@ function TextField({ control, name, label, placeholder, autoComplete, type = "te
   )} />;
 }
 
-export function RegisterForm({ initialPlanId = "essencial", trialsEnabled = true }: { initialPlanId?: SubscriptionPlanId; trialsEnabled?: boolean }) {
+export function RegisterForm({ initialPlanId = DEFAULT_SUBSCRIPTION_PLAN_ID, trialsEnabled = true }: { initialPlanId?: OfferedSubscriptionPlanId; trialsEnabled?: boolean }) {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [waiting, setWaiting] = useState<{ message: string; email: string } | null>(null);
@@ -263,8 +265,8 @@ export function RegisterForm({ initialPlanId = "essencial", trialsEnabled = true
             <Form {...form}>
               <form onSubmit={advance} noValidate>
                 <div className="grid gap-4 border-b border-border bg-primary/5 px-6 py-5 sm:grid-cols-[minmax(0,1fr)_minmax(220px,320px)] sm:items-center sm:px-9">
-                  <div><p className="font-semibold">{trialsEnabled ? "3 dias para conhecer o Casca" : "Assinatura da academia"}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{trialsEnabled ? `Após confirmar o e-mail, informe o cartão na adesão. Os 3 dias começam após concluir a adesão; depois, cobrança automática de ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(selectedPlan.priceCents / 100)} por mês. Cancele antes do fim do teste para não ser cobrado.` : `Após confirmar o e-mail, informe o cartão na adesão. A cobrança de ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(selectedPlan.priceCents / 100)} por mês começa na contratação.`}</p></div>
-                  <FormField control={form.control} name="subscriptionPlanId" render={({ field, fieldState }) => <CascaSelectField label="Plano do Casca" value={field.value} onChange={field.onChange} options={SUBSCRIPTION_PLANS.map(plan => ({ id: plan.id, label: `${plan.name} · até ${plan.activeStudentLimit} alunos · R$ ${plan.priceCents / 100}/mês` }))} isRequired isInvalid={fieldState.invalid} errorMessage={fieldState.error?.message} isDisabled={loading} />} />
+                  <div><p className="font-semibold">{trialsEnabled ? "3 dias para conhecer o Casca" : "Assinatura da academia"}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{trialsEnabled ? `Após confirmar o e-mail, informe o cartão na adesão. Os 3 dias começam após concluir a adesão; depois, cobrança automática de ${planPrice(selectedPlan.priceCents)} por mês. Cancele antes do fim do teste para não ser cobrado.` : `Após confirmar o e-mail, informe o cartão na adesão. A cobrança de ${planPrice(selectedPlan.priceCents)} por mês começa na contratação.`}</p></div>
+                  <FormField control={form.control} name="subscriptionPlanId" render={({ field, fieldState }) => <CascaSelectField label="Plano do Casca" value={field.value} onChange={field.onChange} options={SUBSCRIPTION_PLANS.map(plan => ({ id: plan.id, label: `${plan.name} · ${capacityLabel(plan).toLowerCase()} · ${planPrice(plan.priceCents)}/mês` }))} isRequired isInvalid={fieldState.invalid} errorMessage={fieldState.error?.message} isDisabled={loading} />} />
                 </div>
                 <div className="grid lg:grid-cols-[240px_minmax(0,1fr)]">
                   <section className="border-b border-border p-6 sm:p-9 lg:border-b-0 lg:border-r">

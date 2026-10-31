@@ -14,7 +14,7 @@ const record: SubscriptionRecord = {
 };
 
 function emptyOperation() {
-  return { id: "operation-a", account_id: actor.accountId, kind: "checkout" as const, plan_id: "essencial" as const, status: "creating" as const, amount_cents: null, provider_checkout_id: null, provider_checkout_url: null, provider_update_id: null };
+  return { id: "operation-a", account_id: actor.accountId, kind: "checkout" as const, plan_id: "inicial" as const, status: "creating" as const, amount_cents: null, provider_checkout_id: null, provider_checkout_url: null, provider_update_id: null };
 }
 
 function fixture(overrides: Partial<SubscriptionRecord> = {}) {
@@ -27,7 +27,7 @@ function fixture(overrides: Partial<SubscriptionRecord> = {}) {
     findByProvider: vi.fn().mockResolvedValue(stored),
     findByCheckout: vi.fn().mockResolvedValue(stored),
     applyEvent: vi.fn().mockResolvedValue("applied"),
-    reserveOperation: vi.fn().mockResolvedValue({ reserved: true, operation: { ...emptyOperation(), id: "operation-up", kind: "upgrade", plan_id: "academia", amount_cents: 4129 } }),
+    reserveOperation: vi.fn().mockResolvedValue({ reserved: true, operation: { ...emptyOperation(), id: "operation-up", kind: "upgrade", plan_id: "academia_100", amount_cents: 1595 } }),
     completeOperation: vi.fn().mockResolvedValue(undefined),
     getOperation: vi.fn().mockResolvedValue(null),
     findOperationByCheckout: vi.fn().mockResolvedValue(null),
@@ -42,8 +42,8 @@ function fixture(overrides: Partial<SubscriptionRecord> = {}) {
     createCheckout: vi.fn().mockResolvedValue({ id: "bill_b", url: "https://app.abacatepay.com/pay/bill_b" }),
     getSubscription: vi.fn().mockResolvedValue({ id: "subs_a", checkoutId: "bill_a", customerId: "cust_a", amount: 9900, status: "ACTIVE", method: "CARD", devMode: true, trialDays: 3, trialEndsAt: "2026-11-01T12:00:00.000Z", createdAt: now.toISOString(), updatedAt: now.toISOString() }),
     createOneOffCheckout: vi.fn().mockResolvedValue({ id: "bill_up", url: "https://app.abacatepay.com/pay/bill_up" }),
-    getCheckout: vi.fn().mockResolvedValue({ id: "bill_up", amount: 4129, paidAmount: 4129, customerId: "cust_a", externalId: "operation-up", status: "PAID", frequency: "ONE_TIME", devMode: true, updatedAt: now.toISOString() }),
-    changePlan: vi.fn().mockResolvedValue({ id: "subu_a", subscriptionId: "subs_a", productId: "prod_academia", newAmount: 17900, status: "PENDING" }),
+    getCheckout: vi.fn().mockResolvedValue({ id: "bill_up", amount: 1595, paidAmount: 1595, customerId: "cust_a", externalId: "operation-up", status: "PAID", frequency: "ONE_TIME", devMode: true, updatedAt: now.toISOString() }),
+    changePlan: vi.fn().mockResolvedValue({ id: "subu_a", subscriptionId: "subs_a", productId: "prod_academia_100", newAmount: 12990, status: "PENDING" }),
     cancelSubscription: vi.fn().mockResolvedValue(undefined),
   };
   return { repository, gateway, service: createSubscriptionService({ repository, gateway, now: () => now }), stored };
@@ -56,29 +56,29 @@ function trialEvent() {
 describe("contratação comercial da academia", () => {
   it("inicia somente o checkout do plano escolhido com trial, sem liberar a academia antes do evento", async () => {
     const { service, repository, gateway } = fixture();
-    const result = await service.startCheckout(actor, { planId: "essencial" });
+    const result = await service.startCheckout(actor, { planId: "inicial" });
     expect(result).toEqual({ ok: true, data: { checkoutUrl: "https://app.abacatepay.com/pay/bill_b" } });
-    expect(gateway.createCheckout).toHaveBeenCalledWith({ operationId: "operation-a", planId: "essencial", customerId: "cust_a", trial: true });
+    expect(gateway.createCheckout).toHaveBeenCalledWith({ operationId: "operation-a", planId: "inicial", customerId: "cust_a", trial: true });
     expect(repository.applyEvent).not.toHaveBeenCalled();
   });
 
   it("recusa aluno e campos financeiros ou tenant enviados pelo navegador antes de cobrar", async () => {
     const { service, gateway } = fixture();
-    expect((await service.startCheckout({ ...actor, role: "student" }, { planId: "essencial" })).ok).toBe(false);
-    expect((await service.startCheckout(actor, { planId: "essencial", accountId: "other", amount: 1 })).ok).toBe(false);
+    expect((await service.startCheckout({ ...actor, role: "student" }, { planId: "inicial" })).ok).toBe(false);
+    expect((await service.startCheckout(actor, { planId: "inicial", accountId: "other", amount: 1 })).ok).toBe(false);
     expect(gateway.createCheckout).not.toHaveBeenCalled();
   });
 
   it("não concede outro trial a uma academia que já usou o benefício", async () => {
     const { service, gateway } = fixture({ status: "cancelled", trial_used: true });
-    await service.startCheckout(actor, { planId: "essencial" });
+    await service.startCheckout(actor, { planId: "inicial" });
     expect(gateway.createCheckout).toHaveBeenCalledWith(expect.objectContaining({ trial: false }));
   });
 
   it("retoma checkout persistido sem abrir outra cobrança", async () => {
     const { service, repository, gateway } = fixture();
     vi.mocked(repository.reserveCheckout).mockResolvedValue({ reserved: false, operation: { ...emptyOperation(), status: "ready", provider_checkout_id: "bill_a", provider_checkout_url: record.provider_checkout_url } });
-    expect(await service.startCheckout(actor, { planId: "essencial" })).toMatchObject({ ok: true, data: { checkoutUrl: record.provider_checkout_url } });
+    expect(await service.startCheckout(actor, { planId: "inicial" })).toMatchObject({ ok: true, data: { checkoutUrl: record.provider_checkout_url } });
     expect(gateway.createCheckout).not.toHaveBeenCalled();
   });
 
@@ -101,7 +101,7 @@ describe("contratação comercial da academia", () => {
     const { service, repository, gateway } = fixture();
     vi.mocked(repository.reserveCheckout).mockResolvedValue({ reserved: false, operation: emptyOperation() });
     gateway.findCheckoutByOperation = vi.fn().mockResolvedValue({ id: "bill_recovered", url: "https://app.abacatepay.com/pay/bill_recovered", customerId: "cust_a" });
-    expect(await service.startCheckout(actor, { planId: "essencial" })).toEqual({ ok: true, data: { checkoutUrl: "https://app.abacatepay.com/pay/bill_recovered" } });
+    expect(await service.startCheckout(actor, { planId: "inicial" })).toEqual({ ok: true, data: { checkoutUrl: "https://app.abacatepay.com/pay/bill_recovered" } });
     expect(gateway.createCheckout).not.toHaveBeenCalled();
     expect(repository.completeCheckout).toHaveBeenCalledWith("operation-a", "cust_a", expect.objectContaining({ id: "bill_recovered" }));
   });
@@ -143,7 +143,7 @@ describe("contratação comercial da academia", () => {
       const stored = await repository.get(actor.accountId);
       Object.assign(stored!, { provider_subscription_id: null, provider_checkout_id: "bill_b", status: "pending", paid_until: null, current_period_start: null });
     });
-    const checkout = await service.startCheckout(actor, { planId: "essencial" });
+    const checkout = await service.startCheckout(actor, { planId: "inicial" });
     expect(checkout.ok).toBe(true);
     expect(gateway.createCheckout).toHaveBeenCalledWith(expect.objectContaining({ trial: false }));
     const event = { ...trialEvent(), event: "subscription.completed", data: { subscription: { ...trialEvent().data.subscription, id: "subs_new", trialDays: null, trialEndsAt: null }, checkout: { id: "bill_b" }, customer: { id: "cust_a" }, payment: { id: "char_new", amount: 9900, paidAmount: 9900, status: "PAID", updatedAt: now.toISOString() } } };
@@ -171,7 +171,7 @@ function upgradeEvent() {
     data: {
       checkout: { id: "bill_up", customerId: "cust_a", updatedAt: now.toISOString() },
       customer: { id: "cust_a" },
-      payment: { id: "char_up", amount: 4129, paidAmount: 4129, status: "PAID", updatedAt: now.toISOString() },
+      payment: { id: "char_up", amount: 1595, paidAmount: 1595, status: "PAID", updatedAt: now.toISOString() },
     },
   };
 }
@@ -188,44 +188,44 @@ describe("cancelamento e troca de plano", () => {
 
   it("mostra o valor proporcional calculado no servidor e recusa preço enviado pelo navegador", async () => {
     const { service, gateway } = t3Fixture({ plan_id: "essencial" });
-    const quote = await service.quotePlanChange(actor, { planId: "academia" });
-    expect(quote).toEqual({ ok: true, data: expect.objectContaining({ kind: "upgrade", amountCents: 4129, immediate: false, targetLimit: 150 }) });
-    expect((await service.quotePlanChange(actor, { planId: "academia", amountCents: 1 })).ok).toBe(false);
-    expect((await service.startPlanChange({ ...actor, role: "student" }, { planId: "academia" })).ok).toBe(false);
+    const quote = await service.quotePlanChange(actor, { planId: "academia_100" });
+    expect(quote).toEqual({ ok: true, data: expect.objectContaining({ kind: "upgrade", amountCents: 1595, immediate: false, targetLimit: 100 }) });
+    expect((await service.quotePlanChange(actor, { planId: "academia_100", amountCents: 1 })).ok).toBe(false);
+    expect((await service.startPlanChange({ ...actor, role: "student" }, { planId: "academia_100" })).ok).toBe(false);
     expect(gateway.createOneOffCheckout).not.toHaveBeenCalled();
   });
 
   it("só libera o limite do upgrade depois do pagamento avulso confirmado", async () => {
     const { service, repository, gateway } = t3Fixture({ plan_id: "essencial" });
-    expect(await service.startPlanChange(actor, { planId: "academia" })).toEqual({ ok: true, data: { checkoutUrl: "https://app.abacatepay.com/pay/bill_up" } });
-    expect(gateway.createOneOffCheckout).toHaveBeenCalledWith({ operationId: "operation-up", amountCents: 4129, customerId: "cust_a" });
+    expect(await service.startPlanChange(actor, { planId: "academia_100" })).toEqual({ ok: true, data: { checkoutUrl: "https://app.abacatepay.com/pay/bill_up" } });
+    expect(gateway.createOneOffCheckout).toHaveBeenCalledWith({ operationId: "operation-up", amountCents: 1595, customerId: "cust_a" });
     expect(repository.applyUpgrade).not.toHaveBeenCalled();
     expect(gateway.changePlan).not.toHaveBeenCalled();
-    vi.mocked(repository.findOperationByCheckout).mockResolvedValue({ id: "operation-up", account_id: actor.accountId, kind: "upgrade", plan_id: "academia", status: "ready", amount_cents: 4129, provider_checkout_id: "bill_up", provider_checkout_url: "https://app.abacatepay.com/pay/bill_up", provider_update_id: null });
+    vi.mocked(repository.findOperationByCheckout).mockResolvedValue({ id: "operation-up", account_id: actor.accountId, kind: "upgrade", plan_id: "academia_100", status: "ready", amount_cents: 1595, provider_checkout_id: "bill_up", provider_checkout_url: "https://app.abacatepay.com/pay/bill_up", provider_update_id: null });
     expect(await service.receiveEvent(upgradeEvent())).toEqual({ ok: true, data: { outcome: "applied" } });
-    expect(repository.applyUpgrade).toHaveBeenCalledWith(expect.objectContaining({ accountId: actor.accountId, planId: "academia", amountCents: 4129, paymentId: "char_up" }));
-    expect(gateway.changePlan).toHaveBeenCalledWith({ subscriptionId: "subs_a", planId: "academia" });
+    expect(repository.applyUpgrade).toHaveBeenCalledWith(expect.objectContaining({ accountId: actor.accountId, planId: "academia_100", amountCents: 1595, paymentId: "char_up" }));
+    expect(gateway.changePlan).toHaveBeenCalledWith({ subscriptionId: "subs_a", planId: "academia_100" });
   });
 
   it("retoma a sincronização do plano recorrente sem criar outra cobrança", async () => {
     const { service, repository, gateway } = t3Fixture({ plan_id: "essencial" });
-    vi.mocked(repository.reserveOperation).mockResolvedValue({ reserved: false, operation: { id: "operation-up", account_id: actor.accountId, kind: "upgrade", plan_id: "academia", status: "paid", amount_cents: 4129, provider_checkout_id: "bill_up", provider_checkout_url: "https://app.abacatepay.com/pay/bill_up", provider_update_id: null } });
-    expect(await service.startPlanChange(actor, { planId: "academia" })).toEqual({ ok: true, data: { resumed: true } });
+    vi.mocked(repository.reserveOperation).mockResolvedValue({ reserved: false, operation: { id: "operation-up", account_id: actor.accountId, kind: "upgrade", plan_id: "academia_100", status: "paid", amount_cents: 1595, provider_checkout_id: "bill_up", provider_checkout_url: "https://app.abacatepay.com/pay/bill_up", provider_update_id: null } });
+    expect(await service.startPlanChange(actor, { planId: "academia_100" })).toEqual({ ok: true, data: { resumed: true } });
     expect(gateway.createOneOffCheckout).not.toHaveBeenCalled();
-    expect(gateway.changePlan).toHaveBeenCalledWith({ subscriptionId: "subs_a", planId: "academia" });
+    expect(gateway.changePlan).toHaveBeenCalledWith({ subscriptionId: "subs_a", planId: "academia_100" });
     expect(repository.completeOperation).toHaveBeenCalledWith(expect.objectContaining({ operationId: "operation-up", providerUpdateId: "subu_a", status: "completed" }));
   });
 
   it("ignora checkout de upgrade repetido ou sem pagamento confirmado", async () => {
     const { service, repository, gateway } = t3Fixture({ plan_id: "essencial" });
-    vi.mocked(repository.findOperationByCheckout).mockResolvedValue({ id: "operation-up", account_id: actor.accountId, kind: "upgrade", plan_id: "academia", status: "ready", amount_cents: 4129, provider_checkout_id: "bill_up", provider_checkout_url: "https://app.abacatepay.com/pay/bill_up", provider_update_id: null });
+    vi.mocked(repository.findOperationByCheckout).mockResolvedValue({ id: "operation-up", account_id: actor.accountId, kind: "upgrade", plan_id: "academia_100", status: "ready", amount_cents: 1595, provider_checkout_id: "bill_up", provider_checkout_url: "https://app.abacatepay.com/pay/bill_up", provider_update_id: null });
     const unpaid = upgradeEvent();
     unpaid.data.payment.status = "PENDING";
     unpaid.data.payment.paidAmount = 0;
-    vi.mocked(gateway.getCheckout!).mockResolvedValue({ id: "bill_up", amount: 4129, paidAmount: 0, customerId: "cust_a", externalId: "operation-up", status: "PENDING", frequency: "ONE_TIME", devMode: true, updatedAt: now.toISOString() });
+    vi.mocked(gateway.getCheckout!).mockResolvedValue({ id: "bill_up", amount: 1595, paidAmount: 0, customerId: "cust_a", externalId: "operation-up", status: "PENDING", frequency: "ONE_TIME", devMode: true, updatedAt: now.toISOString() });
     expect((await service.receiveEvent(unpaid)).ok).toBe(false);
     expect(repository.applyUpgrade).not.toHaveBeenCalled();
-    vi.mocked(gateway.getCheckout!).mockResolvedValue({ id: "bill_up", amount: 4129, paidAmount: 4129, customerId: "cust_a", externalId: "operation-up", status: "PAID", frequency: "ONE_TIME", devMode: true, updatedAt: now.toISOString() });
+    vi.mocked(gateway.getCheckout!).mockResolvedValue({ id: "bill_up", amount: 1595, paidAmount: 1595, customerId: "cust_a", externalId: "operation-up", status: "PAID", frequency: "ONE_TIME", devMode: true, updatedAt: now.toISOString() });
     vi.mocked(repository.applyUpgrade).mockResolvedValue("duplicate");
     expect(await service.receiveEvent(upgradeEvent())).toEqual({ ok: true, data: { outcome: "duplicate" } });
     expect(gateway.changePlan).not.toHaveBeenCalled();
@@ -233,20 +233,36 @@ describe("cancelamento e troca de plano", () => {
 
   it("agenda downgrade no próximo ciclo só se os alunos ativos couberem", async () => {
     const { service, repository, gateway } = t3Fixture({ plan_id: "academia" });
-    vi.mocked(gateway.changePlan!).mockResolvedValue({ id: "subu_down", subscriptionId: "subs_a", productId: "prod_essencial", newAmount: 9900, status: "PENDING" });
-    vi.mocked(repository.reserveOperation).mockResolvedValue({ reserved: true, operation: { ...emptyOperation(), id: "operation-down", kind: "downgrade", plan_id: "essencial" } });
-    expect(await service.startPlanChange(actor, { planId: "essencial" })).toEqual({ ok: true, data: { scheduled: true, appliesAt: paid.paid_until } });
+    vi.mocked(gateway.changePlan!).mockResolvedValue({ id: "subu_down", subscriptionId: "subs_a", productId: "prod_inicial", newAmount: 7990, status: "PENDING" });
+    vi.mocked(repository.reserveOperation).mockResolvedValue({ reserved: true, operation: { ...emptyOperation(), id: "operation-down", kind: "downgrade", plan_id: "inicial" } });
+    expect(await service.startPlanChange(actor, { planId: "inicial" })).toEqual({ ok: true, data: { scheduled: true, appliesAt: paid.paid_until } });
     expect(gateway.createOneOffCheckout).not.toHaveBeenCalled();
-    expect(gateway.changePlan).toHaveBeenCalledWith({ subscriptionId: "subs_a", planId: "essencial" });
-    expect(repository.schedulePlanChange).toHaveBeenCalledWith(expect.objectContaining({ planId: "essencial", at: paid.paid_until }));
+    expect(gateway.changePlan).toHaveBeenCalledWith({ subscriptionId: "subs_a", planId: "inicial" });
+    expect(repository.schedulePlanChange).toHaveBeenCalledWith(expect.objectContaining({ planId: "inicial", at: paid.paid_until }));
     vi.mocked(repository.countActiveStudents).mockResolvedValue(51);
-    expect((await service.startPlanChange(actor, { planId: "essencial" })).ok).toBe(false);
+    expect((await service.startPlanChange(actor, { planId: "inicial" })).ok).toBe(false);
+  });
+
+  it("recusa contratar ou trocar para plano legado, que não é mais oferecido", async () => {
+    const { service, gateway } = fixture();
+    expect((await service.startCheckout(actor, { planId: "essencial" })).ok).toBe(false);
+    expect(gateway.createCheckout).not.toHaveBeenCalled();
+    const paidLegacy = t3Fixture({ plan_id: "inicial" });
+    expect((await paidLegacy.service.quotePlanChange(actor, { planId: "evolucao" })).ok).toBe(false);
+    expect((await paidLegacy.service.startPlanChange(actor, { planId: "academia" })).ok).toBe(false);
+  });
+
+  it("assinante legado troca para o Ilimitado sem teto de alunos ativos", async () => {
+    const { service, repository } = t3Fixture({ plan_id: "evolucao" });
+    vi.mocked(repository.countActiveStudents).mockResolvedValue(450);
+    const quote = await service.quotePlanChange(actor, { planId: "ilimitado" });
+    expect(quote).toEqual({ ok: true, data: expect.objectContaining({ currentPlanId: "evolucao", targetPlanId: "ilimitado", kind: "downgrade", targetLimit: Number.POSITIVE_INFINITY }) });
   });
 
   it("não antecipa capacidade nem acesso no evento plan_changed", async () => {
-    const { service, repository, gateway } = t3Fixture({ plan_id: "essencial", pending_plan_id: "academia", pending_plan_at: paid.paid_until });
-    const event = { ...trialEvent(), id: "log_plan", event: "subscription.plan_changed", data: { ...trialEvent().data, subscription: { ...trialEvent().data.subscription, amount: 17900 } } };
-    vi.mocked(gateway.getSubscription).mockResolvedValue({ ...(await gateway.getSubscription("subs_a")), amount: 17900, trialDays: null, trialEndsAt: null });
+    const { service, repository, gateway } = t3Fixture({ plan_id: "essencial", pending_plan_id: "academia_100", pending_plan_at: paid.paid_until });
+    const event = { ...trialEvent(), id: "log_plan", event: "subscription.plan_changed", data: { ...trialEvent().data, subscription: { ...trialEvent().data.subscription, amount: 12990 } } };
+    vi.mocked(gateway.getSubscription).mockResolvedValue({ ...(await gateway.getSubscription("subs_a")), amount: 12990, trialDays: null, trialEndsAt: null });
     expect(await service.receiveEvent(event)).toEqual({ ok: true, data: { outcome: "applied" } });
     expect(repository.applyEvent).toHaveBeenCalledWith(expect.objectContaining({ eventName: "subscription.plan_changed", planId: "essencial", paidUntil: paid.paid_until, status: "active" }));
   });

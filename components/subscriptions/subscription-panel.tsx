@@ -12,7 +12,7 @@ import {
   startSubscriptionPlanChange,
 } from "@/actions/subscription";
 import { Button } from "@/components/ui/button";
-import { SUBSCRIPTION_PLANS, getSubscriptionPlan, type SubscriptionPlanId } from "@/lib/subscriptions/catalog";
+import { DEFAULT_SUBSCRIPTION_PLAN_ID, SUBSCRIPTION_PLANS, capacityLabel, getOfferedSubscriptionPlan, getSubscriptionPlan, hasStudentLimit, type SubscriptionPlanId } from "@/lib/subscriptions/catalog";
 import type { PlanChangeQuote, SubscriptionRecord, SubscriptionStatus } from "@/lib/subscriptions/types";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +46,9 @@ export function SubscriptionPanel({ subscription, activeStudentCount, configured
   unavailable: boolean;
   checkoutReceived?: boolean;
 }) {
-  const [selected, setSelected] = useState<SubscriptionPlanId>(subscription?.plan_id ?? "essencial");
+  const [selected, setSelected] = useState<SubscriptionPlanId>(
+    (subscription && getOfferedSubscriptionPlan(subscription.plan_id)?.id) || DEFAULT_SUBSCRIPTION_PLAN_ID,
+  );
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -83,7 +85,7 @@ export function SubscriptionPanel({ subscription, activeStudentCount, configured
         return;
       }
       if ("scheduled" in result.data) {
-        setMessage(`A redução de plano entra em vigor em ${dateLabel(result.data.appliesAt)}. Até lá, o limite atual permanece e novas ativações respeitam o plano de destino.`);
+        setMessage(`A troca de plano entra em vigor em ${dateLabel(result.data.appliesAt)}. Até lá, vale o menor limite entre o plano atual e o novo.`);
         return;
       }
       setMessage("Plano atualizado. A próxima cobrança recorrente usará o novo valor.");
@@ -194,6 +196,9 @@ function StatusCard({ subscription, exempt, confirmed, activeStudentCount, messa
           {!exempt && paidThrough ? (
             <p className="mt-3 text-sm">{subscription?.status === "cancelled" ? "Acesso mantido até" : "Período pago até"} <strong>{paidThrough}</strong>.</p>
           ) : null}
+          {!exempt && plan && !plan.offered ? (
+            <p className="mt-2 text-sm">O plano {plan.name} não é mais oferecido. Você mantém o preço e o limite contratados e pode trocar para um dos planos atuais.</p>
+          ) : null}
           {subscription?.pending_plan_id ? (
             <p className="mt-2 text-sm">Próximo plano: {getSubscriptionPlan(subscription.pending_plan_id)?.name}, em {subscription.pending_plan_at ? dateLabel(subscription.pending_plan_at) : "seu próximo vencimento"}.</p>
           ) : null}
@@ -211,6 +216,16 @@ function StatusCard({ subscription, exempt, confirmed, activeStudentCount, messa
 }
 
 function UsageMeter({ used, limit }: { used: number; limit: number }) {
+  if (!Number.isFinite(limit)) {
+    return (
+      <div>
+        <p className="text-sm text-muted-foreground">Alunos ativos ilimitados</p>
+        <p className="mt-1 text-2xl font-bold tabular-nums tracking-[-0.02em]">
+          {used} <span className="text-base font-medium text-muted-foreground">ativos agora</span>
+        </p>
+      </div>
+    );
+  }
   const ratio = Math.min(1, limit > 0 ? used / limit : 0);
   const near = ratio >= 0.9;
   return (
@@ -273,7 +288,7 @@ function PlanPicker({ selected, onChange, disabled, currentPlanId, activeStudent
               {money(option.priceCents)}
               <span className="ml-1 text-sm font-normal tracking-normal text-muted-foreground">/mês</span>
             </p>
-            <p className="mt-2 text-sm font-medium">Até {option.activeStudentLimit} alunos ativos</p>
+            <p className="mt-2 text-sm font-medium">{capacityLabel(option)}</p>
             <p className="mt-1 text-sm text-muted-foreground">Todos os recursos atuais.</p>
             {tooSmall ? (
               <p className="mt-3 rounded-lg bg-[#F8B800]/20 px-2.5 py-1.5 text-xs font-medium text-neutral-900">
@@ -311,7 +326,7 @@ function ContractSummary({ planId, trial, pending, blocked, error, onContract }:
       <h3 id="contract-summary-title" className="text-lg font-semibold">Resumo da adesão</h3>
       <dl className="mt-5 space-y-3 text-sm">
         <SummaryRow label="Plano" value={plan.name} />
-        <SummaryRow label="Limite" value={`${plan.activeStudentLimit} alunos ativos`} />
+        <SummaryRow label="Limite" value={hasStudentLimit(plan) ? `${plan.activeStudentLimit} alunos ativos` : "Ilimitado"} />
         <SummaryRow label="Mensalidade" value={`${money(plan.priceCents)}/mês`} />
       </dl>
       <div className="mt-5 border-t border-black/10 pt-5">
@@ -393,19 +408,19 @@ function ChangeSummary({ currentPlanId, targetPlanId, activeStudentCount, canQuo
                   <p className="text-2xl font-bold tabular-nums tracking-[-0.02em]">{money(data.amountCents)}</p>
                 </div>
                 <p className="mt-1 text-muted-foreground">
-                  Diferença proporcional até o fim do ciclo atual. O limite de {target.activeStudentLimit} alunos ativos é liberado depois do pagamento confirmado. A próxima mensalidade passa a ser {money(target.priceCents)}.
+                  Diferença proporcional até o fim do ciclo atual. A nova capacidade ({capacityLabel(target).toLowerCase()}) é liberada depois do pagamento confirmado. A próxima mensalidade passa a ser {money(target.priceCents)}.
                 </p>
               </>
             ) : data && data.immediate ? (
               <p className="leading-relaxed">A troca vale agora, sem cobrança avulsa. A próxima mensalidade passa a ser {money(target.priceCents)}.</p>
             ) : data && data.kind === "downgrade" ? (
               <p className="leading-relaxed">
-                A redução para {target.name} entra em vigor em <strong>{data.appliesAt ? dateLabel(data.appliesAt) : "seu próximo vencimento"}</strong>. Até lá, novas ativações respeitam o limite de {target.activeStudentLimit} alunos.
+                A troca para {target.name} entra em vigor em <strong>{data.appliesAt ? dateLabel(data.appliesAt) : "seu próximo vencimento"}</strong>. {hasStudentLimit(target) && target.activeStudentLimit < current.activeStudentLimit ? `Até lá, novas ativações respeitam o limite de ${target.activeStudentLimit} alunos.` : "Até lá, o limite atual continua valendo."}
               </p>
             ) : upgrade ? (
-              <p className="leading-relaxed">O aumento para {target.name} cobra agora a diferença proporcional restante do ciclo e libera o limite de {target.activeStudentLimit} alunos ativos depois do pagamento confirmado. A próxima mensalidade passa a ser {money(target.priceCents)}.</p>
+              <p className="leading-relaxed">O aumento para {target.name} cobra agora a diferença proporcional restante do ciclo e libera a nova capacidade ({capacityLabel(target).toLowerCase()}) depois do pagamento confirmado. A próxima mensalidade passa a ser {money(target.priceCents)}.</p>
             ) : (
-              <p className="leading-relaxed">A redução para {target.name} entra no próximo vencimento, se os {activeStudentCount} alunos ativos couberem no limite de {target.activeStudentLimit}. Até lá, novas ativações respeitam esse limite.</p>
+              <p className="leading-relaxed">{hasStudentLimit(target) ? `A troca para ${target.name} entra no próximo vencimento, se os ${activeStudentCount} alunos ativos couberem no limite de ${target.activeStudentLimit}. Até lá, novas ativações respeitam esse limite.` : `A troca para ${target.name} entra no próximo vencimento, sem limite de alunos ativos.`}</p>
             )}
             {quote.error ? <p className="mt-3 text-destructive" role="alert">{quote.error}</p> : null}
             {tooSmall ? (

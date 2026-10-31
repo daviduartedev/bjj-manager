@@ -1,3 +1,5 @@
+import { ChevronDown } from "lucide-react";
+
 import { LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 
 const FAQ_ITEMS = [
@@ -13,23 +15,22 @@ const FAQ_ITEMS = [
 export function LpFaq() {
   return (
     <LpSection id="faq" className="scroll-mt-24 bg-white">
-      <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
-        <LpReveal>
-          <h2 className="max-w-[17ch] text-[clamp(2.5rem,4.5vw,4rem)] font-bold leading-[1.08] tracking-[-0.045em] text-foreground">
-            Ficou com alguma dúvida, mestrão? <span className="block text-brand-blue">O Casca responde.</span>
-          </h2>
-          <p className="mt-6 max-w-[35ch] text-lg leading-relaxed text-muted-foreground">Sobre a academia, os alunos e a assinatura. Tudo explicado para você decidir.</p>
-        </LpReveal>
-        <div className="space-y-2">
-          {FAQ_ITEMS.map(({ q, a }) => (
-            <details key={q} className="group">
-              <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-5 text-base font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-blue [&::-webkit-details-marker]:hidden">
-                <span>{q}</span><span aria-hidden className="shrink-0 text-2xl font-normal text-brand-blue"><span className="group-open:hidden">+</span><span className="hidden group-open:inline">−</span></span>
-              </summary>
-              <p className="max-w-[57ch] pb-6 leading-relaxed text-muted-foreground">{a}</p>
-            </details>
-          ))}
-        </div>
+      <LpReveal>
+        <h2 className="text-balance text-[clamp(2.25rem,4.2vw,3.5rem)] font-bold leading-[1.1] tracking-[-0.04em] text-foreground">
+          Ficou com alguma dúvida, mestrão? <span className="text-brand-blue">O Casca responde.</span>
+        </h2>
+        <p className="mt-4 text-base leading-relaxed text-muted-foreground">Sobre a academia, os alunos e a assinatura. Tudo explicado para você decidir.</p>
+      </LpReveal>
+      <div className="mt-12 border-t border-black/10">
+        {FAQ_ITEMS.map(({ q, a }) => (
+          <details key={q} className="group border-b border-black/10">
+            <summary className="flex min-h-20 cursor-pointer list-none items-center justify-between gap-6 py-6 text-[clamp(1.125rem,2vw,1.5rem)] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:text-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-blue [&::-webkit-details-marker]:hidden">
+              <span>{q}</span>
+              <ChevronDown aria-hidden className="size-6 shrink-0 stroke-[1.5] text-foreground transition-transform duration-300 group-open:rotate-180 motion-reduce:transition-none" />
+            </summary>
+            <p className="max-w-[70ch] pb-7 pr-12 text-base leading-relaxed text-muted-foreground sm:text-lg">{a}</p>
+          </details>
+        ))}
       </div>
     </LpSection>
   );

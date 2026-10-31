@@ -33,7 +33,7 @@ describe("academySignupCallbackUrl", () => {
 describe("submitAcademyRegistration", () => {
   it("preserva o plano escolhido na intencao confiavel de cadastro", async () => {
     const intents: unknown[] = [];
-    const result = await submitAcademyRegistration({ ...validInput, subscriptionPlanId: "academia" }, {
+    const result = await submitAcademyRegistration({ ...validInput, subscriptionPlanId: "academia_100" }, {
       appUrl: "https://app.casca.test",
       signUp: vi.fn().mockResolvedValue({ user: { id: "plan-user", identities: [{ id: "identity" }] }, error: null }),
       recordIntent: async intent => { intents.push(intent); return { ok: true }; },
@@ -41,16 +41,17 @@ describe("submitAcademyRegistration", () => {
 
     expect(result.ok).toBe(true);
     expect(intents).toEqual([{
-      userId: "plan-user", academyName: "Academia Casca", displayName: "Ana Souza", modality: "jiu_jitsu", subscriptionPlanId: "academia",
+      userId: "plan-user", academyName: "Academia Casca", displayName: "Ana Souza", modality: "jiu_jitsu", subscriptionPlanId: "academia_100",
     }]);
   });
 
-  it("recusa plano desconhecido e preco enviado pelo navegador antes de criar conta", async () => {
+  it("recusa plano desconhecido, plano legado e preco enviado pelo navegador antes de criar conta", async () => {
     const signUp = vi.fn();
     const recordIntent = vi.fn();
     for (const payload of [
       { ...validInput, subscriptionPlanId: "gratuito" },
-      { ...validInput, subscriptionPlanId: "essencial", priceCents: 1 },
+      { ...validInput, subscriptionPlanId: "essencial" },
+      { ...validInput, subscriptionPlanId: "inicial", priceCents: 1 },
     ]) {
       expect((await submitAcademyRegistration(payload, { appUrl: "https://app.casca.test", signUp, recordIntent })).ok).toBe(false);
     }
@@ -69,7 +70,7 @@ describe("submitAcademyRegistration", () => {
     });
     expect(result).toEqual({ ok: true, message: WAITING });
     expect(intents).toEqual([{
-      userId: "jiu-jitsu-user", academyName: "Academia Casca", displayName: "Ana Souza", modality: "jiu_jitsu", subscriptionPlanId: "essencial",
+      userId: "jiu-jitsu-user", academyName: "Academia Casca", displayName: "Ana Souza", modality: "jiu_jitsu", subscriptionPlanId: "inicial",
     }]);
     expect(signUp.mock.calls[0]?.[0]).not.toHaveProperty("modality");
   });
@@ -112,7 +113,7 @@ describe("submitAcademyRegistration", () => {
       });
       expect(created.ok).toBe(true);
       expect(intents).toEqual([{
-        userId: modality, academyName: validInput.academyName, displayName: validInput.displayName, modality, subscriptionPlanId: "essencial",
+        userId: modality, academyName: validInput.academyName, displayName: validInput.displayName, modality, subscriptionPlanId: "inicial",
       }]);
     }
   });
@@ -151,7 +152,7 @@ describe("submitAcademyRegistration", () => {
       emailRedirectTo: "https://app.casca.test/auth/callback",
       onboarding: { ...onboarding, city: "Campinas" },
     });
-    expect(recordIntent).toHaveBeenCalledWith({ userId: "new-user", academyName: validInput.academyName, displayName: validInput.displayName, modality: "jiu_jitsu", subscriptionPlanId: "essencial" });
+    expect(recordIntent).toHaveBeenCalledWith({ userId: "new-user", academyName: validInput.academyName, displayName: validInput.displayName, modality: "jiu_jitsu", subscriptionPlanId: "inicial" });
   });
 
   it("rejects a city selection that does not exist in the selected state before creating an account", async () => {
@@ -249,7 +250,7 @@ describe("submitAcademyRegistration", () => {
       academyName: "Academia Casca",
       displayName: "Ana Souza",
       modality: "jiu_jitsu",
-      subscriptionPlanId: "essencial",
+      subscriptionPlanId: "inicial",
     });
     expect(duplicateRecord).not.toHaveBeenCalled();
     expect(alreadyRegisteredRecord).not.toHaveBeenCalled();

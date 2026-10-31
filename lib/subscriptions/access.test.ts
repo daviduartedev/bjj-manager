@@ -54,4 +54,12 @@ describe("acesso operacional da assinatura Casca", () => {
     expect(getSubscriptionAccess(subscription({ ...paid, plan_id: "academia", pending_plan_id: "essencial" }), now, true).activeStudentLimit).toBe(50);
     expect(getSubscriptionAccess(subscription({ ...paid, pending_plan_id: "academia" }), now, true).activeStudentLimit).toBe(50);
   });
+
+  it("plano Ilimitado escreve sem teto e só ganha limite ao reduzir para plano com teto", () => {
+    const paid = { status: "active", paid_until: "2026-11-01T00:00:00Z", pending_plan_at: "2026-11-01T00:00:00Z" } as const;
+    expect(getSubscriptionAccess(subscription({ ...paid, plan_id: "ilimitado", pending_plan_at: null }), now, true))
+      .toMatchObject({ canWrite: true, activeStudentLimit: Number.POSITIVE_INFINITY });
+    expect(getSubscriptionAccess(subscription({ ...paid, plan_id: "ilimitado", pending_plan_id: "inicial" }), now, true).activeStudentLimit).toBe(50);
+    expect(getSubscriptionAccess(subscription({ ...paid, plan_id: "evolucao", pending_plan_id: "ilimitado" }), now, true).activeStudentLimit).toBe(300);
+  });
 });

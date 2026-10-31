@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-export const subscriptionPlanIdSchema = z.enum(["essencial", "academia", "evolucao"]);
+import { OFFERED_SUBSCRIPTION_PLAN_IDS } from "./catalog";
+
+/** Entrada de quem contrata ou troca de plano: só a oferta atual. Planos legados continuam válidos no banco. */
+export const subscriptionPlanIdSchema = z.enum(OFFERED_SUBSCRIPTION_PLAN_IDS);
 export const checkoutInputSchema = z.object({ planId: subscriptionPlanIdSchema }).strict();
 export const planChangeInputSchema = z.object({ planId: subscriptionPlanIdSchema }).strict();
 
