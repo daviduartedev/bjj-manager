@@ -104,6 +104,18 @@ test.describe("Smoke UI rápido", () => {
     await expect(manifesto).toContainText("O Casca organiza a academia para você voltar ao que importa: o tatame.");
   });
 
+  test("landing: continua clara quando o aparelho usa modo escuro", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute("content", "only light");
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#ffffff");
+    const cores = await page.evaluate(() => ({
+      esquema: getComputedStyle(document.documentElement).colorScheme.split(" ").sort().join(" "),
+      fundoLanding: getComputedStyle(document.getElementById("top")!.parentElement!).backgroundColor,
+    }));
+    expect(cores).toEqual({ esquema: "light only", fundoLanding: "rgb(255, 255, 255)" });
+  });
+
   test("landing: FAQ chama o mestrão e responde pelo Casca", async ({ page }) => {
     await page.goto("/#faq", { waitUntil: "domcontentloaded" });
     const titulo = page.locator("#faq").getByRole("heading", { level: 2 });

@@ -219,6 +219,7 @@ html {
     @apply border-border;
   }
   html {
+    color-scheme: only light;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;

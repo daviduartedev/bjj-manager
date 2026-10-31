@@ -48,7 +48,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#050505",
+  // O site só tem tema claro: impede que navegadores com modo escuro escureçam as páginas.
+  colorScheme: "only light",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
