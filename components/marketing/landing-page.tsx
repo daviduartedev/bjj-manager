@@ -10,8 +10,9 @@ import { LpManifesto } from "@/components/marketing/lp-manifesto";
 import { LpModalitiesBanner } from "@/components/marketing/lp-modalities-banner";
 import { LpPricing } from "@/components/marketing/lp-pricing";
 import { LpProductOverview } from "@/components/marketing/lp-product-overview";
+import { LpTestimonials } from "@/components/marketing/lp-testimonials";
 
-/** Organização → manifesto → rotina → primeiros passos → evolução → oferta. */
+/** Organização → manifesto → rotina → primeiros passos → evolução → depoimentos → oferta. */
 export function LandingPage() {
   return (
     <div
@@ -27,6 +28,7 @@ export function LandingPage() {
         <LpHowItWorks />
         <LpBelts />
         <LpModalitiesBanner />
+        <LpTestimonials />
         <LpPricing />
         <LpFaq />
         <LpCta />

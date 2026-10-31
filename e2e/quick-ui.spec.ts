@@ -116,6 +116,28 @@ test.describe("Smoke UI rápido", () => {
     expect(cores).toEqual({ esquema: "light only", fundoLanding: "rgb(255, 255, 255)" });
   });
 
+  test("landing: depoimentos trocam a citação em destaque e mostram as academias", async ({ page }) => {
+    await page.goto("/#depoimentos", { waitUntil: "domcontentloaded" });
+    const secao = page.getByRole("region", { name: "Depoimentos de quem usa o Casca" });
+    await expect(secao.getByRole("heading", { level: 2 })).toHaveText("Quem dá aula com o Casca conta como é.");
+    const cartoes = secao.getByRole("button", { name: /^Ler depoimento de / });
+    await expect(cartoes).toHaveCount(2);
+    await expect(cartoes.first()).toHaveAttribute("aria-pressed", "true");
+    const citacao = secao.getByTestId("landing-testimonial-quote");
+    const primeira = await citacao.innerText();
+    await cartoes.nth(1).click();
+    await expect(cartoes.nth(1)).toHaveAttribute("aria-pressed", "true");
+    await expect(citacao).not.toHaveText(primeira);
+    await expect(secao.getByRole("list", { name: "Academias que já usam o Casca" }).getByRole("listitem")).toHaveCount(3);
+    await expect(secao.getByRole("img", { name: /^Logo da / }).first()).toBeVisible();
+    await expect(page.getByLabel("Protótipo de depoimentos")).toHaveCount(0);
+
+    await page.setViewportSize({ width: 320, height: 720 });
+    await secao.scrollIntoViewIfNeeded();
+    await expect(cartoes.first()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  });
+
   test("landing: FAQ chama o mestrão e responde pelo Casca", async ({ page }) => {
     await page.goto("/#faq", { waitUntil: "domcontentloaded" });
     const titulo = page.locator("#faq").getByRole("heading", { level: 2 });
