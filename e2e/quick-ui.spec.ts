@@ -116,26 +116,42 @@ test.describe("Smoke UI rápido", () => {
     expect(cores).toEqual({ esquema: "light only", fundoLanding: "rgb(255, 255, 255)" });
   });
 
-  test("landing: depoimentos trocam a citação em destaque e mostram as academias", async ({ page }) => {
-    await page.goto("/#depoimentos", { waitUntil: "domcontentloaded" });
+  test("landing: depoimentos alternam sozinhos, aceitam escolha e mostram as academias", async ({ page }) => {
+    await page.clock.install();
+    await page.goto("/#depoimentos", { waitUntil: "load" });
     const secao = page.getByRole("region", { name: "Depoimentos de quem usa o Casca" });
-    await expect(secao.getByRole("heading", { level: 2 })).toHaveText("Quem dá aula com o Casca conta como é.");
+    await expect(secao.getByRole("heading", { level: 2 })).toHaveText("Quem gerencia a academia usando o Casca conta como é.");
     const cartoes = secao.getByRole("button", { name: /^Ler depoimento de / });
     await expect(cartoes).toHaveCount(2);
     await expect(cartoes.first()).toHaveAttribute("aria-pressed", "true");
     const citacao = secao.getByTestId("landing-testimonial-quote");
     const primeira = await citacao.innerText();
-    await cartoes.nth(1).click();
-    await expect(cartoes.nth(1)).toHaveAttribute("aria-pressed", "true");
+
+    // Avança o relógio aos poucos até a página hidratar e a troca automática acontecer.
+    await expect
+      .poll(async () => {
+        await page.clock.runFor(1_000);
+        return cartoes.nth(1).getAttribute("aria-pressed");
+      }, { timeout: 30_000 })
+      .toBe("true");
     await expect(citacao).not.toHaveText(primeira);
-    await expect(secao.getByRole("list", { name: "Academias que já usam o Casca" }).getByRole("listitem")).toHaveCount(3);
+
+    await cartoes.first().click();
+    await expect(citacao).toHaveText(primeira);
+    await page.mouse.move(0, 0);
+    await page.clock.runFor(13_000);
+    await expect(cartoes.first()).toHaveAttribute("aria-pressed", "true");
+
+    await expect(secao.getByRole("heading", { name: "Já contam com a gente na gestão" })).toBeVisible();
+    await expect(secao.getByRole("list", { name: "Já contam com a gente na gestão" }).getByRole("listitem")).toHaveCount(3);
     await expect(secao.getByRole("img", { name: /Professor de Jiu-Jitsu/ })).toBeVisible();
     await expect(page.getByLabel("Protótipo de depoimentos")).toHaveCount(0);
+    await expect(page.getByLabel("Protótipo dos cartões de depoimento")).toHaveCount(0);
 
-    await cartoes.first().focus();
+    await cartoes.nth(1).focus();
     await page.keyboard.press("Enter");
-    await expect(cartoes.first()).toHaveAttribute("aria-pressed", "true");
-    await expect(citacao).toHaveText(primeira);
+    await expect(cartoes.nth(1)).toHaveAttribute("aria-pressed", "true");
+    await expect(citacao).not.toHaveText(primeira);
 
     for (const width of [1440, 375, 320]) {
       await page.setViewportSize({ width, height: 800 });
@@ -143,6 +159,18 @@ test.describe("Smoke UI rápido", () => {
       await expect(cartoes.first()).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     }
+  });
+
+  test("landing: depoimentos não alternam com movimento reduzido", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.clock.install();
+    await page.goto("/#depoimentos", { waitUntil: "load" });
+    const cartoes = page
+      .getByRole("region", { name: "Depoimentos de quem usa o Casca" })
+      .getByRole("button", { name: /^Ler depoimento de / });
+    await expect(cartoes.first()).toHaveAttribute("aria-pressed", "true");
+    await page.clock.runFor(13_000);
+    await expect(cartoes.first()).toHaveAttribute("aria-pressed", "true");
   });
 
   test("landing: FAQ chama o mestrão e responde pelo Casca", async ({ page }) => {
