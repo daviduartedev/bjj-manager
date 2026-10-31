@@ -9,7 +9,7 @@ const REQUEST = "30000000-0000-4000-8000-000000000001";
 
 function setup() {
   const calls: string[] = [];
-  const request: InternalAcademyRequest = { id: REQUEST, actor_user_id: OWNER, academy_name: "Academia interna", email: "teste@example.test", modality: "jiu_jitsu", plan_id: "academia", user_id: null, account_id: null };
+  const request: InternalAcademyRequest = { id: REQUEST, actor_user_id: OWNER, academy_name: "Academia interna", email: "teste@example.test", modality: "jiu_jitsu", plan_id: "academia_100", user_id: null, account_id: null };
   const deps: PlatformAdminDependencies = {
     ownerUserId: OWNER,
     repository: {
@@ -81,7 +81,7 @@ describe("administracao comercial da plataforma", () => {
 
   it("reserva a operacao antes de criar o usuario sintetico e nao repete conta concluida", async () => {
     const { deps, service, calls, request } = setup();
-    const input = { requestId: REQUEST, academyName: "Academia interna", email: "teste@example.test", password: "senha-interna-de-teste", modality: "jiu_jitsu", planId: "academia" };
+    const input = { requestId: REQUEST, academyName: "Academia interna", email: "teste@example.test", password: "senha-interna-de-teste", modality: "jiu_jitsu", planId: "academia_100" };
     expect((await service.createInternal(OWNER, input)).ok).toBe(true);
     expect(calls).toEqual(["reserve", "auth", "link", "complete"]);
     request.account_id = ACCOUNT;
@@ -90,9 +90,17 @@ describe("administracao comercial da plataforma", () => {
     expect(deps.repository.reserveInternal).toHaveBeenCalledWith(expect.not.objectContaining({ password: expect.anything() }));
   });
 
+  it("academia de teste nova usa só planos oferecidos; troca de condição mantém plano legado", async () => {
+    const { deps, service } = setup();
+    const input = { requestId: REQUEST, academyName: "Academia interna", email: "teste@example.test", password: "senha-interna-de-teste", modality: "jiu_jitsu", planId: "evolucao" };
+    expect((await service.createInternal(OWNER, input)).ok).toBe(false);
+    expect(deps.repository.reserveInternal).not.toHaveBeenCalled();
+    expect((await service.changeKind(OWNER, { accountId: ACCOUNT, kind: "exempt", planId: "evolucao", reason: "Cliente fundador" })).ok).toBe(true);
+  });
+
   it("acesso de teste aceita senha de 8 caracteres e recusa 7 antes de reservar", async () => {
     const { deps, service } = setup();
-    const input = { requestId: REQUEST, academyName: "Academia interna", email: "teste@example.test", modality: "jiu_jitsu", planId: "academia" };
+    const input = { requestId: REQUEST, academyName: "Academia interna", email: "teste@example.test", modality: "jiu_jitsu", planId: "academia_100" };
     const curta = await service.createInternal(OWNER, { ...input, password: "a".repeat(7) });
     expect(curta).toEqual({ ok: false, error: "Informe nome, modalidade, plano, e-mail novo e senha com pelo menos 8 caracteres." });
     expect(deps.repository.reserveInternal).not.toHaveBeenCalled();

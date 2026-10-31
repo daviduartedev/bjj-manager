@@ -46,4 +46,9 @@ export function hasStudentLimit(plan: Pick<SubscriptionPlan, "activeStudentLimit
   return Number.isFinite(plan.activeStudentLimit);
 }
 
+/** "Até 50 alunos ativos" ou "Alunos ativos ilimitados". */
+export function capacityLabel(plan: Pick<SubscriptionPlan, "activeStudentLimit">): string {
+  return hasStudentLimit(plan) ? `Até ${plan.activeStudentLimit} alunos ativos` : "Alunos ativos ilimitados";
+}
+
 export const COMMERCIAL_TRIAL_DAYS = 3;

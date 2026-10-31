@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { PASSWORD_MIN_LENGTH } from "@/lib/auth/password-policy";
 import { ACADEMY_MODALITIES, MODALITY_LABELS } from "@/lib/modalities/catalog";
 import type { AdminAcademy, AdminOverview } from "@/lib/platform-admin/service";
-import { SUBSCRIPTION_PLANS, getSubscriptionPlan } from "@/lib/subscriptions/catalog";
+import { SUBSCRIPTION_PLANS, getSubscriptionPlan, hasStudentLimit } from "@/lib/subscriptions/catalog";
 
 const selectClass = "h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
 const KINDS = { commercial: "Comercial", internal_test: "Teste interno", exempt: "Isenta" } as const;
@@ -42,16 +42,19 @@ function AcademyCard({ academy }: { academy: AdminAcademy }) {
   }
 
   const unchanged = kind === academy.kind && plan === academy.plan_id;
+  const currentPlan = getSubscriptionPlan(academy.plan_id);
+  // O plano legado atual continua na lista para a condição poder mudar sem trocar a capacidade.
+  const planOptions = currentPlan && !currentPlan.offered ? [...SUBSCRIPTION_PLANS, currentPlan] : SUBSCRIPTION_PLANS;
   const commercialPlanOnly = academy.kind === "commercial" && kind === "commercial";
   return <article className="min-w-0 rounded-2xl border border-border bg-card p-5 sm:p-6">
-    <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><h3 className="break-words text-lg font-semibold">{academy.academy_name}</h3><p className="mt-1 text-sm text-muted-foreground">{getSubscriptionPlan(academy.plan_id)?.name} · {academy.active_students} / {getSubscriptionPlan(academy.plan_id)?.activeStudentLimit} alunos ativos</p></div><span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{KINDS[academy.kind]}</span></div>
+    <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><h3 className="break-words text-lg font-semibold">{academy.academy_name}</h3><p className="mt-1 text-sm text-muted-foreground">{currentPlan?.name}{currentPlan && !currentPlan.offered ? " (legado)" : ""} · {currentPlan && hasStudentLimit(currentPlan) ? `${academy.active_students} / ${currentPlan.activeStudentLimit} alunos ativos` : `${academy.active_students} alunos ativos, sem limite`}</p></div><span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{KINDS[academy.kind]}</span></div>
     <p className="mt-4 text-sm">{academy.kind === "commercial" ? STATUSES[academy.status] : "Sem cobrança recorrente"}</p>
     {academy.kind === "commercial" && academy.status === "trialing" && academy.trial_ends_at && <p className="mt-1 text-sm text-muted-foreground">Teste até {date(academy.trial_ends_at)}</p>}
     {academy.kind === "commercial" && academy.paid_until && <p className="mt-1 text-sm text-muted-foreground">Período pago até {date(academy.paid_until)}</p>}
     <details className="mt-5 border-t border-border pt-3"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium text-primary">Gerenciar condição comercial</summary>
       <form className="mt-3 space-y-4" onSubmit={submit}>
         <fieldset disabled={pending} className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor={`kind-${academy.account_id}`}>Condição</Label><select id={`kind-${academy.account_id}`} className={selectClass} value={kind} onChange={event => setKind(event.target.value)}>{Object.entries(KINDS).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></div><div className="space-y-2"><Label htmlFor={`plan-${academy.account_id}`}>Capacidade</Label><select id={`plan-${academy.account_id}`} className={selectClass} value={plan} onChange={event => setPlan(event.target.value)}>{SUBSCRIPTION_PLANS.map(item => <option key={item.id} value={item.id}>{item.name} · {item.activeStudentLimit} ativos</option>)}</select></div></div>
+          <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor={`kind-${academy.account_id}`}>Condição</Label><select id={`kind-${academy.account_id}`} className={selectClass} value={kind} onChange={event => setKind(event.target.value)}>{Object.entries(KINDS).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></div><div className="space-y-2"><Label htmlFor={`plan-${academy.account_id}`}>Capacidade</Label><select id={`plan-${academy.account_id}`} className={selectClass} value={plan} onChange={event => setPlan(event.target.value)}>{planOptions.map(item => <option key={item.id} value={item.id}>{item.name}{item.offered ? "" : " (legado)"} · {hasStudentLimit(item) ? `${item.activeStudentLimit} ativos` : "ilimitado"}</option>)}</select></div></div>
           <div className="space-y-2"><Label htmlFor={`reason-${academy.account_id}`}>Motivo da alteração</Label><textarea id={`reason-${academy.account_id}`} name="reason" required minLength={5} maxLength={500} rows={3} className={`${selectClass} h-auto py-3`} /></div>
           {commercialPlanOnly && !unchanged && <p className="text-sm text-muted-foreground">Trocas de plano comercial são feitas na assinatura da própria academia, com a cobrança correspondente.</p>}
           {kind === "commercial" && academy.kind !== "commercial" && <p className="text-sm text-muted-foreground">A academia ficará com adesão pendente, sem nova avaliação gratuita. A cobrança não será retomada automaticamente.</p>}
@@ -91,7 +94,7 @@ function CreateInternalAcademy() {
       <div className="space-y-2"><Label htmlFor="internal-email">E-mail novo de teste</Label><Input id="internal-email" name="email" type="email" autoComplete="off" required maxLength={254} /></div>
       <div className="space-y-2"><Label htmlFor="internal-password">Senha do acesso de teste</Label><Input id="internal-password" name="password" type="password" autoComplete="new-password" required minLength={PASSWORD_MIN_LENGTH} maxLength={72} /><p className="text-xs text-muted-foreground">Pelo menos {PASSWORD_MIN_LENGTH} caracteres.</p></div>
       <div className="space-y-2"><Label htmlFor="internal-modality">Modalidade</Label><select id="internal-modality" name="modality" className={selectClass} defaultValue="jiu_jitsu">{ACADEMY_MODALITIES.map(modality => <option value={modality} key={modality}>{MODALITY_LABELS[modality]}</option>)}</select></div>
-      <div className="space-y-2"><Label htmlFor="internal-plan">Capacidade</Label><select id="internal-plan" name="planId" className={selectClass} defaultValue="academia">{SUBSCRIPTION_PLANS.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · {plan.activeStudentLimit} ativos</option>)}</select></div>
+      <div className="space-y-2"><Label htmlFor="internal-plan">Capacidade</Label><select id="internal-plan" name="planId" className={selectClass} defaultValue="academia_100">{SUBSCRIPTION_PLANS.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · {hasStudentLimit(plan) ? `${plan.activeStudentLimit} ativos` : "ilimitado"}</option>)}</select></div>
       <div className="flex items-end"><Button type="submit" disabled={pending}>{pending ? "Criando…" : "Criar academia de teste"}</Button></div>
     </fieldset>{error && <p role="alert" className="mt-4 text-sm text-destructive">{error}</p>}</form>
   </section>;

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { LpMark, LpReveal, LpSection } from "@/components/marketing/lp-primitives";
 import { LP_PRIMARY_CTA } from "@/components/marketing/lp-cta-styles";
-import { SUBSCRIPTION_PLANS, hasStudentLimit, type SubscriptionPlan } from "@/lib/subscriptions/catalog";
+import { SUBSCRIPTION_PLANS, capacityLabel } from "@/lib/subscriptions/catalog";
 import { cn } from "@/lib/utils";
 
 /** Só o que o Casca já entrega. Recurso novo entra aqui quando estiver no produto. */
@@ -23,10 +23,6 @@ const INCLUDED = [
 const RECOMMENDED_PLAN_ID = "academia_100";
 
 const priceFormat = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-
-function capacityLabel(plan: SubscriptionPlan): string {
-  return hasStudentLimit(plan) ? `Até ${plan.activeStudentLimit} alunos ativos` : "Alunos ativos ilimitados";
-}
 
 export function LpPricing() {
   return (

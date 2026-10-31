@@ -2,10 +2,11 @@ import { z } from "zod";
 
 import { newPasswordField, PASSWORD_MIN_LENGTH } from "@/lib/auth/password-policy";
 import { ACADEMY_MODALITIES } from "@/lib/modalities/catalog";
-import { getSubscriptionPlan, type SubscriptionPlanId } from "@/lib/subscriptions/catalog";
+import { OFFERED_SUBSCRIPTION_PLAN_IDS, SUBSCRIPTION_PLAN_IDS, getSubscriptionPlan, type SubscriptionPlanId } from "@/lib/subscriptions/catalog";
 import type { SubscriptionKind, SubscriptionStatus } from "@/lib/subscriptions/types";
 
-const planSchema = z.enum(["essencial", "academia", "evolucao"]);
+const planSchema = z.enum(SUBSCRIPTION_PLAN_IDS);
+const offeredPlanSchema = z.enum(OFFERED_SUBSCRIPTION_PLAN_IDS);
 const kindSchema = z.enum(["commercial", "internal_test", "exempt"]);
 const kindChangeSchema = z.object({
   accountId: z.string().uuid(), kind: kindSchema, planId: planSchema,
@@ -15,7 +16,7 @@ const internalSchema = z.object({
   requestId: z.string().uuid(), academyName: z.string().trim().min(2).max(80),
   email: z.string().trim().email().transform(value => value.toLowerCase()),
   password: newPasswordField,
-  modality: z.enum(ACADEMY_MODALITIES), planId: planSchema,
+  modality: z.enum(ACADEMY_MODALITIES), planId: offeredPlanSchema,
 }).strict();
 
 export type AdminAcademy = {
