@@ -84,12 +84,15 @@ test.describe("Smoke UI rápido", () => {
     for (const [index, plano] of esperado.entries()) {
       const card = cards.nth(index);
       await expect(card.getByRole("heading", { name: plano.nome, exact: true })).toBeVisible();
-      await expect(card.getByText(plano.preco, { exact: true })).toBeVisible();
+      await expect(card.getByText(`${plano.preco} por mês`, { exact: true })).toHaveCount(1);
       await expect(card.getByText(plano.capacidade, { exact: true })).toBeVisible();
-      await expect(card.getByRole("listitem")).toHaveCount(10);
-      await expect(card.getByText("Loja virtual para venda de produtos", { exact: true })).toBeVisible();
       await expect(card.getByRole("link", { name: `Escolher ${plano.nome}`, exact: true })).toHaveAttribute("href", `/register?plano=${plano.plano}`);
     }
+    await expect(planos.getByRole("heading", { name: "Tudo isso em qualquer plano.", exact: true })).toBeVisible();
+    for (const [grupo, total] of [["Alunos e aulas", 4], ["Financeiro e vendas", 3], ["Portal e documentos", 3]] as const) {
+      await expect(planos.getByRole("region", { name: grupo, exact: true }).getByRole("listitem")).toHaveCount(total);
+    }
+    await expect(planos.getByText("Loja virtual para venda de produtos", { exact: true })).toBeVisible();
     await expect(planos.getByText(/Mais de 300 alunos/)).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
