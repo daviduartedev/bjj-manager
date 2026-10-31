@@ -5,6 +5,8 @@
 BEGIN;
 
 -- Fonte unica de limite por plano no banco. NULL = plano desconhecido.
+-- Funcoes puras usadas em CHECK: ficam executaveis por qualquer papel, senao uma escrita
+-- direta autorizada por RLS falharia ao avaliar a constraint.
 CREATE OR REPLACE FUNCTION public.casca_plan_student_limit(p_plan_id text) RETURNS integer
 LANGUAGE sql IMMUTABLE SET search_path = '' AS $$
   SELECT CASE p_plan_id
@@ -16,13 +18,13 @@ LANGUAGE sql IMMUTABLE SET search_path = '' AS $$
     WHEN 'evolucao' THEN 300
   END;
 $$;
-REVOKE ALL ON FUNCTION public.casca_plan_student_limit(text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.casca_plan_student_limit(text) TO PUBLIC;
 
 CREATE OR REPLACE FUNCTION public.casca_plan_is_offered(p_plan_id text) RETURNS boolean
 LANGUAGE sql IMMUTABLE SET search_path = '' AS $$
   SELECT coalesce(p_plan_id IN ('inicial', 'academia_100', 'ilimitado'), false);
 $$;
-REVOKE ALL ON FUNCTION public.casca_plan_is_offered(text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.casca_plan_is_offered(text) TO PUBLIC;
 
 -- Constraints aceitam os seis IDs. Defaults passam ao plano inicial (so afetam linhas novas).
 ALTER TABLE public.casca_subscriptions DROP CONSTRAINT IF EXISTS casca_subscriptions_plan_id_check;

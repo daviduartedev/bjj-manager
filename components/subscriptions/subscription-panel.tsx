@@ -85,7 +85,7 @@ export function SubscriptionPanel({ subscription, activeStudentCount, configured
         return;
       }
       if ("scheduled" in result.data) {
-        setMessage(`A troca de plano entra em vigor em ${dateLabel(result.data.appliesAt)}. Até lá, valem o menor limite entre o plano atual e o novo.`);
+        setMessage(`A troca de plano entra em vigor em ${dateLabel(result.data.appliesAt)}. Até lá, vale o menor limite entre o plano atual e o novo.`);
         return;
       }
       setMessage("Plano atualizado. A próxima cobrança recorrente usará o novo valor.");
@@ -219,9 +219,9 @@ function UsageMeter({ used, limit }: { used: number; limit: number }) {
   if (!Number.isFinite(limit)) {
     return (
       <div>
-        <p className="text-sm text-muted-foreground">Alunos ativos no plano</p>
+        <p className="text-sm text-muted-foreground">Alunos ativos ilimitados</p>
         <p className="mt-1 text-2xl font-bold tabular-nums tracking-[-0.02em]">
-          {used} <span className="text-base font-medium text-muted-foreground">sem limite</span>
+          {used} <span className="text-base font-medium text-muted-foreground">ativos agora</span>
         </p>
       </div>
     );
