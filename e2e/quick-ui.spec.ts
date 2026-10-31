@@ -95,10 +95,13 @@ test.describe("Smoke UI rápido", () => {
     const manifesto = page.getByRole("region", { name: "Manifesto do Casca" });
     await expect(manifesto.getByText("Por que existimos", { exact: true })).toHaveCount(0);
     await expect(manifesto).toBeVisible();
-    for (const nome of ["Jigoro Kano", "Rillion Gracie", "Anderson Silva", "Éder Jofre", "Natália Falavigna"]) {
+    for (const nome of ["Royce Gracie", "Rodolfo Vieira", "Anderson Silva", "José Aldo", "Éder Jofre", "Popó Freitas", "Rafaela Silva"]) {
       await expect(manifesto.getByText(nome, { exact: true })).toBeVisible();
     }
-    await expect(manifesto).toContainText("O Casca existe para que a sua continue abrindo");
+    for (const fora of ["Jigoro Kano", "Buakaw", "Hélio Gracie"]) {
+      await expect(manifesto.getByText(fora, { exact: true })).toHaveCount(0);
+    }
+    await expect(manifesto).toContainText("O Casca organiza a academia para você voltar ao que importa: o tatame.");
   });
 
   test("landing: FAQ chama o mestrão e responde pelo Casca", async ({ page }) => {
